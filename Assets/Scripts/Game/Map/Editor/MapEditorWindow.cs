@@ -19,7 +19,7 @@ public sealed class MapEditorWindow : OdinEditorWindow
     private MapAuthoringRoot authoringRoot;
 
     [SerializeField, LabelText("当前文件")]
-    private string currentFilePath = "Assets/GameData/Maps/NewMap.json";
+    private string currentFilePath = "Assets/Data/Maps/NewMap.json";
 
     [InlineProperty, HideLabel]
     [SerializeField]
@@ -74,7 +74,7 @@ public sealed class MapEditorWindow : OdinEditorWindow
     [Button("打开 JSON", ButtonSizes.Large)]
     private void OpenJson()
     {
-        string path = EditorUtility.OpenFilePanel("Open Map Json", "Assets/GameData/Maps", "json");
+        string path = EditorUtility.OpenFilePanel("Open Map Json", "Assets/Data/Maps", "json");
         if (string.IsNullOrEmpty(path))
         {
             return;
@@ -116,7 +116,7 @@ public sealed class MapEditorWindow : OdinEditorWindow
 
         string path = EditorUtility.SaveFilePanel(
             "Save Map Json",
-            "Assets/GameData/Maps",
+            "Assets/Data/Maps",
             string.IsNullOrWhiteSpace(currentMap.mapId) ? "new_map" : currentMap.mapId,
             "json");
 

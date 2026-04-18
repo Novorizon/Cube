@@ -19,7 +19,7 @@ namespace Game.Framework
     {
         private void RequestAtlas(string atlasName, Action<SpriteAtlas> callback)
         {
-            atlasName = "Assets/GameData/SpriteAtlas/" + atlasName + ".spriteatlas";
+            atlasName = "Assets/Data/SpriteAtlas/" + atlasName + ".spriteatlas";
             AssetHandle handle = package.LoadAssetAsync<SpriteAtlas>(atlasName);
 
             handle.Completed += _ =>
@@ -188,7 +188,7 @@ namespace Game.Framework
         //            {
         //                if (!location.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
         //                {
-        //                    return string.Format("Assets/GameData/SpriteAtlas/{0}.spriteatlas", location);
+        //                    return string.Format("Assets/Data/SpriteAtlas/{0}.spriteatlas", location);
         //                }
         //            }
         //            if (!location.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))

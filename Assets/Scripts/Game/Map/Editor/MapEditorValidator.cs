@@ -63,7 +63,7 @@ public static class MapEditorValidator
             }
         }
 
-        string mapFolder = "Assets/GameData/Maps";
+        string mapFolder = "Assets/Data/Maps";
         if (!Directory.Exists(mapFolder))
         {
             return true;
