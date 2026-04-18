@@ -1,0 +1,17 @@
+{
+  "name": "com.yourcompany.ui-framework-pro-skeleton",
+  "version": "0.2.0",
+  "displayName": "UI Framework Pro Skeleton",
+  "description": "Professional UI category management: pages/popups/panels/overlays/toasts, loader-agnostic.",
+  "unity": "2020.3",
+  "keywords": [
+    "ui",
+    "framework",
+    "navigation",
+    "modal",
+    "toast"
+  ],
+  "author": {
+    "name": "Your Team"
+  }
+}
