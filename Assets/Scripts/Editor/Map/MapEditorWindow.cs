@@ -8,9 +8,9 @@ using UnityEngine;
 
 /// <summary>
 /// Odin 地图编辑窗口。
-/// 
+///
 /// 功能：
-/// - 新建 3D 体素地图
+/// - 新建程序化 3D 地图（含地形起伏、多地块类型）
 /// - 从场景读取
 /// - 从 JSON 打开
 /// - 保存
@@ -26,7 +26,7 @@ public sealed class MapEditorWindow : OdinEditorWindow
     }
 
     [Title("Map Editor")]
-    [InfoBox("JSON 是地图真源。3D 体素地图中，每个 (x,y,z) 都是一个真实 cube。")]
+    [InfoBox("JSON 是地图真源。新建地图将按噪声生成起伏高度，并自动混合 Grass/Hill/Snow/Water。")]
     [SerializeField]
     private MapAuthoringRoot authoringRoot;
 
@@ -35,16 +35,34 @@ public sealed class MapEditorWindow : OdinEditorWindow
 
     [Title("新建地图参数")]
     [SerializeField, LabelText("宽度 X")]
-    private int newMapWidth = 8;
+    private int newMapWidth = 16;
 
-    [SerializeField, LabelText("高度 Y")]
-    private int newMapHeight = 1;
+    [SerializeField, LabelText("高度上限 Y")]
+    private int newMapHeight = 8;
 
     [SerializeField, LabelText("深度 Z")]
-    private int newMapDepth = 8;
+    private int newMapDepth = 16;
 
-    [SerializeField, LabelText("默认地块类型")]
+    [SerializeField, LabelText("默认地表类型")]
     private TileType defaultTileType = TileType.Grass;
+
+    [SerializeField, LabelText("随机种子")]
+    private int terrainSeed = 2026;
+
+    [SerializeField, MinValue(1f), LabelText("高度噪声尺度")]
+    private float heightNoiseScale = 8f;
+
+    [SerializeField, LabelText("最小地表高度")]
+    private int minSurfaceHeight = 0;
+
+    [SerializeField, LabelText("最大地表高度")]
+    private int maxSurfaceHeight = 5;
+
+    [SerializeField, LabelText("水位高度")]
+    private int waterLevel = 1;
+
+    [SerializeField, LabelText("雪线高度")]
+    private int snowLevel = 5;
 
     [Title("当前地图数据")]
     [InlineProperty, HideLabel]
@@ -70,16 +88,25 @@ public sealed class MapEditorWindow : OdinEditorWindow
             return;
         }
 
+        int clampedMinSurfaceHeight = Mathf.Clamp(minSurfaceHeight, 0, currentMap.height - 1);
+        int clampedMaxSurfaceHeight = Mathf.Clamp(maxSurfaceHeight, clampedMinSurfaceHeight, currentMap.height - 1);
+
         authoringRoot.CreateNewMap(
             currentMap.width,
             currentMap.height,
             currentMap.depth,
-            defaultTileType);
+            defaultTileType,
+            terrainSeed,
+            heightNoiseScale,
+            clampedMinSurfaceHeight,
+            clampedMaxSurfaceHeight,
+            waterLevel,
+            snowLevel);
 
         EditorUtility.SetDirty(authoringRoot);
 
         ImportFromScene();
-        ShowMessage("已新建地图");
+        ShowMessage("已新建程序化地图");
     }
 
     [Button("从场景读取", ButtonSizes.Large)]
