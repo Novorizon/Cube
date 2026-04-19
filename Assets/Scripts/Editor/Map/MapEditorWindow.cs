@@ -1,10 +1,22 @@
 #if UNITY_EDITOR
+using System;
 using System.IO;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
 
+/// <summary>
+/// Odin 地图编辑窗口。
+/// 
+/// 功能：
+/// - 新建 3D 体素地图
+/// - 从场景读取
+/// - 从 JSON 打开
+/// - 保存
+/// - 另存为
+/// - 重建场景
+/// </summary>
 public sealed class MapEditorWindow : OdinEditorWindow
 {
     [MenuItem("Tools/TD/Map Editor")]
@@ -14,13 +26,27 @@ public sealed class MapEditorWindow : OdinEditorWindow
     }
 
     [Title("Map Editor")]
-    [InfoBox("JSON 是地图真源。打开、保存、另存为都操作 json 文件。")]
+    [InfoBox("JSON 是地图真源。3D 体素地图中，每个 (x,y,z) 都是一个真实 cube。")]
     [SerializeField]
     private MapAuthoringRoot authoringRoot;
 
     [SerializeField, LabelText("当前文件")]
     private string currentFilePath = "Assets/Data/Maps/NewMap.json";
 
+    [Title("新建地图参数")]
+    [SerializeField, LabelText("宽度 X")]
+    private int newMapWidth = 8;
+
+    [SerializeField, LabelText("高度 Y")]
+    private int newMapHeight = 1;
+
+    [SerializeField, LabelText("深度 Z")]
+    private int newMapDepth = 8;
+
+    [SerializeField, LabelText("默认地块类型")]
+    private TileType defaultTileType = TileType.Grass;
+
+    [Title("当前地图数据")]
     [InlineProperty, HideLabel]
     [SerializeField]
     private MapJsonData currentMap = new MapJsonData();
@@ -28,15 +54,32 @@ public sealed class MapEditorWindow : OdinEditorWindow
     [Button("新建地图", ButtonSizes.Large)]
     private void NewMap()
     {
-        currentMap = new MapJsonData();
-        currentMap.mapId = "new_map";
-        currentMap.mapName = "New Map";
-
-        if (authoringRoot != null)
+        currentMap = new MapJsonData
         {
-            authoringRoot.RebuildFromJsonData(currentMap);
-            EditorUtility.SetDirty(authoringRoot);
+            version = 1,
+            mapId = "new_map",
+            mapName = "New Map",
+            width = Mathf.Max(1, newMapWidth),
+            height = Mathf.Max(1, newMapHeight),
+            depth = Mathf.Max(1, newMapDepth)
+        };
+
+        if (authoringRoot == null)
+        {
+            ShowMessage("缺少 MapAuthoringRoot");
+            return;
         }
+
+        authoringRoot.CreateNewMap(
+            currentMap.width,
+            currentMap.height,
+            currentMap.depth,
+            defaultTileType);
+
+        EditorUtility.SetDirty(authoringRoot);
+
+        ImportFromScene();
+        ShowMessage("已新建地图");
     }
 
     [Button("从场景读取", ButtonSizes.Large)]
@@ -48,12 +91,17 @@ public sealed class MapEditorWindow : OdinEditorWindow
             return;
         }
 
-        MapJsonData data = authoringRoot.ExportToJsonData();
+        int width = Mathf.Max(1, currentMap.width);
+        int height = Mathf.Max(1, currentMap.height);
+        int depth = Mathf.Max(1, currentMap.depth);
+
+        MapJsonData data = authoringRoot.ExportToJsonData(width, height, depth);
+
         data.version = currentMap.version <= 0 ? 1 : currentMap.version;
         data.mapId = string.IsNullOrWhiteSpace(currentMap.mapId) ? "new_map" : currentMap.mapId;
         data.mapName = string.IsNullOrWhiteSpace(currentMap.mapName) ? "New Map" : currentMap.mapName;
-        currentMap = data;
 
+        currentMap = data;
         ShowMessage("已从场景读取地图");
     }
 
@@ -106,6 +154,7 @@ public sealed class MapEditorWindow : OdinEditorWindow
         string absolutePath = ToAbsolutePath(currentFilePath);
         MapJsonIO.SaveToFile(absolutePath, currentMap, true);
         AssetDatabase.Refresh();
+
         ShowMessage("已保存");
     }
 
@@ -135,6 +184,7 @@ public sealed class MapEditorWindow : OdinEditorWindow
 
         MapJsonIO.SaveToFile(path, currentMap, true);
         AssetDatabase.Refresh();
+
         ShowMessage("已另存为");
     }
 
@@ -143,7 +193,7 @@ public sealed class MapEditorWindow : OdinEditorWindow
     {
         get
         {
-            return currentMap?.tiles?.ToArray() ?? System.Array.Empty<TileJsonData>();
+            return currentMap?.tiles?.ToArray() ?? Array.Empty<TileJsonData>();
         }
     }
 

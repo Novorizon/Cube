@@ -1,6 +1,11 @@
 using Unity.Mathematics;
 using UnityEngine;
 
+/// <summary>
+/// MapManager 的可见地图生成部分。
+/// 
+/// 运行时加载 MapData 后，根据每个存在的 voxel 实例化 prefab。
+/// </summary>
 public sealed partial class MapManager
 {
     private void RebuildView()
@@ -12,61 +17,50 @@ public sealed partial class MapManager
             return;
         }
 
-        for (int z = 0; z < CurrentMap.Depth; z++)
+        for (int i = 0; i < CurrentMap.Tiles.Length; i++)
         {
-            for (int x = 0; x < CurrentMap.Width; x++)
+            TileData tile = CurrentMap.Tiles[i];
+
+            if (!tile.Exists)
             {
-                ref TileData tile = ref CurrentMap.GetTile(x, z);
-                CreateTileView(tile);
+                continue;
             }
+
+            CreateTileView(tile);
         }
     }
 
     private void CreateTileView(TileData tile)
     {
-        TileVisualEntry entry = visualLibrary.Get(tile.Type);
-        if (entry == null || entry.prefabs == null || entry.prefabs.Count == 0)
-        {
-            return;
-        }
+        GameObject prefab = visualLibrary.GetPrefab(tile.Type, tile.Coord);
 
-        GameObject prefab = PickPrefab(entry, tile.Coord);
         if (prefab == null)
         {
+            Debug.LogError($"没有找到地块 prefab。type={tile.Type}, coord={tile.Coord}");
             return;
         }
 
-        Vector3 worldPos = ToWorldPosition(tile.Coord);
-        GameObject instance = GameObject.Instantiate(prefab, worldPos, Quaternion.identity, mapRoot);
+        Vector3 worldPosition = ToWorldPosition(tile.Coord);
+        GameObject instance = GameObject.Instantiate(prefab, worldPosition, Quaternion.identity, mapRoot);
 
         TileView tileView = instance.GetComponent<TileView>();
         if (tileView == null)
         {
-            tileView = instance.AddComponent<TileView>();
+            Debug.LogError($"地块 prefab 必须挂 TileView：{prefab.name}");
+            GameObject.Destroy(instance);
+            return;
         }
 
-        tileView.Bind(tile.Coord, tile.Type);
+        tileView.Bind(tile, visualLibrary.cellSize, visualLibrary.heightStep);
         tileViews[tile.Coord] = tileView;
-    }
-
-    private GameObject PickPrefab(TileVisualEntry entry, int3 coord)
-    {
-        if (entry.prefabs.Count == 1)
-        {
-            return entry.prefabs[0];
-        }
-
-        int hash = math.abs(coord.x * 73856093 ^ coord.y * 19349663 ^ coord.z * 83492791);
-        int index = hash % entry.prefabs.Count;
-        return entry.prefabs[index];
     }
 
     public Vector3 ToWorldPosition(int3 coord)
     {
-        float x = coord.x * visualLibrary.cellSize;
-        float y = coord.y * visualLibrary.heightStep;
-        float z = coord.z * visualLibrary.cellSize;
-        return new Vector3(x, y, z);
+        return new Vector3(
+            coord.x * visualLibrary.cellSize,
+            coord.y * visualLibrary.heightStep,
+            coord.z * visualLibrary.cellSize);
     }
 
     private void ClearView()
