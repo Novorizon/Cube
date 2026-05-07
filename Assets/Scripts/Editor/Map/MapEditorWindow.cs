@@ -91,6 +91,7 @@ public sealed class MapEditorWindow : OdinEditorWindow
         int clampedMinSurfaceHeight = Mathf.Clamp(minSurfaceHeight, 0, currentMap.height - 1);
         int clampedMaxSurfaceHeight = Mathf.Clamp(maxSurfaceHeight, clampedMinSurfaceHeight, currentMap.height - 1);
 
+        //terrainSeed=Time.captureFramerate
         authoringRoot.CreateNewMap(
             currentMap.width,
             currentMap.height,
