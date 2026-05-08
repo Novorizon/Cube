@@ -243,6 +243,8 @@ namespace Game
                     continue;
                 }
 
+                mapTileData.ApplyDefaultLogicByType(mapTileData.Type);
+
                 Vector3Int key = new Vector3Int(mapTileData.X, mapTileData.Y, mapTileData.Z);
 
                 tileMap[key] = mapTileData;
@@ -417,9 +419,50 @@ namespace Game
             return tileDataMap.ContainsKey(coord);
         }
 
+        public bool IsLogicTile(Vector3Int coord)
+        {
+            if (!tileDataMap.TryGetValue(coord, out TileData tileData))
+            {
+                return false;
+            }
+
+            return MapTileRule.IsLogicTile(tileData.Type);
+        }
+
+        public bool IsLogicTileType(MapTileType type)
+        {
+            return MapTileRule.IsLogicTile(type);
+        }
+
+        public bool HasTileAbove(Vector3Int coord)
+        {
+            Vector3Int aboveCoord = new Vector3Int(coord.x, coord.y + 1, coord.z);
+            return tileDataMap.ContainsKey(aboveCoord);
+        }
+
+        public bool IsExposed(Vector3Int coord)
+        {
+            if (!tileDataMap.ContainsKey(coord))
+            {
+                return false;
+            }
+
+            return !HasTileAbove(coord);
+        }
+
         public bool IsWalkable(Vector3Int coord)
         {
             if (!tileDataMap.TryGetValue(coord, out TileData tileData))
+            {
+                return false;
+            }
+
+            if (!MapTileRule.IsLogicTile(tileData.Type))
+            {
+                return false;
+            }
+
+            if (!IsExposed(coord))
             {
                 return false;
             }
@@ -434,6 +477,16 @@ namespace Game
                 return false;
             }
 
+            if (!MapTileRule.IsLogicTile(tileData.Type))
+            {
+                return false;
+            }
+
+            if (!IsExposed(coord))
+            {
+                return false;
+            }
+
             return tileData.IsRuntimeBuildable;
         }
 
@@ -444,7 +497,7 @@ namespace Game
                 return int.MaxValue;
             }
 
-            if (!tileData.IsRuntimeWalkable)
+            if (!IsWalkable(coord))
             {
                 return int.MaxValue;
             }
@@ -497,7 +550,7 @@ namespace Game
                 return false;
             }
 
-            if (!tileData.IsRuntimeBuildable)
+            if (!IsBuildable(coord))
             {
                 return false;
             }
@@ -519,6 +572,130 @@ namespace Game
 
             tileData.ClearTower();
             return true;
+        }
+
+        public bool CanRemoveTile(Vector3Int coord)
+        {
+            if (!tileDataMap.ContainsKey(coord))
+            {
+                return false;
+            }
+
+            if (HasTileAbove(coord))
+            {
+                return false;
+            }
+
+            if (HasTower(coord))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool TryRemoveTile(Vector3Int coord)
+        {
+            if (!CanRemoveTile(coord))
+            {
+                return false;
+            }
+
+            if (!tileDataMap.TryGetValue(coord, out TileData tileData))
+            {
+                return false;
+            }
+
+            tileDataMap.Remove(coord);
+            tileMap.Remove(coord);
+
+            if (currentMap != null && currentMap.Tiles != null)
+            {
+                currentMap.Tiles.Remove(tileData.MapTileData);
+            }
+
+            if (tileViews.TryGetValue(coord, out TileView tileView))
+            {
+                if (tileView != null)
+                {
+                    GameObject.Destroy(tileView.gameObject);
+                }
+
+                tileViews.Remove(coord);
+            }
+
+            return true;
+        }
+
+        public bool TryDestroyHill(Vector3Int coord)
+        {
+            if (!tileDataMap.TryGetValue(coord, out TileData tileData))
+            {
+                return false;
+            }
+
+            if (tileData.Type != MapTileType.Hill)
+            {
+                return false;
+            }
+
+            return TryRemoveTile(coord);
+        }
+
+        public bool TryGetTopTile(int x, int z, out TileData tileData)
+        {
+            tileData = null;
+
+            int topY = int.MinValue;
+
+            foreach (KeyValuePair<Vector3Int, TileData> pair in tileDataMap)
+            {
+                Vector3Int coord = pair.Key;
+
+                if (coord.x != x || coord.z != z)
+                {
+                    continue;
+                }
+
+                if (coord.y > topY)
+                {
+                    topY = coord.y;
+                    tileData = pair.Value;
+                }
+            }
+
+            return tileData != null;
+        }
+
+        public bool TryGetTopLogicTile(int x, int z, out TileData tileData)
+        {
+            tileData = null;
+
+            int topY = int.MinValue;
+
+            foreach (KeyValuePair<Vector3Int, TileData> pair in tileDataMap)
+            {
+                Vector3Int coord = pair.Key;
+                TileData currentTileData = pair.Value;
+
+                if (coord.x != x || coord.z != z)
+                {
+                    continue;
+                }
+
+                if (!MapTileRule.IsLogicTile(currentTileData.Type))
+                {
+                    continue;
+                }
+
+                if (coord.y > topY)
+                {
+                    topY = coord.y;
+                    tileData = currentTileData;
+                }
+            }
+
+            return tileData != null;
         }
     }
 }
