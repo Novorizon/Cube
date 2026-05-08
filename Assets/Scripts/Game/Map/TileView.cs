@@ -3,12 +3,11 @@ using UnityEngine;
 namespace Game
 {
     /// <summary>
-    /// 地块表现层组件。
+    /// 地块表现层。
     /// 
     /// 注意：
     /// TileView 不保存独立坐标。
     /// 坐标唯一来源是 MapTileData.X/Y/Z。
-    /// TileView 只负责把场景 GameObject 和 MapTileData 绑定起来。
     /// </summary>
     public sealed class TileView : MonoBehaviour
     {
@@ -55,8 +54,8 @@ namespace Game
 
         public void SetSelected(bool selected)
         {
-            // 先留空。
-            // 后面可以在这里处理选中框、描边、高亮材质等表现。
+            // 暂时留空。
+            // 后面可以在这里做高亮、描边、选中框等表现。
         }
     }
 }
