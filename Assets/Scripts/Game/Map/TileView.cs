@@ -7,13 +7,13 @@ namespace Game
     /// 
     /// 注意：
     /// TileView 不保存独立坐标。
-    /// 坐标唯一来源是 MapTileData.X/Y/Z。
+    /// 坐标唯一来源是 TileData.Coord。
     /// </summary>
     public sealed class TileView : MonoBehaviour
     {
-        private MapTileData data;
+        private TileData data;
 
-        public MapTileData Data
+        public TileData Data
         {
             get
             {
@@ -30,7 +30,7 @@ namespace Game
                     return default;
                 }
 
-                return new Vector3Int(data.X, data.Y, data.Z);
+                return data.Coord;
             }
         }
 
@@ -47,7 +47,7 @@ namespace Game
             }
         }
 
-        public void Initialize(MapTileData tileData)
+        public void Initialize(TileData tileData)
         {
             data = tileData;
         }

@@ -145,12 +145,12 @@ namespace Game.Editor
             {
                 for (int x = 0; x < width; x++)
                 {
-                    MapTileData tile = new MapTileData(x, 0, z, MapTileType.Soil);
+                    MapTileData tile = new MapTileData(x, -1, z, MapTileType.Soil);
                     currentMap.Tiles.Add(tile);
                 }
             }
-            //从y=1开始创建地块
-            for (int y = 1; y < height; y++)
+            //从y=0开始创建地块
+            for (int y = 0; y < height; y++)
             {
                 for (int z = 0; z < depth; z++)
                 {

@@ -186,6 +186,9 @@ namespace Game
             {
                 selectedTile.SetSelected(true);
                 Debug.Log($"Select tile: {selectedTile.Coord}, Type: {selectedTile.Type}");
+
+                //判断是否可建造
+                //显示选中框
             }
         }
 

@@ -20,6 +20,7 @@ namespace Game
         private MapData currentMap;
 
         private readonly Dictionary<Vector3Int, MapTileData> tileMap = new Dictionary<Vector3Int, MapTileData>();
+        private readonly Dictionary<Vector3Int, TileData> tileDataMap = new Dictionary<Vector3Int, TileData>();
         private readonly Dictionary<Vector3Int, TileView> tileViews = new Dictionary<Vector3Int, TileView>();
 
         private Transform mapRoot;
@@ -164,35 +165,42 @@ namespace Game
 
             for (int i = 0; i < currentMap.Tiles.Count; i++)
             {
-                MapTileData tile = currentMap.Tiles[i];
+                MapTileData mapTileData = currentMap.Tiles[i];
 
-                if (tile == null)
+                if (mapTileData == null)
                 {
                     continue;
                 }
 
-                CreateTileView(tile);
+                Vector3Int coord = new Vector3Int(mapTileData.X, mapTileData.Y, mapTileData.Z);
+
+                if (!tileDataMap.TryGetValue(coord, out TileData tileData))
+                {
+                    continue;
+                }
+
+                CreateTileView(tileData);
             }
 
             Debug.Log($"Create map success. Count: {tileViews.Count}");
         }
 
-        private void CreateTileView(MapTileData tile)
+        private void CreateTileView(TileData tileData)
         {
-            Vector3Int key = new Vector3Int(tile.X, tile.Y, tile.Z);
+            Vector3Int key = tileData.Coord;
 
-            GameObject prefab = GetPrefab(tile.Type);
+            GameObject prefab = GetPrefab(tileData.Type);
 
             if (prefab == null)
             {
-                Debug.LogWarning($"Missing prefab for tile type: {tile.Type}, Coord: {key}");
+                Debug.LogWarning($"Missing prefab for tile type: {tileData.Type}, Coord: {key}");
                 return;
             }
 
-            Vector3 position = GetWorldPosition(tile.X, tile.Y, tile.Z);
+            Vector3 position = GetWorldPosition(tileData.X, tileData.Y, tileData.Z);
 
             GameObject instance = GameObject.Instantiate(prefab, position, Quaternion.identity, mapRoot);
-            instance.name = $"{tile.Type}_{tile.X}_{tile.Y}_{tile.Z}";
+            instance.name = $"{tileData.Type}_{tileData.X}_{tileData.Y}_{tileData.Z}";
 
             TileView tileView = instance.GetComponent<TileView>();
 
@@ -201,7 +209,7 @@ namespace Game
                 tileView = instance.AddComponent<TileView>();
             }
 
-            tileView.Initialize(tile);
+            tileView.Initialize(tileData);
 
             tileViews[key] = tileView;
         }
@@ -219,6 +227,7 @@ namespace Game
         private void RebuildTileIndex()
         {
             tileMap.Clear();
+            tileDataMap.Clear();
 
             if (currentMap == null || currentMap.Tiles == null)
             {
@@ -227,15 +236,17 @@ namespace Game
 
             for (int i = 0; i < currentMap.Tiles.Count; i++)
             {
-                MapTileData tile = currentMap.Tiles[i];
+                MapTileData mapTileData = currentMap.Tiles[i];
 
-                if (tile == null)
+                if (mapTileData == null)
                 {
                     continue;
                 }
 
-                Vector3Int key = new Vector3Int(tile.X, tile.Y, tile.Z);
-                tileMap[key] = tile;
+                Vector3Int key = new Vector3Int(mapTileData.X, mapTileData.Y, mapTileData.Z);
+
+                tileMap[key] = mapTileData;
+                tileDataMap[key] = new TileData(mapTileData);
             }
         }
 
@@ -256,6 +267,7 @@ namespace Game
         {
             currentMap = null;
             tileMap.Clear();
+            tileDataMap.Clear();
             ClearMapObjects();
         }
 
@@ -315,15 +327,26 @@ namespace Game
             return prefab;
         }
 
-        public bool TryGetTile(Vector3Int coord, out MapTileData tile)
+        public bool TryGetMapTileData(Vector3Int coord, out MapTileData mapTileData)
         {
-            return tileMap.TryGetValue(coord, out tile);
+            return tileMap.TryGetValue(coord, out mapTileData);
         }
 
-        public bool TryGetTile(int x, int y, int z, out MapTileData tile)
+        public bool TryGetMapTileData(int x, int y, int z, out MapTileData mapTileData)
         {
             Vector3Int coord = new Vector3Int(x, y, z);
-            return TryGetTile(coord, out tile);
+            return TryGetMapTileData(coord, out mapTileData);
+        }
+
+        public bool TryGetTileData(Vector3Int coord, out TileData tileData)
+        {
+            return tileDataMap.TryGetValue(coord, out tileData);
+        }
+
+        public bool TryGetTileData(int x, int y, int z, out TileData tileData)
+        {
+            Vector3Int coord = new Vector3Int(x, y, z);
+            return TryGetTileData(coord, out tileData);
         }
 
         public bool TryGetTileView(Vector3Int coord, out TileView tileView)
@@ -369,14 +392,133 @@ namespace Game
             return GetWorldPosition(coord.x, coord.y, coord.z);
         }
 
-        public Vector3 GetTileWorldPosition(MapTileData tile)
+        public Vector3 GetTileWorldPosition(MapTileData mapTileData)
         {
-            if (tile == null)
+            if (mapTileData == null)
             {
                 return Vector3.zero;
             }
 
-            return GetWorldPosition(tile.X, tile.Y, tile.Z);
+            return GetWorldPosition(mapTileData.X, mapTileData.Y, mapTileData.Z);
+        }
+
+        public Vector3 GetTileWorldPosition(TileData tileData)
+        {
+            if (tileData == null)
+            {
+                return Vector3.zero;
+            }
+
+            return GetWorldPosition(tileData.X, tileData.Y, tileData.Z);
+        }
+
+        public bool IsInsideMap(Vector3Int coord)
+        {
+            return tileDataMap.ContainsKey(coord);
+        }
+
+        public bool IsWalkable(Vector3Int coord)
+        {
+            if (!tileDataMap.TryGetValue(coord, out TileData tileData))
+            {
+                return false;
+            }
+
+            return tileData.IsRuntimeWalkable;
+        }
+
+        public bool IsBuildable(Vector3Int coord)
+        {
+            if (!tileDataMap.TryGetValue(coord, out TileData tileData))
+            {
+                return false;
+            }
+
+            return tileData.IsRuntimeBuildable;
+        }
+
+        public int GetMoveCost(Vector3Int coord)
+        {
+            if (!tileDataMap.TryGetValue(coord, out TileData tileData))
+            {
+                return int.MaxValue;
+            }
+
+            if (!tileData.IsRuntimeWalkable)
+            {
+                return int.MaxValue;
+            }
+
+            return tileData.MoveCost;
+        }
+
+        public bool HasTower(Vector3Int coord)
+        {
+            if (!tileDataMap.TryGetValue(coord, out TileData tileData))
+            {
+                return false;
+            }
+
+            return tileData.HasTower;
+        }
+
+        public bool TryGetTower(Vector3Int coord, out Tower tower)
+        {
+            tower = null;
+
+            if (!tileDataMap.TryGetValue(coord, out TileData tileData))
+            {
+                return false;
+            }
+
+            if (!tileData.HasTower)
+            {
+                return false;
+            }
+
+            tower = tileData.Tower;
+            return true;
+        }
+
+        public bool CanPlaceTower(Vector3Int coord)
+        {
+            return IsBuildable(coord);
+        }
+
+        public bool TryPlaceTower(Vector3Int coord, Tower tower)
+        {
+            if (tower == null)
+            {
+                return false;
+            }
+
+            if (!tileDataMap.TryGetValue(coord, out TileData tileData))
+            {
+                return false;
+            }
+
+            if (!tileData.IsRuntimeBuildable)
+            {
+                return false;
+            }
+
+            return tileData.TrySetTower(tower);
+        }
+
+        public bool RemoveTower(Vector3Int coord)
+        {
+            if (!tileDataMap.TryGetValue(coord, out TileData tileData))
+            {
+                return false;
+            }
+
+            if (!tileData.HasTower)
+            {
+                return false;
+            }
+
+            tileData.ClearTower();
+            return true;
         }
     }
 }
