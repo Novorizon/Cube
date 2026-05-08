@@ -1,57 +1,42 @@
+using Game;
+using UI;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI.Sample
+namespace Game.UI
 {
     public sealed class MainMenuPage : UIPage
     {
-        [SerializeField] Button? openSettingsButton;
-        [SerializeField] Button? openSidePanelButton;
-        [SerializeField] Button? showToastButton;
-        [SerializeField] Button? showLoadingButton;
+        [SerializeField]
+        private Button enterMapButton;
+
+        [SerializeField]
+        private int mapId = 1;
 
         protected override void OnCreate()
         {
-            if (openSettingsButton != null)
+            if (enterMapButton != null)
             {
-                openSettingsButton.onClick.AddListener(OnOpenSettingsClicked);
-            }
-
-            if (openSidePanelButton != null)
-            {
-                openSidePanelButton.onClick.AddListener(OnToggleSidePanelClicked);
-            }
-
-            if (showToastButton != null)
-            {
-                showToastButton.onClick.AddListener(OnShowToastClicked);
-            }
-
-            if (showLoadingButton != null)
-            {
-                showLoadingButton.onClick.AddListener(OnShowLoadingClicked);
+                enterMapButton.onClick.AddListener(OnEnterMapClicked);
             }
         }
 
-        void OnOpenSettingsClicked()
+        protected override void OnDestroyed()
         {
-            _ = UIRoot.Instance.Popups.OpenAsync("UI/Popups/SettingsPopup");
+            if (enterMapButton != null)
+            {
+                enterMapButton.onClick.RemoveListener(OnEnterMapClicked);
+            }
         }
 
-        void OnToggleSidePanelClicked()
+        private void OnEnterMapClicked()
         {
-            _ = UIRoot.Instance.Panels.ToggleAsync("UI/Panels/SidePanel");
-        }
+            MapManager.Instance.LoadMap(mapId);
 
-        void OnShowToastClicked()
-        {
-            UIRoot.Instance.Toasts.Enqueue("UI/Toasts/SimpleToast", "Saved!");
-        }
-
-        async void OnShowLoadingClicked()
-        {
-            using var token = await UIRoot.Instance.Overlays.ShowBlockingAsync("UI/Overlays/LoadingOverlay");
-            await System.Threading.Tasks.Task.Delay(1200);
+            // 当前先简单隐藏主菜单。
+            // 后面如果你做 GamePage，可以改成：
+            // await UIManager.Instance.Pages.ReplaceAsync("Assets/Data/UI/Pages/GamePage.prefab");
+            gameObject.SetActive(false);
         }
     }
 }

@@ -1,15 +1,16 @@
 using Game.Framework;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using UI;
 using UnityEngine;
 
 namespace Game
 {
-
-
     public class GameEntry : MonoBehaviour
     {
+        [SerializeField]
+        private string mainMenuPagePath = "Assets/Arts/UI/Pages/MainMenuPage.prefab";
+
         private void Start()
         {
             Initialize().Forget();
@@ -17,11 +18,24 @@ namespace Game
 
         private async Task Initialize()
         {
+            GameInputManager.Instance.Initialize(InputMode.Gameplay);
+            CameraManager.Instance.Initialize();
             await ResourceManager.Instance.InitializeAsync();
-             MapManager.Instance.Initialize();
 
-            MapManager.Instance.LoadMap(1);
+            bool mapInitialized = MapManager.Instance.Initialize();
+
+            if (!mapInitialized)
+            {
+                Debug.LogError("MapManager initialize failed.");
+            }
+
+            UIManager.Instance.UseResourceManagerLoader();
+
+            await UIManager.Instance.Pages.ResetToAsync(mainMenuPagePath);
+        }
+        private void OnDestroy()
+        {
+            GameInputManager.Instance.Release();
         }
     }
-
 }

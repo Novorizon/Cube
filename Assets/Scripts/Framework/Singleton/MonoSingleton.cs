@@ -14,6 +14,7 @@ namespace Game.Framework
         private static bool isQuitting;
         private static readonly object syncRoot = new object();
         public virtual string RootName => typeof(T).Name;
+        public static bool HasInstance => instance != null && !isQuitting;
 
         public static T Instance
         {

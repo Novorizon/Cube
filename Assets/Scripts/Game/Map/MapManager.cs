@@ -25,8 +25,20 @@ namespace Game
         private readonly Dictionary<Vector3Int, GameObject> tileObjects = new Dictionary<Vector3Int, GameObject>();
         private Transform previewRoot;
         private float tileSize = 1f;
-
-
+        public MapData CurrentMap
+        {
+            get
+            {
+                return currentMap;
+            }
+        }
+        public float TileSize
+        {
+            get
+            {
+                return tileSize;
+            }
+        }
 
 
         private bool initialized = false;
@@ -60,6 +72,10 @@ namespace Game
             string name = "Assets/Data/Map/" + id + ".json";
             LoadMapData(name);
             CreateMap();
+
+            CameraManager.Instance.SetViewAngle(55f, 45f);
+            CameraManager.Instance.SetPadding(2f);
+            CameraManager.Instance.FocusCurrentMap();
         }
 
         public void LoadMap(string name)
@@ -131,7 +147,7 @@ namespace Game
 
                 Vector3 position = GetWorldPosition(tile.X, tile.Y, tile.Z);
 
-                GameObject instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+                GameObject instance = GameObject.Instantiate(prefab);
 
                 if (instance == null)
                 {
