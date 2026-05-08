@@ -20,6 +20,7 @@ namespace Game
         {
             GameInputManager.Instance.Initialize(InputMode.Gameplay);
             CameraManager.Instance.Initialize();
+            MapInputController.Instance.Initialize();
             await ResourceManager.Instance.InitializeAsync();
 
             bool mapInitialized = MapManager.Instance.Initialize();

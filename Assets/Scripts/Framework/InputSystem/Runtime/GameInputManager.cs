@@ -149,9 +149,10 @@ namespace Game.Framework
             SubscribeEvents();
 
             controls.Common.Enable();
+            initialized = true;
+
             SetMode(defaultMode);
 
-            initialized = true;
         }
 
         public void Release()

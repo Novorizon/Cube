@@ -16,6 +16,10 @@ namespace Game
 
         private float padding = 2f;
         private float minOrthographicSize = 5f;
+        private float maxOrthographicSize = 60f;
+
+        private Vector3 currentFocus;
+        private bool hasFocus;
 
         public bool Initialized
         {
@@ -84,9 +88,10 @@ namespace Game
             tileSize = Mathf.Max(0.01f, mapTileSize);
 
             Vector3 center = CalculateMapCenter(mapData);
-            Quaternion rotation = Quaternion.Euler(pitch, yaw, 0f);
+            currentFocus = center;
+            hasFocus = true;
 
-            mainCamera.transform.rotation = rotation;
+            ApplyRotation();
 
             float mapWidth = Mathf.Max(1, mapData.Width) * tileSize;
             float mapDepth = Mathf.Max(1, mapData.Depth) * tileSize;
@@ -97,12 +102,10 @@ namespace Game
             orthographicSize = Mathf.Max(minOrthographicSize, orthographicSize);
 
             mainCamera.orthographic = true;
-            mainCamera.orthographicSize = orthographicSize;
+            mainCamera.orthographicSize = Mathf.Clamp(orthographicSize, minOrthographicSize, maxOrthographicSize);
 
             float distance = mapDiagonal + mapHeight + 10f;
-            Vector3 position = center - mainCamera.transform.forward * distance;
-
-            mainCamera.transform.position = position;
+            mainCamera.transform.position = currentFocus - mainCamera.transform.forward * distance;
             mainCamera.nearClipPlane = 0.1f;
             mainCamera.farClipPlane = distance + mapDiagonal + mapHeight + 50f;
 
@@ -123,14 +126,118 @@ namespace Game
             pitch = newPitch;
             yaw = newYaw;
 
-            FocusCurrentMap();
+            if (initialized && mainCamera != null)
+            {
+                ApplyRotation();
+
+                if (hasFocus)
+                {
+                    RotateAroundFocus(0f);
+                }
+            }
         }
 
         public void SetPadding(float newPadding)
         {
             padding = Mathf.Max(0f, newPadding);
+        }
 
-            FocusCurrentMap();
+        public void PanByScreenDelta(Vector2 screenDelta)
+        {
+            if (!EnsureCamera())
+            {
+                return;
+            }
+
+            if (!mainCamera.orthographic)
+            {
+                return;
+            }
+
+            float pixelsToWorld = mainCamera.orthographicSize * 2f / Mathf.Max(1, Screen.height);
+
+            Vector3 right = mainCamera.transform.right;
+            Vector3 forward = Vector3.ProjectOnPlane(mainCamera.transform.forward, Vector3.up);
+
+            if (forward.sqrMagnitude < 0.0001f)
+            {
+                forward = mainCamera.transform.up;
+            }
+
+            forward.Normalize();
+
+            Vector3 move = -right * screenDelta.x * pixelsToWorld - forward * screenDelta.y * pixelsToWorld;
+
+            mainCamera.transform.position += move;
+
+            if (hasFocus)
+            {
+                currentFocus += move;
+            }
+        }
+
+        public void RotateAroundFocus(float deltaYaw)
+        {
+            if (!EnsureCamera())
+            {
+                return;
+            }
+
+            yaw += deltaYaw;
+            ApplyRotation();
+
+            if (!hasFocus)
+            {
+                currentFocus = mainCamera.transform.position + mainCamera.transform.forward * 10f;
+                hasFocus = true;
+            }
+
+            float distance = Vector3.Distance(mainCamera.transform.position, currentFocus);
+
+            if (distance < 0.01f)
+            {
+                distance = 10f;
+            }
+
+            mainCamera.transform.position = currentFocus - mainCamera.transform.forward * distance;
+        }
+
+        public void Zoom(float scrollDelta)
+        {
+            if (!EnsureCamera())
+            {
+                return;
+            }
+
+            if (!mainCamera.orthographic)
+            {
+                return;
+            }
+
+            float zoomSpeed = 0.02f;
+            float size = mainCamera.orthographicSize - scrollDelta * zoomSpeed;
+
+            mainCamera.orthographicSize = Mathf.Clamp(size, minOrthographicSize, maxOrthographicSize);
+        }
+
+        private void ApplyRotation()
+        {
+            if (mainCamera == null)
+            {
+                return;
+            }
+
+            mainCamera.transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
+        }
+
+        private bool EnsureCamera()
+        {
+            if (initialized && mainCamera != null)
+            {
+                return true;
+            }
+
+            return Initialize();
         }
     }
 }

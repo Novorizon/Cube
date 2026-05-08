@@ -12,8 +12,9 @@ namespace Game.Framework
     {
         private static T instance;
         private static bool isQuitting;
-        private static readonly object syncRoot = new object();
+
         public virtual string RootName => typeof(T).Name;
+
         public static bool HasInstance => instance != null && !isQuitting;
 
         public static T Instance
@@ -21,32 +22,55 @@ namespace Game.Framework
             get
             {
                 if (isQuitting)
-                    return null;
-
-                lock (syncRoot)
                 {
-                    if (instance != null)
-                        return instance;
+                    return null;
+                }
 
-                    instance = FindObjectOfType<T>(true);
-                    if (instance != null)
-                    {
-                        DontDestroyOnLoad(instance.gameObject);
-                        return instance;
-                    }
-
-                    GameObject go = new GameObject(typeof(T).Name);
-                    if (go != null)
-                    {
-                        instance = go.AddComponent<T>();
-                    }
-                    if (instance != null)
-                    {
-                        DontDestroyOnLoad(instance.gameObject);
-                    }
+                if (instance != null)
+                {
                     return instance;
                 }
+
+                instance = FindObjectOfType<T>(true);
+
+                if (instance != null)
+                {
+                    DontDestroyOnLoad(instance.gameObject);
+                    return instance;
+                }
+
+                GameObject go = new GameObject(typeof(T).Name);
+                instance = go.AddComponent<T>();
+                DontDestroyOnLoad(go);
+
+                return instance;
             }
+        }
+        
+        public void Initialize()
+        {
+            _ = Instance;
+        }
+
+        protected virtual void Awake()
+        {
+            if (instance == null)
+            {
+                instance = this as T;
+                DontDestroyOnLoad(gameObject);
+                OnSingletonAwake();
+                return;
+            }
+
+            if (instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+        }
+
+        protected virtual void OnSingletonAwake()
+        {
         }
 
         protected virtual void OnApplicationQuit()
@@ -62,12 +86,11 @@ namespace Game.Framework
             }
         }
 
-        //万一禁用 Domain Reload，重置
-        //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        //static void ResetStatics()
-        //{
-        //    instance = null;
-        //    isQuitting = false;
-        //}
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics()
+        {
+            instance = null;
+            isQuitting = false;
+        }
     }
 }

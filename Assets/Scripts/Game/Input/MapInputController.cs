@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 namespace Game
 {
-    public sealed class MapInputController : MonoBehaviour
+    public sealed class MapInputController : MonoSingleton<MapInputController>
     {
         [SerializeField]
         private bool enableInput = true;
@@ -18,8 +18,29 @@ namespace Game
 
         private TileView selectedTile;
 
+
         private void OnEnable()
         {
+            if (!GameInputManager.IsCreated)
+            {
+                return;
+            }
+
+            GameInputManager.Instance.BuildPlacePerformed += OnBuildPlacePerformed;
+            GameInputManager.Instance.BuildCancelPerformed += OnBuildCancelPerformed;
+        }
+
+        private void Start()
+        {
+            // 防止这个物体比 GameEntry 更早 Enable，导致 OnEnable 时 GameInputManager 还没初始化。
+            if (!GameInputManager.IsCreated)
+            {
+                return;
+            }
+
+            GameInputManager.Instance.BuildPlacePerformed -= OnBuildPlacePerformed;
+            GameInputManager.Instance.BuildCancelPerformed -= OnBuildCancelPerformed;
+
             GameInputManager.Instance.BuildPlacePerformed += OnBuildPlacePerformed;
             GameInputManager.Instance.BuildCancelPerformed += OnBuildCancelPerformed;
         }
@@ -42,6 +63,11 @@ namespace Game
                 return;
             }
 
+            if (!GameInputManager.IsCreated)
+            {
+                return;
+            }
+
             if (GameInputManager.Instance.CurrentMode != InputMode.Build)
             {
                 return;
@@ -59,8 +85,6 @@ namespace Game
 
         private void HandleCameraDrag()
         {
-            // 临时用 Remove 按住拖动地图。
-            // 如果你后面新增 PanCamera action，把这里换成 BuildPanHeld。
             if (!GameInputManager.Instance.BuildRemoveHeld)
             {
                 return;
@@ -112,6 +136,11 @@ namespace Game
                 return;
             }
 
+            if (!GameInputManager.IsCreated)
+            {
+                return;
+            }
+
             if (GameInputManager.Instance.CurrentMode != InputMode.Build)
             {
                 return;
@@ -141,14 +170,23 @@ namespace Game
 
         private void SelectTile(TileView tileView)
         {
+            if (selectedTile == tileView)
+            {
+                return;
+            }
+
+            if (selectedTile != null)
+            {
+                selectedTile.SetSelected(false);
+            }
+
             selectedTile = tileView;
 
-            Debug.Log($"Select tile: {selectedTile.Coord}, Type: {selectedTile.Data.Type}");
-
-            // 下一步：
-            // 1. 显示选中框
-            // 2. 如果当前选择了塔，则尝试放塔
-            // 3. 如果没选择塔，则显示地块信息
+            if (selectedTile != null)
+            {
+                selectedTile.SetSelected(true);
+                Debug.Log($"Select tile: {selectedTile.Coord}, Type: {selectedTile.Type}");
+            }
         }
 
         private void ClearSelection()
@@ -158,6 +196,7 @@ namespace Game
                 return;
             }
 
+            selectedTile.SetSelected(false);
             Debug.Log($"Clear tile selection: {selectedTile.Coord}");
             selectedTile = null;
         }
