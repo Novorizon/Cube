@@ -1,0 +1,76 @@
+{
+    "Summary": {
+        "YooVersion": "2.3.18",
+        "UnityVersion": "2022.3.62f1",
+        "BuildDate": "2026/5/7 18:46:11",
+        "BuildSeconds": 22,
+        "BuildTarget": 19,
+        "BuildPipeline": "ScriptableBuildPipeline",
+        "BuildBundleType": 2,
+        "BuildPackageName": "DefaultPackage",
+        "BuildPackageVersion": "2026-05-07-1125",
+        "BuildPackageNote": "2026/5/7 18:45:48",
+        "UniqueBundleName": false,
+        "EnableAddressable": false,
+        "SupportExtensionless": true,
+        "LocationToLower": false,
+        "IncludeAssetGUID": false,
+        "AutoCollectShaders": true,
+        "IgnoreRuleName": "YooAsset.Editor.NormalIgnoreRule",
+        "ClearBuildCacheFiles": false,
+        "UseAssetDependencyDB": false,
+        "EnableSharePackRule": true,
+        "SingleReferencedPackAlone": true,
+        "EncryptionServicesClassName": "YooAsset.Editor.EncryptionNone",
+        "ManifestProcessServicesClassName": "YooAsset.Editor.ManifestProcessNone",
+        "ManifestRestoreServicesClassName": "YooAsset.Editor.ManifestRestoreNone",
+        "FileNameStyle": 1,
+        "CompressOption": 2,
+        "DisableWriteTypeTree": false,
+        "IgnoreTypeTreeChanges": true,
+        "ReplaceAssetPathWithAddress": false,
+        "WriteLinkXML": true,
+        "CacheServerHost": "",
+        "CacheServerPort": 0,
+        "BuiltinShadersBundleName": "unityshaders.bundle",
+        "MonoScriptsBundleName": "",
+        "AssetFileTotalCount": 1,
+        "MainAssetTotalCount": 1,
+        "AllBundleTotalCount": 1,
+        "AllBundleTotalSize": 3034,
+        "EncryptedBundleTotalCount": 0,
+        "EncryptedBundleTotalSize": 0
+    },
+    "AssetInfos": [
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Map/NewMap.json",
+            "AssetGUID": "ac1e2b857ccb85647ab3b960dc9ab99c",
+            "AssetTags": [],
+            "MainBundleName": "mapdata.bundle",
+            "MainBundleSize": 3034,
+            "DependAssets": [],
+            "DependBundles": []
+        }
+    ],
+    "BundleInfos": [
+        {
+            "BundleName": "mapdata.bundle",
+            "FileName": "mapdata.bundle",
+            "FileHash": "3560f2e13df734dc0f65c05dc115afcf",
+            "FileCRC": 3173258170,
+            "FileSize": 3034,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundles": [],
+            "ReferenceBundles": [],
+            "BundleContents": [
+                {
+                    "AssetPath": "Assets/Data/Map/NewMap.json",
+                    "AssetGUID": "ac1e2b857ccb85647ab3b960dc9ab99c"
+                }
+            ]
+        }
+    ],
+    "IndependAssets": []
+}

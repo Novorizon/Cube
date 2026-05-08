@@ -15,7 +15,7 @@ namespace UI
             this.factory = factory;
         }
 
-        public async Task<IDisposable> ShowBlockingAsync(string prefabPath, object? args = null)
+        public async Task<IDisposable> ShowBlockingAsync(string prefabPath, object args = null)
         {
             blockingCount++;
 
@@ -23,15 +23,22 @@ namespace UI
             {
                 blockingOverlay = await factory.OpenAsync(UIKind.Overlay, UILayer.Overlay, prefabPath, args, false, true, null);
             }
-            else
+            else if (blockingOverlay.View != null)
             {
-                if (blockingOverlay.View != null)
-                {
-                    blockingOverlay.View.InternalOnOpen(args);
-                }
+                blockingOverlay.View.InternalOnOpen(args);
             }
 
             return new Token(this);
+        }
+
+        public void ForceHideBlocking(bool destroy = false)
+        {
+            blockingCount = 0;
+            if (blockingOverlay.IsValid)
+            {
+                factory.Close(blockingOverlay, destroy, !destroy);
+                blockingOverlay = default;
+            }
         }
 
         void ReleaseBlocking()
@@ -42,7 +49,6 @@ namespace UI
             }
 
             blockingCount--;
-
             if (blockingCount == 0 && blockingOverlay.IsValid)
             {
                 factory.Close(blockingOverlay, false, true);
@@ -52,7 +58,7 @@ namespace UI
 
         sealed class Token : IDisposable
         {
-            OverlayManager owner;
+            readonly OverlayManager owner;
             bool disposed;
 
             public Token(OverlayManager owner)

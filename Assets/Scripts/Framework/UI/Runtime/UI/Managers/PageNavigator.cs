@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace UI
@@ -5,7 +6,9 @@ namespace UI
     public sealed class PageNavigator
     {
         readonly UIInstanceFactory factory;
-        readonly System.Collections.Generic.Stack<UIHandle> stack = new();
+        readonly Stack<UIHandle> stack = new Stack<UIHandle>();
+
+        bool isNavigating;
 
         public PageNavigator(UIInstanceFactory factory)
         {
@@ -24,30 +27,64 @@ namespace UI
             return stack.Peek();
         }
 
-        public async Task<UIHandle> PushAsync(string prefabPath, object? args = null)
+        public async Task<UIHandle> PushAsync(string prefabPath, object args = null)
         {
-            UIHandle? top = Peek();
-            if (top.HasValue && top.Value.View != null)
+            if (isNavigating)
             {
-                top.Value.View.gameObject.SetActive(false);
+                return default;
             }
 
-            UIHandle handle = await factory.OpenAsync(UIKind.Page, UILayer.Page, prefabPath, args, false, true, null);
-            stack.Push(handle);
-            return handle;
+            isNavigating = true;
+            try
+            {
+                UIHandle? top = Peek();
+                if (top.HasValue && top.Value.View != null)
+                {
+                    top.Value.View.gameObject.SetActive(false);
+                }
+
+                UIHandle handle = await factory.OpenAsync(UIKind.Page, UILayer.Page, prefabPath, args, false, true, null);
+                if (handle.IsValid)
+                {
+                    stack.Push(handle);
+                }
+
+                return handle;
+            }
+            finally
+            {
+                isNavigating = false;
+            }
         }
 
-        public async Task<UIHandle> ReplaceAsync(string prefabPath, object? args = null)
+        public async Task<UIHandle> ReplaceAsync(string prefabPath, object args = null)
         {
-            UIHandle? top = PopInternal();
-            if (top.HasValue)
+            if (isNavigating)
             {
-                factory.Close(top.Value, false, true);
+                return default;
             }
 
-            UIHandle handle = await factory.OpenAsync(UIKind.Page, UILayer.Page, prefabPath, args, false, true, null);
-            stack.Push(handle);
-            return handle;
+            isNavigating = true;
+            try
+            {
+                UIHandle? top = PopInternal();
+                if (top.HasValue)
+                {
+                    factory.Close(top.Value, false, true);
+                }
+
+                UIHandle handle = await factory.OpenAsync(UIKind.Page, UILayer.Page, prefabPath, args, false, true, null);
+                if (handle.IsValid)
+                {
+                    stack.Push(handle);
+                }
+
+                return handle;
+            }
+            finally
+            {
+                isNavigating = false;
+            }
         }
 
         public bool Pop()
@@ -64,12 +101,13 @@ namespace UI
             if (next.HasValue && next.Value.View != null)
             {
                 next.Value.View.gameObject.SetActive(true);
+                next.Value.View.InternalOnOpen(null);
             }
 
             return true;
         }
 
-        public async Task<UIHandle> ResetToAsync(string prefabPath, object? args = null)
+        public async Task<UIHandle> ResetToAsync(string prefabPath, object args = null)
         {
             while (stack.Count > 0)
             {
@@ -78,8 +116,21 @@ namespace UI
             }
 
             UIHandle root = await factory.OpenAsync(UIKind.Page, UILayer.Page, prefabPath, args, false, true, null);
-            stack.Push(root);
+            if (root.IsValid)
+            {
+                stack.Push(root);
+            }
+
             return root;
+        }
+
+        public void Clear(bool destroy = false)
+        {
+            while (stack.Count > 0)
+            {
+                UIHandle h = stack.Pop();
+                factory.Close(h, destroy, !destroy);
+            }
         }
 
         UIHandle? PopInternal()

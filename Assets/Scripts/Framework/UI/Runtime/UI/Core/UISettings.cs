@@ -16,7 +16,9 @@ namespace UI
         public float matchWidthOrHeight = 0.5f;
 
         [Header("Canvas")]
+        public RenderMode renderMode = RenderMode.ScreenSpaceCamera;
         public float canvasPlaneDistance = 100f;
+        public Camera explicitWorldCamera;
 
         [Tooltip("sortingOrder = (int)layer * sortingOrderStep")]
         public int sortingOrderStep = 100;

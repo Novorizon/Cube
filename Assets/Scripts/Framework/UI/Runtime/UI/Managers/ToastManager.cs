@@ -1,75 +1,111 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace UI
 {
     public sealed class ToastOptions
     {
-        public string? MergeKey { get; set; }
+        public string MergeKey { get; set; }
     }
 
     public sealed class ToastManager
     {
         readonly UIInstanceFactory factory;
-
-        readonly Queue<(string path, object? args, ToastOptions? options)> queue = new();
+        readonly Queue<(string path, object args, ToastOptions options)> queue = new Queue<(string path, object args, ToastOptions options)>();
+        readonly HashSet<string> mergeKeys = new HashSet<string>();
 
         UIHandle current;
         bool isRunning;
+        CancellationTokenSource runCancellation;
 
         public ToastManager(UIInstanceFactory factory)
         {
             this.factory = factory;
         }
 
-        public void Enqueue(string prefabPath, object? args = null, ToastOptions? options = null)
+        public void Enqueue(string prefabPath, object args = null, ToastOptions options = null)
         {
+            if (!string.IsNullOrEmpty(options?.MergeKey) && mergeKeys.Contains(options.MergeKey))
+            {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(options?.MergeKey))
+            {
+                mergeKeys.Add(options.MergeKey);
+            }
+
             queue.Enqueue((prefabPath, args, options));
 
             if (!isRunning)
             {
+                runCancellation = new CancellationTokenSource();
                 isRunning = true;
-                _ = RunAsync();
+                _ = RunAsync(runCancellation.Token);
             }
         }
 
-        async Task RunAsync()
+        public void Clear(bool closeCurrent = true)
         {
-            while (queue.Count > 0)
+            queue.Clear();
+            mergeKeys.Clear();
+            runCancellation?.Cancel();
+
+            if (closeCurrent && current.IsValid)
             {
-                var item = queue.Dequeue();
-
-                current = await factory.OpenAsync(UIKind.Toast, UILayer.Toast, item.path, item.args, true, true, null);
-
-                if (current.View is UIToast toast)
-                {
-                    toast.Bind(this);
-                }
-                else
-                {
-                    factory.Close(current, false, true);
-                    current = default;
-                    continue;
-                }
-
-                while (current.IsValid)
-                {
-                    await Task.Yield();
-                }
+                factory.Close(current, true, false);
+                current = default;
             }
 
             isRunning = false;
         }
 
-        internal void NotifyToastCompleted(UIToast toast)
+        async Task RunAsync(CancellationToken cancellationToken)
         {
-            if (!current.IsValid || current.View != toast)
+            try
             {
-                return;
-            }
+                while (queue.Count > 0 && !cancellationToken.IsCancellationRequested)
+                {
+                    var item = queue.Dequeue();
+                    if (!string.IsNullOrEmpty(item.options?.MergeKey))
+                    {
+                        mergeKeys.Remove(item.options.MergeKey);
+                    }
 
-            factory.Close(current, false, true);
-            current = default;
+                    current = await factory.OpenAsync(UIKind.Toast, UILayer.Toast, item.path, item.args, true, false, null);
+                    if (!current.IsValid)
+                    {
+                        current = default;
+                        continue;
+                    }
+
+                    if (current.View is UIToast toast)
+                    {
+                        try
+                        {
+                            await toast.WaitForCompleteAsync(cancellationToken);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                        }
+                    }
+
+                    if (current.IsValid)
+                    {
+                        factory.Close(current, true, false);
+                    }
+
+                    current = default;
+                }
+            }
+            finally
+            {
+                isRunning = false;
+                runCancellation?.Dispose();
+                runCancellation = null;
+            }
         }
     }
 }

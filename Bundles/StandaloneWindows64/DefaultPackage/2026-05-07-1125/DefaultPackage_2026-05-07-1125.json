@@ -1,0 +1,36 @@
+{
+    "FileVersion": "2025.9.30",
+    "EnableAddressable": false,
+    "SupportExtensionless": true,
+    "LocationToLower": false,
+    "IncludeAssetGUID": false,
+    "ReplaceAssetPathWithAddress": false,
+    "OutputNameStyle": 1,
+    "BuildBundleType": 2,
+    "BuildPipeline": "ScriptableBuildPipeline",
+    "PackageName": "DefaultPackage",
+    "PackageVersion": "2026-05-07-1125",
+    "PackageNote": "2026/5/7 18:45:48",
+    "AssetList": [
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Map/NewMap.json",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 0,
+            "DependBundleIDs": []
+        }
+    ],
+    "BundleList": [
+        {
+            "BundleName": "mapdata.bundle",
+            "UnityCRC": 234419407,
+            "FileHash": "3560f2e13df734dc0f65c05dc115afcf",
+            "FileCRC": 3173258170,
+            "FileSize": 3034,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        }
+    ]
+}

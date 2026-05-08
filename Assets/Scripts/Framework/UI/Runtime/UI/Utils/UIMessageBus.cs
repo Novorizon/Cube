@@ -5,12 +5,12 @@ namespace UI
 {
     public sealed class UIMessageBus
     {
-        readonly Dictionary<Type, List<Delegate>> handlers = new();
+        readonly Dictionary<Type, List<Delegate>> handlers = new Dictionary<Type, List<Delegate>>();
 
-        public void Subscribe<T>(Action<T> handler)
+        public IDisposable Subscribe<T>(Action<T> handler)
         {
             Type type = typeof(T);
-            if (!handlers.TryGetValue(type, out List<Delegate>? list))
+            if (!handlers.TryGetValue(type, out List<Delegate> list))
             {
                 list = new List<Delegate>();
                 handlers.Add(type, list);
@@ -20,23 +20,29 @@ namespace UI
             {
                 list.Add(handler);
             }
+
+            return new Subscription<T>(this, handler);
         }
 
         public void Unsubscribe<T>(Action<T> handler)
         {
             Type type = typeof(T);
-            if (!handlers.TryGetValue(type, out List<Delegate>? list))
+            if (!handlers.TryGetValue(type, out List<Delegate> list))
             {
                 return;
             }
 
             list.Remove(handler);
+            if (list.Count == 0)
+            {
+                handlers.Remove(type);
+            }
         }
 
         public void Publish<T>(T message)
         {
             Type type = typeof(T);
-            if (!handlers.TryGetValue(type, out List<Delegate>? list))
+            if (!handlers.TryGetValue(type, out List<Delegate> list))
             {
                 return;
             }
@@ -54,6 +60,29 @@ namespace UI
         public void Clear()
         {
             handlers.Clear();
+        }
+
+        sealed class Subscription<T> : IDisposable
+        {
+            readonly UIMessageBus bus;
+            Action<T> handler;
+
+            public Subscription(UIMessageBus bus, Action<T> handler)
+            {
+                this.bus = bus;
+                this.handler = handler;
+            }
+
+            public void Dispose()
+            {
+                if (handler == null)
+                {
+                    return;
+                }
+
+                bus.Unsubscribe(handler);
+                handler = null;
+            }
         }
     }
 }

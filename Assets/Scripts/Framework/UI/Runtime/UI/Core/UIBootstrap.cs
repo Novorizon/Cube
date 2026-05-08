@@ -4,14 +4,20 @@ namespace UI
 {
     public sealed class UIBootstrap : MonoBehaviour
     {
-        [SerializeField] UISettings? settings;
+        [SerializeField] UISettings settings;
+        [SerializeField] bool useResourceManagerLoader = true;
 
         void Awake()
         {
-            UIRoot root = UIRoot.Instance;
+            UIManager manager = UIManager.Instance;
             if (settings != null)
             {
-                root.SetSettings(settings);
+                manager.SetSettings(settings);
+            }
+
+            if (useResourceManagerLoader)
+            {
+                manager.UseResourceManagerLoader();
             }
         }
     }

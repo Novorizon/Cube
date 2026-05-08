@@ -1,0 +1,11 @@
+{
+    "FileVersion": "1.0.0",
+    "PackageName": "DefaultPackage",
+    "PackageVersion": "2026-05-07-1125",
+    "Wrappers": [
+        {
+            "BundleGUID": "3560f2e13df734dc0f65c05dc115afcf",
+            "FileName": "mapdata.bundle"
+        }
+    ]
+}

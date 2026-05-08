@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -8,71 +9,93 @@ namespace UI
     {
         readonly IUIAssetLoader loader;
         readonly Dictionary<UILayer, Transform> layerRoots;
-
-        readonly Dictionary<string, UIView> singletonActive = new();
-        readonly Dictionary<string, UIView> cached = new();
+        readonly Dictionary<int, UIInstanceRecord> recordsById = new Dictionary<int, UIInstanceRecord>();
+        readonly Dictionary<string, UIInstanceRecord> singletonActive = new Dictionary<string, UIInstanceRecord>();
+        readonly Dictionary<string, Stack<UIInstanceRecord>> cachedByPath = new Dictionary<string, Stack<UIInstanceRecord>>();
+        readonly Dictionary<string, Task<UIHandle>> openingSingletonTasks = new Dictionary<string, Task<UIHandle>>();
 
         int nextId;
+        int nextVersion;
 
-        public UIInstanceFactory(IUIAssetLoader loader, Dictionary<UILayer, Transform> layerRoots, int startId)
+        public UIInstanceFactory(IUIAssetLoader loader, Dictionary<UILayer, Transform> layerRoots, int startId, int startVersion)
         {
             this.loader = loader;
             this.layerRoots = layerRoots;
             nextId = startId;
+            nextVersion = startVersion;
         }
 
         public int NextId => nextId;
+        public int NextVersion => nextVersion;
 
-        public async Task<UIHandle> OpenAsync(
-            UIKind kind,
-            UILayer layer,
-            string prefabPath,
-            object? args,
-            bool allowMultiple,
-            bool cacheOnClose,
-            System.Func<Transform, UIBlocker?>? blockerFactory)
+        public Task<UIHandle> OpenAsync(UIKind kind, UILayer layer, string prefabPath, object args, bool allowMultiple, bool cacheOnClose, Func<Transform, UIBlocker> blockerFactory)
         {
-            if (!allowMultiple && singletonActive.TryGetValue(prefabPath, out UIView? existing) && existing != null)
+            if (!allowMultiple)
             {
-                existing.gameObject.SetActive(true);
-                existing.InternalOnOpen(args);
-                return new UIHandle(existing.InstanceId, prefabPath, kind, layer, existing);
+                if (singletonActive.TryGetValue(prefabPath, out UIInstanceRecord existing) && existing.Handle.IsValid)
+                {
+                    existing.IsCached = false;
+                    existing.Handle.View.gameObject.SetActive(true);
+                    existing.Handle.View.InternalOnOpen(args);
+                    return Task.FromResult(existing.Handle);
+                }
+
+                if (openingSingletonTasks.TryGetValue(prefabPath, out Task<UIHandle> openingTask))
+                {
+                    return openingTask;
+                }
+
+                Task<UIHandle> task = OpenInternalAsync(kind, layer, prefabPath, args, allowMultiple, cacheOnClose, blockerFactory);
+                openingSingletonTasks[prefabPath] = task;
+                return AwaitAndRemoveOpening(prefabPath, task);
             }
 
-            if (cacheOnClose && cached.TryGetValue(prefabPath, out UIView? cachedView) && cachedView != null)
-            {
-                cached.Remove(prefabPath);
+            return OpenInternalAsync(kind, layer, prefabPath, args, allowMultiple, cacheOnClose, blockerFactory);
+        }
 
-                cachedView.gameObject.SetActive(true);
-                cachedView.InternalOnOpen(args);
+        async Task<UIHandle> AwaitAndRemoveOpening(string prefabPath, Task<UIHandle> task)
+        {
+            try
+            {
+                return await task;
+            }
+            finally
+            {
+                openingSingletonTasks.Remove(prefabPath);
+            }
+        }
+
+        async Task<UIHandle> OpenInternalAsync(UIKind kind, UILayer layer, string prefabPath, object args, bool allowMultiple, bool cacheOnClose, Func<Transform, UIBlocker> blockerFactory)
+        {
+            if (cacheOnClose && TryTakeCached(prefabPath, out UIInstanceRecord cached))
+            {
+                cached.IsCached = false;
+                cached.Handle.View.gameObject.SetActive(true);
+                cached.Handle.View.InternalOnOpen(args);
 
                 if (!allowMultiple)
                 {
-                    singletonActive[prefabPath] = cachedView;
+                    singletonActive[prefabPath] = cached;
                 }
 
-                return new UIHandle(cachedView.InstanceId, prefabPath, kind, layer, cachedView);
+                return cached.Handle;
             }
 
-            GameObject? prefab = await loader.LoadPrefabAsync(prefabPath);
-            if (prefab == null)
+            UIAssetLoadResult asset = await loader.LoadPrefabAsync(prefabPath);
+            if (!asset.IsValid)
             {
                 Debug.LogError($"[UI] Prefab not found: {prefabPath}");
+                asset.Lease?.Dispose();
                 return default;
             }
 
             Transform parent = layerRoots[layer];
+            UIBlocker blocker = blockerFactory != null ? blockerFactory(parent) : null;
 
-            UIBlocker? blocker = null;
-            if (blockerFactory != null)
-            {
-                blocker = blockerFactory(parent);
-            }
+            GameObject go = UnityEngine.Object.Instantiate(asset.Prefab, parent);
+            go.name = asset.Prefab.name;
 
-            GameObject go = Object.Instantiate(prefab, parent);
-            go.name = prefab.name;
-
-            UIView? view = go.GetComponent<UIView>();
+            UIView view = go.GetComponent<UIView>();
             if (view == null)
             {
                 Debug.LogError($"[UI] Prefab must have a UIView-derived component. path={prefabPath}, instance={go.name}");
@@ -80,44 +103,133 @@ namespace UI
             }
 
             int id = nextId++;
+            int version = nextVersion++;
             view.InstanceId = id;
+            view.InstanceVersion = version;
 
             if (blocker != null)
             {
-                int popupIndex = go.transform.GetSiblingIndex();
-                blocker.transform.SetSiblingIndex(popupIndex);
+                int viewIndex = go.transform.GetSiblingIndex();
+                blocker.transform.SetSiblingIndex(viewIndex);
             }
+
+            UIHandle handle = new UIHandle(id, version, prefabPath, kind, layer, view);
+            UIInstanceRecord record = new UIInstanceRecord(handle, cacheOnClose, asset.Lease);
+            recordsById[id] = record;
 
             view.InternalOnCreate();
             view.InternalOnOpen(args);
 
             if (!allowMultiple)
             {
-                singletonActive[prefabPath] = view;
+                singletonActive[prefabPath] = record;
             }
 
-            return new UIHandle(id, prefabPath, kind, layer, view);
+            return handle;
         }
 
         public void Close(UIHandle handle, bool destroy, bool cacheOnClose)
         {
-            if (!handle.IsValid || handle.View == null)
+            if (!TryGetRecord(handle, out UIInstanceRecord record))
             {
                 return;
             }
 
-            UIView view = handle.View;
-
+            UIView view = record.Handle.View;
             view.InternalOnClose();
+            singletonActive.Remove(record.Handle.PrefabPath);
 
-            if (!destroy && cacheOnClose)
+            bool shouldCache = !destroy && cacheOnClose && record.CacheOnClose && view != null && !view.IsDestroyed;
+            if (shouldCache)
             {
                 view.gameObject.SetActive(false);
-                cached[handle.PrefabPath] = view;
+                record.IsCached = true;
+                PushCached(record.Handle.PrefabPath, record);
                 return;
             }
 
-            Object.Destroy(view.gameObject);
+            DestroyRecord(record);
+        }
+
+        public void DestroyAll()
+        {
+            List<UIInstanceRecord> records = new List<UIInstanceRecord>(recordsById.Values);
+            for (int i = 0; i < records.Count; i++)
+            {
+                DestroyRecord(records[i]);
+            }
+
+            singletonActive.Clear();
+            cachedByPath.Clear();
+            openingSingletonTasks.Clear();
+        }
+
+        bool TryGetRecord(UIHandle handle, out UIInstanceRecord record)
+        {
+            record = null;
+            if (!handle.IsValid)
+            {
+                return false;
+            }
+
+            if (!recordsById.TryGetValue(handle.Id, out record))
+            {
+                return false;
+            }
+
+            return record.Handle.Version == handle.Version;
+        }
+
+        bool TryTakeCached(string prefabPath, out UIInstanceRecord record)
+        {
+            record = null;
+            if (!cachedByPath.TryGetValue(prefabPath, out Stack<UIInstanceRecord> stack))
+            {
+                return false;
+            }
+
+            while (stack.Count > 0)
+            {
+                UIInstanceRecord candidate = stack.Pop();
+                if (candidate.Handle.IsValid)
+                {
+                    record = candidate;
+                    return true;
+                }
+
+                DestroyRecord(candidate);
+            }
+
+            cachedByPath.Remove(prefabPath);
+            return false;
+        }
+
+        void PushCached(string prefabPath, UIInstanceRecord record)
+        {
+            if (!cachedByPath.TryGetValue(prefabPath, out Stack<UIInstanceRecord> stack))
+            {
+                stack = new Stack<UIInstanceRecord>();
+                cachedByPath[prefabPath] = stack;
+            }
+
+            stack.Push(record);
+        }
+
+        void DestroyRecord(UIInstanceRecord record)
+        {
+            if (record == null)
+            {
+                return;
+            }
+
+            recordsById.Remove(record.Handle.Id);
+            singletonActive.Remove(record.Handle.PrefabPath);
+            record.DisposeAssetLease();
+
+            if (record.Handle.View != null)
+            {
+                UnityEngine.Object.Destroy(record.Handle.View.gameObject);
+            }
         }
 
         sealed class MissingUIViewMarker : UIView
