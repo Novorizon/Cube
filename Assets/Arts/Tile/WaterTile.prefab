@@ -11,9 +11,10 @@ GameObject:
   - component: {fileID: 4566026762680270847}
   - component: {fileID: 2322910092519061628}
   - component: {fileID: 3170897096417135715}
-  - component: {fileID: -6620622423675956801}
+  - component: {fileID: 954236751995999851}
+  - component: {fileID: 2573728379212998926}
   m_Layer: 0
-  m_Name: HillTile
+  m_Name: WaterTile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -62,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 6ebdc9c87b3e86a4eab262042c09c72b, type: 2}
+  - {fileID: 2100000, guid: 36b50a4de14fffc46ac3a6bbeb31ff58, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -84,7 +85,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &-6620622423675956801
+--- !u!114 &954236751995999851
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -93,14 +94,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 825972078245606331}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3fc43307c7d7c0f4488ca943fe0f0a2c, type: 3}
+  m_Script: {fileID: 11500000, guid: 0b7955b60cdd01a4cb971750aa0d6ea9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  coord:
-    x: 0
-    y: 1
-    z: 0
-  type: 1
-  isBuildable: 1
-  isSpawn: 0
-  isBase: 0
+--- !u!65 &2573728379212998926
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 825972078245606331}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}

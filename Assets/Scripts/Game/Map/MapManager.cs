@@ -76,6 +76,7 @@ namespace Game
             CameraManager.Instance.SetViewAngle(55f, 45f);
             CameraManager.Instance.SetPadding(2f);
             CameraManager.Instance.FocusCurrentMap();
+            GameInputManager.Instance.SetMode(InputMode.Build);
         }
 
         public void LoadMap(string name)

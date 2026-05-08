@@ -395,5 +395,45 @@ namespace Game.Framework
         {
             DialogueCancelPerformed?.Invoke(context);
         }
+
+
+
+        //拖动地图、持续旋转镜头需要判断“按钮是否按住”。
+        //Place：左键点击，选中地块 / 放塔
+        //Remove：中键或右键拖动地图
+        //Rotate：右键或键盘按住旋转镜头
+        //Scroll：滚轮缩放
+        //Cancel：ESC 取消选择/退出建造模式
+        public bool BuildPlaceHeld
+        {
+            get
+            {
+                return initialized && controls.Build.Place.IsPressed();
+            }
+        }
+
+        public bool BuildRemoveHeld
+        {
+            get
+            {
+                return initialized && controls.Build.Remove.IsPressed();
+            }
+        }
+
+        public bool BuildRotateHeld
+        {
+            get
+            {
+                return initialized && controls.Build.Rotate.IsPressed();
+            }
+        }
+
+        public bool BuildCancelHeld
+        {
+            get
+            {
+                return initialized && controls.Build.Cancel.IsPressed();
+            }
+        }
     }
 }
