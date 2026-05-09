@@ -4,8 +4,6 @@ namespace Game
 {
     /// <summary>
     /// 地块表现层。
-    /// 
-    /// 注意：
     /// TileView 不保存独立坐标。
     /// 坐标唯一来源是 TileData.Coord。
     /// </summary>
@@ -54,8 +52,7 @@ namespace Game
 
         public void SetSelected(bool selected)
         {
-            // 暂时留空。
-            // 后面可以在这里做高亮、描边、选中框等表现。
+            // 后面做选中框、描边、高亮。
         }
     }
 }

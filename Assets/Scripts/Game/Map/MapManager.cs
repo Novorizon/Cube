@@ -60,6 +60,45 @@ namespace Game
             }
         }
 
+        public IReadOnlyList<Vector3Int> SpawnPoints
+        {
+            get
+            {
+                if (currentMap == null || currentMap.SpawnPoints == null)
+                {
+                    return null;
+                }
+
+                return currentMap.SpawnPoints;
+            }
+        }
+
+        public bool HasGoalPoint
+        {
+            get
+            {
+                if (currentMap == null)
+                {
+                    return false;
+                }
+
+                return currentMap.HasGoalPoint;
+            }
+        }
+
+        public Vector3Int GoalPoint
+        {
+            get
+            {
+                if (currentMap == null)
+                {
+                    return default;
+                }
+
+                return currentMap.GoalPoint;
+            }
+        }
+
         public bool Initialize()
         {
             mapTilePrefabConfig = ResourceManager.Instance.LoadAsset<MapTilePrefabConfig>(PrefabConfigPath);
@@ -137,6 +176,8 @@ namespace Game
                 Debug.LogError($"Failed to parse map json: {location}");
                 return false;
             }
+
+            data.EnsureRuntimeCollections();
 
             currentMap = data;
             RebuildTileIndex();
@@ -412,6 +453,29 @@ namespace Game
             }
 
             return GetWorldPosition(tileData.X, tileData.Y, tileData.Z);
+        }
+
+        public Vector3 GetMapPointWorldPosition(Vector3Int coord)
+        {
+            return GetTileWorldPosition(coord);
+        }
+
+        public bool TryGetGoalPoint(out Vector3Int coord)
+        {
+            coord = default;
+
+            if (currentMap == null)
+            {
+                return false;
+            }
+
+            if (!currentMap.HasGoalPoint)
+            {
+                return false;
+            }
+
+            coord = currentMap.GoalPoint;
+            return true;
         }
 
         public bool IsInsideMap(Vector3Int coord)
@@ -696,6 +760,33 @@ namespace Game
             }
 
             return tileData != null;
+        }
+
+        public void GetWalkableNeighbors(Vector3Int coord, List<Vector3Int> results)
+        {
+            if (results == null)
+            {
+                return;
+            }
+
+            results.Clear();
+
+            TryAddWalkableNeighbor(results, coord.x + 1, coord.y, coord.z);
+            TryAddWalkableNeighbor(results, coord.x - 1, coord.y, coord.z);
+            TryAddWalkableNeighbor(results, coord.x, coord.y, coord.z + 1);
+            TryAddWalkableNeighbor(results, coord.x, coord.y, coord.z - 1);
+        }
+
+        private void TryAddWalkableNeighbor(List<Vector3Int> results, int x, int y, int z)
+        {
+            Vector3Int coord = new Vector3Int(x, y, z);
+
+            if (!IsWalkable(coord))
+            {
+                return;
+            }
+
+            results.Add(coord);
         }
     }
 }

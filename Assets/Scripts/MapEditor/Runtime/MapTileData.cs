@@ -4,7 +4,7 @@ namespace Game
 {
     /// <summary>
     /// 单个地图格子的静态配置数据。
-    /// 这里的 X/Y/Z 是逻辑坐标，不是 Unity 世界坐标。
+    /// X/Y/Z 是逻辑坐标，不是 Unity 世界坐标。
     /// </summary>
     [Serializable]
     public class MapTileData

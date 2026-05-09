@@ -4,8 +4,12 @@ namespace Game
 {
     /// <summary>
     /// 地图地块规则。
-    /// 只负责静态地图编辑规则与默认逻辑规则。
-    /// 运行时是否有塔、是否被遮挡，由 MapManager / TileData 判断。
+    /// 负责：
+    /// 1. 编辑器放置规则
+    /// 2. 默认逻辑属性
+    /// 3. 地块堆叠合法性
+    /// 
+    /// 不负责运行时塔占用，也不负责寻路。
     /// </summary>
     public static class MapTileRule
     {
@@ -24,8 +28,8 @@ namespace Game
             switch (type)
             {
                 case MapTileType.Grass:
-                case MapTileType.Snow:
                 case MapTileType.Hill:
+                case MapTileType.Snow:
                 case MapTileType.Water:
                     return true;
 
@@ -34,18 +38,47 @@ namespace Game
             }
         }
 
-        public static bool IsSupportTile(MapTileType type)
+        public static bool IsWalkableTileType(MapTileType type)
         {
             switch (type)
             {
-                case MapTileType.Soil:
                 case MapTileType.Grass:
-                case MapTileType.Snow:
                 case MapTileType.Hill:
+                case MapTileType.Snow:
                     return true;
 
                 default:
                     return false;
+            }
+        }
+
+        public static bool IsBuildableTileType(MapTileType type)
+        {
+            switch (type)
+            {
+                case MapTileType.Grass:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        public static int GetDefaultMoveCost(MapTileType type)
+        {
+            switch (type)
+            {
+                case MapTileType.Grass:
+                    return 10;
+
+                case MapTileType.Snow:
+                    return 15;
+
+                case MapTileType.Hill:
+                    return 20;
+
+                default:
+                    return 0;
             }
         }
 
@@ -55,6 +88,8 @@ namespace Game
             {
                 return false;
             }
+
+            mapData.EnsureRuntimeCollections();
 
             if (placeType == MapTileType.None)
             {
@@ -94,16 +129,16 @@ namespace Game
                     return belowType == MapTileType.Soil ||
                            belowType == MapTileType.Grass;
 
+                case MapTileType.Hill:
+                    return belowType == MapTileType.Soil ||
+                           belowType == MapTileType.Grass ||
+                           belowType == MapTileType.Hill;
+
                 case MapTileType.Snow:
                     return belowType == MapTileType.Soil ||
                            belowType == MapTileType.Grass ||
                            belowType == MapTileType.Hill ||
                            belowType == MapTileType.Snow;
-
-                case MapTileType.Hill:
-                    return belowType == MapTileType.Soil ||
-                           belowType == MapTileType.Grass ||
-                           belowType == MapTileType.Hill;
 
                 case MapTileType.Water:
                     return belowType == MapTileType.Soil;
@@ -124,6 +159,8 @@ namespace Game
             {
                 return false;
             }
+
+            mapData.EnsureRuntimeCollections();
 
             MapTileData tile = mapData.GetTile(x, y, z);
 
@@ -152,48 +189,45 @@ namespace Game
             return mapData.GetTile(x, y + 1, z) == null;
         }
 
-        public static bool IsWalkableTileType(MapTileType type)
+        public static bool IsValidMapPoint(Vector3Int coord, MapData mapData, out string reason)
         {
-            switch (type)
+            reason = string.Empty;
+
+            if (mapData == null)
             {
-                case MapTileType.Grass:
-                case MapTileType.Snow:
-                case MapTileType.Hill:
-                    return true;
-
-                default:
-                    return false;
+                reason = "map data is null";
+                return false;
             }
-        }
 
-        public static bool IsBuildableTileType(MapTileType type)
-        {
-            switch (type)
+            mapData.EnsureRuntimeCollections();
+
+            MapTileData tile = mapData.GetTile(coord);
+
+            if (tile == null)
             {
-                case MapTileType.Grass:
-                    return true;
-
-                default:
-                    return false;
+                reason = "target tile not found";
+                return false;
             }
-        }
 
-        public static int GetDefaultMoveCost(MapTileType type)
-        {
-            switch (type)
+            if (!IsLogicTile(tile.Type))
             {
-                case MapTileType.Grass:
-                    return 10;
-
-                case MapTileType.Snow:
-                    return 15;
-
-                case MapTileType.Hill:
-                    return 20;
-
-                default:
-                    return 0;
+                reason = $"target tile is not logic tile: {tile.Type}";
+                return false;
             }
+
+            if (!IsWalkableTileType(tile.Type))
+            {
+                reason = $"target tile is not walkable: {tile.Type}";
+                return false;
+            }
+
+            if (!IsExposed(coord.x, coord.y, coord.z, mapData))
+            {
+                reason = "target tile has upper tile";
+                return false;
+            }
+
+            return true;
         }
 
         private static bool IsInsideMapRange(int x, int y, int z, MapTileType placeType, MapData mapData)
