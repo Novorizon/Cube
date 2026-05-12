@@ -52,7 +52,7 @@ namespace Game
 
         public void SetSelected(bool selected)
         {
-            // 后面做选中框、描边、高亮。
+            // 后面可以在这里做选中框、描边、高亮。
         }
     }
 }

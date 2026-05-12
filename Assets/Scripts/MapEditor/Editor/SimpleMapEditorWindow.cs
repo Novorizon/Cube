@@ -18,6 +18,10 @@ namespace Game.Editor
         private readonly Dictionary<Vector3Int, MapTileData> tileMap = new Dictionary<Vector3Int, MapTileData>();
         private readonly Dictionary<Vector3Int, GameObject> tileObjects = new Dictionary<Vector3Int, GameObject>();
 
+        private readonly MapDataAStarPathFinder pathFinder = new MapDataAStarPathFinder();
+        private readonly List<Vector3Int> pathBuffer = new List<Vector3Int>();
+        private readonly List<GameObject> pathPreviewObjects = new List<GameObject>();
+
         [Title("Map Settings")]
 
         [LabelText("地图名称")]
@@ -737,6 +741,83 @@ namespace Game.Editor
             EditorUtility.DisplayDialog("Validate Failed", $"地图存在 {errors.Count} 个规则问题，请查看 Console。", "OK");
         }
 
+        [Button("检查出生点到基地是否有路", ButtonSizes.Large)]
+        [GUIColor(0.3f, 1.0f, 0.8f)]
+        private void CheckSpawnToGoalPaths()
+        {
+            if (!EnsureMap())
+            {
+                return;
+            }
+
+            if (HasDraggedPointInput())
+            {
+                bool syncSuccess = SyncDraggedPointViewsToMapData(false);
+
+                if (!syncSuccess)
+                {
+                    EditorUtility.DisplayDialog("Path Check Failed", "点位同步失败，请检查出生点和玩家基地拖拽对象。", "OK");
+                    return;
+                }
+            }
+
+            RebuildTileIndex();
+
+            List<string> mapErrors = ValidateMap(currentMap);
+
+            if (mapErrors.Count > 0)
+            {
+                for (int i = 0; i < mapErrors.Count; i++)
+                {
+                    Debug.LogWarning(mapErrors[i]);
+                }
+
+                EditorUtility.DisplayDialog("Path Check Failed", $"地图规则不合法，存在 {mapErrors.Count} 个问题，请先修复。", "OK");
+                return;
+            }
+
+            ClearPathPreviewObjects();
+
+            bool allSuccess = true;
+            List<string> pathErrors = new List<string>();
+
+            for (int i = 0; i < currentMap.SpawnPoints.Count; i++)
+            {
+                Vector3Int spawnCoord = currentMap.SpawnPoints[i];
+                Vector3Int goalCoord = currentMap.GoalPoint;
+
+                bool success = pathFinder.TryFindPath(currentMap, spawnCoord, goalCoord, pathBuffer);
+
+                if (!success)
+                {
+                    allSuccess = false;
+                    string message = $"Path not found. SpawnIndex: {i}, Spawn: {spawnCoord}, Goal: {goalCoord}";
+                    pathErrors.Add(message);
+                    Debug.LogWarning(message);
+                    continue;
+                }
+
+                Debug.Log($"Path found. SpawnIndex: {i}, Spawn: {spawnCoord}, Goal: {goalCoord}, Count: {pathBuffer.Count}");
+
+                CreatePathPreviewObjects(pathBuffer, i);
+            }
+
+            if (!allSuccess)
+            {
+                EditorUtility.DisplayDialog("Path Check Failed", $"有 {pathErrors.Count} 个出生点无法到达基地，请查看 Console。", "OK");
+                return;
+            }
+
+            EditorUtility.DisplayDialog("Path Check Success", $"全部 {currentMap.SpawnPoints.Count} 个出生点都可以到达基地。", "OK");
+        }
+
+        [Button("清空寻路预览")]
+        [GUIColor(0.7f, 0.7f, 0.7f)]
+        private void ClearPathPreview()
+        {
+            ClearPathPreviewObjects();
+        }
+
         private bool TryAddTileInternal(MapTileType type, int x, int y, int z, bool showDialog)
         {
             if (currentMap == null)
@@ -1061,6 +1142,8 @@ namespace Game.Editor
 
         private void CreatePreviewObjects()
         {
+            pathPreviewObjects.Clear();
+
             if (currentMap == null)
             {
                 Debug.LogWarning("Current map is null.");
@@ -1227,6 +1310,76 @@ namespace Game.Editor
             }
         }
 
+        private void CreatePathPreviewObjects(List<Vector3Int> path, int pathIndex)
+        {
+            if (path == null || path.Count == 0)
+            {
+                return;
+            }
+
+            if (previewRoot == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < path.Count; i++)
+            {
+                Vector3Int coord = path[i];
+
+                GameObject pointObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                pointObject.name = $"PathPreview_{pathIndex}_{i}";
+                pointObject.transform.SetParent(previewRoot, false);
+                pointObject.transform.position = GetWorldPosition(coord.x, coord.y, coord.z) + Vector3.up * 0.25f;
+                pointObject.transform.localScale = Vector3.one * 0.22f;
+
+                Renderer renderer = pointObject.GetComponent<Renderer>();
+
+                if (renderer != null)
+                {
+                    Material material = new Material(Shader.Find("Standard"));
+                    material.color = Color.cyan;
+                    renderer.sharedMaterial = material;
+                }
+
+                pathPreviewObjects.Add(pointObject);
+            }
+        }
+
+        private void ClearPathPreviewObjects()
+        {
+            for (int i = pathPreviewObjects.Count - 1; i >= 0; i--)
+            {
+                GameObject pathObject = pathPreviewObjects[i];
+
+                if (pathObject != null)
+                {
+                    DestroyImmediate(pathObject);
+                }
+            }
+
+            pathPreviewObjects.Clear();
+
+            if (previewRoot == null)
+            {
+                return;
+            }
+
+            for (int i = previewRoot.childCount - 1; i >= 0; i--)
+            {
+                Transform child = previewRoot.GetChild(i);
+
+                if (child == null)
+                {
+                    continue;
+                }
+
+                if (child.name.StartsWith("PathPreview_", StringComparison.Ordinal))
+                {
+                    DestroyImmediate(child.gameObject);
+                }
+            }
+        }
+
         private Vector3 GetWorldPosition(int x, int y, int z)
         {
             return new Vector3(x * tileSize, y * tileSize, z * tileSize);
@@ -1237,6 +1390,7 @@ namespace Game.Editor
             if (previewRoot == null)
             {
                 tileObjects.Clear();
+                pathPreviewObjects.Clear();
                 return;
             }
 
@@ -1253,6 +1407,7 @@ namespace Game.Editor
             }
 
             tileObjects.Clear();
+            pathPreviewObjects.Clear();
         }
 
         private GameObject GetPrefab(MapTileType type)

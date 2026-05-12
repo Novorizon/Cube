@@ -4,12 +4,14 @@ namespace Game
 {
     /// <summary>
     /// 地图地块规则。
+    /// 
     /// 负责：
     /// 1. 编辑器放置规则
     /// 2. 默认逻辑属性
     /// 3. 地块堆叠合法性
+    /// 4. 出生点 / 基地点位合法性
     /// 
-    /// 不负责运行时塔占用，也不负责寻路。
+    /// 不负责运行时塔占用，也不负责寻路算法本身。
     /// </summary>
     public static class MapTileRule
     {
@@ -121,6 +123,9 @@ namespace Game
             return CanPlaceOn(placeType, belowTile.Type);
         }
 
+        /// <summary>
+        /// placeType 是否允许放在 belowType 上方。
+        /// </summary>
         public static bool CanPlaceOn(MapTileType placeType, MapTileType belowType)
         {
             switch (placeType)
@@ -189,6 +194,9 @@ namespace Game
             return mapData.GetTile(x, y + 1, z) == null;
         }
 
+        /// <summary>
+        /// 出生点 / 基地 必须放在暴露的、可走的逻辑地块上。
+        /// </summary>
         public static bool IsValidMapPoint(Vector3Int coord, MapData mapData, out string reason)
         {
             reason = string.Empty;
