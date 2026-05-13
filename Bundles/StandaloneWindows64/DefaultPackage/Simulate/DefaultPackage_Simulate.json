@@ -10,8 +10,16 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/8 22:22:01",
+    "PackageNote": "2026/5/13 14:47:21",
     "AssetList": [
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Pages/BuildHudPage.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 0,
+            "DependBundleIDs": []
+        },
         {
             "Address": "",
             "AssetPath": "Assets/Arts/UI/Pages/MainMenuPage.prefab",
@@ -23,6 +31,14 @@
         {
             "Address": "",
             "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 1,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Cube/Configs/TowerConfig.asset",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 1,
@@ -51,7 +67,7 @@
             "UnityCRC": 0,
             "FileHash": "21996de3eb66f049507edba30fd1e55a",
             "FileCRC": 0,
-            "FileSize": 10912,
+            "FileSize": 45554,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -61,7 +77,7 @@
             "UnityCRC": 0,
             "FileHash": "4679f4c61b2786dc47891b8f79f758a3",
             "FileCRC": 0,
-            "FileSize": 930,
+            "FileSize": 1747,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -71,7 +87,7 @@
             "UnityCRC": 0,
             "FileHash": "efa124fae6e570ca16ff15ad11e50b58",
             "FileCRC": 0,
-            "FileSize": 75854,
+            "FileSize": 69306,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

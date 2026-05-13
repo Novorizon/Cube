@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 631f26f3d51e51f459deb6cdf7bb9b7d, type: 3}
+  m_Name: TowerConfig
+  m_EditorClassIdentifier: 
+  items:
+  - Type: 0
+    Name: "\u666E\u901A\u5854"
+    Prefab: {fileID: 8156808266098827476, guid: bb1a426a927f3f94e917f25d1063fadc,
+      type: 3}
+    Cost: 100
+    Range: 3
+    Damage: 10
+    AttackInterval: 1
+  - Type: 2
+    Name: "\u51B0\u51BB\u5854"
+    Prefab: {fileID: 3914677955626462715, guid: a0f04aadaeeff104499faf1b54e61cfb,
+      type: 3}
+    Cost: 100
+    Range: 3
+    Damage: 10
+    AttackInterval: 1

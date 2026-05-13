@@ -37,6 +37,7 @@ namespace Game.UI
             // 后面如果你做 GamePage，可以改成：
             // await UIManager.Instance.Pages.ReplaceAsync("Assets/Data/UI/Pages/GamePage.prefab");
             gameObject.SetActive(false);
+             _=UIManager.Instance.Pages.ResetToAsync("Assets/Arts/UI/Pages/BuildHudPage.prefab");
         }
     }
 }

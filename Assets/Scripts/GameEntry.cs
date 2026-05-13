@@ -30,6 +30,15 @@ namespace Game
                 Debug.LogError("MapManager initialize failed.");
             }
 
+            bool towerBuildInitialized = TowerBuildManager.Instance.Initialize();
+
+            if (!towerBuildInitialized)
+            {
+                Debug.LogError("TowerBuildManager initialize failed.");
+            }
+
+            TowerBuildInputController.Instance.Initialize();
+
             UIManager.Instance.UseResourceManagerLoader();
 
             await UIManager.Instance.Pages.ResetToAsync(mainMenuPagePath);
