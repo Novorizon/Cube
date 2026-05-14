@@ -23,7 +23,7 @@ namespace Game
             MapInputController.Instance.Initialize();
             await ResourceManager.Instance.InitializeAsync();
             DataManager.Instance.Initialize();
-            NpcConfig npc = DataManager.Instance.GetNpc(1001);
+            NpcConfig npc = DataManager.Instance.GetNpcConfig(1001);
             EnemySpawner.Instance.Initialize();
             BaseManager.Instance.Initialize(20);
             EnsureEnemyUpdateDriver();

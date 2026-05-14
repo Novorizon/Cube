@@ -23,7 +23,7 @@ namespace Game
             return true;
         }
 
-        public NpcConfig GetNpc(int id)
+        public NpcConfig GetNpcConfig(int id)
         {
             if (tables == null)
             {
@@ -34,9 +34,9 @@ namespace Game
             return tables.TbNpc.Get(id);
         }
 
-        public bool TryGetNpc(int id, out NpcConfig npc)
+        public bool TryGetNpcConfig(int id, out NpcConfig config)
         {
-            npc = null;
+            config = null;
 
             if (tables == null)
             {
@@ -44,8 +44,8 @@ namespace Game
                 return false;
             }
 
-            npc = tables.TbNpc.GetOrDefault(id);
-            return npc != null;
+            config = tables.TbNpc.GetOrDefault(id);
+            return config != null;
         }
 
         private ByteBuf LoadByteBuf(string file)

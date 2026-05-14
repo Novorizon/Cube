@@ -8,13 +8,7 @@ namespace Game
         private int testMapId = 1;
 
         [SerializeField]
-        private int testNpcId = 1001;
-
-        [SerializeField]
-        private bool loadMapOnStart;
-
-        [SerializeField]
-        private bool spawnOnStart;
+        private int testNpcConfigId = 1001;
 
         [SerializeField]
         private KeyCode loadMapAndSpawnKey = KeyCode.F5;
@@ -22,32 +16,18 @@ namespace Game
         [SerializeField]
         private KeyCode spawnKey = KeyCode.F6;
 
-        private void Start()
-        {
-            if (loadMapOnStart)
-            {
-                LoadMap();
-            }
-
-            if (spawnOnStart)
-            {
-                SpawnEnemy();
-            }
-        }
-
         private void Update()
         {
             if (Input.GetKeyDown(loadMapAndSpawnKey))
             {
                 LoadMap();
-
-                SpawnEnemy();
+                SpawnNpc();
                 return;
             }
 
             if (Input.GetKeyDown(spawnKey))
             {
-                SpawnEnemy();
+                SpawnNpc();
             }
         }
 
@@ -64,17 +44,17 @@ namespace Game
             Debug.Log($"NpcSpawnTestController load map success. MapId: {testMapId}");
         }
 
-        private void SpawnEnemy()
+        private void SpawnNpc()
         {
-            bool success = EnemySpawner.Instance.SpawnEnemyFromFirstSpawn(testNpcId);
+            bool success = NpcManager.Instance.SpawnFromFirstSpawn(testNpcConfigId);
 
             if (!success)
             {
-                Debug.LogWarning($"NpcSpawnTestController spawn failed. NpcId: {testNpcId}");
+                Debug.LogWarning($"NpcSpawnTestController spawn failed. NpcConfigId: {testNpcConfigId}");
                 return;
             }
 
-            Debug.Log($"NpcSpawnTestController spawn success. NpcId: {testNpcId}");
+            Debug.Log($"NpcSpawnTestController spawn success. NpcConfigId: {testNpcConfigId}");
         }
     }
 }

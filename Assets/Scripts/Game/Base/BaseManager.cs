@@ -9,36 +9,11 @@ namespace Game
         private int currentLife;
         private bool initialized;
 
-        public int MaxLife
-        {
-            get
-            {
-                return maxLife;
-            }
-        }
-
-        public int CurrentLife
-        {
-            get
-            {
-                return currentLife;
-            }
-        }
-
-        public bool IsDead
-        {
-            get
-            {
-                return initialized && currentLife <= 0;
-            }
-        }
-
         public void Initialize(int life)
         {
             maxLife = Mathf.Max(1, life);
             currentLife = maxLife;
             initialized = true;
-
             Debug.Log($"Base initialized. Life: {currentLife}/{maxLife}");
         }
 
@@ -49,12 +24,7 @@ namespace Game
                 Initialize(20);
             }
 
-            if (damage <= 0)
-            {
-                return;
-            }
-
-            if (currentLife <= 0)
+            if (damage <= 0 || currentLife <= 0)
             {
                 return;
             }
@@ -67,11 +37,6 @@ namespace Game
             }
 
             Debug.Log($"Base damaged. Damage: {damage}, Life: {currentLife}/{maxLife}");
-
-            if (currentLife <= 0)
-            {
-                Debug.Log("Base destroyed. Game over.");
-            }
         }
     }
 }

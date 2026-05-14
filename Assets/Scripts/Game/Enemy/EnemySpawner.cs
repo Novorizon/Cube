@@ -56,7 +56,7 @@ namespace Game
 
         public bool SpawnEnemy(int npcId, Vector3Int spawnCoord, Vector3Int goalCoord)
         {
-            if (!DataManager.Instance.TryGetNpc(npcId, out NpcConfig config))
+            if (!DataManager.Instance.TryGetNpcConfig(npcId, out NpcConfig config))
             {
                 Debug.LogWarning($"Spawn enemy failed. Missing npc config: {npcId}");
                 return false;
