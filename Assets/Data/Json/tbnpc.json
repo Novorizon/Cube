@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1001,
+    "name": "普通敌人",
+    "description": "最基础的敌人，移动速度和伤害都很普通。",
+    "kind": 100,
+    "actorType": 1,
+    "prefabLocation": "Assets/Arts/Character/Pirate_Male.prefab",
+    "moveSpeed": 2,
+    "damageToBase": 1
+  },
+  {
+    "id": 1002,
+    "name": "快速敌人",
+    "description": "移动速度更快，但暂时没有额外能力。",
+    "kind": 100,
+    "actorType": 1,
+    "prefabLocation": "Assets/Arts/Character/Elf.prefab",
+    "moveSpeed": 3.5,
+    "damageToBase": 1
+  },
+  {
+    "id": 2001,
+    "name": "流浪商人",
+    "description": "出售基础道具的商人。",
+    "kind": 100,
+    "actorType": 4,
+    "prefabLocation": "Assets/Arts/Character/Elf.prefab",
+    "moveSpeed": 0,
+    "damageToBase": 0
+  }
+]

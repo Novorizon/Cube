@@ -10,27 +10,27 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/13 21:06:28",
+    "PackageNote": "2026/5/14 17:17:55",
     "AssetList": [
         {
             "Address": "",
+            "AssetPath": "Assets/Arts/Character/Elf.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 0,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/Character/Pirate_Male.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 0,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Arts/UI/Pages/BuildHudPage.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 0,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Pages/MainMenuPage.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 0,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/BuildTowerPanel.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 1,
@@ -38,10 +38,34 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
+            "AssetPath": "Assets/Arts/UI/Pages/MainMenuPage.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 1,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Panels/BuildTowerPanel.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 2,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Bin/tbnpc.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 3,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 4,
             "DependBundleIDs": []
         },
         {
@@ -49,7 +73,7 @@
             "AssetPath": "Assets/Data/Cube/Configs/TowerConfig.asset",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 2,
+            "BundleID": 4,
             "DependBundleIDs": []
         },
         {
@@ -57,7 +81,7 @@
             "AssetPath": "Assets/Data/Map/1.json",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 3,
+            "BundleID": 5,
             "DependBundleIDs": []
         },
         {
@@ -65,11 +89,21 @@
             "AssetPath": "Assets/Data/Map/NewMap.json",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 3,
+            "BundleID": 5,
             "DependBundleIDs": []
         }
     ],
     "BundleList": [
+        {
+            "BundleName": "assets_arts_character.bundle",
+            "UnityCRC": 0,
+            "FileHash": "76de515575e518ff789925df55b65737",
+            "FileCRC": 0,
+            "FileSize": 74237,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
         {
             "BundleName": "assets_arts_ui_pages.bundle",
             "UnityCRC": 0,
@@ -86,6 +120,16 @@
             "FileHash": "450429c0739c2a1fdf881314ea262116",
             "FileCRC": 0,
             "FileSize": 28247,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_data_bin.bundle",
+            "UnityCRC": 0,
+            "FileHash": "8502b3caa13ac1a33f913c862a6bdd2a",
+            "FileCRC": 0,
+            "FileSize": 315,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

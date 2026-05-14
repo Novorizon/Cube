@@ -22,21 +22,11 @@ namespace Game
             CameraManager.Instance.Initialize();
             MapInputController.Instance.Initialize();
             await ResourceManager.Instance.InitializeAsync();
+            DataManager.Instance.Initialize();
+            Npc npc = DataManager.Instance.GetNpc(1001);
 
-            bool mapInitialized = MapManager.Instance.Initialize();
-
-            if (!mapInitialized)
-            {
-                Debug.LogError("MapManager initialize failed.");
-            }
-
-            bool towerBuildInitialized = TowerBuildManager.Instance.Initialize();
-
-            if (!towerBuildInitialized)
-            {
-                Debug.LogError("TowerBuildManager initialize failed.");
-            }
-
+            MapManager.Instance.Initialize();
+            TowerBuildManager.Instance.Initialize();
             TowerBuildInputController.Instance.Initialize();
 
             UIManager.Instance.UseResourceManagerLoader();
