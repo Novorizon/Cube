@@ -21,12 +21,13 @@ namespace Game
             GameInputManager.Instance.Initialize(InputMode.Gameplay);
             CameraManager.Instance.Initialize();
             MapInputController.Instance.Initialize();
+
             await ResourceManager.Instance.InitializeAsync();
+
             DataManager.Instance.Initialize();
-            NpcConfig npc = DataManager.Instance.GetNpcConfig(1001);
-            EnemySpawner.Instance.Initialize();
+
             BaseManager.Instance.Initialize(20);
-            EnsureEnemyUpdateDriver();
+            NpcManager.Instance.Initialize();
 
             MapManager.Instance.Initialize();
             TowerBuildManager.Instance.Initialize();
@@ -36,21 +37,15 @@ namespace Game
 
             await UIManager.Instance.Pages.ResetToAsync(mainMenuPagePath);
         }
+
+        private void Update()
+        {
+            NpcManager.Instance.Update(Time.deltaTime);
+        }
+
         private void OnDestroy()
         {
             GameInputManager.Instance.Release();
-        }
-        private void EnsureEnemyUpdateDriver()
-        {
-            EnemyUpdateDriver driver = FindObjectOfType<EnemyUpdateDriver>();
-
-            if (driver != null)
-            {
-                return;
-            }
-
-            GameObject driverObject = new GameObject("EnemyUpdateDriver");
-            driverObject.AddComponent<EnemyUpdateDriver>();
         }
     }
 }

@@ -5,16 +5,107 @@ namespace Game
 {
     public sealed class BaseManager : Singleton<BaseManager>
     {
+        private const string BasePrefabLocation = "Assets/Arts/Base/Base.prefab";
+
+        private GameObject baseObject;
         private int maxLife;
         private int currentLife;
         private bool initialized;
+
+        public int MaxLife
+        {
+            get
+            {
+                return maxLife;
+            }
+        }
+
+        public int CurrentLife
+        {
+            get
+            {
+                return currentLife;
+            }
+        }
+
+        public bool IsDead
+        {
+            get
+            {
+                return initialized && currentLife <= 0;
+            }
+        }
+        public bool HasBaseObject
+        {
+            get
+            {
+                return baseObject != null;
+            }
+        }
+
+        public Vector3 BasePosition
+        {
+            get
+            {
+                if (baseObject == null)
+                {
+                    return Vector3.zero;
+                }
+
+                return baseObject.transform.position;
+            }
+        }
 
         public void Initialize(int life)
         {
             maxLife = Mathf.Max(1, life);
             currentLife = maxLife;
             initialized = true;
+
             Debug.Log($"Base initialized. Life: {currentLife}/{maxLife}");
+        }
+
+        public bool LoadCurrentMapBase()
+        {
+            if (!initialized)
+            {
+                Initialize(20);
+            }
+
+            ClearBaseObject();
+
+            if (!MapManager.Instance.TryGetGoalPoint(out Vector3Int goalPoint))
+            {
+                Debug.LogWarning("Load base failed. Current map has no goal point.");
+                return false;
+            }
+
+            GameObject prefab = ResourceManager.Instance.LoadGameObject(BasePrefabLocation);
+
+            if (prefab == null)
+            {
+                Debug.LogWarning($"Load base failed. Missing prefab: {BasePrefabLocation}");
+                return false;
+            }
+
+            Vector3 position = GetBaseWorldPosition(goalPoint);
+            baseObject = GameObject.Instantiate(prefab, position, Quaternion.identity);
+            baseObject.name = "PlayerBase";
+
+            Debug.Log($"Load base success. GoalPoint: {goalPoint}, Position: {position}");
+
+            return true;
+        }
+
+        public void ClearBaseObject()
+        {
+            if (baseObject == null)
+            {
+                return;
+            }
+
+            GameObject.Destroy(baseObject);
+            baseObject = null;
         }
 
         public void TakeDamage(int damage)
@@ -24,7 +115,12 @@ namespace Game
                 Initialize(20);
             }
 
-            if (damage <= 0 || currentLife <= 0)
+            if (damage <= 0)
+            {
+                return;
+            }
+
+            if (currentLife <= 0)
             {
                 return;
             }
@@ -37,6 +133,21 @@ namespace Game
             }
 
             Debug.Log($"Base damaged. Damage: {damage}, Life: {currentLife}/{maxLife}");
+
+            if (currentLife <= 0)
+            {
+                Debug.Log("Base destroyed. Game over.");
+            }
+        }
+
+        private Vector3 GetBaseWorldPosition(Vector3Int coord)
+        {
+            if (MapManager.Instance.TryGetTileView(coord, out TileView tileView))
+            {
+                return tileView.transform.position + Vector3.up * 0.6f;
+            }
+
+            return MapManager.Instance.GetTileWorldPosition(coord) + Vector3.up * 0.6f;
         }
     }
 }

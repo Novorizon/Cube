@@ -22,8 +22,11 @@ public sealed partial class NpcConfig : Luban.BeanBase
         Kind = _buf.ReadInt();
         ActorType = _buf.ReadInt();
         PrefabLocation = _buf.ReadString();
+        ModelScale = _buf.ReadFloat();
         MoveSpeed = _buf.ReadFloat();
         DamageToBase = _buf.ReadInt();
+        AttackRange = _buf.ReadFloat();
+        AttackInterval = _buf.ReadFloat();
     }
 
     public static NpcConfig DeserializeNpcConfig(ByteBuf _buf)
@@ -37,8 +40,11 @@ public sealed partial class NpcConfig : Luban.BeanBase
     public readonly int Kind;
     public readonly int ActorType;
     public readonly string PrefabLocation;
+    public readonly float ModelScale;
     public readonly float MoveSpeed;
     public readonly int DamageToBase;
+    public readonly float AttackRange;
+    public readonly float AttackInterval;
    
     public const int __ID__ = -1928671901;
     public override int GetTypeId() => __ID__;
@@ -56,8 +62,11 @@ public sealed partial class NpcConfig : Luban.BeanBase
         + "kind:" + Kind + ","
         + "actorType:" + ActorType + ","
         + "prefabLocation:" + PrefabLocation + ","
+        + "modelScale:" + ModelScale + ","
         + "moveSpeed:" + MoveSpeed + ","
         + "damageToBase:" + DamageToBase + ","
+        + "attackRange:" + AttackRange + ","
+        + "attackInterval:" + AttackInterval + ","
         + "}";
     }
 }

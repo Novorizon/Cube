@@ -262,6 +262,8 @@ namespace Game
             CameraManager.Instance.SetPadding(2f);
             CameraManager.Instance.FocusCurrentMap();
 
+            BaseManager.Instance.LoadCurrentMapBase();
+
             GameInputManager.Instance.SetMode(InputMode.Build);
         }
 
@@ -308,6 +310,8 @@ namespace Game
 
         public void ClearMap()
         {
+            BaseManager.Instance.ClearBaseObject();
+
             currentMap = null;
             tileMap.Clear();
             tileDataMap.Clear();

@@ -6,6 +6,9 @@ namespace Game
 {
     public sealed class NpcManager : Singleton<NpcManager>
     {
+        private static readonly int WalkHash = Animator.StringToHash("Walk");
+        private static readonly int PunchHash = Animator.StringToHash("Punch");
+
         private readonly List<Npc> activeNpcs = new List<Npc>();
         private readonly MapPathFinder pathFinder = new MapPathFinder();
 
@@ -127,6 +130,8 @@ namespace Game
             GameObject instance = GameObject.Instantiate(prefab, spawnPosition, Quaternion.identity, npcRoot);
             instance.name = $"{npcConfigId}_{config.Name}_Npc";
 
+            ApplyNpcScale(instance, config);
+
             Npc npc = instance.GetComponent<Npc>();
 
             if (npc == null)
@@ -136,8 +141,12 @@ namespace Game
 
             NpcData data = new NpcData();
             data.Initialize(config, path);
+            data.Animator = instance.GetComponentInChildren<Animator>();
 
             npc.InitializeRaw(config, data);
+
+            SetNpcWalk(npc, data.Moving);
+
             Register(npc);
 
             Debug.Log($"Spawn npc success. Id: {npcConfigId}, Name: {config.Name}, ActorType: {config.ActorType}, Spawn: {spawnCoord}, Target: {targetCoord}, PathCount: {path.Count}");
@@ -210,6 +219,14 @@ namespace Game
                 return;
             }
 
+            if (npc.ActorType == ActorType.Enemy)
+            {
+                if (TryUpdateEnemyAttackBase(npc, deltaTime))
+                {
+                    return;
+                }
+            }
+
             if (!data.Moving)
             {
                 return;
@@ -222,7 +239,7 @@ namespace Game
 
             if (data.Path.Count == 0)
             {
-                data.Moving = false;
+                SetNpcWalk(npc, false);
                 return;
             }
 
@@ -262,6 +279,72 @@ namespace Game
             }
         }
 
+        private bool TryUpdateEnemyAttackBase(Npc npc, float deltaTime)
+        {
+            if (npc == null || npc.Data == null)
+            {
+                return false;
+            }
+
+            if (!BaseManager.Instance.HasBaseObject)
+            {
+                return false;
+            }
+
+            NpcData data = npc.Data;
+
+            Vector3 basePosition = BaseManager.Instance.BasePosition;
+            Vector3 npcPosition = npc.transform.position;
+
+            basePosition.y = 0f;
+            npcPosition.y = 0f;
+
+            float distance = Vector3.Distance(npcPosition, basePosition);
+
+            if (distance > data.AttackRange)
+            {
+                return false;
+            }
+
+            if (!data.Attacking)
+            {
+                data.Attacking = true;
+                SetNpcWalk(npc, false);
+                FaceToPosition(npc, BaseManager.Instance.BasePosition);
+            }
+
+            data.AttackTimer -= deltaTime;
+
+            if (data.AttackTimer > 0f)
+            {
+                return true;
+            }
+
+            data.AttackTimer = data.AttackInterval;
+
+            DoEnemyAttackBase(npc);
+
+            return true;
+        }
+
+        private void DoEnemyAttackBase(Npc npc)
+        {
+            if (npc == null || npc.Data == null)
+            {
+                return;
+            }
+
+            FaceToPosition(npc, BaseManager.Instance.BasePosition);
+
+            PlayNpcPunch(npc);
+
+            int damage = npc.Data.DamageToBase;
+
+            Debug.Log($"Enemy attack base. Id: {npc.Config?.Id}, Damage: {damage}");
+
+            BaseManager.Instance.TakeDamage(damage);
+        }
+
         private void OnNpcReachTarget(Npc npc)
         {
             if (npc == null || npc.Data == null)
@@ -274,7 +357,8 @@ namespace Game
                 return;
             }
 
-            npc.Data.Moving = false;
+            SetNpcWalk(npc, false);
+
             npc.Data.ReachedGoal = true;
 
             if (npc.ActorType == ActorType.Enemy)
@@ -288,13 +372,99 @@ namespace Game
 
         private void OnEnemyReachGoal(Npc npc)
         {
-            int damage = npc.Data != null ? npc.Data.DamageToBase : 0;
+            if (npc == null || npc.Data == null)
+            {
+                return;
+            }
 
-            Debug.Log($"Enemy reached goal. Id: {npc.Config?.Id}, DamageToBase: {damage}");
+            npc.Data.Attacking = true;
+            npc.Data.AttackTimer = 0f;
 
-            BaseManager.Instance.TakeDamage(damage);
+            FaceToPosition(npc, BaseManager.Instance.BasePosition);
 
-            Remove(npc);
+            Debug.Log($"Enemy reached base attack position. Id: {npc.Config?.Id}");
+        }
+
+        private Animator GetAnimator(Npc npc)
+        {
+            if (npc == null || npc.Data == null)
+            {
+                return null;
+            }
+
+            if (npc.Data.Animator != null)
+            {
+                return npc.Data.Animator;
+            }
+
+            npc.Data.Animator = npc.GetComponentInChildren<Animator>();
+            return npc.Data.Animator;
+        }
+
+        private void SetNpcWalk(Npc npc, bool walk)
+        {
+            if (npc == null || npc.Data == null)
+            {
+                return;
+            }
+
+            npc.Data.Moving = walk;
+
+            Animator animator = GetAnimator(npc);
+
+            if (animator == null)
+            {
+                return;
+            }
+
+            animator.SetBool(WalkHash, walk);
+        }
+
+        private void PlayNpcPunch(Npc npc)
+        {
+            Animator animator = GetAnimator(npc);
+
+            if (animator == null)
+            {
+                return;
+            }
+
+            animator.SetTrigger(PunchHash);
+        }
+
+        private void FaceToPosition(Npc npc, Vector3 targetPosition)
+        {
+            if (npc == null)
+            {
+                return;
+            }
+
+            Vector3 direction = targetPosition - npc.transform.position;
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude <= 0.0001f)
+            {
+                return;
+            }
+
+            npc.transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+        }
+
+        private void ApplyNpcScale(GameObject instance, NpcConfig config)
+        {
+            if (instance == null || config == null)
+            {
+                return;
+            }
+
+            float scale = config.ModelScale;
+
+            if (scale <= 0f)
+            {
+                scale = 1f;
+            }
+
+            instance.transform.localScale = Vector3.one * scale;
         }
 
         private Vector3 GetWorldPosition(Vector3Int coord)

@@ -485,9 +485,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   testMapId: 1
-  testNpcId: 1001
-  loadMapOnStart: 0
-  spawnOnStart: 0
+  testNpcConfigId: 1001
   loadMapAndSpawnKey: 286
   spawnKey: 287
 --- !u!1660057539 &9223372036854775807

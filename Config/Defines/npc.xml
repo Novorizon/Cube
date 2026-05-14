@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<module name="	">
+<module name="">
   <bean name="NpcConfig">
     <var name="id" type="int" />
     <var name="name" type="string" />
@@ -7,8 +7,11 @@
     <var name="kind" type="int" />
     <var name="actorType" type="int" />
     <var name="prefabLocation" type="string" />
+    <var name="modelScale" type="float" />
     <var name="moveSpeed" type="float" />
     <var name="damageToBase" type="int" />
+    <var name="attackRange" type="float" />
+    <var name="attackInterval" type="float" />
   </bean>
 
   <table name="TbNpc" value="NpcConfig" input="npc.xlsx" mode="map" index="id" />

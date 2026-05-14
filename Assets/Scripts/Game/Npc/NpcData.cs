@@ -8,6 +8,8 @@ namespace Game
         public int ConfigId;
         public float MoveSpeed;
         public int DamageToBase;
+        public float AttackRange;
+        public float AttackInterval;
 
         public readonly List<Vector3Int> Path = new List<Vector3Int>();
 
@@ -15,11 +17,28 @@ namespace Game
         public bool Moving;
         public bool ReachedGoal;
 
+        public bool Attacking;
+        public float AttackTimer;
+
+        public Animator Animator;
+
         public void Initialize(NpcConfig config, IReadOnlyList<Vector3Int> path)
         {
             ConfigId = config != null ? config.Id : 0;
             MoveSpeed = config != null ? config.MoveSpeed : 1f;
             DamageToBase = config != null ? config.DamageToBase : 0;
+            AttackRange = config != null ? config.AttackRange : 0.8f;
+            AttackInterval = config != null ? config.AttackInterval : 1f;
+
+            if (AttackRange <= 0f)
+            {
+                AttackRange = 0.8f;
+            }
+
+            if (AttackInterval <= 0f)
+            {
+                AttackInterval = 1f;
+            }
 
             Path.Clear();
 
@@ -34,6 +53,10 @@ namespace Game
             PathIndex = Path.Count > 1 ? 1 : 0;
             Moving = Path.Count > 1;
             ReachedGoal = false;
+
+            Attacking = false;
+            AttackTimer = 0f;
+            Animator = null;
         }
     }
 }
