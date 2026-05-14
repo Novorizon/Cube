@@ -10,7 +10,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/14 17:17:55",
+    "PackageNote": "2026/5/14 18:32:42",
     "AssetList": [
         {
             "Address": "",
@@ -22,31 +22,7 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Arts/Character/Pirate_Male.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 0,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Pages/BuildHudPage.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 1,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Pages/MainMenuPage.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 1,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/BuildTowerPanel.prefab",
+            "AssetPath": "Assets/Arts/Character/Pirate/Animators/PirateAnimatorController.controller",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 2,
@@ -54,7 +30,15 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Data/Bin/tbnpc.bytes",
+            "AssetPath": "Assets/Arts/Character/Pirate/Pirate_Male.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 1,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Pages/BuildHudPage.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 3,
@@ -62,10 +46,34 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
+            "AssetPath": "Assets/Arts/UI/Pages/MainMenuPage.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 3,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Panels/BuildTowerPanel.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 4,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Bin/tbnpc.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 5,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 6,
             "DependBundleIDs": []
         },
         {
@@ -73,7 +81,7 @@
             "AssetPath": "Assets/Data/Cube/Configs/TowerConfig.asset",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 4,
+            "BundleID": 6,
             "DependBundleIDs": []
         },
         {
@@ -81,7 +89,7 @@
             "AssetPath": "Assets/Data/Map/1.json",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 5,
+            "BundleID": 7,
             "DependBundleIDs": []
         },
         {
@@ -89,7 +97,7 @@
             "AssetPath": "Assets/Data/Map/NewMap.json",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 5,
+            "BundleID": 7,
             "DependBundleIDs": []
         }
     ],
@@ -99,7 +107,27 @@
             "UnityCRC": 0,
             "FileHash": "76de515575e518ff789925df55b65737",
             "FileCRC": 0,
-            "FileSize": 74237,
+            "FileSize": 37042,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_arts_character_pirate.bundle",
+            "UnityCRC": 0,
+            "FileHash": "19e67b08707dc5e9cfbb56eeca394d88",
+            "FileCRC": 0,
+            "FileSize": 37931,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_arts_character_pirate_animators.bundle",
+            "UnityCRC": 0,
+            "FileHash": "df7db292475a905d3744bc9abb3917bc",
+            "FileCRC": 0,
+            "FileSize": 8450,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -129,7 +157,7 @@
             "UnityCRC": 0,
             "FileHash": "8502b3caa13ac1a33f913c862a6bdd2a",
             "FileCRC": 0,
-            "FileSize": 315,
+            "FileSize": 322,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

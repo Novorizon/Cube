@@ -23,7 +23,7 @@ namespace Game
             return true;
         }
 
-        public Npc GetNpc(int id)
+        public NpcConfig GetNpc(int id)
         {
             if (tables == null)
             {
@@ -34,7 +34,7 @@ namespace Game
             return tables.TbNpc.Get(id);
         }
 
-        public bool TryGetNpc(int id, out Npc npc)
+        public bool TryGetNpc(int id, out NpcConfig npc)
         {
             npc = null;
 

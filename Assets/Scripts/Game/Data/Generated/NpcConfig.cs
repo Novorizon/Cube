@@ -12,9 +12,9 @@ using Luban;
 
 namespace Game
 {
-public sealed partial class Npc : Luban.BeanBase
+public sealed partial class NpcConfig : Luban.BeanBase
 {
-    public Npc(ByteBuf _buf) 
+    public NpcConfig(ByteBuf _buf) 
     {
         Id = _buf.ReadInt();
         Name = _buf.ReadString();
@@ -26,9 +26,9 @@ public sealed partial class Npc : Luban.BeanBase
         DamageToBase = _buf.ReadInt();
     }
 
-    public static Npc DeserializeNpc(ByteBuf _buf)
+    public static NpcConfig DeserializeNpcConfig(ByteBuf _buf)
     {
-        return new Npc(_buf);
+        return new NpcConfig(_buf);
     }
 
     public readonly int Id;
@@ -40,7 +40,7 @@ public sealed partial class Npc : Luban.BeanBase
     public readonly float MoveSpeed;
     public readonly int DamageToBase;
    
-    public const int __ID__ = 78529;
+    public const int __ID__ = -1928671901;
     public override int GetTypeId() => __ID__;
 
     public  void ResolveRef(Tables tables)

@@ -157,6 +157,8 @@ namespace Game
             enemy.SetMovingRaw(false);
             enemy.SetReachedGoalRaw(true);
 
+            Debug.Log($"Enemy reached goal. Id: {enemy.Config?.Id}, DamageToBase: {enemy.DamageToBase}");
+
             BaseManager.Instance.TakeDamage(enemy.DamageToBase);
 
             RemoveEnemy(enemy);
@@ -164,10 +166,12 @@ namespace Game
 
         private Vector3 GetEnemyWorldPosition(Vector3Int coord)
         {
-            Vector3 tilePosition = MapManager.Instance.GetTileWorldPosition(coord);
-            float tileSize = MapManager.Instance.TileSize;
+            if (MapManager.Instance.TryGetTileView(coord, out TileView tileView))
+            {
+                return tileView.transform.position + Vector3.up * 0.6f;
+            }
 
-            return tilePosition + Vector3.up * tileSize;
+            return MapManager.Instance.GetTileWorldPosition(coord) + Vector3.up * 0.6f;
         }
     }
 }

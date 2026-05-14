@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<module name="">
-  <bean name="Npc">
+<module name="	">
+  <bean name="NpcConfig">
     <var name="id" type="int" />
     <var name="name" type="string" />
     <var name="description" type="string" />
@@ -11,5 +11,5 @@
     <var name="damageToBase" type="int" />
   </bean>
 
-  <table name="TbNpc" value="Npc" input="npc.xlsx" mode="map" index="id" />
+  <table name="TbNpc" value="NpcConfig" input="npc.xlsx" mode="map" index="id" />
 </module>

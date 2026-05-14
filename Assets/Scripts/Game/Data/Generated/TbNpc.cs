@@ -14,29 +14,29 @@ namespace Game
 {
 public partial class TbNpc
 {
-    private readonly System.Collections.Generic.Dictionary<int, Npc> _dataMap;
-    private readonly System.Collections.Generic.List<Npc> _dataList;
+    private readonly System.Collections.Generic.Dictionary<int, NpcConfig> _dataMap;
+    private readonly System.Collections.Generic.List<NpcConfig> _dataList;
     
     public TbNpc(ByteBuf _buf)
     {
         int n = _buf.ReadSize();
-        _dataMap = new System.Collections.Generic.Dictionary<int, Npc>(n);
-        _dataList = new System.Collections.Generic.List<Npc>(n);
+        _dataMap = new System.Collections.Generic.Dictionary<int, NpcConfig>(n);
+        _dataList = new System.Collections.Generic.List<NpcConfig>(n);
         for(int i = n ; i > 0 ; --i)
         {
-            Npc _v;
-            _v = global::Game.Npc.DeserializeNpc(_buf);
+            NpcConfig _v;
+            _v = global::Game.NpcConfig.DeserializeNpcConfig(_buf);
             _dataList.Add(_v);
             _dataMap.Add(_v.Id, _v);
         }
     }
 
-    public System.Collections.Generic.IReadOnlyDictionary<int, Npc> DataMap => _dataMap;
-    public System.Collections.Generic.IReadOnlyList<Npc> DataList => _dataList;
+    public System.Collections.Generic.IReadOnlyDictionary<int, NpcConfig> DataMap => _dataMap;
+    public System.Collections.Generic.IReadOnlyList<NpcConfig> DataList => _dataList;
 
-    public Npc GetOrDefault(int key) => _dataMap.TryGetValue(key, out var v) ? v : default;
-    public Npc Get(int key) => _dataMap[key];
-    public Npc this[int key] => _dataMap[key];
+    public NpcConfig GetOrDefault(int key) => _dataMap.TryGetValue(key, out var v) ? v : default;
+    public NpcConfig Get(int key) => _dataMap[key];
+    public NpcConfig this[int key] => _dataMap[key];
 
     public void ResolveRef(Tables tables)
     {

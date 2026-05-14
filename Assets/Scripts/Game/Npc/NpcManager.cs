@@ -4,19 +4,19 @@ namespace Game
 {
     public sealed class NpcManager : Singleton<NpcManager>
     {
-        public bool TryGetNpc(int id, out Npc config)
+        public bool TryGetNpc(int id, out NpcConfig config)
         {
             return DataManager.Instance.TryGetNpc(id, out config);
         }
 
-        public Npc GetNpc(int id)
+        public NpcConfig GetNpc(int id)
         {
             return DataManager.Instance.GetNpc(id);
         }
 
         public bool IsEnemy(int id)
         {
-            if (!TryGetNpc(id, out Npc config))
+            if (!TryGetNpc(id, out NpcConfig config))
             {
                 return false;
             }

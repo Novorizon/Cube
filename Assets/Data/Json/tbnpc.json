@@ -5,7 +5,7 @@
     "description": "最基础的敌人，移动速度和伤害都很普通。",
     "kind": 100,
     "actorType": 1,
-    "prefabLocation": "Assets/Arts/Character/Pirate_Male.prefab",
+    "prefabLocation": "Assets/Arts/Character/Pirate/Pirate_Male.prefab",
     "moveSpeed": 2,
     "damageToBase": 1
   },

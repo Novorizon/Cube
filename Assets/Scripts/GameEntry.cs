@@ -23,7 +23,10 @@ namespace Game
             MapInputController.Instance.Initialize();
             await ResourceManager.Instance.InitializeAsync();
             DataManager.Instance.Initialize();
-            Npc npc = DataManager.Instance.GetNpc(1001);
+            NpcConfig npc = DataManager.Instance.GetNpc(1001);
+            EnemySpawner.Instance.Initialize();
+            BaseManager.Instance.Initialize(20);
+            EnsureEnemyUpdateDriver();
 
             MapManager.Instance.Initialize();
             TowerBuildManager.Instance.Initialize();
@@ -36,6 +39,18 @@ namespace Game
         private void OnDestroy()
         {
             GameInputManager.Instance.Release();
+        }
+        private void EnsureEnemyUpdateDriver()
+        {
+            EnemyUpdateDriver driver = FindObjectOfType<EnemyUpdateDriver>();
+
+            if (driver != null)
+            {
+                return;
+            }
+
+            GameObject driverObject = new GameObject("EnemyUpdateDriver");
+            driverObject.AddComponent<EnemyUpdateDriver>();
         }
     }
 }

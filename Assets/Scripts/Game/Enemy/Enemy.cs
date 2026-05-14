@@ -5,7 +5,7 @@ namespace Game
 {
     public sealed class Enemy : Actor
     {
-        private Npc config;
+        private NpcConfig config;
         private float moveSpeed;
         private int damageToBase;
 
@@ -15,7 +15,7 @@ namespace Game
         private bool moving;
         private bool reachedGoal;
 
-        public Npc Config
+        public NpcConfig Config
         {
             get
             {
@@ -71,7 +71,7 @@ namespace Game
             }
         }
 
-        public void InitializeRaw(Npc config, IReadOnlyList<Vector3Int> path)
+        public void InitializeRaw(NpcConfig config, IReadOnlyList<Vector3Int> path)
         {
             this.config = config;
 

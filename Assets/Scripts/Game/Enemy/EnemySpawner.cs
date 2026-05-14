@@ -56,7 +56,7 @@ namespace Game
 
         public bool SpawnEnemy(int npcId, Vector3Int spawnCoord, Vector3Int goalCoord)
         {
-            if (!NpcManager.Instance.TryGetNpc(npcId, out Npc config))
+            if (!DataManager.Instance.TryGetNpc(npcId, out NpcConfig config))
             {
                 Debug.LogWarning($"Spawn enemy failed. Missing npc config: {npcId}");
                 return false;
@@ -104,15 +104,19 @@ namespace Game
             enemy.InitializeRaw(config, path);
             EnemyManager.Instance.Register(enemy);
 
+            Debug.Log($"Spawn enemy success. Id: {npcId}, Name: {config.Name}, Spawn: {spawnCoord}, Goal: {goalCoord}, PathCount: {path.Count}");
+
             return true;
         }
 
         private Vector3 GetEnemyWorldPosition(Vector3Int coord)
         {
-            Vector3 tilePosition = MapManager.Instance.GetTileWorldPosition(coord);
-            float tileSize = MapManager.Instance.TileSize;
+            if (MapManager.Instance.TryGetTileView(coord, out TileView tileView))
+            {
+                return tileView.transform.position + Vector3.up * 0.6f;
+            }
 
-            return tilePosition + Vector3.up * tileSize;
+            return MapManager.Instance.GetTileWorldPosition(coord) + Vector3.up * 0.6f;
         }
 
         private void EnsureEnemyRoot()
