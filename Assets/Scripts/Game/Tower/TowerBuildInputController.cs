@@ -33,21 +33,34 @@ namespace Game
                 return;
             }
 
-            if (!Mouse.current.leftButton.wasPressedThisFrame)
-            {
-                return;
-            }
+            Vector2 screenPosition = Mouse.current.position.ReadValue();
 
             if (IsPointerOverUI())
             {
+                TowerBuildManager.Instance.UpdatePreview(null);
                 return;
             }
 
-            Vector2 screenPosition = Mouse.current.position.ReadValue();
-            TryBuildAtScreenPosition(screenPosition);
+            TileView tileView = PickTile(screenPosition);
+            TowerBuildManager.Instance.UpdatePreview(tileView);
+
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                TowerBuildManager.Instance.TryBuildPreviewTower();
+            }
+
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+                TowerBuildManager.Instance.CancelSelect();
+            }
+
+            if (Mouse.current.rightButton.wasPressedThisFrame)
+            {
+                TowerBuildManager.Instance.CancelSelect();
+            }
         }
 
-        private void TryBuildAtScreenPosition(Vector2 screenPosition)
+        private TileView PickTile(Vector2 screenPosition)
         {
             if (mainCamera == null)
             {
@@ -56,27 +69,17 @@ namespace Game
 
             if (mainCamera == null)
             {
-                Debug.LogWarning("Build failed. Main camera is null.");
-                return;
+                return null;
             }
 
             bool picked = MapManager.Instance.TryPickTile(screenPosition, mainCamera, out TileView tileView);
 
             if (!picked)
             {
-                return;
+                return null;
             }
 
-            bool success = TowerBuildManager.Instance.TryBuildSelectedTower(tileView);
-
-            if (!success)
-            {
-                return;
-            }
-
-            // Current design: after selecting one tower type, user can keep building that type.
-            // If you want to build only once, uncomment:
-            // TowerBuildManager.Instance.CancelSelect();
+            return tileView;
         }
 
         private bool IsPointerOverUI()

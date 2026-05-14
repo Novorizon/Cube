@@ -10,7 +10,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/13 14:47:21",
+    "PackageNote": "2026/5/13 21:06:28",
     "AssetList": [
         {
             "Address": "",
@@ -30,10 +30,18 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
+            "AssetPath": "Assets/Arts/UI/Panels/BuildTowerPanel.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 1,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 2,
             "DependBundleIDs": []
         },
         {
@@ -41,7 +49,7 @@
             "AssetPath": "Assets/Data/Cube/Configs/TowerConfig.asset",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 1,
+            "BundleID": 2,
             "DependBundleIDs": []
         },
         {
@@ -49,7 +57,7 @@
             "AssetPath": "Assets/Data/Map/1.json",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 2,
+            "BundleID": 3,
             "DependBundleIDs": []
         },
         {
@@ -57,7 +65,7 @@
             "AssetPath": "Assets/Data/Map/NewMap.json",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 2,
+            "BundleID": 3,
             "DependBundleIDs": []
         }
     ],
@@ -67,7 +75,17 @@
             "UnityCRC": 0,
             "FileHash": "21996de3eb66f049507edba30fd1e55a",
             "FileCRC": 0,
-            "FileSize": 45554,
+            "FileSize": 39106,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_arts_ui_panels.bundle",
+            "UnityCRC": 0,
+            "FileHash": "450429c0739c2a1fdf881314ea262116",
+            "FileCRC": 0,
+            "FileSize": 28247,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -77,7 +95,7 @@
             "UnityCRC": 0,
             "FileHash": "4679f4c61b2786dc47891b8f79f758a3",
             "FileCRC": 0,
-            "FileSize": 1747,
+            "FileSize": 1733,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

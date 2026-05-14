@@ -10,6 +10,15 @@ namespace Game
         private TowerConfig towerConfig;
         private TowerType selectedTowerType = TowerType.None;
         private Transform towerRoot;
+        private Transform previewRoot;
+        private GameObject previewInstance;
+        private TowerConfigItem previewConfig;
+        private Vector3Int previewCoord;
+        private bool hasPreviewCoord;
+        private bool previewCanBuild;
+
+        private readonly Color canBuildPreviewColor = new Color(1f, 1f, 1f, 0.75f);
+        private readonly Color cannotBuildPreviewColor = new Color(1f, 0.2f, 0.2f, 0.75f);
 
         public TowerType SelectedTowerType
         {
@@ -38,6 +47,8 @@ namespace Game
             }
 
             EnsureTowerRoot();
+            EnsurePreviewRoot();
+
             return true;
         }
 
@@ -49,6 +60,12 @@ namespace Game
                 return;
             }
 
+            if (towerConfig == null)
+            {
+                Debug.LogError("Select tower failed. TowerConfig is null.");
+                return;
+            }
+
             TowerConfigItem item = towerConfig.GetItem(towerType);
 
             if (item == null)
@@ -57,28 +74,91 @@ namespace Game
                 return;
             }
 
+            if (item.Prefab == null)
+            {
+                Debug.LogWarning($"Select tower failed. Missing tower prefab: {towerType}");
+                return;
+            }
+
             selectedTowerType = towerType;
-            Debug.Log($"Selected tower: {towerType}");
+            CreatePreview(item);
         }
 
         public void CancelSelect()
         {
             selectedTowerType = TowerType.None;
+            previewConfig = null;
+            hasPreviewCoord = false;
+            previewCanBuild = false;
+            HidePreview();
         }
 
-        public bool TryBuildSelectedTower(TileView tileView)
+        public void UpdatePreview(TileView tileView)
         {
-            if (tileView == null)
+            if (!HasSelectedTower)
             {
-                return false;
+                HidePreview();
+                return;
             }
 
+            if (tileView == null)
+            {
+                hasPreviewCoord = false;
+                previewCanBuild = false;
+                HidePreview();
+                return;
+            }
+
+            if (previewInstance == null)
+            {
+                TowerConfigItem item = towerConfig.GetItem(selectedTowerType);
+
+                if (item == null || item.Prefab == null)
+                {
+                    HidePreview();
+                    return;
+                }
+
+                CreatePreview(item);
+            }
+
+            Vector3Int coord = tileView.Coord;
+            hasPreviewCoord = true;
+            previewCoord = coord;
+            previewCanBuild = MapManager.Instance.CanPlaceTower(coord);
+
+            Vector3 position = GetTowerWorldPosition(coord);
+            previewInstance.transform.position = position;
+            previewInstance.transform.rotation = Quaternion.identity;
+
+            if (!previewInstance.activeSelf)
+            {
+                previewInstance.SetActive(true);
+            }
+
+            Color color = previewCanBuild ? canBuildPreviewColor : cannotBuildPreviewColor;
+            ApplyPreviewColor(previewInstance, color);
+        }
+
+        public bool TryBuildPreviewTower()
+        {
             if (!HasSelectedTower)
             {
                 return false;
             }
 
-            return TryBuildTower(tileView.Coord, selectedTowerType);
+            if (!hasPreviewCoord)
+            {
+                return false;
+            }
+
+            if (!previewCanBuild)
+            {
+                Debug.Log($"Build tower failed. Preview coord is not buildable: {previewCoord}");
+                return false;
+            }
+
+            return TryBuildTower(previewCoord, selectedTowerType);
         }
 
         public bool TryBuildTower(Vector3Int coord, TowerType towerType)
@@ -138,6 +218,128 @@ namespace Game
             return true;
         }
 
+        private void CreatePreview(TowerConfigItem item)
+        {
+            if (item == null || item.Prefab == null)
+            {
+                return;
+            }
+
+            if (previewInstance != null && previewConfig == item)
+            {
+                previewInstance.SetActive(false);
+                return;
+            }
+
+            DestroyPreview();
+
+            previewConfig = item;
+            previewInstance = GameObject.Instantiate(item.Prefab, previewRoot);
+            previewInstance.name = $"{item.Type}_Tower_Preview";
+            previewInstance.SetActive(false);
+
+            PreparePreviewObject(previewInstance);
+        }
+
+        private void DestroyPreview()
+        {
+            if (previewInstance == null)
+            {
+                return;
+            }
+
+            GameObject.Destroy(previewInstance);
+            previewInstance = null;
+        }
+
+        private void HidePreview()
+        {
+            if (previewInstance == null)
+            {
+                return;
+            }
+
+            previewInstance.SetActive(false);
+        }
+
+        private void PreparePreviewObject(GameObject instance)
+        {
+            if (instance == null)
+            {
+                return;
+            }
+
+            SetLayerRecursively(instance.transform, LayerMask.NameToLayer("Ignore Raycast"));
+
+            Collider[] colliders = instance.GetComponentsInChildren<Collider>(true);
+
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                colliders[i].enabled = false;
+            }
+
+            Rigidbody[] rigidbodies = instance.GetComponentsInChildren<Rigidbody>(true);
+
+            for (int i = 0; i < rigidbodies.Length; i++)
+            {
+                rigidbodies[i].isKinematic = true;
+                rigidbodies[i].detectCollisions = false;
+            }
+
+            Tower[] towers = instance.GetComponentsInChildren<Tower>(true);
+
+            for (int i = 0; i < towers.Length; i++)
+            {
+                towers[i].enabled = false;
+            }
+        }
+
+        private void SetLayerRecursively(Transform target, int layer)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            if (layer >= 0)
+            {
+                target.gameObject.layer = layer;
+            }
+
+            for (int i = 0; i < target.childCount; i++)
+            {
+                SetLayerRecursively(target.GetChild(i), layer);
+            }
+        }
+
+        private void ApplyPreviewColor(GameObject instance, Color color)
+        {
+            if (instance == null)
+            {
+                return;
+            }
+
+            Renderer[] renderers = instance.GetComponentsInChildren<Renderer>(true);
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Renderer renderer = renderers[i];
+
+                if (renderer == null)
+                {
+                    continue;
+                }
+
+                MaterialPropertyBlock block = new MaterialPropertyBlock();
+                renderer.GetPropertyBlock(block);
+
+                block.SetColor("_BaseColor", color);
+                block.SetColor("_Color", color);
+
+                renderer.SetPropertyBlock(block);
+            }
+        }
+
         private Vector3 GetTowerWorldPosition(Vector3Int coord)
         {
             Vector3 tilePosition = MapManager.Instance.GetTileWorldPosition(coord);
@@ -157,6 +359,19 @@ namespace Game
             }
 
             towerRoot = rootObject.transform;
+        }
+
+        private void EnsurePreviewRoot()
+        {
+            GameObject rootObject = GameObject.Find("TowerPreviewRoot");
+
+            if (rootObject == null)
+            {
+                rootObject = new GameObject("TowerPreviewRoot");
+                rootObject.transform.position = Vector3.zero;
+            }
+
+            previewRoot = rootObject.transform;
         }
     }
 }

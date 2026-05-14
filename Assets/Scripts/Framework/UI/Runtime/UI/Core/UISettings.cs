@@ -16,7 +16,7 @@ namespace UI
         public float matchWidthOrHeight = 0.5f;
 
         [Header("Canvas")]
-        public RenderMode renderMode = RenderMode.ScreenSpaceCamera;
+        public RenderMode renderMode = RenderMode.ScreenSpaceOverlay;
         public float canvasPlaneDistance = 100f;
         public Camera explicitWorldCamera;
 

@@ -154,7 +154,7 @@ namespace UI
                 canvasGo.transform.SetParent(transform, false);
 
                 rootCanvas = canvasGo.AddComponent<Canvas>();
-                rootCanvas.renderMode = settings != null ? settings.renderMode : RenderMode.ScreenSpaceCamera;
+                rootCanvas.renderMode = settings != null ? settings.renderMode : RenderMode.ScreenSpaceOverlay;
                 rootCanvas.worldCamera = ResolveCamera();
 
                 if (settings != null)

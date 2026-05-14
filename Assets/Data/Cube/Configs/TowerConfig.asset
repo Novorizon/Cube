@@ -13,18 +13,16 @@ MonoBehaviour:
   m_Name: TowerConfig
   m_EditorClassIdentifier: 
   items:
-  - Type: 0
+  - Type: 1
     Name: "\u666E\u901A\u5854"
-    Prefab: {fileID: 8156808266098827476, guid: bb1a426a927f3f94e917f25d1063fadc,
-      type: 3}
+    Prefab: {fileID: 919132149155446097, guid: 8e61d6724628b3544844636156f3ce49, type: 3}
     Cost: 100
     Range: 3
     Damage: 10
     AttackInterval: 1
   - Type: 2
     Name: "\u51B0\u51BB\u5854"
-    Prefab: {fileID: 3914677955626462715, guid: a0f04aadaeeff104499faf1b54e61cfb,
-      type: 3}
+    Prefab: {fileID: 919132149155446097, guid: 829b5b34d1af14c49a9da8f5336a062f, type: 3}
     Cost: 100
     Range: 3
     Damage: 10
