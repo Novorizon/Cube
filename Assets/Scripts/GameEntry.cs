@@ -29,6 +29,7 @@ namespace Game
             BaseManager.Instance.Initialize();
             NpcManager.Instance.Initialize();
             TowerManager.Instance.Initialize();
+            WaveManager.Instance.Initialize();
 
             MapManager.Instance.Initialize();
             TowerBuildManager.Instance.Initialize();
@@ -42,7 +43,8 @@ namespace Game
         private void Update()
         {
             NpcManager.Instance.Update(Time.deltaTime);
-            TowerManager.Instance.Update(Time.deltaTime);   
+            TowerManager.Instance.Update(Time.deltaTime);
+            WaveManager.Instance.Update(Time.deltaTime);
         }
 
         private void OnDestroy()

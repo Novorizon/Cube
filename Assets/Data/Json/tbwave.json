@@ -1,0 +1,68 @@
+[
+  {
+    "id": 100101,
+    "waveGroupId": 1,
+    "waveIndex": 1,
+    "npcConfigId": 1001,
+    "count": 5,
+    "interval": 1,
+    "startDelay": 1,
+    "spawnMode": 1,
+    "description": "测试第1组第1波：5个普通敌人"
+  },
+  {
+    "id": 100102,
+    "waveGroupId": 1,
+    "waveIndex": 2,
+    "npcConfigId": 1001,
+    "count": 8,
+    "interval": 0.8,
+    "startDelay": 2,
+    "spawnMode": 2,
+    "description": "测试第1组第2波：随机出生点"
+  },
+  {
+    "id": 100201,
+    "waveGroupId": 2,
+    "waveIndex": 1,
+    "npcConfigId": 1001,
+    "count": 8,
+    "interval": 0.8,
+    "startDelay": 1,
+    "spawnMode": 1,
+    "description": "测试第2组第1波：更难"
+  },
+  {
+    "id": 100202,
+    "waveGroupId": 2,
+    "waveIndex": 2,
+    "npcConfigId": 1001,
+    "count": 12,
+    "interval": 0.6,
+    "startDelay": 2,
+    "spawnMode": 2,
+    "description": "测试第2组第2波：数量更多"
+  },
+  {
+    "id": 100301,
+    "waveGroupId": 3,
+    "waveIndex": 1,
+    "npcConfigId": 1001,
+    "count": 10,
+    "interval": 0.7,
+    "startDelay": 1,
+    "spawnMode": 2,
+    "description": "测试第3组第1波"
+  },
+  {
+    "id": 100302,
+    "waveGroupId": 3,
+    "waveIndex": 2,
+    "npcConfigId": 1001,
+    "count": 15,
+    "interval": 0.5,
+    "startDelay": 2,
+    "spawnMode": 2,
+    "description": "测试第3组第2波"
+  }
+]

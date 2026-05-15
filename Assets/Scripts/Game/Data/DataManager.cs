@@ -21,6 +21,7 @@ namespace Game
         public ConfigTableReader<TowerConfig> Tower { get; private set; }
         public ConfigTableReader<ItemConfig> Item { get; private set; }
         public ConfigTableReader<MapConfig> Map { get; private set; }
+        public ConfigTableReader<WaveConfig> Wave { get; private set; }
 
         private Tables tables;
 
@@ -42,6 +43,7 @@ namespace Game
             Tower = new ConfigTableReader<TowerConfig>("TbTower", tables.TbTower.DataMap);
             Item = new ConfigTableReader<ItemConfig>("TbItem", tables.TbItem.DataMap);
             Map = new ConfigTableReader<MapConfig>("TbMap", tables.TbMap.DataMap);
+            Wave = new ConfigTableReader<WaveConfig>("TbWave", tables.TbWave.DataMap);
 
             Debug.Log("DataManager initialized.");
         }

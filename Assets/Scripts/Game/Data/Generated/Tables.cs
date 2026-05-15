@@ -17,6 +17,7 @@ public partial class Tables
     public TbMap TbMap {get; }
     public TbNpc TbNpc {get; }
     public TbTower TbTower {get; }
+    public TbWave TbWave {get; }
 
     public Tables(System.Func<string, ByteBuf> loader)
     {
@@ -24,6 +25,7 @@ public partial class Tables
         TbMap = new TbMap(loader("tbmap"));
         TbNpc = new TbNpc(loader("tbnpc"));
         TbTower = new TbTower(loader("tbtower"));
+        TbWave = new TbWave(loader("tbwave"));
         ResolveRef();
     }
     
@@ -33,6 +35,7 @@ public partial class Tables
         TbMap.ResolveRef(this);
         TbNpc.ResolveRef(this);
         TbTower.ResolveRef(this);
+        TbWave.ResolveRef(this);
     }
 }
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="">
+  <bean name="WaveConfig">
+    <var name="id" type="int"/>
+    <var name="waveGroupId" type="int"/>
+    <var name="waveIndex" type="int"/>
+    <var name="npcConfigId" type="int"/>
+    <var name="count" type="int"/>
+    <var name="interval" type="float"/>
+    <var name="startDelay" type="float"/>
+    <var name="spawnMode" type="int"/>
+    <var name="description" type="string"/>
+  </bean>
+
+  <table name="TbWave" value="WaveConfig" input="wave.xlsx" mode="map" index="id"/>
+</module>
