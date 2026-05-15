@@ -215,6 +215,8 @@ namespace Game
                 return false;
             }
 
+            TowerManager.Instance.Register(tower);
+
             return true;
         }
 

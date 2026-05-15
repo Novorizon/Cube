@@ -149,7 +149,7 @@ namespace Game
 
             Register(npc);
 
-            Debug.Log($"Spawn npc success. Id: {npcConfigId}, Name: {config.Name}, ActorType: {config.ActorType}, Spawn: {spawnCoord}, Target: {targetCoord}, PathCount: {path.Count}");
+            Debug.Log($"Spawn npc success. Id: {npcConfigId}, Name: {config.Name}, Hp: {data.CurrentHp}/{data.MaxHp}, ActorType: {config.ActorType}, Spawn: {spawnCoord}, Target: {targetCoord}, PathCount: {path.Count}");
 
             return true;
         }
@@ -205,6 +205,68 @@ namespace Game
             activeNpcs.Clear();
         }
 
+        public bool TakeDamage(Npc npc, int damage)
+        {
+            if (npc == null || npc.Data == null)
+            {
+                return false;
+            }
+
+            NpcData data = npc.Data;
+
+            if (data.Dead)
+            {
+                return false;
+            }
+
+            if (damage <= 0)
+            {
+                return false;
+            }
+
+            data.CurrentHp -= damage;
+
+            if (data.CurrentHp < 0)
+            {
+                data.CurrentHp = 0;
+            }
+
+            Debug.Log($"Npc damaged. Id: {npc.Config?.Id}, Damage: {damage}, Hp: {data.CurrentHp}/{data.MaxHp}");
+
+            if (data.CurrentHp > 0)
+            {
+                return true;
+            }
+
+            KillNpc(npc);
+            return true;
+        }
+
+        public void KillNpc(Npc npc)
+        {
+            if (npc == null || npc.Data == null)
+            {
+                return;
+            }
+
+            NpcData data = npc.Data;
+
+            if (data.Dead)
+            {
+                return;
+            }
+
+            data.Dead = true;
+            data.Moving = false;
+            data.Attacking = false;
+
+            SetNpcWalk(npc, false);
+
+            Debug.Log($"Npc killed. Id: {npc.Config?.Id}, RewardGold: {data.RewardGold}");
+
+            Remove(npc);
+        }
+
         private void UpdateNpc(Npc npc, float deltaTime)
         {
             if (npc == null)
@@ -215,6 +277,11 @@ namespace Game
             NpcData data = npc.Data;
 
             if (data == null)
+            {
+                return;
+            }
+
+            if (data.Dead)
             {
                 return;
             }
@@ -292,6 +359,11 @@ namespace Game
             }
 
             NpcData data = npc.Data;
+
+            if (data.Dead)
+            {
+                return false;
+            }
 
             Vector3 basePosition = BaseManager.Instance.BasePosition;
             Vector3 npcPosition = npc.transform.position;

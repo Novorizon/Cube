@@ -8,10 +8,12 @@
     <var name="actorType" type="int" />
     <var name="prefabLocation" type="string" />
     <var name="modelScale" type="float" />
+    <var name="maxHp" type="int" />
     <var name="moveSpeed" type="float" />
     <var name="damageToBase" type="int" />
     <var name="attackRange" type="float" />
     <var name="attackInterval" type="float" />
+    <var name="rewardGold" type="int" />
   </bean>
 
   <table name="TbNpc" value="NpcConfig" input="npc.xlsx" mode="map" index="id" />

@@ -6,6 +6,12 @@ namespace Game
     public sealed class NpcData
     {
         public int ConfigId;
+
+        public int MaxHp;
+        public int CurrentHp;
+        public int RewardGold;
+        public bool Dead;
+
         public float MoveSpeed;
         public int DamageToBase;
         public float AttackRange;
@@ -25,10 +31,26 @@ namespace Game
         public void Initialize(NpcConfig config, IReadOnlyList<Vector3Int> path)
         {
             ConfigId = config != null ? config.Id : 0;
+
+            MaxHp = config != null ? config.MaxHp : 1;
+            if (MaxHp <= 0)
+            {
+                MaxHp = 1;
+            }
+
+            CurrentHp = MaxHp;
+            RewardGold = config != null ? config.RewardGold : 0;
+            Dead = false;
+
             MoveSpeed = config != null ? config.MoveSpeed : 1f;
             DamageToBase = config != null ? config.DamageToBase : 0;
             AttackRange = config != null ? config.AttackRange : 0.8f;
             AttackInterval = config != null ? config.AttackInterval : 1f;
+
+            if (MoveSpeed <= 0f)
+            {
+                MoveSpeed = 1f;
+            }
 
             if (AttackRange <= 0f)
             {

@@ -5,6 +5,7 @@ namespace Game
     public sealed class Tower : MonoBehaviour
     {
         private TowerConfigItem config;
+        private TowerData data;
         private Vector3Int coord;
 
         public TowerConfigItem Config
@@ -12,6 +13,14 @@ namespace Game
             get
             {
                 return config;
+            }
+        }
+
+        public TowerData Data
+        {
+            get
+            {
+                return data;
             }
         }
 
@@ -40,6 +49,9 @@ namespace Game
         {
             this.config = config;
             this.coord = coord;
+
+            data = new TowerData();
+            data.Initialize();
         }
     }
 }
