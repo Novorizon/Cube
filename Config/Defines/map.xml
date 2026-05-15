@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="">
+  <bean name="MapConfig">
+    <var name="id" type="int"/>
+    <var name="name" type="string"/>
+    <var name="description" type="string"/>
+    <var name="mapId" type="int"/>
+    <var name="initialGold" type="int"/>
+    <var name="baseLife" type="int"/>
+    <var name="waveGroupId" type="int"/>
+  </bean>
+
+  <table name="TbMap" value="MapConfig" input="map.xlsx" mode="map" index="id"/>
+</module>

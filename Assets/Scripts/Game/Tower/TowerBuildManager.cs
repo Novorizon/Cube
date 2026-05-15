@@ -155,6 +155,9 @@ namespace Game
                 return false;
             }
 
+            if (!TowerManager.Instance.HasGold(selectedTowerConfigId))
+                return false;
+
             return TryBuildTower(previewCoord, selectedTowerConfigId);
         }
 
@@ -208,6 +211,7 @@ namespace Game
             }
 
             TowerManager.Instance.Register(tower);
+            ItemManager.Instance.TryConsume(config.CostItemId, config.CostCount);
 
             return true;
         }

@@ -3,4 +3,5 @@
   <include name="npc.xml" />
   <include name="tower.xml" />
   <include name="item.xml" />
+  <include name="map.xml" />
 </module>

@@ -1,4 +1,5 @@
 using UI;
+using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -56,11 +57,24 @@ namespace Game
 
         private void OnNormalTowerButtonClicked()
         {
+            if (!DataManager.Instance.Tower.TryGet(NormalTowerConfigId, out TowerConfig config))
+            {
+                Debug.LogWarning($"Select tower failed. Missing tower config: {NormalTowerConfigId}");
+                return;
+            }
+            int gold=ItemManager.Instance.GetCount(ItemIds.Gold);
+            if(gold< config.CostCount)
+            {
+                Debug.LogWarning($"Gold is not enought: {gold}");
+                return;
+            }
             TowerBuildManager.Instance.SelectTower(NormalTowerConfigId);
         }
 
         private void OnIceTowerButtonClicked()
         {
+            if (!TowerManager.Instance.HasGold(IceTowerConfigId))
+                return;
             TowerBuildManager.Instance.SelectTower(IceTowerConfigId);
         }
 

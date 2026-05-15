@@ -20,6 +20,7 @@ namespace Game
         public ConfigTableReader<NpcConfig> Npc { get; private set; }
         public ConfigTableReader<TowerConfig> Tower { get; private set; }
         public ConfigTableReader<ItemConfig> Item { get; private set; }
+        public ConfigTableReader<MapConfig> Map { get; private set; }
 
         private Tables tables;
 
@@ -40,6 +41,7 @@ namespace Game
             Npc = new ConfigTableReader<NpcConfig>("TbNpc", tables.TbNpc.DataMap);
             Tower = new ConfigTableReader<TowerConfig>("TbTower", tables.TbTower.DataMap);
             Item = new ConfigTableReader<ItemConfig>("TbItem", tables.TbItem.DataMap);
+            Map = new ConfigTableReader<MapConfig>("TbMap", tables.TbMap.DataMap);
 
             Debug.Log("DataManager initialized.");
         }

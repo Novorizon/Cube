@@ -161,5 +161,22 @@ namespace Game
 
             tower.transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
         }
+
+        public bool HasGold(int towerConfigId)
+        {
+            if (!DataManager.Instance.Tower.TryGet(towerConfigId, out TowerConfig config))
+            {
+                Debug.LogWarning($"Select tower failed. Missing tower config: {towerConfigId}");
+                return false;
+            }
+            int gold = ItemManager.Instance.GetCount(ItemIds.Gold);
+            if (gold < config.CostCount)
+            {
+                Debug.LogWarning($"Gold is not enought: {gold}");
+                return false;
+            }
+            return true;
+        }
+
     }
 }

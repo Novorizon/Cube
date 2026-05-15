@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "name": "测试关卡1",
+    "description": "第一张测试地图，基础金币较宽松",
+    "mapId": 1,
+    "initialGold": 300,
+    "baseLife": 20,
+    "waveGroupId": 1
+  },
+  {
+    "id": 2,
+    "name": "测试关卡2",
+    "description": "复用地图1，但初始金币更少，难度更高",
+    "mapId": 1,
+    "initialGold": 200,
+    "baseLife": 20,
+    "waveGroupId": 2
+  },
+  {
+    "id": 3,
+    "name": "测试关卡3",
+    "description": "使用地图2，给更多初始金币和更高基地生命",
+    "mapId": 2,
+    "initialGold": 500,
+    "baseLife": 30,
+    "waveGroupId": 3
+  }
+]

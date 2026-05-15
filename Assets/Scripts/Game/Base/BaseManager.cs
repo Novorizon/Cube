@@ -34,16 +34,12 @@ namespace Game
             }
         }
 
-        public void Initialize(int life)
+        public void Initialize()
         {
-            maxLife = Mathf.Max(1, life);
-            currentLife = maxLife;
             initialized = true;
-
-            Debug.Log($"Base initialized. Life: {currentLife}/{maxLife}");
         }
 
-        public bool LoadCurrentMapBase()
+        public bool LoadBase(int life)
         {
             ClearBaseObject();
 
@@ -64,8 +60,11 @@ namespace Game
             Vector3 position = GetBaseWorldPosition(goalPoint);
             baseObject = GameObject.Instantiate(prefab, position, Quaternion.identity);
             baseObject.name = "PlayerBase";
-
             Debug.Log($"Load base success. GoalPoint: {goalPoint}, Position: {position}");
+
+            maxLife = Mathf.Max(1, life);
+            currentLife = maxLife;
+            Debug.Log($"Base initialized. Life: {currentLife}/{maxLife}");
 
             return true;
         }
@@ -83,11 +82,6 @@ namespace Game
 
         public void TakeDamage(int damage)
         {
-            if (!initialized)
-            {
-                Initialize(20);
-            }
-
             if (damage <= 0)
             {
                 return;

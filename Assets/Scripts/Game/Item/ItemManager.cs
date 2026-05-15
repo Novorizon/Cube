@@ -3,6 +3,7 @@ using Game.Framework;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 /// <summary>
 /// 当前 ItemManager 是 TD 战斗内道具管理器。
@@ -75,13 +76,7 @@ public class ItemManager
 
         Debug.Log($"Item added. itemId: {itemId}, count: {count}, current: {itemData.Count}");
 
-
-        if(itemId == ItemIds.Gold)
-        {
-            GoldsMessage message = new GoldsMessage();
-            message.Gold = count;
-            Messager.Instance.Notify(BattleMessageTopic.GoldChanged, message);
-        }
+        Notify(itemId);
     }
 
     public bool TryConsume(int itemId, int count)
@@ -117,6 +112,8 @@ public class ItemManager
 
         Debug.Log($"Item consumed. itemId: {itemId}, count: {count}, left: {GetCount(itemId)}");
 
+        Notify(itemId);
+
         return true;
     }
 
@@ -128,5 +125,19 @@ public class ItemManager
     public void Clear()
     {
         itemMap.Clear();
+        //Notify(itemId);
+    }
+    private void Notify(int itemId)
+    {
+        switch(itemId)
+        {
+            case ItemIds.Gold:
+                GoldsMessage message = new GoldsMessage();
+                message.Gold = GetCount(ItemIds.Gold);
+                Messager.Instance.Notify(BattleMessageTopic.GoldChanged, message);
+                break;
+            default:
+                break;
+        }
     }
 }

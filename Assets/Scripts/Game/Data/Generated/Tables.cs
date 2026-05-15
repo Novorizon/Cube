@@ -14,12 +14,14 @@ namespace Game
 public partial class Tables
 {
     public TbItem TbItem {get; }
+    public TbMap TbMap {get; }
     public TbNpc TbNpc {get; }
     public TbTower TbTower {get; }
 
     public Tables(System.Func<string, ByteBuf> loader)
     {
         TbItem = new TbItem(loader("tbitem"));
+        TbMap = new TbMap(loader("tbmap"));
         TbNpc = new TbNpc(loader("tbnpc"));
         TbTower = new TbTower(loader("tbtower"));
         ResolveRef();
@@ -28,6 +30,7 @@ public partial class Tables
     private void ResolveRef()
     {
         TbItem.ResolveRef(this);
+        TbMap.ResolveRef(this);
         TbNpc.ResolveRef(this);
         TbTower.ResolveRef(this);
     }

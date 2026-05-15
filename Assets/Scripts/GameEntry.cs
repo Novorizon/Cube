@@ -26,7 +26,7 @@ namespace Game
 
             DataManager.Instance.Initialize();
 
-            BaseManager.Instance.Initialize(20);
+            BaseManager.Instance.Initialize();
             NpcManager.Instance.Initialize();
             TowerManager.Instance.Initialize();
 

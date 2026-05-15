@@ -263,7 +263,9 @@ namespace Game
             CameraManager.Instance.SetPadding(2f);
             CameraManager.Instance.FocusCurrentMap();
 
-            BaseManager.Instance.LoadCurrentMapBase();
+            MapConfig mapConfig = DataManager.Instance.Map.Get(1);
+            ItemManager.Instance.AddItem(ItemIds.Gold, mapConfig.InitialGold);
+            BaseManager.Instance.LoadBase(mapConfig.BaseLife);
 
             string StatusPanelPath = "Assets/Arts/UI/Panels/StatusPanel.prefab";
             _ = UIManager.Instance.Panels.ShowAsync(StatusPanelPath);
