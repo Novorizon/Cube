@@ -1,4 +1,5 @@
 using Game.Framework;
+using System;
 using UnityEngine;
 
 namespace Game
@@ -12,36 +13,13 @@ namespace Game
         private int currentLife;
         private bool initialized;
 
-        public int MaxLife
-        {
-            get
-            {
-                return maxLife;
-            }
-        }
+        public int MaxLife=> maxLife;
 
-        public int CurrentLife
-        {
-            get
-            {
-                return currentLife;
-            }
-        }
+        public int CurrentLife => currentLife;
 
-        public bool IsDead
-        {
-            get
-            {
-                return initialized && currentLife <= 0;
-            }
-        }
-        public bool HasBaseObject
-        {
-            get
-            {
-                return baseObject != null;
-            }
-        }
+        public bool IsDead=>initialized && currentLife <= 0;
+
+        public bool HasBaseObject=> baseObject != null;
 
         public Vector3 BasePosition
         {
@@ -67,11 +45,6 @@ namespace Game
 
         public bool LoadCurrentMapBase()
         {
-            if (!initialized)
-            {
-                Initialize(20);
-            }
-
             ClearBaseObject();
 
             if (!MapManager.Instance.TryGetGoalPoint(out Vector3Int goalPoint))
@@ -131,6 +104,11 @@ namespace Game
             {
                 currentLife = 0;
             }
+
+            BaseLifeMessage message = new BaseLifeMessage();
+            message.CurrentLife = currentLife;
+            message.MaxLife = maxLife;
+            Messager.Instance.Notify(BattleMessageTopic.BaseLifeChanged, message);
 
             Debug.Log($"Base damaged. Damage: {damage}, Life: {currentLife}/{maxLife}");
 

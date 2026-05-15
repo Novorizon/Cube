@@ -1,3 +1,5 @@
+using Game;
+using Game.Framework;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -72,6 +74,14 @@ public class ItemManager
         OnItemChanged?.Invoke(itemId, itemData.Count);
 
         Debug.Log($"Item added. itemId: {itemId}, count: {count}, current: {itemData.Count}");
+
+
+        if(itemId == ItemIds.Gold)
+        {
+            GoldsMessage message = new GoldsMessage();
+            message.Gold = count;
+            Messager.Instance.Notify(BattleMessageTopic.GoldChanged, message);
+        }
     }
 
     public bool TryConsume(int itemId, int count)

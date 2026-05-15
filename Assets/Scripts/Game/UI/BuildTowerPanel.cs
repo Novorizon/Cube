@@ -6,6 +6,9 @@ namespace Game
 {
     public sealed class BuildTowerPanel : UIPanel
     {
+        private const int NormalTowerConfigId = 1001;
+        private const int IceTowerConfigId = 1003;
+
         [SerializeField]
         private Button normalTowerButton;
 
@@ -53,13 +56,12 @@ namespace Game
 
         private void OnNormalTowerButtonClicked()
         {
-            //TowerBuildManager.Instance.SelectTower(TowerType.Normal);
-            TowerBuildManager.Instance.SelectTower(1001);
+            TowerBuildManager.Instance.SelectTower(NormalTowerConfigId);
         }
 
         private void OnIceTowerButtonClicked()
         {
-            TowerBuildManager.Instance.SelectTower(TowerType.Ice);
+            TowerBuildManager.Instance.SelectTower(IceTowerConfigId);
         }
 
         private void OnCancelButtonClicked()

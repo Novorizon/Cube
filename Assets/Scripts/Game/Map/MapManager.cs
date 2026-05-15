@@ -8,6 +8,7 @@
 using Game.Framework;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using UI;
 using UnityEngine;
 
 namespace Game
@@ -263,6 +264,9 @@ namespace Game
             CameraManager.Instance.FocusCurrentMap();
 
             BaseManager.Instance.LoadCurrentMapBase();
+
+            string StatusPanelPath = "Assets/Arts/UI/Panels/StatusPanel.prefab";
+            _ = UIManager.Instance.Panels.ShowAsync(StatusPanelPath);
 
             GameInputManager.Instance.SetMode(InputMode.Build);
         }

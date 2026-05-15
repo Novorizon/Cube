@@ -265,6 +265,9 @@ namespace Game
             Debug.Log($"Npc killed. Id: {npc.Config?.Id}, RewardGold: {data.RewardGold}");
 
             Remove(npc);
+
+            ItemManager.Instance.AddItem(ItemIds.Gold, data.RewardGold);
+
         }
 
         private void UpdateNpc(Npc npc, float deltaTime)

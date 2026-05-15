@@ -5,10 +5,8 @@ namespace Game
 {
     public sealed class TowerBuildManager : Singleton<TowerBuildManager>
     {
-        private const string TowerConfigPath = "Assets/Data/Cube/Configs/TowerConfig.asset";
-
-        private TowerConfig towerConfig;
-        private TowerType selectedTowerType = TowerType.Normal;
+        private int selectedTowerConfigId;
+        private TowerConfig selectedTowerConfig;
         private Transform towerRoot;
         private Transform previewRoot;
         private GameObject previewInstance;
@@ -20,11 +18,24 @@ namespace Game
         private readonly Color canBuildPreviewColor = new Color(1f, 1f, 1f, 0.75f);
         private readonly Color cannotBuildPreviewColor = new Color(1f, 0.2f, 0.2f, 0.75f);
 
+        public int SelectedTowerConfigId
+        {
+            get
+            {
+                return selectedTowerConfigId;
+            }
+        }
+
         public TowerType SelectedTowerType
         {
             get
             {
-                return selectedTowerType;
+                if (selectedTowerConfig == null)
+                {
+                    return TowerType.Normal;
+                }
+
+                return (TowerType)selectedTowerConfig.TowerType;
             }
         }
 
@@ -32,45 +43,52 @@ namespace Game
         {
             get
             {
-                return selectedTowerType != TowerType.Normal;
+                return selectedTowerConfigId > 0 && selectedTowerConfig != null;
             }
         }
 
         public bool Initialize()
         {
+            selectedTowerConfigId = 0;
+            selectedTowerConfig = null;
+            previewConfig = null;
+            hasPreviewCoord = false;
+            previewCanBuild = false;
+
             EnsureTowerRoot();
             EnsurePreviewRoot();
 
             return true;
         }
 
-
-        public void SelectTower(int id)
+        public void SelectTower(int towerConfigId)
         {
-            towerConfig = DataManager.Instance.Tower.Get(id);
-
-            if (towerConfig == null)
+            if (!DataManager.Instance.Tower.TryGet(towerConfigId, out TowerConfig config))
             {
-                Debug.LogWarning($"Select tower failed. Missing tower config: {id}");
+                Debug.LogWarning($"Select tower failed. Missing tower config: {towerConfigId}");
                 return;
             }
 
-            if (towerConfig.PrefabLocation == null)
+            if (string.IsNullOrEmpty(config.PrefabLocation))
             {
-                Debug.LogWarning($"Select tower failed. Missing tower prefab: {id}");
+                Debug.LogWarning($"Select tower failed. Missing tower prefab location: {towerConfigId}");
                 return;
             }
 
-            selectedTowerType =(TowerType) towerConfig.TowerType;
-            CreatePreview(towerConfig);
+            selectedTowerConfigId = towerConfigId;
+            selectedTowerConfig = config;
+
+            CreatePreview(config);
         }
 
         public void CancelSelect()
         {
-            selectedTowerType = TowerType.Normal;
+            selectedTowerConfigId = 0;
+            selectedTowerConfig = null;
             previewConfig = null;
             hasPreviewCoord = false;
             previewCanBuild = false;
+
             HidePreview();
         }
 
@@ -92,16 +110,13 @@ namespace Game
 
             if (previewInstance == null)
             {
-                towerConfig = DataManager.Instance.Tower.Get(id);
-                TowerConfigItem item = towerConfig.GetItem(selectedTowerType);
+                CreatePreview(selectedTowerConfig);
 
-                if (item == null || item.Prefab == null)
+                if (previewInstance == null)
                 {
                     HidePreview();
                     return;
                 }
-
-                CreatePreview(item);
             }
 
             Vector3Int coord = tileView.Coord;
@@ -140,33 +155,20 @@ namespace Game
                 return false;
             }
 
-            return TryBuildTower(previewCoord, selectedTowerType);
+            return TryBuildTower(previewCoord, selectedTowerConfigId);
         }
 
-        public bool TryBuildTower(Vector3Int coord, TowerType towerType)
+        public bool TryBuildTower(Vector3Int coord, int towerConfigId)
         {
-            if (towerType == TowerType.Normal)
+            if (!DataManager.Instance.Tower.TryGet(towerConfigId, out TowerConfig config))
             {
+                Debug.LogWarning($"Build tower failed. Missing tower config: {towerConfigId}");
                 return false;
             }
 
-            if (towerConfig == null)
+            if (string.IsNullOrEmpty(config.PrefabLocation))
             {
-                Debug.LogError("Build tower failed. TowerConfig is null.");
-                return false;
-            }
-
-            TowerConfig item = towerConfig.GetItem(towerType);
-
-            if (item == null)
-            {
-                Debug.LogWarning($"Build tower failed. Missing tower config: {towerType}");
-                return false;
-            }
-
-            if (item.Prefab == null)
-            {
-                Debug.LogWarning($"Build tower failed. Missing tower prefab: {towerType}");
+                Debug.LogWarning($"Build tower failed. Missing tower prefab location: {towerConfigId}");
                 return false;
             }
 
@@ -176,9 +178,17 @@ namespace Game
                 return false;
             }
 
+            GameObject prefab = ResourceManager.Instance.LoadGameObject(config.PrefabLocation);
+
+            if (prefab == null)
+            {
+                Debug.LogWarning($"Build tower failed. Load prefab failed. towerConfigId: {towerConfigId}, location: {config.PrefabLocation}");
+                return false;
+            }
+
             Vector3 position = GetTowerWorldPosition(coord);
-            GameObject instance = GameObject.Instantiate(item.Prefab, position, Quaternion.identity, towerRoot);
-            instance.name = $"{towerType}_Tower_{coord.x}_{coord.y}_{coord.z}";
+            GameObject instance = GameObject.Instantiate(prefab, position, Quaternion.identity, towerRoot);
+            instance.name = $"Tower_{towerConfigId}_{coord.x}_{coord.y}_{coord.z}";
 
             Tower tower = instance.GetComponent<Tower>();
 
@@ -187,7 +197,7 @@ namespace Game
                 tower = instance.AddComponent<Tower>();
             }
 
-            tower.Initialize(item.id, coord);
+            tower.Initialize(config.Id, coord);
 
             bool placed = MapManager.Instance.TryPlaceTower(coord, tower);
 
@@ -202,14 +212,14 @@ namespace Game
             return true;
         }
 
-        private void CreatePreview(TowerConfig item)
+        private void CreatePreview(TowerConfig config)
         {
-            if (item == null || item.PrefabLocation == null)
+            if (config == null || string.IsNullOrEmpty(config.PrefabLocation))
             {
                 return;
             }
 
-            if (previewInstance != null && previewConfig == item)
+            if (previewInstance != null && previewConfig == config)
             {
                 previewInstance.SetActive(false);
                 return;
@@ -217,10 +227,17 @@ namespace Game
 
             DestroyPreview();
 
-            previewConfig = item;
-            GameObject gameObject = ResourceManager.Instance.LoadGameObject(item.PrefabLocation);
-            previewInstance = GameObject.Instantiate(gameObject, previewRoot);
-            previewInstance.name = $"{item.TowerType}_Tower_Preview";
+            GameObject prefab = ResourceManager.Instance.LoadGameObject(config.PrefabLocation);
+
+            if (prefab == null)
+            {
+                Debug.LogWarning($"Create tower preview failed. Load prefab failed. towerConfigId: {config.Id}, location: {config.PrefabLocation}");
+                return;
+            }
+
+            previewConfig = config;
+            previewInstance = GameObject.Instantiate(prefab, previewRoot);
+            previewInstance.name = $"Tower_{config.Id}_Preview";
             previewInstance.SetActive(false);
 
             PreparePreviewObject(previewInstance);
@@ -235,6 +252,7 @@ namespace Game
 
             GameObject.Destroy(previewInstance);
             previewInstance = null;
+            previewConfig = null;
         }
 
         private void HidePreview()

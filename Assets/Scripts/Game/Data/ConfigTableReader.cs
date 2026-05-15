@@ -1,41 +1,44 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ConfigTableReader<TConfig>
+namespace Game
 {
-    private readonly IReadOnlyDictionary<int, TConfig> configMap;
-    private readonly string tableName;
-
-    public ConfigTableReader(string tableName, IReadOnlyDictionary<int, TConfig> configMap)
+    public class ConfigTableReader<TConfig>
     {
-        this.tableName = tableName;
-        this.configMap = configMap;
-    }
+        private readonly IReadOnlyDictionary<int, TConfig> configMap;
+        private readonly string tableName;
 
-    public TConfig Get(int id)
-    {
-        if (configMap != null && configMap.TryGetValue(id, out TConfig config))
+        public ConfigTableReader(string tableName, IReadOnlyDictionary<int, TConfig> configMap)
         {
-            return config;
+            this.tableName = tableName;
+            this.configMap = configMap;
         }
 
-        Debug.LogError($"Config not found. table: {tableName}, id: {id}");
-        return default;
-    }
-
-    public bool TryGet(int id, out TConfig config)
-    {
-        if (configMap == null)
+        public TConfig Get(int id)
         {
-            config = default;
-            return false;
+            if (configMap != null && configMap.TryGetValue(id, out TConfig config))
+            {
+                return config;
+            }
+
+            Debug.LogError($"Config not found. table: {tableName}, id: {id}");
+            return default;
         }
 
-        return configMap.TryGetValue(id, out config);
-    }
+        public bool TryGet(int id, out TConfig config)
+        {
+            if (configMap == null)
+            {
+                config = default;
+                return false;
+            }
 
-    public IReadOnlyDictionary<int, TConfig> GetAll()
-    {
-        return configMap;
+            return configMap.TryGetValue(id, out config);
+        }
+
+        public IReadOnlyDictionary<int, TConfig> GetAll()
+        {
+            return configMap;
+        }
     }
 }
