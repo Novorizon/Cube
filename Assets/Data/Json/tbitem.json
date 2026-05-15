@@ -1,0 +1,80 @@
+[
+  {
+    "id": 1,
+    "name": "金币",
+    "description": "TD内临时货币，用于造塔和购买商人临时道具",
+    "itemType": 1,
+    "useScope": 1,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/Gold.png",
+    "dropPrefabLocation": "Arts/Drops/GoldDrop",
+    "autoPick": true,
+    "maxStack": 999999,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 101,
+    "name": "伐木炸弹",
+    "description": "TD内使用，摧毁阻挡路径或建塔区域的树木",
+    "itemType": 2,
+    "useScope": 1,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/BombTree.png",
+    "dropPrefabLocation": "Arts/Drops/BombTreeDrop",
+    "autoPick": false,
+    "maxStack": 99,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 102,
+    "name": "拆桥工具",
+    "description": "TD内使用，摧毁或修复桥相关机关的临时道具",
+    "itemType": 2,
+    "useScope": 1,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/BombBridge.png",
+    "dropPrefabLocation": "Arts/Drops/BombBridgeDrop",
+    "autoPick": false,
+    "maxStack": 99,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 201,
+    "name": "箭塔图纸",
+    "description": "TD内获得的图纸，可在结算时转换为外部图纸道具",
+    "itemType": 3,
+    "useScope": 2,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/BlueprintArrow.png",
+    "dropPrefabLocation": "Arts/Drops/BlueprintDrop",
+    "autoPick": true,
+    "maxStack": 999,
+    "settlementItemId": 100201,
+    "settlementCountPerItem": 1
+  },
+  {
+    "id": 301,
+    "name": "海岛种子",
+    "description": "TD内获得，战斗结束后结算为经营外种子",
+    "itemType": 4,
+    "useScope": 2,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/Seed.png",
+    "dropPrefabLocation": "Arts/Drops/SeedDrop",
+    "autoPick": true,
+    "maxStack": 999,
+    "settlementItemId": 200301,
+    "settlementCountPerItem": 1
+  },
+  {
+    "id": 401,
+    "name": "黏液核心",
+    "description": "怪物掉落材料，可用于TD内商人兑换，也可结算到外部",
+    "itemType": 5,
+    "useScope": 3,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/SlimeCore.png",
+    "dropPrefabLocation": "Arts/Drops/SlimeCoreDrop",
+    "autoPick": true,
+    "maxStack": 999,
+    "settlementItemId": 300401,
+    "settlementCountPerItem": 1
+  }
+]

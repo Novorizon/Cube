@@ -2,56 +2,34 @@ using UnityEngine;
 
 namespace Game
 {
-    public sealed class Tower : MonoBehaviour
+    public class Tower : MonoBehaviour
     {
-        private TowerConfigItem config;
-        private TowerData data;
-        private Vector3Int coord;
+        public TowerData Data { get; private set; }
+        public Vector3Int Coord { get; private set; }
 
-        public TowerConfigItem Config
+        public int ConfigId
         {
             get
             {
-                return config;
-            }
-        }
-
-        public TowerData Data
-        {
-            get
-            {
-                return data;
-            }
-        }
-
-        public TowerType Type
-        {
-            get
-            {
-                if (config == null)
+                if (Data == null)
                 {
-                    return TowerType.None;
+                    return 0;
                 }
 
-                return config.Type;
+                return Data.ConfigId;
             }
         }
 
-        public Vector3Int Coord
+        public void Initialize(int configId, Vector3Int coord)
         {
-            get
+            Data = new TowerData
             {
-                return coord;
-            }
-        }
+                ConfigId = configId,
+                AttackTimer = 0f,
+                Target = null
+            };
 
-        public void Initialize(TowerConfigItem config, Vector3Int coord)
-        {
-            this.config = config;
-            this.coord = coord;
-
-            data = new TowerData();
-            data.Initialize();
+            Coord = coord;
         }
     }
 }

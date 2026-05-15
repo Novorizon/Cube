@@ -13,17 +13,23 @@ namespace Game
 {
 public partial class Tables
 {
+    public TbItem TbItem {get; }
     public TbNpc TbNpc {get; }
+    public TbTower TbTower {get; }
 
     public Tables(System.Func<string, ByteBuf> loader)
     {
+        TbItem = new TbItem(loader("tbitem"));
         TbNpc = new TbNpc(loader("tbnpc"));
+        TbTower = new TbTower(loader("tbtower"));
         ResolveRef();
     }
     
     private void ResolveRef()
     {
+        TbItem.ResolveRef(this);
         TbNpc.ResolveRef(this);
+        TbTower.ResolveRef(this);
     }
 }
 

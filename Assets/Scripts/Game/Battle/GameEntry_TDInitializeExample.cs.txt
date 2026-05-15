@@ -1,0 +1,35 @@
+// 这是接入示例，不一定要作为正式类复制。
+// 如果你已有 GameEntry，把对应 Initialize / Update 调用合并进去即可。
+
+using UnityEngine;
+
+public class GameEntry : MonoBehaviour
+{
+    private void Start()
+    {
+        DataManager.Instance.Initialize();
+
+        ItemManager.Instance.Initialize();
+        GameStatsManager.Instance.Initialize(20);
+        TowerManager.Instance.Initialize();
+
+        // 你现有：
+        // GameInputManager.Instance.Initialize();
+        // CameraManager.Instance.Initialize();
+        // ResourceManager.Instance.Initialize();
+        // MapManager.Instance.LoadMap(1);
+        // NpcManager.Instance.Initialize();
+        // BaseManager.Instance.Initialize(20);
+    }
+
+    private void Update()
+    {
+        float deltaTime = Time.deltaTime;
+
+        NpcManager.Instance.Update(deltaTime);
+        TowerManager.Instance.Update(deltaTime);
+
+        // 后续：
+        // WaveManager.Instance.Update(deltaTime);
+    }
+}

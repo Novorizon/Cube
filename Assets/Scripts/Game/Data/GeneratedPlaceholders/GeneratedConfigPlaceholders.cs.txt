@@ -1,0 +1,61 @@
+// 这个文件只是说明 Luban 会生成这些类型。
+// 不要把它作为正式代码放进项目，避免和 Luban 生成代码重名。
+// 正式项目里应由 Luban 生成：Tables / NpcConfig / TowerConfig / ItemConfig / TbNpc / TbTower / TbItem。
+
+public class ItemConfig
+{
+    public int Id;
+    public string Name;
+    public string Description;
+    public int ItemType;
+    public int UseScope;
+    public string IconLocation;
+    public string DropPrefabLocation;
+    public bool AutoPick;
+    public int MaxStack;
+    public int SettlementItemId;
+    public int SettlementCountPerItem;
+}
+
+public class TowerConfig
+{
+    public int Id;
+    public string Name;
+    public string Description;
+    public int TowerType;
+    public string PrefabLocation;
+    public int CostItemId;
+    public int CostCount;
+    public float Range;
+    public int Damage;
+    public float AttackInterval;
+}
+
+public class NpcConfig
+{
+    public int Id;
+    public string Name;
+    public int RewardGold;
+}
+
+public class Tables
+{
+    public TbNpc TbNpc;
+    public TbTower TbTower;
+    public TbItem TbItem;
+}
+
+public class TbNpc
+{
+    public Dictionary<int, NpcConfig> DataMap;
+}
+
+public class TbTower
+{
+    public Dictionary<int, TowerConfig> DataMap;
+}
+
+public class TbItem
+{
+    public Dictionary<int, ItemConfig> DataMap;
+}

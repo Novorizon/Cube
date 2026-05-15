@@ -53,7 +53,8 @@ namespace Game
 
         private void OnNormalTowerButtonClicked()
         {
-            TowerBuildManager.Instance.SelectTower(TowerType.Normal);
+            //TowerBuildManager.Instance.SelectTower(TowerType.Normal);
+            TowerBuildManager.Instance.SelectTower(1001);
         }
 
         private void OnIceTowerButtonClicked()

@@ -1,66 +1,73 @@
-using Game.Framework;
-using Luban;
+using Game;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 配置统一入口。
+/// 当前约定：
+/// DataManager.Instance.Npc.Get(id)
+/// DataManager.Instance.Tower.Get(id)
+/// DataManager.Instance.Item.Get(id)
+///
+/// 注意：LoadTables 需要接你当前项目里已有的 Luban bytes 加载逻辑。
+/// </summary>
 namespace Game
 {
-    public sealed class DataManager : Singleton<DataManager>
+    public class DataManager
     {
+        public static DataManager Instance { get; } = new DataManager();
+
+        public ConfigTableReader<NpcConfig> Npc { get; private set; }
+        public ConfigTableReader<TowerConfig> Tower { get; private set; }
+        public ConfigTableReader<ItemConfig> Item { get; private set; }
+
         private Tables tables;
 
-        public Tables Tables
+        private DataManager()
         {
-            get
-            {
-                return tables;
-            }
         }
 
-        public bool Initialize()
+        public void Initialize()
         {
-            tables = new Tables(LoadByteBuf);
-            Debug.Log("DataManager initialize success.");
-            return true;
-        }
-
-        public NpcConfig GetNpcConfig(int id)
-        {
-            if (tables == null)
-            {
-                Debug.LogError("DataManager is not initialized.");
-                return null;
-            }
-
-            return tables.TbNpc.Get(id);
-        }
-
-        public bool TryGetNpcConfig(int id, out NpcConfig config)
-        {
-            config = null;
+            tables = LoadTables();
 
             if (tables == null)
             {
-                Debug.LogError("DataManager is not initialized.");
-                return false;
+                Debug.LogError("DataManager initialize failed. Tables is null.");
+                return;
             }
 
-            config = tables.TbNpc.GetOrDefault(id);
-            return config != null;
+            Npc = new ConfigTableReader<NpcConfig>("TbNpc", ConvertToReadOnlyMap(tables.TbNpc.DataMap));
+            Tower = new ConfigTableReader<TowerConfig>("TbTower", ConvertToReadOnlyMap(tables.TbTower.DataMap));
+            Item = new ConfigTableReader<ItemConfig>("TbItem", ConvertToReadOnlyMap(tables.TbItem.DataMap));
+
+            Debug.Log("DataManager initialized.");
         }
 
-        private ByteBuf LoadByteBuf(string file)
+        private Tables LoadTables()
         {
-            string location = $"Assets/Data/Bin/{file}.bytes";
+            // 这里需要接你当前项目已有的 Luban bytes 加载逻辑。
+            //
+            // 常见 Luban 生成代码大概会类似：
+            //
+            // tables = new Tables(file =>
+            // {
+            //     byte[] bytes = LoadBytesFromYooAssetOrResources(file);
+            //     return new ByteBuf(bytes);
+            // });
+            //
+            // 由于你的 ResourceManager / YooAsset 加载接口没有贴出来，
+            // 这里不强行写死，避免生成一段无法编译的资源加载代码。
+            //
+            // 你只需要保证最终返回 Luban 生成的 Tables 实例即可。
 
-            TextAsset textAsset = ResourceManager.Instance.LoadTextAsset(location);
+            throw new NotImplementedException("Please connect this method to your existing Luban bytes loading logic.");
+        }
 
-            if (textAsset == null)
-            {
-                Debug.LogError($"Load config failed: {location}");
-                return null;
-            }
-
-            return new ByteBuf(textAsset.bytes);
+        private IReadOnlyDictionary<int, TConfig> ConvertToReadOnlyMap<TConfig>(Dictionary<int, TConfig> map)
+        {
+            return map;
         }
     }
 }

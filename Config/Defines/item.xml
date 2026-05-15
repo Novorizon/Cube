@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="">
+  <bean name="ItemConfig">
+    <var name="id" type="int"/>
+    <var name="name" type="string"/>
+    <var name="description" type="string"/>
+    <var name="itemType" type="int"/>
+    <var name="useScope" type="int"/>
+    <var name="iconLocation" type="string"/>
+    <var name="dropPrefabLocation" type="string"/>
+    <var name="autoPick" type="bool"/>
+    <var name="maxStack" type="int"/>
+    <var name="settlementItemId" type="int"/>
+    <var name="settlementCountPerItem" type="int"/>
+  </bean>
+
+  <table name="TbItem" value="ItemConfig" input="item.xlsx" mode="map" index="id"/>
+</module>

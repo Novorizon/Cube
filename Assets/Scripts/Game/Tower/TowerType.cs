@@ -1,9 +1,7 @@
-namespace Game
+public enum TowerType
 {
-    public enum TowerType
-    {
-        None = 0,
-        Normal = 1,
-        Ice = 2,
-    }
+    Normal = 0,
+    Arrow = 1,
+    Cannon = 2,
+    Ice = 3,
 }

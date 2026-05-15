@@ -1,48 +1,25 @@
-using Game.Framework;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game
 {
-    public sealed class TowerManager : Singleton<TowerManager>
+    public class TowerManager
     {
+        public static TowerManager Instance { get; } = new TowerManager();
+
         private readonly List<Tower> activeTowers = new List<Tower>();
 
-        private bool initialized;
+        public IReadOnlyList<Tower> ActiveTowers => activeTowers;
 
-        public IReadOnlyList<Tower> ActiveTowers
+        private TowerManager()
         {
-            get
-            {
-                return activeTowers;
-            }
         }
 
-        public bool Initialize()
+        public void Initialize()
         {
-            initialized = true;
-            return true;
-        }
+            activeTowers.Clear();
 
-        public void Update(float deltaTime)
-        {
-            if (!initialized)
-            {
-                return;
-            }
-
-            for (int i = activeTowers.Count - 1; i >= 0; i--)
-            {
-                Tower tower = activeTowers[i];
-
-                if (tower == null)
-                {
-                    activeTowers.RemoveAt(i);
-                    continue;
-                }
-
-                UpdateTower(tower, deltaTime);
-            }
+            Debug.Log("TowerManager initialized.");
         }
 
         public void Register(Tower tower)
@@ -59,7 +36,7 @@ namespace Game
 
             activeTowers.Add(tower);
 
-            Debug.Log($"Tower registered. Type: {tower.Type}, Coord: {tower.Coord}");
+            Debug.Log($"Tower registered. configId: {tower.ConfigId}, coord: {tower.Coord}");
         }
 
         public void Unregister(Tower tower)
@@ -77,196 +54,112 @@ namespace Game
             activeTowers.Clear();
         }
 
+        public void Update(float deltaTime)
+        {
+            for (int i = activeTowers.Count - 1; i >= 0; i--)
+            {
+                Tower tower = activeTowers[i];
+
+                if (tower == null)
+                {
+                    activeTowers.RemoveAt(i);
+                    continue;
+                }
+
+                UpdateTower(tower, deltaTime);
+            }
+        }
+
         private void UpdateTower(Tower tower, float deltaTime)
         {
-            if (tower == null || tower.Config == null || tower.Data == null)
+            if (tower.Data == null)
+            {
+                return;
+            }
+
+            TowerConfig config = DataManager.Instance.Tower.Get(tower.ConfigId);
+
+            if (config == null)
             {
                 return;
             }
 
             tower.Data.AttackTimer -= deltaTime;
 
+            Npc target = FindTarget(tower, config.Range);
+            tower.Data.Target = target;
+
+            if (target == null)
+            {
+                return;
+            }
+
+            FaceTarget(tower, target);
+
             if (tower.Data.AttackTimer > 0f)
             {
                 return;
             }
 
-            Npc target = FindTarget(tower);
+            tower.Data.AttackTimer = config.AttackInterval;
 
-            if (target == null)
-            {
-                tower.Data.Target = null;
-                return;
-            }
+            NpcManager.Instance.TakeDamage(target, config.Damage);
 
-            tower.Data.Target = target;
-            tower.Data.AttackTimer = GetAttackInterval(tower);
-
-            AttackTarget(tower, target);
+            Debug.Log($"Tower attack. towerConfigId: {tower.ConfigId}, target: {target.name}, damage: {config.Damage}");
         }
 
-        private Npc FindTarget(Tower tower)
+        private Npc FindTarget(Tower tower, float range)
         {
-            if (tower == null || tower.Config == null)
-            {
-                return null;
-            }
-
-            float range = GetRange(tower);
-            float rangeSqr = range * range;
-
-            Vector3 towerPosition = tower.transform.position;
-            towerPosition.y = 0f;
-
-            Npc bestTarget = null;
-            float bestDistanceSqr = float.MaxValue;
-
             IReadOnlyList<Npc> npcs = NpcManager.Instance.ActiveNpcs;
+
+            Npc nearest = null;
+            float nearestSqrDistance = range * range;
+            Vector3 towerPosition = tower.transform.position;
 
             for (int i = 0; i < npcs.Count; i++)
             {
                 Npc npc = npcs[i];
 
-                if (!IsValidTarget(npc))
+                if (npc == null || npc.Data == null)
                 {
                     continue;
                 }
 
-                Vector3 npcPosition = npc.transform.position;
-                npcPosition.y = 0f;
-
-                float distanceSqr = (npcPosition - towerPosition).sqrMagnitude;
-
-                if (distanceSqr > rangeSqr)
+                if (npc.ActorType != ActorType.Enemy)
                 {
                     continue;
                 }
 
-                if (distanceSqr >= bestDistanceSqr)
+                if (npc.Data.Dead || npc.Data.CurrentHp <= 0)
                 {
                     continue;
                 }
 
-                bestDistanceSqr = distanceSqr;
-                bestTarget = npc;
+                float sqrDistance = (npc.transform.position - towerPosition).sqrMagnitude;
+
+                if (sqrDistance > nearestSqrDistance)
+                {
+                    continue;
+                }
+
+                nearest = npc;
+                nearestSqrDistance = sqrDistance;
             }
 
-            return bestTarget;
+            return nearest;
         }
 
-        private bool IsValidTarget(Npc npc)
+        private void FaceTarget(Tower tower, Npc target)
         {
-            if (npc == null)
-            {
-                return false;
-            }
-
-            if (npc.ActorType != ActorType.Enemy)
-            {
-                return false;
-            }
-
-            if (npc.Data == null)
-            {
-                return false;
-            }
-
-            if (npc.Data.Dead)
-            {
-                return false;
-            }
-
-            if (npc.Data.CurrentHp <= 0)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        private void AttackTarget(Tower tower, Npc target)
-        {
-            if (tower == null || target == null)
-            {
-                return;
-            }
-
-            FaceToTarget(tower, target);
-
-            int damage = GetDamage(tower);
-
-            Debug.Log($"Tower attack. Tower: {tower.Type}, Target: {target.Config?.Id}, Damage: {damage}");
-
-            NpcManager.Instance.TakeDamage(target, damage);
-        }
-
-        private void FaceToTarget(Tower tower, Npc target)
-        {
-            if (tower == null || target == null)
-            {
-                return;
-            }
-
             Vector3 direction = target.transform.position - tower.transform.position;
             direction.y = 0f;
 
-            if (direction.sqrMagnitude <= 0.0001f)
+            if (direction.sqrMagnitude <= 0.001f)
             {
                 return;
             }
 
             tower.transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
-        }
-
-        private float GetRange(Tower tower)
-        {
-            if (tower == null || tower.Config == null)
-            {
-                return 0f;
-            }
-
-            float range = tower.Config.Range;
-
-            if (range <= 0f)
-            {
-                range = 3f;
-            }
-
-            return range;
-        }
-
-        private int GetDamage(Tower tower)
-        {
-            if (tower == null || tower.Config == null)
-            {
-                return 0;
-            }
-
-            int damage = tower.Config.Damage;
-
-            if (damage <= 0)
-            {
-                damage = 1;
-            }
-
-            return damage;
-        }
-
-        private float GetAttackInterval(Tower tower)
-        {
-            if (tower == null || tower.Config == null)
-            {
-                return 1f;
-            }
-
-            float interval = tower.Config.AttackInterval;
-
-            if (interval <= 0f)
-            {
-                interval = 1f;
-            }
-
-            return interval;
         }
     }
 }

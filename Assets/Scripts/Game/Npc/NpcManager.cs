@@ -92,7 +92,7 @@ namespace Game
 
         public bool SpawnToTarget(int npcConfigId, Vector3Int spawnCoord, Vector3Int targetCoord)
         {
-            if (!DataManager.Instance.TryGetNpcConfig(npcConfigId, out NpcConfig config))
+            if (!DataManager.Instance.Npc.TryGet(npcConfigId, out NpcConfig config))
             {
                 Debug.LogWarning($"Spawn npc failed. Missing npc config: {npcConfigId}");
                 return false;

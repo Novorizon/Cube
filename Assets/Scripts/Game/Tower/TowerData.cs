@@ -1,14 +1,11 @@
+
 namespace Game
 {
-    public sealed class TowerData
+
+    public class TowerData
     {
+        public int ConfigId;
         public float AttackTimer;
         public Npc Target;
-
-        public void Initialize()
-        {
-            AttackTimer = 0f;
-            Target = null;
-        }
     }
 }

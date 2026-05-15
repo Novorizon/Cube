@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="">
+  <bean name="TowerConfig">
+    <var name="id" type="int"/>
+    <var name="name" type="string"/>
+    <var name="description" type="string"/>
+    <var name="towerType" type="int"/>
+    <var name="prefabLocation" type="string"/>
+    <var name="costItemId" type="int"/>
+    <var name="costCount" type="int"/>
+    <var name="range" type="float"/>
+    <var name="damage" type="int"/>
+    <var name="attackInterval" type="float"/>
+  </bean>
+
+  <table name="TbTower" value="TowerConfig" input="tower.xlsx" mode="map" index="id"/>
+</module>

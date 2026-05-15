@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1001,
+    "name": "箭塔",
+    "description": "基础单体塔，造价低，攻速较快",
+    "towerType": 1,
+    "prefabLocation": "Assets/Arts/Tower/Prefabs/ArrowTower.prefab",
+    "costItemId": 1,
+    "costCount": 100,
+    "range": 3.5,
+    "damage": 10,
+    "attackInterval": 1
+  },
+  {
+    "id": 1002,
+    "name": "炮塔",
+    "description": "高伤害塔，适合以后扩展AOE，现在可先按单体瞬间伤害处理",
+    "towerType": 2,
+    "prefabLocation": "Assets/Arts/Tower/Prefabs/CannonTower.prefab",
+    "costItemId": 1,
+    "costCount": 180,
+    "range": 3,
+    "damage": 25,
+    "attackInterval": 1.8
+  },
+  {
+    "id": 1003,
+    "name": "冰塔",
+    "description": "控制型塔，当前阶段可先做低伤害，减速后续再接",
+    "towerType": 3,
+    "prefabLocation": "Assets/Arts/Tower/Prefabs/IceTower.prefab",
+    "costItemId": 1,
+    "costCount": 150,
+    "range": 3.2,
+    "damage": 5,
+    "attackInterval": 1.2
+  }
+]
