@@ -6,7 +6,9 @@
     "mapId": 1,
     "initialGold": 300,
     "baseLife": 20,
-    "waveGroupId": 1
+    "waveEasy": "Assets/Data/Bin/Wave/wave1.bytes",
+    "waveNormal": "Assets/Data/Bin/Wave/wave1.bytes",
+    "waveHard": "Assets/Data/Bin/Wave/wave1.bytes"
   },
   {
     "id": 2,
@@ -15,7 +17,9 @@
     "mapId": 1,
     "initialGold": 200,
     "baseLife": 20,
-    "waveGroupId": 2
+    "waveEasy": "Assets/Data/Bin/Wave/wave2.bytes",
+    "waveNormal": "Assets/Data/Bin/Wave/wave2.bytes",
+    "waveHard": "Assets/Data/Bin/Wave/wave2.bytes"
   },
   {
     "id": 3,
@@ -24,6 +28,8 @@
     "mapId": 2,
     "initialGold": 500,
     "baseLife": 30,
-    "waveGroupId": 3
+    "waveEasy": "Assets/Data/Bin/Wave/wave3.bytes",
+    "waveNormal": "Assets/Data/Bin/Wave/wave3.bytes",
+    "waveHard": "Assets/Data/Bin/Wave/wave3.bytes"
   }
 ]

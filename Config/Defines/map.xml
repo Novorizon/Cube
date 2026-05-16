@@ -7,7 +7,9 @@
     <var name="mapId" type="int"/>
     <var name="initialGold" type="int"/>
     <var name="baseLife" type="int"/>
-    <var name="waveGroupId" type="int"/>
+    <var name="waveEasy" type="string"/>
+    <var name="waveNormal" type="string"/>
+    <var name="waveHard" type="string"/>
   </bean>
 
   <table name="TbMap" value="MapConfig" input="map.xlsx" mode="map" index="id"/>

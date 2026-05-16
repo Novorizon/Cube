@@ -8,7 +8,6 @@ namespace Game
     {
         private readonly List<WaveConfig> waveConfigs = new List<WaveConfig>();
 
-        private int waveGroupId;
         private int currentWaveIndex;
         private int currentConfigIndex;
         private int currentWaveSpawnedCount;
@@ -71,21 +70,28 @@ namespace Game
             return true;
         }
 
-        public bool StartWaveGroup(int waveGroupId)
+        public bool StartWave()
         {
-            this.waveGroupId = waveGroupId;
+            if (!initialized)
+            {
+                Initialize();
+            }
+
             waveConfigs.Clear();
+
+            if (DataManager.Instance.Wave == null)
+            {
+                Debug.LogError("Start wave failed. Wave table is not loaded.");
+                ResetRuntimeState();
+                NotifyWaveChanged();
+                return false;
+            }
 
             foreach (KeyValuePair<int, WaveConfig> pair in DataManager.Instance.Wave.GetAll())
             {
                 WaveConfig config = pair.Value;
 
                 if (config == null)
-                {
-                    continue;
-                }
-
-                if (config.WaveGroupId != waveGroupId)
                 {
                     continue;
                 }
@@ -97,7 +103,7 @@ namespace Game
 
             if (waveConfigs.Count == 0)
             {
-                Debug.LogWarning($"Start wave group failed. No wave config. waveGroupId: {waveGroupId}");
+                Debug.LogWarning("Start wave failed. No wave config.");
                 ResetRuntimeState();
                 NotifyWaveChanged();
                 return false;
@@ -110,7 +116,7 @@ namespace Game
 
             StartCurrentWave();
 
-            Debug.Log($"Wave group started. waveGroupId: {waveGroupId}, waveCount: {waveConfigs.Count}");
+            Debug.Log($"Wave started. waveCount: {waveConfigs.Count}");
 
             return true;
         }
@@ -209,7 +215,7 @@ namespace Game
                 aliveEnemyCount++;
                 NotifyWaveChanged();
 
-                Debug.Log($"Wave spawn npc. wave: {currentWaveIndex}, npcConfigId: {config.NpcConfigId}, spawned: {currentWaveSpawnedCount}/{config.Count}, alive: {aliveEnemyCount}");
+                Debug.Log($"Wave spawn npc. wave: {currentWaveIndex}/{MaxWave}, waveConfigId: {config.Id}, npcConfigId: {config.NpcConfigId}, spawned: {currentWaveSpawnedCount}/{config.Count}, alive: {aliveEnemyCount}");
             }
 
             spawnTimer = Mathf.Max(0.05f, config.Interval);
@@ -243,14 +249,14 @@ namespace Game
 
             WaveConfig config = waveConfigs[currentConfigIndex];
 
-            currentWaveIndex = config.WaveIndex;
+            currentWaveIndex = currentConfigIndex + 1;
             currentWaveSpawnedCount = 0;
             currentWaveAllSpawned = false;
             spawnTimer = Mathf.Max(0f, config.StartDelay);
 
             NotifyWaveChanged();
 
-            Debug.Log($"Wave started. waveGroupId: {waveGroupId}, wave: {currentWaveIndex}/{MaxWave}, npcConfigId: {config.NpcConfigId}, count: {config.Count}");
+            Debug.Log($"Wave started. wave: {currentWaveIndex}/{MaxWave}, waveConfigId: {config.Id}, npcConfigId: {config.NpcConfigId}, count: {config.Count}");
         }
 
         private void StartNextWaveOrFinish()
@@ -310,13 +316,6 @@ namespace Game
             if (b == null)
             {
                 return 1;
-            }
-
-            int waveCompare = a.WaveIndex.CompareTo(b.WaveIndex);
-
-            if (waveCompare != 0)
-            {
-                return waveCompare;
             }
 
             return a.Id.CompareTo(b.Id);

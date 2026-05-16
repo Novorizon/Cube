@@ -273,8 +273,14 @@ namespace Game
 
             GameInputManager.Instance.SetMode(InputMode.Build);
 
-            MapConfig stageConfig = DataManager.Instance.Map.Get(1);
-            WaveManager.Instance.StartWaveGroup(stageConfig.WaveGroupId);
+            DataManager.Instance.LoadWave(mapConfig.WaveNormal);
+            if (DataManager.Instance.LoadWave(mapConfig.WaveNormal))
+            {
+                return;
+            }
+
+            WaveConfig waveConfig = DataManager.Instance.Wave.Get(1);
+            WaveManager.Instance.StartWave();
         }
 
         private void RebuildTileIndex()

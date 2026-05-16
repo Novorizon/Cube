@@ -17,8 +17,6 @@ public sealed partial class WaveConfig : Luban.BeanBase
     public WaveConfig(ByteBuf _buf) 
     {
         Id = _buf.ReadInt();
-        WaveGroupId = _buf.ReadInt();
-        WaveIndex = _buf.ReadInt();
         NpcConfigId = _buf.ReadInt();
         Count = _buf.ReadInt();
         Interval = _buf.ReadFloat();
@@ -33,8 +31,6 @@ public sealed partial class WaveConfig : Luban.BeanBase
     }
 
     public readonly int Id;
-    public readonly int WaveGroupId;
-    public readonly int WaveIndex;
     public readonly int NpcConfigId;
     public readonly int Count;
     public readonly float Interval;
@@ -53,8 +49,6 @@ public sealed partial class WaveConfig : Luban.BeanBase
     {
         return "{ "
         + "id:" + Id + ","
-        + "waveGroupId:" + WaveGroupId + ","
-        + "waveIndex:" + WaveIndex + ","
         + "npcConfigId:" + NpcConfigId + ","
         + "count:" + Count + ","
         + "interval:" + Interval + ","

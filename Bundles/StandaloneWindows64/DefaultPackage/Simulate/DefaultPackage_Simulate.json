@@ -10,7 +10,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/16 15:56:15",
+    "PackageNote": "2026/5/16 21:53:41",
     "AssetList": [
         {
             "Address": "",
@@ -2766,7 +2766,7 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
+            "AssetPath": "Assets/Data/Bin/Wave/wave1.bytes",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 13,
@@ -2774,7 +2774,7 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Data/Map/1.json",
+            "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 14,
@@ -2782,10 +2782,18 @@
         },
         {
             "Address": "",
+            "AssetPath": "Assets/Data/Map/1.json",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 15,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Data/Map/NewMap.json",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 14,
+            "BundleID": 15,
             "DependBundleIDs": []
         }
     ],
@@ -2915,7 +2923,17 @@
             "UnityCRC": 0,
             "FileHash": "8502b3caa13ac1a33f913c862a6bdd2a",
             "FileCRC": 0,
-            "FileSize": 2106,
+            "FileSize": 2376,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_data_bin_wave.bundle",
+            "UnityCRC": 0,
+            "FileHash": "1b1b3ddc017d3c8effd8ef4de83f342e",
+            "FileCRC": 0,
+            "FileSize": 266,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

@@ -22,7 +22,9 @@ public sealed partial class MapConfig : Luban.BeanBase
         MapId = _buf.ReadInt();
         InitialGold = _buf.ReadInt();
         BaseLife = _buf.ReadInt();
-        WaveGroupId = _buf.ReadInt();
+        WaveEasy = _buf.ReadString();
+        WaveNormal = _buf.ReadString();
+        WaveHard = _buf.ReadString();
     }
 
     public static MapConfig DeserializeMapConfig(ByteBuf _buf)
@@ -36,7 +38,9 @@ public sealed partial class MapConfig : Luban.BeanBase
     public readonly int MapId;
     public readonly int InitialGold;
     public readonly int BaseLife;
-    public readonly int WaveGroupId;
+    public readonly string WaveEasy;
+    public readonly string WaveNormal;
+    public readonly string WaveHard;
    
     public const int __ID__ = -1840922722;
     public override int GetTypeId() => __ID__;
@@ -54,7 +58,9 @@ public sealed partial class MapConfig : Luban.BeanBase
         + "mapId:" + MapId + ","
         + "initialGold:" + InitialGold + ","
         + "baseLife:" + BaseLife + ","
-        + "waveGroupId:" + WaveGroupId + ","
+        + "waveEasy:" + WaveEasy + ","
+        + "waveNormal:" + WaveNormal + ","
+        + "waveHard:" + WaveHard + ","
         + "}";
     }
 }
