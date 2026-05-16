@@ -9,6 +9,7 @@ using Game.Framework;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using UI;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Game
@@ -271,6 +272,9 @@ namespace Game
             _ = UIManager.Instance.Panels.ShowAsync(StatusPanelPath);
 
             GameInputManager.Instance.SetMode(InputMode.Build);
+
+            MapConfig stageConfig = DataManager.Instance.Map.Get(1);
+            WaveManager.Instance.StartWaveGroup(stageConfig.WaveGroupId);
         }
 
         private void RebuildTileIndex()

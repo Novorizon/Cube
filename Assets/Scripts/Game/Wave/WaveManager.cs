@@ -73,11 +73,6 @@ namespace Game
 
         public bool StartWaveGroup(int waveGroupId)
         {
-            if (!initialized)
-            {
-                Initialize();
-            }
-
             this.waveGroupId = waveGroupId;
             waveConfigs.Clear();
 

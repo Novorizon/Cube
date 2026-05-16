@@ -10,7 +10,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/15 23:35:24",
+    "PackageNote": "2026/5/16 15:56:15",
     "AssetList": [
         {
             "Address": "",
@@ -2758,6 +2758,14 @@
         },
         {
             "Address": "",
+            "AssetPath": "Assets/Data/Bin/tbwave.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 12,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
             "AssetGUID": "",
             "AssetTags": [],
@@ -2907,7 +2915,7 @@
             "UnityCRC": 0,
             "FileHash": "8502b3caa13ac1a33f913c862a6bdd2a",
             "FileCRC": 0,
-            "FileSize": 1816,
+            "FileSize": 2106,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
