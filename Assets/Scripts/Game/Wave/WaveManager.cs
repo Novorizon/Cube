@@ -19,6 +19,16 @@ namespace Game
         private bool currentWaveAllSpawned;
         private bool allWavesFinished;
 
+        /// <summary>
+        /// true:
+        ///     每一波都必须等敌人全部清空，才进入下一波。
+        /// false:
+        ///     当前波全部生成完后，直接进入下一波。
+        ///     下一波会按自己的 startDelay 延迟开始生成。
+        ///     最后一波仍然会等待全部敌人清空后 Victory。
+        /// </summary>
+        private bool waitAllEnemiesKilledBeforeNextWave;
+
         public int CurrentWave
         {
             get
@@ -59,15 +69,29 @@ namespace Game
             }
         }
 
+        public bool WaitAllEnemiesKilledBeforeNextWave
+        {
+            get
+            {
+                return waitAllEnemiesKilledBeforeNextWave;
+            }
+        }
+
         public bool Initialize()
         {
             initialized = true;
             running = false;
             allWavesFinished = false;
+            waitAllEnemiesKilledBeforeNextWave = false;
             waveConfigs.Clear();
             ResetRuntimeState();
 
             return true;
+        }
+
+        public void SetWaitAllEnemiesKilledBeforeNextWave(bool wait)
+        {
+            waitAllEnemiesKilledBeforeNextWave = wait;
         }
 
         public bool StartWave()
@@ -156,10 +180,7 @@ namespace Game
                 return;
             }
 
-            if (aliveEnemyCount <= 0)
-            {
-                StartNextWaveOrFinish();
-            }
+            UpdateAfterCurrentWaveAllSpawned();
         }
 
         public void NotifyEnemyKilled(Npc npc)
@@ -221,6 +242,31 @@ namespace Game
             spawnTimer = Mathf.Max(0.05f, config.Interval);
         }
 
+        private void UpdateAfterCurrentWaveAllSpawned()
+        {
+            if (IsLastWave())
+            {
+                if (aliveEnemyCount <= 0)
+                {
+                    FinishAllWaves();
+                }
+
+                return;
+            }
+
+            if (waitAllEnemiesKilledBeforeNextWave)
+            {
+                if (aliveEnemyCount <= 0)
+                {
+                    StartNextWaveOrFinish();
+                }
+
+                return;
+            }
+
+            StartNextWaveOrFinish();
+        }
+
         private bool SpawnNpc(WaveConfig config)
         {
             WaveSpawnMode spawnMode = (WaveSpawnMode)config.SpawnMode;
@@ -256,7 +302,7 @@ namespace Game
 
             NotifyWaveChanged();
 
-            Debug.Log($"Wave started. wave: {currentWaveIndex}/{MaxWave}, waveConfigId: {config.Id}, npcConfigId: {config.NpcConfigId}, count: {config.Count}");
+            Debug.Log($"Wave started. wave: {currentWaveIndex}/{MaxWave}, waveConfigId: {config.Id}, npcConfigId: {config.NpcConfigId}, count: {config.Count}, startDelay: {config.StartDelay}");
         }
 
         private void StartNextWaveOrFinish()
@@ -280,6 +326,11 @@ namespace Game
             NotifyWaveChanged();
 
             Debug.Log("All waves finished. Victory.");
+        }
+
+        private bool IsLastWave()
+        {
+            return currentConfigIndex >= waveConfigs.Count - 1;
         }
 
         private void ResetRuntimeState()

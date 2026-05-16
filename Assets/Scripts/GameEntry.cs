@@ -18,11 +18,11 @@ namespace Game
 
         private async Task Initialize()
         {
+            await ResourceManager.Instance.InitializeAsync();
+
             GameInputManager.Instance.Initialize(InputMode.Gameplay);
             CameraManager.Instance.Initialize();
             MapInputController.Instance.Initialize();
-
-            await ResourceManager.Instance.InitializeAsync();
 
             DataManager.Instance.Initialize();
 

@@ -5,7 +5,7 @@
     "description": "第一张测试地图，基础金币较宽松",
     "mapId": 1,
     "initialGold": 300,
-    "baseLife": 20,
+    "baseLife": 2000,
     "waveEasy": "Assets/Data/Bin/Wave/wave1.bytes",
     "waveNormal": "Assets/Data/Bin/Wave/wave1.bytes",
     "waveHard": "Assets/Data/Bin/Wave/wave1.bytes"

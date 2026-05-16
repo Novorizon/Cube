@@ -6,6 +6,7 @@
 ///------------------------------------
 
 using Game.Framework;
+using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using UI;
@@ -116,50 +117,31 @@ namespace Game
             return true;
         }
 
-        public bool LoadMap(int id)
+        public bool LoadMap(int mapId)
         {
-            if (!initialized)
+            string location = "Assets/Data/Map/" + mapId + ".json";
+
+            if (!DataManager.Instance.Map.TryGet(mapId, out MapConfig mapConfig))
             {
-                Debug.LogError("LoadMap failed. MapManager is not initialized.");
+                Debug.LogError($"Start wave test failed. Missing map config: {mapId}");
                 return false;
             }
 
-            string location = "Assets/Data/Map/" + id + ".json";
-            return LoadMapInternal(location);
-        }
+            ItemManager.Instance.AddItem(ItemIds.Gold, mapConfig.InitialGold);
 
-        public bool LoadMap(string name)
-        {
-            if (!initialized)
-            {
-                Debug.LogError("LoadMap failed. MapManager is not initialized.");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                Debug.LogError("LoadMap failed. Map name is empty.");
-                return false;
-            }
-
-            string location = "Assets/Data/Map/" + name + ".json";
-            return LoadMapInternal(location);
-        }
-
-        private bool LoadMapInternal(string location)
-        {
             bool loadDataSuccess = LoadMapData(location);
-
             if (!loadDataSuccess)
             {
                 return false;
             }
 
             CreateMap();
-            AfterMapCreated();
-
+            AfterMapCreated(mapConfig);
             return true;
+
         }
+
+
 
         private bool LoadMapData(string location)
         {
@@ -257,29 +239,25 @@ namespace Game
             tileViews[key] = tileView;
         }
 
-        private void AfterMapCreated()
+        private void AfterMapCreated(MapConfig mapConfig)
         {
             CameraManager.Instance.Initialize();
             CameraManager.Instance.SetViewAngle(55f, 45f);
             CameraManager.Instance.SetPadding(2f);
             CameraManager.Instance.FocusCurrentMap();
 
-            MapConfig mapConfig = DataManager.Instance.Map.Get(1);
-            ItemManager.Instance.AddItem(ItemIds.Gold, mapConfig.InitialGold);
+            _ = UIManager.Instance.Panels.ShowAsync("Assets/Arts/UI/Panels/BuildTowerPanel.prefab");
+            _ = UIManager.Instance.Panels.ShowAsync("Assets/Arts/UI/Panels/StatusPanel.prefab");
             BaseManager.Instance.LoadBase(mapConfig.BaseLife);
-
-            string StatusPanelPath = "Assets/Arts/UI/Panels/StatusPanel.prefab";
-            _ = UIManager.Instance.Panels.ShowAsync(StatusPanelPath);
 
             GameInputManager.Instance.SetMode(InputMode.Build);
 
-            DataManager.Instance.LoadWave(mapConfig.WaveNormal);
-            if (DataManager.Instance.LoadWave(mapConfig.WaveNormal))
+            if (!DataManager.Instance.LoadWave(mapConfig.WaveNormal))
             {
                 return;
             }
 
-            WaveConfig waveConfig = DataManager.Instance.Wave.Get(1);
+            //WaveConfig waveConfig = DataManager.Instance.Wave.Get(1);
             WaveManager.Instance.StartWave();
         }
 

@@ -31,13 +31,11 @@ namespace Game.UI
 
         private void OnEnterMapClicked()
         {
+
             MapManager.Instance.LoadMap(mapId);
 
             // 当前先简单隐藏主菜单。
-            // 后面如果你做 GamePage，可以改成：
-            // await UIManager.Instance.Pages.ReplaceAsync("Assets/Data/UI/Pages/GamePage.prefab");
             gameObject.SetActive(false);
-             _=  UIManager.Instance.Panels.ShowAsync("Assets/Arts/UI/Panels/BuildTowerPanel.prefab");
         }
     }
 }
