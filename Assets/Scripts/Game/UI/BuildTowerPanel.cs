@@ -74,7 +74,11 @@ namespace Game
         private void OnIceTowerButtonClicked()
         {
             if (!TowerManager.Instance.HasGold(IceTowerConfigId))
+            {
+
+                BattleToastHelper.ShowNotEnoughGold();
                 return;
+            }
             TowerBuildManager.Instance.SelectTower(IceTowerConfigId);
         }
 

@@ -1,10 +1,10 @@
 {
   "Id": 1,
-  "Name": "NewMap",
-  "Description": "这是地图描述",
-  "Width": 10,
+  "Name": "NewFlatMap",
+  "Description": "这是平面格子地图",
+  "Width": 12,
   "Height": 1,
-  "Depth": 10,
+  "Depth": 12,
   "Tiles": [
     {
       "X": 0,
@@ -16,897 +16,6 @@
       "MoveCost": 0
     },
     {
-      "X": 1,
-      "Y": -1,
-      "Z": 0,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 2,
-      "Y": -1,
-      "Z": 0,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 3,
-      "Y": -1,
-      "Z": 0,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 4,
-      "Y": -1,
-      "Z": 0,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 5,
-      "Y": -1,
-      "Z": 0,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 6,
-      "Y": -1,
-      "Z": 0,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 7,
-      "Y": -1,
-      "Z": 0,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 8,
-      "Y": -1,
-      "Z": 0,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 9,
-      "Y": -1,
-      "Z": 0,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 0,
-      "Y": -1,
-      "Z": 1,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 1,
-      "Y": -1,
-      "Z": 1,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 2,
-      "Y": -1,
-      "Z": 1,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 3,
-      "Y": -1,
-      "Z": 1,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 4,
-      "Y": -1,
-      "Z": 1,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 5,
-      "Y": -1,
-      "Z": 1,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 6,
-      "Y": -1,
-      "Z": 1,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 7,
-      "Y": -1,
-      "Z": 1,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 8,
-      "Y": -1,
-      "Z": 1,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 9,
-      "Y": -1,
-      "Z": 1,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 0,
-      "Y": -1,
-      "Z": 2,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 1,
-      "Y": -1,
-      "Z": 2,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 2,
-      "Y": -1,
-      "Z": 2,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 3,
-      "Y": -1,
-      "Z": 2,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 4,
-      "Y": -1,
-      "Z": 2,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 5,
-      "Y": -1,
-      "Z": 2,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 6,
-      "Y": -1,
-      "Z": 2,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 7,
-      "Y": -1,
-      "Z": 2,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 8,
-      "Y": -1,
-      "Z": 2,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 9,
-      "Y": -1,
-      "Z": 2,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 0,
-      "Y": -1,
-      "Z": 3,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 1,
-      "Y": -1,
-      "Z": 3,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 2,
-      "Y": -1,
-      "Z": 3,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 3,
-      "Y": -1,
-      "Z": 3,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 4,
-      "Y": -1,
-      "Z": 3,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 5,
-      "Y": -1,
-      "Z": 3,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 6,
-      "Y": -1,
-      "Z": 3,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 7,
-      "Y": -1,
-      "Z": 3,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 8,
-      "Y": -1,
-      "Z": 3,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 9,
-      "Y": -1,
-      "Z": 3,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 0,
-      "Y": -1,
-      "Z": 4,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 1,
-      "Y": -1,
-      "Z": 4,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 2,
-      "Y": -1,
-      "Z": 4,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 3,
-      "Y": -1,
-      "Z": 4,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 4,
-      "Y": -1,
-      "Z": 4,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 5,
-      "Y": -1,
-      "Z": 4,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 6,
-      "Y": -1,
-      "Z": 4,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 7,
-      "Y": -1,
-      "Z": 4,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 8,
-      "Y": -1,
-      "Z": 4,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 9,
-      "Y": -1,
-      "Z": 4,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 0,
-      "Y": -1,
-      "Z": 5,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 1,
-      "Y": -1,
-      "Z": 5,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 2,
-      "Y": -1,
-      "Z": 5,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 3,
-      "Y": -1,
-      "Z": 5,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 4,
-      "Y": -1,
-      "Z": 5,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 5,
-      "Y": -1,
-      "Z": 5,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 6,
-      "Y": -1,
-      "Z": 5,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 7,
-      "Y": -1,
-      "Z": 5,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 8,
-      "Y": -1,
-      "Z": 5,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 9,
-      "Y": -1,
-      "Z": 5,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 0,
-      "Y": -1,
-      "Z": 6,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 1,
-      "Y": -1,
-      "Z": 6,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 2,
-      "Y": -1,
-      "Z": 6,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 3,
-      "Y": -1,
-      "Z": 6,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 4,
-      "Y": -1,
-      "Z": 6,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 5,
-      "Y": -1,
-      "Z": 6,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 6,
-      "Y": -1,
-      "Z": 6,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 7,
-      "Y": -1,
-      "Z": 6,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 8,
-      "Y": -1,
-      "Z": 6,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 9,
-      "Y": -1,
-      "Z": 6,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 0,
-      "Y": -1,
-      "Z": 7,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 1,
-      "Y": -1,
-      "Z": 7,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 2,
-      "Y": -1,
-      "Z": 7,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 3,
-      "Y": -1,
-      "Z": 7,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 4,
-      "Y": -1,
-      "Z": 7,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 5,
-      "Y": -1,
-      "Z": 7,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 6,
-      "Y": -1,
-      "Z": 7,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 7,
-      "Y": -1,
-      "Z": 7,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 8,
-      "Y": -1,
-      "Z": 7,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 9,
-      "Y": -1,
-      "Z": 7,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 0,
-      "Y": -1,
-      "Z": 8,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 1,
-      "Y": -1,
-      "Z": 8,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 2,
-      "Y": -1,
-      "Z": 8,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 3,
-      "Y": -1,
-      "Z": 8,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 4,
-      "Y": -1,
-      "Z": 8,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 5,
-      "Y": -1,
-      "Z": 8,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 6,
-      "Y": -1,
-      "Z": 8,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 7,
-      "Y": -1,
-      "Z": 8,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 8,
-      "Y": -1,
-      "Z": 8,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 9,
-      "Y": -1,
-      "Z": 8,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 0,
-      "Y": -1,
-      "Z": 9,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 1,
-      "Y": -1,
-      "Z": 9,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 2,
-      "Y": -1,
-      "Z": 9,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 3,
-      "Y": -1,
-      "Z": 9,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 4,
-      "Y": -1,
-      "Z": 9,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 5,
-      "Y": -1,
-      "Z": 9,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 6,
-      "Y": -1,
-      "Z": 9,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 7,
-      "Y": -1,
-      "Z": 9,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 8,
-      "Y": -1,
-      "Z": 9,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
-      "X": 9,
-      "Y": -1,
-      "Z": 9,
-      "Type": 1000,
-      "Walkable": false,
-      "Buildable": false,
-      "MoveCost": 0
-    },
-    {
       "X": 0,
       "Y": 0,
       "Z": 0,
@@ -914,6 +23,15 @@
       "Walkable": true,
       "Buildable": true,
       "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": -1,
+      "Z": 0,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
     },
     {
       "X": 1,
@@ -926,12 +44,30 @@
     },
     {
       "X": 2,
+      "Y": -1,
+      "Z": 0,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 2,
       "Y": 0,
       "Z": 0,
-      "Type": 2,
+      "Type": 1,
       "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": -1,
+      "Z": 0,
+      "Type": 1000,
+      "Walkable": false,
       "Buildable": false,
-      "MoveCost": 20
+      "MoveCost": 0
     },
     {
       "X": 3,
@@ -944,6 +80,15 @@
     },
     {
       "X": 4,
+      "Y": -1,
+      "Z": 0,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 4,
       "Y": 0,
       "Z": 0,
       "Type": 1,
@@ -953,12 +98,30 @@
     },
     {
       "X": 5,
+      "Y": -1,
+      "Z": 0,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 5,
       "Y": 0,
       "Z": 0,
-      "Type": 2,
+      "Type": 1,
       "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": -1,
+      "Z": 0,
+      "Type": 1000,
+      "Walkable": false,
       "Buildable": false,
-      "MoveCost": 20
+      "MoveCost": 0
     },
     {
       "X": 6,
@@ -971,6 +134,15 @@
     },
     {
       "X": 7,
+      "Y": -1,
+      "Z": 0,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 7,
       "Y": 0,
       "Z": 0,
       "Type": 1,
@@ -980,12 +152,30 @@
     },
     {
       "X": 8,
+      "Y": -1,
+      "Z": 0,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 8,
       "Y": 0,
       "Z": 0,
-      "Type": 3,
+      "Type": 1,
       "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": -1,
+      "Z": 0,
+      "Type": 1000,
+      "Walkable": false,
       "Buildable": false,
-      "MoveCost": 15
+      "MoveCost": 0
     },
     {
       "X": 9,
@@ -995,6 +185,51 @@
       "Walkable": true,
       "Buildable": true,
       "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": -1,
+      "Z": 0,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 0,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": -1,
+      "Z": 0,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 0,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": -1,
+      "Z": 1,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
     },
     {
       "X": 0,
@@ -1007,12 +242,30 @@
     },
     {
       "X": 1,
+      "Y": -1,
+      "Z": 1,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 1,
       "Y": 0,
       "Z": 1,
       "Type": 1,
       "Walkable": true,
       "Buildable": true,
       "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": -1,
+      "Z": 1,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
     },
     {
       "X": 2,
@@ -1025,12 +278,30 @@
     },
     {
       "X": 3,
+      "Y": -1,
+      "Z": 1,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 3,
       "Y": 0,
       "Z": 1,
       "Type": 1,
       "Walkable": true,
       "Buildable": true,
       "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": -1,
+      "Z": 1,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
     },
     {
       "X": 4,
@@ -1043,6 +314,15 @@
     },
     {
       "X": 5,
+      "Y": -1,
+      "Z": 1,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 5,
       "Y": 0,
       "Z": 1,
       "Type": 1,
@@ -1052,21 +332,48 @@
     },
     {
       "X": 6,
+      "Y": -1,
+      "Z": 1,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 6,
       "Y": 0,
       "Z": 1,
-      "Type": 3,
+      "Type": 1,
       "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": -1,
+      "Z": 1,
+      "Type": 1000,
+      "Walkable": false,
       "Buildable": false,
-      "MoveCost": 15
+      "MoveCost": 0
     },
     {
       "X": 7,
       "Y": 0,
       "Z": 1,
-      "Type": 2,
+      "Type": 1,
       "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": -1,
+      "Z": 1,
+      "Type": 1000,
+      "Walkable": false,
       "Buildable": false,
-      "MoveCost": 20
+      "MoveCost": 0
     },
     {
       "X": 8,
@@ -1079,12 +386,66 @@
     },
     {
       "X": 9,
+      "Y": -1,
+      "Z": 1,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 9,
       "Y": 0,
       "Z": 1,
       "Type": 1,
       "Walkable": true,
       "Buildable": true,
       "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": -1,
+      "Z": 1,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 1,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": -1,
+      "Z": 1,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 1,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": -1,
+      "Z": 2,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
     },
     {
       "X": 0,
@@ -1097,6 +458,195 @@
     },
     {
       "X": 1,
+      "Y": -1,
+      "Z": 2,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 2,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": -1,
+      "Z": 2,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 2,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": -1,
+      "Z": 2,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 2,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": -1,
+      "Z": 2,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 2,
+      "Type": 2,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 20
+    },
+    {
+      "X": 5,
+      "Y": -1,
+      "Z": 2,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 2,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": -1,
+      "Z": 2,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 2,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": -1,
+      "Z": 2,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 2,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": -1,
+      "Z": 2,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 2,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": -1,
+      "Z": 2,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 2,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": -1,
+      "Z": 2,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 2,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": -1,
+      "Z": 2,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 11,
       "Y": 0,
       "Z": 2,
       "Type": 4,
@@ -1105,10 +655,64 @@
       "MoveCost": 0
     },
     {
+      "X": 0,
+      "Y": -1,
+      "Z": 3,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 3,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": -1,
+      "Z": 3,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 3,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": -1,
+      "Z": 3,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
       "X": 2,
       "Y": 0,
-      "Z": 2,
-      "Type": 4,
+      "Z": 3,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": -1,
+      "Z": 3,
+      "Type": 1000,
       "Walkable": false,
       "Buildable": false,
       "MoveCost": 0
@@ -1116,7 +720,7 @@
     {
       "X": 3,
       "Y": 0,
-      "Z": 2,
+      "Z": 3,
       "Type": 1,
       "Walkable": true,
       "Buildable": true,
@@ -1124,8 +728,17 @@
     },
     {
       "X": 4,
+      "Y": -1,
+      "Z": 3,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 4,
       "Y": 0,
-      "Z": 2,
+      "Z": 3,
       "Type": 2,
       "Walkable": true,
       "Buildable": false,
@@ -1133,93 +746,12 @@
     },
     {
       "X": 5,
-      "Y": 0,
-      "Z": 2,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 6,
-      "Y": 0,
-      "Z": 2,
-      "Type": 2,
-      "Walkable": true,
+      "Y": -1,
+      "Z": 3,
+      "Type": 1000,
+      "Walkable": false,
       "Buildable": false,
-      "MoveCost": 20
-    },
-    {
-      "X": 7,
-      "Y": 0,
-      "Z": 2,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 8,
-      "Y": 0,
-      "Z": 2,
-      "Type": 3,
-      "Walkable": true,
-      "Buildable": false,
-      "MoveCost": 15
-    },
-    {
-      "X": 9,
-      "Y": 0,
-      "Z": 2,
-      "Type": 2,
-      "Walkable": true,
-      "Buildable": false,
-      "MoveCost": 20
-    },
-    {
-      "X": 0,
-      "Y": 0,
-      "Z": 3,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 1,
-      "Y": 0,
-      "Z": 3,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 2,
-      "Y": 0,
-      "Z": 3,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 3,
-      "Y": 0,
-      "Z": 3,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 4,
-      "Y": 0,
-      "Z": 3,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
+      "MoveCost": 0
     },
     {
       "X": 5,
@@ -1232,12 +764,30 @@
     },
     {
       "X": 6,
+      "Y": -1,
+      "Z": 3,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 6,
       "Y": 0,
       "Z": 3,
       "Type": 1,
       "Walkable": true,
       "Buildable": true,
       "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": -1,
+      "Z": 3,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
     },
     {
       "X": 7,
@@ -1250,21 +800,84 @@
     },
     {
       "X": 8,
+      "Y": -1,
+      "Z": 3,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 8,
       "Y": 0,
       "Z": 3,
-      "Type": 2,
+      "Type": 1,
       "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": -1,
+      "Z": 3,
+      "Type": 1000,
+      "Walkable": false,
       "Buildable": false,
-      "MoveCost": 20
+      "MoveCost": 0
     },
     {
       "X": 9,
       "Y": 0,
       "Z": 3,
-      "Type": 2,
+      "Type": 1,
       "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": -1,
+      "Z": 3,
+      "Type": 1000,
+      "Walkable": false,
       "Buildable": false,
-      "MoveCost": 20
+      "MoveCost": 0
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 3,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": -1,
+      "Z": 3,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 3,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": -1,
+      "Z": 4,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
     },
     {
       "X": 0,
@@ -1277,12 +890,30 @@
     },
     {
       "X": 1,
+      "Y": -1,
+      "Z": 4,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 1,
       "Y": 0,
       "Z": 4,
       "Type": 1,
       "Walkable": true,
       "Buildable": true,
       "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": -1,
+      "Z": 4,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
     },
     {
       "X": 2,
@@ -1295,6 +926,15 @@
     },
     {
       "X": 3,
+      "Y": -1,
+      "Z": 4,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 3,
       "Y": 0,
       "Z": 4,
       "Type": 1,
@@ -1304,189 +944,459 @@
     },
     {
       "X": 4,
+      "Y": -1,
+      "Z": 4,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 4,
       "Y": 0,
       "Z": 4,
-      "Type": 1,
+      "Type": 2,
       "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
+      "Buildable": false,
+      "MoveCost": 20
+    },
+    {
+      "X": 5,
+      "Y": -1,
+      "Z": 4,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
     },
     {
       "X": 5,
       "Y": 0,
       "Z": 4,
-      "Type": 2,
+      "Type": 1,
       "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": -1,
+      "Z": 4,
+      "Type": 1000,
+      "Walkable": false,
       "Buildable": false,
-      "MoveCost": 20
+      "MoveCost": 0
     },
     {
       "X": 6,
       "Y": 0,
       "Z": 4,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 7,
-      "Y": 0,
-      "Z": 4,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 8,
-      "Y": 0,
-      "Z": 4,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 9,
-      "Y": 0,
-      "Z": 4,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 0,
-      "Y": 0,
-      "Z": 5,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 1,
-      "Y": 0,
-      "Z": 5,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 2,
-      "Y": 0,
-      "Z": 5,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 3,
-      "Y": 0,
-      "Z": 5,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 4,
-      "Y": 0,
-      "Z": 5,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 5,
-      "Y": 0,
-      "Z": 5,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 6,
-      "Y": 0,
-      "Z": 5,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 7,
-      "Y": 0,
-      "Z": 5,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 8,
-      "Y": 0,
-      "Z": 5,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 9,
-      "Y": 0,
-      "Z": 5,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 0,
-      "Y": 0,
-      "Z": 6,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 1,
-      "Y": 0,
-      "Z": 6,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 2,
-      "Y": 0,
-      "Z": 6,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 3,
-      "Y": 0,
-      "Z": 6,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 4,
-      "Y": 0,
-      "Z": 6,
       "Type": 4,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 7,
+      "Y": -1,
+      "Z": 4,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 4,
+      "Type": 4,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 8,
+      "Y": -1,
+      "Z": 4,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 4,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": -1,
+      "Z": 4,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 4,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": -1,
+      "Z": 4,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 4,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": -1,
+      "Z": 4,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 4,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": -1,
+      "Z": 5,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 5,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": -1,
+      "Z": 5,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 5,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": -1,
+      "Z": 5,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 5,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": -1,
+      "Z": 5,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 5,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": -1,
+      "Z": 5,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 5,
+      "Type": 2,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 20
+    },
+    {
+      "X": 5,
+      "Y": -1,
+      "Z": 5,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 5,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": -1,
+      "Z": 5,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 5,
+      "Type": 4,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 7,
+      "Y": -1,
+      "Z": 5,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 5,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": -1,
+      "Z": 5,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 5,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": -1,
+      "Z": 5,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 5,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": -1,
+      "Z": 5,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 5,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": -1,
+      "Z": 5,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 5,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": -1,
+      "Z": 6,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 6,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": -1,
+      "Z": 6,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 6,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": -1,
+      "Z": 6,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 6,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": -1,
+      "Z": 6,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 6,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": -1,
+      "Z": 6,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 6,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": -1,
+      "Z": 6,
+      "Type": 1000,
       "Walkable": false,
       "Buildable": false,
       "MoveCost": 0
@@ -1502,207 +1412,495 @@
     },
     {
       "X": 6,
-      "Y": 0,
+      "Y": -1,
       "Z": 6,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 7,
-      "Y": 0,
-      "Z": 6,
-      "Type": 2,
-      "Walkable": true,
+      "Type": 1000,
+      "Walkable": false,
       "Buildable": false,
-      "MoveCost": 20
-    },
-    {
-      "X": 8,
-      "Y": 0,
-      "Z": 6,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 9,
-      "Y": 0,
-      "Z": 6,
-      "Type": 3,
-      "Walkable": true,
-      "Buildable": false,
-      "MoveCost": 15
-    },
-    {
-      "X": 0,
-      "Y": 0,
-      "Z": 7,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 1,
-      "Y": 0,
-      "Z": 7,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 2,
-      "Y": 0,
-      "Z": 7,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 3,
-      "Y": 0,
-      "Z": 7,
-      "Type": 2,
-      "Walkable": true,
-      "Buildable": false,
-      "MoveCost": 20
-    },
-    {
-      "X": 4,
-      "Y": 0,
-      "Z": 7,
-      "Type": 3,
-      "Walkable": true,
-      "Buildable": false,
-      "MoveCost": 15
-    },
-    {
-      "X": 5,
-      "Y": 0,
-      "Z": 7,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
+      "MoveCost": 0
     },
     {
       "X": 6,
       "Y": 0,
-      "Z": 7,
-      "Type": 3,
-      "Walkable": true,
-      "Buildable": false,
-      "MoveCost": 15
-    },
-    {
-      "X": 7,
-      "Y": 0,
-      "Z": 7,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 8,
-      "Y": 0,
-      "Z": 7,
-      "Type": 3,
-      "Walkable": true,
-      "Buildable": false,
-      "MoveCost": 15
-    },
-    {
-      "X": 9,
-      "Y": 0,
-      "Z": 7,
-      "Type": 2,
-      "Walkable": true,
-      "Buildable": false,
-      "MoveCost": 20
-    },
-    {
-      "X": 0,
-      "Y": 0,
-      "Z": 8,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 1,
-      "Y": 0,
-      "Z": 8,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 2,
-      "Y": 0,
-      "Z": 8,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 3,
-      "Y": 0,
-      "Z": 8,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 4,
-      "Y": 0,
-      "Z": 8,
-      "Type": 2,
-      "Walkable": true,
-      "Buildable": false,
-      "MoveCost": 20
-    },
-    {
-      "X": 5,
-      "Y": 0,
-      "Z": 8,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 6,
-      "Y": 0,
-      "Z": 8,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 7,
-      "Y": 0,
-      "Z": 8,
-      "Type": 1,
-      "Walkable": true,
-      "Buildable": true,
-      "MoveCost": 10
-    },
-    {
-      "X": 8,
-      "Y": 0,
-      "Z": 8,
+      "Z": 6,
       "Type": 4,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 7,
+      "Y": -1,
+      "Z": 6,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 6,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": -1,
+      "Z": 6,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 6,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": -1,
+      "Z": 6,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 6,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": -1,
+      "Z": 6,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 6,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": -1,
+      "Z": 6,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 6,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": -1,
+      "Z": 7,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 7,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": -1,
+      "Z": 7,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 7,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": -1,
+      "Z": 7,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 7,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": -1,
+      "Z": 7,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 7,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": -1,
+      "Z": 7,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 7,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": -1,
+      "Z": 7,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 7,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": -1,
+      "Z": 7,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 7,
+      "Type": 4,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 7,
+      "Y": -1,
+      "Z": 7,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 7,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": -1,
+      "Z": 7,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 7,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": -1,
+      "Z": 7,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 7,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": -1,
+      "Z": 7,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 7,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": -1,
+      "Z": 7,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 7,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": -1,
+      "Z": 8,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 8,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": -1,
+      "Z": 8,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 8,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": -1,
+      "Z": 8,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 8,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": -1,
+      "Z": 8,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 8,
+      "Type": 3,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 15
+    },
+    {
+      "X": 4,
+      "Y": -1,
+      "Z": 8,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 8,
+      "Type": 3,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 15
+    },
+    {
+      "X": 5,
+      "Y": -1,
+      "Z": 8,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 8,
+      "Type": 3,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 15
+    },
+    {
+      "X": 6,
+      "Y": -1,
+      "Z": 8,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 8,
+      "Type": 3,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 15
+    },
+    {
+      "X": 7,
+      "Y": -1,
+      "Z": 8,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 8,
+      "Type": 3,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 15
+    },
+    {
+      "X": 8,
+      "Y": -1,
+      "Z": 8,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 8,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": -1,
+      "Z": 8,
+      "Type": 1000,
       "Walkable": false,
       "Buildable": false,
       "MoveCost": 0
@@ -1717,6 +1915,51 @@
       "MoveCost": 10
     },
     {
+      "X": 10,
+      "Y": -1,
+      "Z": 8,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 8,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": -1,
+      "Z": 8,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 8,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": -1,
+      "Z": 9,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
       "X": 0,
       "Y": 0,
       "Z": 9,
@@ -1724,6 +1967,15 @@
       "Walkable": true,
       "Buildable": true,
       "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": -1,
+      "Z": 9,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
     },
     {
       "X": 1,
@@ -1736,12 +1988,30 @@
     },
     {
       "X": 2,
+      "Y": -1,
+      "Z": 9,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 2,
       "Y": 0,
       "Z": 9,
-      "Type": 2,
+      "Type": 1,
       "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": -1,
+      "Z": 9,
+      "Type": 1000,
+      "Walkable": false,
       "Buildable": false,
-      "MoveCost": 20
+      "MoveCost": 0
     },
     {
       "X": 3,
@@ -1754,12 +2024,30 @@
     },
     {
       "X": 4,
+      "Y": -1,
+      "Z": 9,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 4,
       "Y": 0,
       "Z": 9,
       "Type": 1,
       "Walkable": true,
       "Buildable": true,
       "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": -1,
+      "Z": 9,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
     },
     {
       "X": 5,
@@ -1772,12 +2060,30 @@
     },
     {
       "X": 6,
+      "Y": -1,
+      "Z": 9,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 6,
       "Y": 0,
       "Z": 9,
       "Type": 1,
       "Walkable": true,
       "Buildable": true,
       "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": -1,
+      "Z": 9,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
     },
     {
       "X": 7,
@@ -1790,17 +2096,503 @@
     },
     {
       "X": 8,
+      "Y": -1,
+      "Z": 9,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 8,
       "Y": 0,
       "Z": 9,
-      "Type": 2,
+      "Type": 1,
       "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": -1,
+      "Z": 9,
+      "Type": 1000,
+      "Walkable": false,
       "Buildable": false,
-      "MoveCost": 20
+      "MoveCost": 0
     },
     {
       "X": 9,
       "Y": 0,
       "Z": 9,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": -1,
+      "Z": 9,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 9,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": -1,
+      "Z": 9,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 9,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": -1,
+      "Z": 10,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 10,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": -1,
+      "Z": 10,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 10,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": -1,
+      "Z": 10,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 10,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": -1,
+      "Z": 10,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 10,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": -1,
+      "Z": 10,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 10,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": -1,
+      "Z": 10,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 10,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": -1,
+      "Z": 10,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 10,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": -1,
+      "Z": 10,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 10,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": -1,
+      "Z": 10,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 10,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": -1,
+      "Z": 10,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 10,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": -1,
+      "Z": 10,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 10,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": -1,
+      "Z": 10,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 10,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": -1,
+      "Z": 11,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 11,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": -1,
+      "Z": 11,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 11,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": -1,
+      "Z": 11,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 11,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": -1,
+      "Z": 11,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 11,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": -1,
+      "Z": 11,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 11,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": -1,
+      "Z": 11,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 11,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": -1,
+      "Z": 11,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 11,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": -1,
+      "Z": 11,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 11,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": -1,
+      "Z": 11,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 11,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": -1,
+      "Z": 11,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 11,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": -1,
+      "Z": 11,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 11,
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": -1,
+      "Z": 11,
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 11,
       "Type": 1,
       "Walkable": true,
       "Buildable": true,
@@ -1809,33 +2601,26 @@
   ],
   "SpawnPoints": [
     {
-      "x": 7,
+      "x": 10,
       "y": 0,
-      "z": 2,
-      "magnitude": 7.28011,
-      "sqrMagnitude": 53
+      "z": 8,
+      "magnitude": 12.8062487,
+      "sqrMagnitude": 164
     },
     {
-      "x": 0,
+      "x": 11,
       "y": 0,
       "z": 3,
-      "magnitude": 3.0,
-      "sqrMagnitude": 9
-    },
-    {
-      "x": 1,
-      "y": 0,
-      "z": 3,
-      "magnitude": 3.1622777,
-      "sqrMagnitude": 10
+      "magnitude": 11.4017544,
+      "sqrMagnitude": 130
     }
   ],
   "HasGoalPoint": true,
   "GoalPoint": {
-    "x": 1,
+    "x": 0,
     "y": 0,
     "z": 4,
-    "magnitude": 4.12310553,
-    "sqrMagnitude": 17
+    "magnitude": 4.0,
+    "sqrMagnitude": 16
   }
 }

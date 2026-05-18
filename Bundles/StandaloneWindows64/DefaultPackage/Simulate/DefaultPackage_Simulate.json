@@ -10,7 +10,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/16 23:45:43",
+    "PackageNote": "2026/5/18 16:43:56",
     "AssetList": [
         {
             "Address": "",
@@ -2726,47 +2726,15 @@
         },
         {
             "Address": "",
+            "AssetPath": "Assets/Arts/UI/Toasts/BattleToast.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 12,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Data/Bin/tbitem.bytes",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 12,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Data/Bin/tbmap.bytes",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 12,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Data/Bin/tbnpc.bytes",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 12,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Data/Bin/tbtower.bytes",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 12,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Data/Bin/tbwave.bytes",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 12,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Data/Bin/Wave/wave1.bytes",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 13,
@@ -2774,7 +2742,39 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
+            "AssetPath": "Assets/Data/Bin/tbmap.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 13,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Bin/tbnpc.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 13,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Bin/tbtower.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 13,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Bin/tbwave.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 13,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Bin/Wave/wave1.bytes",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 14,
@@ -2782,7 +2782,7 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Data/Map/1.json",
+            "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 15,
@@ -2790,10 +2790,18 @@
         },
         {
             "Address": "",
+            "AssetPath": "Assets/Data/Map/1.json",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 16,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Data/Map/NewMap.json",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 15,
+            "BundleID": 16,
             "DependBundleIDs": []
         }
     ],
@@ -2919,6 +2927,16 @@
             "DependBundleIDs": []
         },
         {
+            "BundleName": "assets_arts_ui_toasts.bundle",
+            "UnityCRC": 0,
+            "FileHash": "a49da24fbda5a0fb9b83b23e09f787d0",
+            "FileCRC": 0,
+            "FileSize": 8245,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
             "BundleName": "assets_data_bin.bundle",
             "UnityCRC": 0,
             "FileHash": "8502b3caa13ac1a33f913c862a6bdd2a",
@@ -2953,7 +2971,7 @@
             "UnityCRC": 0,
             "FileHash": "efa124fae6e570ca16ff15ad11e50b58",
             "FileCRC": 0,
-            "FileSize": 69306,
+            "FileSize": 82800,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

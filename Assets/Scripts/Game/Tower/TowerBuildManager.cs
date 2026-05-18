@@ -1,4 +1,5 @@
 using Game.Framework;
+using UI;
 using UnityEngine;
 
 namespace Game
@@ -152,11 +153,15 @@ namespace Game
             if (!previewCanBuild)
             {
                 Debug.Log($"Build tower failed. Preview coord is not buildable: {previewCoord}");
+                BattleToastHelper.ShowCannotBuildHere();
                 return false;
             }
 
             if (!TowerManager.Instance.HasGold(selectedTowerConfigId))
+            {
+                Toast.Warning("½ð±Ò²»×ã");
                 return false;
+            }
 
             return TryBuildTower(previewCoord, selectedTowerConfigId);
         }

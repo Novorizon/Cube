@@ -72,6 +72,14 @@ MonoBehaviour:
         FilterRuleName: CollectAll
         AssetTags: 
         UserData: 
+      - CollectPath: Assets/Arts/UI/Toasts
+        CollectorGUID: ba30a7f43fddf2f48b730b6d647a4d3a
+        CollectorType: 0
+        AddressRuleName: AddressByFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectAll
+        AssetTags: 
+        UserData: 
     - GroupName: Data
       GroupDesc: 
       AssetTags: 
