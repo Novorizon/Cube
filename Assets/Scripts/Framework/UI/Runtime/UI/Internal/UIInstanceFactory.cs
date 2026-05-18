@@ -89,6 +89,12 @@ namespace UI
                 return default;
             }
 
+            if (!Application.isPlaying)
+            {
+                asset.Lease?.Dispose();
+                return default;
+            }
+
             Transform parent = layerRoots[layer];
             UIBlocker blocker = blockerFactory != null ? blockerFactory(parent) : null;
 
@@ -228,12 +234,28 @@ namespace UI
 
             if (record.Handle.View != null)
             {
-                UnityEngine.Object.Destroy(record.Handle.View.gameObject);
+                DestroyUnityObject(record.Handle.View.gameObject);
             }
         }
 
         sealed class MissingUIViewMarker : UIView
         {
+        }
+        private void DestroyUnityObject(UnityEngine.Object target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            if (Application.isPlaying)
+            {
+                UnityEngine.Object.Destroy(target);
+            }
+            else
+            {
+                UnityEngine.Object.DestroyImmediate(target);
+            }
         }
     }
 }
