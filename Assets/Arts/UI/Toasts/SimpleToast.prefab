@@ -66,7 +66,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 499da67f27df1b94aad2bedd49903765, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 6d5bdb4c812ce3b47b0be9ad6b63d081, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -222,8 +222,9 @@ GameObject:
   - component: {fileID: 2329369373388365947}
   - component: {fileID: 2647195688549641171}
   - component: {fileID: 3906262251600778583}
+  - component: {fileID: 6130053499564869321}
   m_Layer: 0
-  m_Name: BattleToast
+  m_Name: SimpleToast
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -268,7 +269,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7622841332495060245}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 99c325a3c0bfc294bb6d81d6aa24171f, type: 3}
   m_Name: 
@@ -280,3 +281,25 @@ MonoBehaviour:
   moveUpDistance: 30
   fadeInTime: 0.12
   fadeOutTime: 0.35
+--- !u!114 &6130053499564869321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7622841332495060245}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49706bab6fc282a47a3a29ab5f7b7499, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  messageText: {fileID: 6496562772269249669}
+  canvasGroup: {fileID: 2647195688549641171}
+  contentRoot: {fileID: 1314613400547678929}
+  duration: 1.5
+  fadeInTime: 0.12
+  fadeOutTime: 0.35
+  moveUpDistance: 30
+  infoColor: {r: 1, g: 1, b: 1, a: 1}
+  warningColor: {r: 1, g: 0.75, b: 0.2, a: 1}
+  errorColor: {r: 1, g: 0.25, b: 0.25, a: 1}

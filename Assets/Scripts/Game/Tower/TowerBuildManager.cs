@@ -153,7 +153,7 @@ namespace Game
             if (!previewCanBuild)
             {
                 Debug.Log($"Build tower failed. Preview coord is not buildable: {previewCoord}");
-                BattleToastHelper.ShowCannotBuildHere();
+                Toast.Warning("该地块不可建造");
                 return false;
             }
 

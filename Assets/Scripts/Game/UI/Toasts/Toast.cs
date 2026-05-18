@@ -2,21 +2,26 @@ namespace UI
 {
     public static class Toast
     {
-        const string SimpleToastPath = "Assets/Data/UI/Toasts/SimpleToast.prefab";
+        private const string SimpleToastPath = "Assets/Arts/UI/Toasts/SimpleToast.prefab";
 
         public static void Info(string message)
         {
-            UIManager.Instance.Toasts.Enqueue(SimpleToastPath, new ToastArgs(message, ToastLevel.Info));
+            Show(message, ToastLevel.Info);
         }
 
         public static void Warning(string message)
         {
-            UIManager.Instance.Toasts.Enqueue(SimpleToastPath, new ToastArgs(message, ToastLevel.Warning));
+            Show(message, ToastLevel.Warning);
         }
 
         public static void Error(string message)
         {
-            UIManager.Instance.Toasts.Enqueue(SimpleToastPath, new ToastArgs(message, ToastLevel.Error));
+            Show(message, ToastLevel.Error);
+        }
+
+        public static void Show(string message, ToastLevel level)
+        {
+            UIManager.Instance.Toasts.Enqueue(SimpleToastPath, new ToastArgs(message, level));
         }
     }
 }

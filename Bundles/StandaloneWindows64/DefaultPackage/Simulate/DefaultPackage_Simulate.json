@@ -10,7 +10,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/18 16:43:56",
+    "PackageNote": "2026/5/18 17:32:48",
     "AssetList": [
         {
             "Address": "",
@@ -2726,7 +2726,7 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Arts/UI/Toasts/BattleToast.prefab",
+            "AssetPath": "Assets/Arts/UI/Toasts/SimpleToast.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 12,
@@ -2931,7 +2931,7 @@
             "UnityCRC": 0,
             "FileHash": "a49da24fbda5a0fb9b83b23e09f787d0",
             "FileCRC": 0,
-            "FileSize": 8245,
+            "FileSize": 9007,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

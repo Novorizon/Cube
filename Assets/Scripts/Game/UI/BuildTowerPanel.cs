@@ -75,8 +75,7 @@ namespace Game
         {
             if (!TowerManager.Instance.HasGold(IceTowerConfigId))
             {
-
-                BattleToastHelper.ShowNotEnoughGold();
+                Toast.Warning("½ð±Ò²»×ã");
                 return;
             }
             TowerBuildManager.Instance.SelectTower(IceTowerConfigId);
