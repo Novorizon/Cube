@@ -21,7 +21,23 @@ namespace UI
 
         public static void Show(string message, ToastLevel level)
         {
-            UIManager.Instance.Toasts.Enqueue(SimpleToastPath, new ToastArgs(message, level));
+            if (string.IsNullOrEmpty(message))
+            {
+                message = string.Empty;
+            }
+
+            UIManager.Instance.Toasts.Enqueue(
+                SimpleToastPath,
+                new ToastArgs(message, level),
+                new ToastOptions
+                {
+                    MergeKey = BuildMergeKey(SimpleToastPath, message, level)
+                });
+        }
+
+        private static string BuildMergeKey(string prefabPath, string message, ToastLevel level)
+        {
+            return prefabPath + "|" + level + "|" + message;
         }
     }
 }

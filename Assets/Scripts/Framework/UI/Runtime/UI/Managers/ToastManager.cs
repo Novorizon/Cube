@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,14 +26,16 @@ namespace UI
 
         public void Enqueue(string prefabPath, object args = null, ToastOptions options = null)
         {
-            if (!string.IsNullOrEmpty(options?.MergeKey) && mergeKeys.Contains(options.MergeKey))
+            string mergeKey = options != null ? options.MergeKey : null;
+
+            if (!string.IsNullOrEmpty(mergeKey) && mergeKeys.Contains(mergeKey))
             {
                 return;
             }
 
-            if (!string.IsNullOrEmpty(options?.MergeKey))
+            if (!string.IsNullOrEmpty(mergeKey))
             {
-                mergeKeys.Add(options.MergeKey);
+                mergeKeys.Add(mergeKey);
             }
 
             queue.Enqueue((prefabPath, args, options));
@@ -69,14 +70,12 @@ namespace UI
                 while (queue.Count > 0 && !cancellationToken.IsCancellationRequested)
                 {
                     var item = queue.Dequeue();
-                    if (!string.IsNullOrEmpty(item.options?.MergeKey))
-                    {
-                        mergeKeys.Remove(item.options.MergeKey);
-                    }
 
                     current = await factory.OpenAsync(UIKind.Toast, UILayer.Toast, item.path, item.args, true, false, null);
+
                     if (!current.IsValid)
                     {
+                        RemoveMergeKey(item.options);
                         current = default;
                         continue;
                     }
@@ -87,7 +86,7 @@ namespace UI
                         {
                             await toast.WaitForCompleteAsync(cancellationToken);
                         }
-                        catch (OperationCanceledException)
+                        catch (System.OperationCanceledException)
                         {
                         }
                     }
@@ -97,6 +96,7 @@ namespace UI
                         factory.Close(current, true, false);
                     }
 
+                    RemoveMergeKey(item.options);
                     current = default;
                 }
             }
@@ -106,6 +106,16 @@ namespace UI
                 runCancellation?.Dispose();
                 runCancellation = null;
             }
+        }
+
+        void RemoveMergeKey(ToastOptions options)
+        {
+            if (string.IsNullOrEmpty(options?.MergeKey))
+            {
+                return;
+            }
+
+            mergeKeys.Remove(options.MergeKey);
         }
     }
 }

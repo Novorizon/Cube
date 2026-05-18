@@ -59,7 +59,22 @@ namespace UI
             EnsureCanvasHierarchy();
             RebuildManagers(factory != null ? factory.NextId : 1, factory != null ? factory.NextVersion : 1);
         }
+        void OnDestroy()
+        {
+            if (instance == this)
+            {
+                instance = null;
+            }
 
+            Toasts?.Shutdown();
+            Overlays?.ForceHideBlocking(true);
+            Popups?.CloseAll(true);
+            Panels?.HideAll(true);
+            Pages?.Clear(true);
+            Bus.Clear();
+
+            factory?.DestroyAll();
+        }
         public void SetSettings(UISettings uiSettings)
         {
             settings = uiSettings;

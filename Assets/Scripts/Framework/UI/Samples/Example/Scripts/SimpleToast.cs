@@ -63,7 +63,7 @@ namespace UI.Sample
 
             if (canvasGroup != null)
             {
-                canvasGroup.alpha = 0f;
+                canvasGroup.alpha = 1f;
             }
 
             openTime = Time.unscaledTime;
@@ -75,7 +75,7 @@ namespace UI.Sample
             float progress = Mathf.Clamp01(elapsed / Mathf.Max(0.01f, duration));
 
             UpdateMove(progress);
-            UpdateAlpha(elapsed);
+            //UpdateAlpha(elapsed);
         }
 
         private void ApplyArgs(object args)
