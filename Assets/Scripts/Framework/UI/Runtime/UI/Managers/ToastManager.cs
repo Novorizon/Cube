@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace UI
 {
@@ -17,6 +18,7 @@ namespace UI
 
         UIHandle current;
         bool isRunning;
+        bool isShutdown;
         CancellationTokenSource runCancellation;
 
         public ToastManager(UIInstanceFactory factory)
@@ -26,6 +28,16 @@ namespace UI
 
         public void Enqueue(string prefabPath, object args = null, ToastOptions options = null)
         {
+            if (isShutdown)
+            {
+                return;
+            }
+
+            if (!Application.isPlaying)
+            {
+                return;
+            }
+
             string mergeKey = options != null ? options.MergeKey : null;
 
             if (!string.IsNullOrEmpty(mergeKey) && mergeKeys.Contains(mergeKey))
@@ -63,15 +75,37 @@ namespace UI
             isRunning = false;
         }
 
+        public void Shutdown()
+        {
+            isShutdown = true;
+
+            Clear(true);
+
+            runCancellation?.Dispose();
+            runCancellation = null;
+        }
+
         async Task RunAsync(CancellationToken cancellationToken)
         {
             try
             {
-                while (queue.Count > 0 && !cancellationToken.IsCancellationRequested)
+                while (queue.Count > 0 && !cancellationToken.IsCancellationRequested && Application.isPlaying && !isShutdown)
                 {
                     var item = queue.Dequeue();
 
                     current = await factory.OpenAsync(UIKind.Toast, UILayer.Toast, item.path, item.args, true, false, null);
+
+                    if (cancellationToken.IsCancellationRequested || !Application.isPlaying || isShutdown)
+                    {
+                        if (current.IsValid)
+                        {
+                            factory.Close(current, true, false);
+                        }
+
+                        RemoveMergeKey(item.options);
+                        current = default;
+                        break;
+                    }
 
                     if (!current.IsValid)
                     {
@@ -103,6 +137,7 @@ namespace UI
             finally
             {
                 isRunning = false;
+
                 runCancellation?.Dispose();
                 runCancellation = null;
             }
