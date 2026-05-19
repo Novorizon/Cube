@@ -8,6 +8,9 @@ namespace Game
     public sealed class StatusPanel : UIPanel
     {
         [SerializeField]
+        private UIProgressBar baseLifeBar;
+
+        [SerializeField]
         private TMP_Text goldText;
 
         [SerializeField]
@@ -16,25 +19,33 @@ namespace Game
         [SerializeField]
         private TMP_Text waveText;
 
+        [SerializeField]
+        private TMP_Text enemyText;
+
         private int currentWave;
         private int maxWave;
-
-
-        private ISubscription statusChangedSubscription;
         private Subscriber subscriber;
 
         protected override void OnCreate()
         {
             subscriber = new Subscriber();
-            //statusChangedSubscription = Messager.Instance.Subscribe<BattleMessageTopic, BattleStatusMessage>(BattleMessageTopic.StatusChanged, OnStatusChanged);
+
             ISubscription goldChangedSubscription = Messager.Instance.Subscribe<BattleMessageTopic, GoldsMessage>(BattleMessageTopic.GoldChanged, OnGoldsMessage);
-            ISubscription baseLifeChangedSubscription = Messager.Instance.Subscribe<BattleMessageTopic, BaseLifeMessage>(BattleMessageTopic.BaseLifeChanged, OnRefreshBaseLife);
+            ISubscription baseLifeChangedSubscription = Messager.Instance.Subscribe<BattleMessageTopic, BaseLifeMessage>(BattleMessageTopic.BaseLifeChanged, OnBaseLifeMessage);
+
             subscriber.Add(goldChangedSubscription);
             subscriber.Add(baseLifeChangedSubscription);
+
+            RefreshAll();
         }
+
         protected override void OnDestroyed()
         {
-            subscriber.Clear();
+            if (subscriber != null)
+            {
+                subscriber.Clear();
+                subscriber = null;
+            }
         }
 
         private void OnEnable()
@@ -42,13 +53,17 @@ namespace Game
             RefreshAll();
         }
 
-
         public void SetWave(int currentWave, int maxWave)
         {
             this.currentWave = Mathf.Max(0, currentWave);
             this.maxWave = Mathf.Max(0, maxWave);
 
-            RefreshWave(currentWave, maxWave);
+            RefreshWave(this.currentWave, this.maxWave);
+        }
+
+        public void SetEnemyCount(int alive, int total)
+        {
+            RefreshEnemyCount(alive, total);
         }
 
         public void RefreshAll()
@@ -67,11 +82,21 @@ namespace Game
             }
 
             RefreshWave(currentWave, maxWave);
+
+            if (NpcManager.Instance != null)
+            {
+                RefreshEnemyCount(NpcManager.Instance.AliveEnemyCount, NpcManager.Instance.AliveEnemyCount);
+            }
         }
 
         private void OnGoldsMessage(GoldsMessage message)
         {
             RefreshGold(message.Gold);
+        }
+
+        private void OnBaseLifeMessage(BaseLifeMessage message)
+        {
+            RefreshBaseLife(message.CurrentLife, message.MaxLife);
         }
 
         private void RefreshGold(int gold)
@@ -82,16 +107,16 @@ namespace Game
             }
         }
 
-        private void OnRefreshBaseLife(BaseLifeMessage message)
-        {
-            RefreshBaseLife(message.CurrentLife, message.MaxLife);
-        }
-
         private void RefreshBaseLife(int currentLife, int maxLife)
         {
             if (baseLifeText != null)
             {
                 baseLifeText.text = $"生命: {currentLife}/{maxLife}";
+            }
+
+            if (baseLifeBar != null)
+            {
+                baseLifeBar.SetValue(currentLife, maxLife);
             }
         }
 
@@ -112,17 +137,21 @@ namespace Game
             }
         }
 
-
-        private void OnStatusChanged(BattleStatusMessage message)
+        private void RefreshEnemyCount(int alive, int total)
         {
-            if (message == null)
+            if (enemyText == null)
             {
                 return;
             }
 
-            RefreshGold(message.Gold);
-            RefreshBaseLife(message.CurrentLife, message.MaxLife);
-            RefreshWave(message.CurrentWave, message.MaxWave);
+            if (total > 0)
+            {
+                enemyText.text = $"敌人: {alive}/{total}";
+            }
+            else
+            {
+                enemyText.text = $"敌人: {alive}";
+            }
         }
     }
 }
