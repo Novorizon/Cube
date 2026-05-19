@@ -1,8 +1,6 @@
 #if UNITY_EDITOR
-using System.Collections.Generic;
 using TMPro;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,9 +8,10 @@ namespace Game.EditorTools
 {
     public static class TowerDefenseUIGenerator
     {
-        private const string SpriteDir = "Assets/GameRes/UI/TowerDefense/Sprites";
-        private const string PrefabDir = "Assets/GameRes/Prefabs/UI/TowerDefense";
-        private const string ConfigPath = "Assets/GameRes/UI/TowerDefense/TowerDefenseUIConfig.asset";
+        private const string ArtRoot = "Assets/Arts/UI/TowerDefense";
+        private const string SpriteDir = ArtRoot;
+        private const string PrefabDir = "Assets/Arts/UI/Panels/TowerDefense";
+        private const string ConfigPath = ArtRoot + "/TowerDefenseUIConfig.asset";
 
         [MenuItem("Tools/Game/Tower Defense UI/Generate All UI Assets")]
         public static void GenerateAll()
@@ -34,18 +33,29 @@ namespace Game.EditorTools
 
         private static void EnsureFolders()
         {
-            CreateFolder("Assets/GameRes", "Prefabs");
-            CreateFolder("Assets/GameRes/Prefabs", "UI");
-            CreateFolder("Assets/GameRes/Prefabs/UI", "TowerDefense");
-            CreateFolder("Assets/GameRes/UI", "TowerDefense");
+            EnsureFolderPath(ArtRoot);
+            EnsureFolderPath(PrefabDir);
         }
 
-        private static void CreateFolder(string parent, string child)
+        private static void EnsureFolderPath(string path)
         {
-            string path = parent + "/" + child;
-            if (!AssetDatabase.IsValidFolder(path))
+            if (AssetDatabase.IsValidFolder(path))
             {
-                AssetDatabase.CreateFolder(parent, child);
+                return;
+            }
+
+            string[] parts = path.Split('/');
+            string current = parts[0];
+
+            for (int i = 1; i < parts.Length; i++)
+            {
+                string next = current + "/" + parts[i];
+                if (!AssetDatabase.IsValidFolder(next))
+                {
+                    AssetDatabase.CreateFolder(current, parts[i]);
+                }
+
+                current = next;
             }
         }
 
@@ -57,6 +67,7 @@ namespace Game.EditorTools
                 config = ScriptableObject.CreateInstance<TdUiConfig>();
                 AssetDatabase.CreateAsset(config, ConfigPath);
             }
+
             config.Towers = new[]
             {
                 new TdTowerUiConfig { Id = 1001, Name = "箭塔", Icon = LoadSprite("icon_arrowtower"), Cost = 150 },
@@ -121,8 +132,8 @@ namespace Game.EditorTools
             TMP_Text gold = CreateStatusTextBlock(go.transform, LoadSprite("icon_coin"), "金币", "1250");
             TMP_Text wave = CreateSingleStatusText(go.transform, "第 3/10 波", 220f);
             TMP_Text enemy = CreateStatusTextBlock(go.transform, LoadSprite("icon_skull"), "剩余敌人", "28/36");
-            Button pause = CreateIconButton("PauseButton", parent, LoadSprite("icon_pause"), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-150f, -20f), new Vector2(72f, 72f));
-            Button setting = CreateIconButton("SettingButton", parent, LoadSprite("icon_gear"), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-66f, -20f), new Vector2(72f, 72f));
+            CreateIconButton("PauseButton", parent, LoadSprite("icon_pause"), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-150f, -20f), new Vector2(72f, 72f));
+            CreateIconButton("SettingButton", parent, LoadSprite("icon_gear"), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-66f, -20f), new Vector2(72f, 72f));
             SetPrivate(panel, "baseLifeBar", hp);
             SetPrivate(panel, "goldText", gold);
             SetPrivate(panel, "waveText", wave);
@@ -327,7 +338,6 @@ namespace Game.EditorTools
             SetPrivate(view, "selectedFrame", selected);
             SetPrivate(view, "nameText", name);
             SetPrivate(view, "costText", cost);
-            SetPrivate(view, "canvasGroup", canvasGroup);
             PrefabUtility.SaveAsPrefabAsset(go, $"{PrefabDir}/TowerBuildCard.prefab");
             return go;
         }
@@ -454,17 +464,40 @@ namespace Game.EditorTools
 
         private static Sprite LoadSprite(string name)
         {
-            return AssetDatabase.LoadAssetAtPath<Sprite>($"{SpriteDir}/{name}.png");
+            Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>($"{SpriteDir}/{name}.png");
+            if (sprite != null)
+            {
+                return sprite;
+            }
+
+            string[] guids = AssetDatabase.FindAssets($"{name} t:Sprite", new[] { SpriteDir });
+            if (guids == null || guids.Length == 0)
+            {
+                Debug.LogWarning($"Tower Defense UI sprite not found: {name}, search root: {SpriteDir}");
+                return null;
+            }
+
+            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
 
         private static void SetPrivate(object target, string fieldName, object value)
         {
             System.Reflection.FieldInfo field = target.GetType().GetField(fieldName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            if (field != null)
+            if (field == null)
             {
-                field.SetValue(target, value);
-                EditorUtility.SetDirty((Object)target);
+                Debug.LogWarning($"Set field failed. Field not found. target: {target.GetType().Name}, field: {fieldName}");
+                return;
             }
+
+            if (value != null && !field.FieldType.IsInstanceOfType(value))
+            {
+                Debug.LogWarning($"Set field failed. Type mismatch. target: {target.GetType().Name}, field: {fieldName}, fieldType: {field.FieldType.Name}, valueType: {value.GetType().Name}");
+                return;
+            }
+
+            field.SetValue(target, value);
+            EditorUtility.SetDirty((Object)target);
         }
     }
 }
