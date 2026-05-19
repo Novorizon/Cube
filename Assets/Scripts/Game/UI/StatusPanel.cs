@@ -24,6 +24,8 @@ namespace Game
 
         private int currentWave;
         private int maxWave;
+        private int aliveEnemy;
+        private int totalEnemy;
         private Subscriber subscriber;
 
         protected override void OnCreate()
@@ -53,6 +55,16 @@ namespace Game
             RefreshAll();
         }
 
+        public void SetBaseLife(int currentLife, int maxLife)
+        {
+            RefreshBaseLife(currentLife, maxLife);
+        }
+
+        public void SetGold(int gold)
+        {
+            RefreshGold(gold);
+        }
+
         public void SetWave(int currentWave, int maxWave)
         {
             this.currentWave = Mathf.Max(0, currentWave);
@@ -63,7 +75,10 @@ namespace Game
 
         public void SetEnemyCount(int alive, int total)
         {
-            RefreshEnemyCount(alive, total);
+            aliveEnemy = Mathf.Max(0, alive);
+            totalEnemy = Mathf.Max(0, total);
+
+            RefreshEnemyCount(aliveEnemy, totalEnemy);
         }
 
         public void RefreshAll()
@@ -82,11 +97,7 @@ namespace Game
             }
 
             RefreshWave(currentWave, maxWave);
-
-            if (NpcManager.Instance != null)
-            {
-                RefreshEnemyCount(NpcManager.Instance.AliveEnemyCount, NpcManager.Instance.AliveEnemyCount);
-            }
+            RefreshEnemyCount(aliveEnemy, totalEnemy);
         }
 
         private void OnGoldsMessage(GoldsMessage message)
