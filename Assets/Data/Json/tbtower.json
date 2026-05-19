@@ -8,8 +8,10 @@
     "costItemId": 1,
     "costCount": 100,
     "range": 3.5,
-    "damage": 10,
-    "attackInterval": 1
+    "damage": 100,
+    "attackInterval": 1,
+    "attackEffect": "Assets/Arts/Effects/BowAttackEffect.prefab",
+    "hitEffect": "Assets/Arts/Effects/BowHitEffect.prefab"
   },
   {
     "id": 1002,
@@ -21,7 +23,9 @@
     "costCount": 180,
     "range": 3,
     "damage": 25,
-    "attackInterval": 1.8
+    "attackInterval": 1.8,
+    "attackEffect": "Assets/Arts/Effects/IceAttackEffect.prefab",
+    "hitEffect": "Assets/Arts/Effects/IceHitEffect.prefab"
   },
   {
     "id": 1003,
@@ -33,6 +37,8 @@
     "costCount": 150,
     "range": 3.2,
     "damage": 5,
-    "attackInterval": 1.2
+    "attackInterval": 1.2,
+    "attackEffect": "Assets/Arts/Effects/IceAttackEffect.prefab",
+    "hitEffect": "Assets/Arts/Effects/IceHitEffect.prefab"
   }
 ]

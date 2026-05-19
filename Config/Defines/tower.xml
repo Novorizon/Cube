@@ -11,6 +11,8 @@
     <var name="range" type="float"/>
     <var name="damage" type="int"/>
     <var name="attackInterval" type="float"/>
+    <var name="attackEffect" type="string"/>
+    <var name="hitEffect" type="string"/>
   </bean>
 
   <table name="TbTower" value="TowerConfig" input="tower.xlsx" mode="map" index="id"/>

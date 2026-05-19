@@ -185,11 +185,11 @@ namespace Game.Editor
         [LabelText("当前地图数据")]
         private MapData currentMap;
 
-        [MenuItem("Tools/Cube/Simple Flat Map Editor")]
+        [MenuItem("Tools/Map/Map Editor")]
         public static void Open()
         {
             SimpleFlatMapEditorWindow window = GetWindow<SimpleFlatMapEditorWindow>();
-            window.titleContent = new GUIContent("Simple Flat Map Editor");
+            window.titleContent = new GUIContent("Map Editor");
             window.Show();
         }
 
@@ -213,6 +213,7 @@ namespace Game.Editor
         {
             if (prefabConfig != null)
             {
+                prefabConfig.RebuildCache();
                 return;
             }
 

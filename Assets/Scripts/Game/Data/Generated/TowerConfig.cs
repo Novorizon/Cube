@@ -26,6 +26,8 @@ public sealed partial class TowerConfig : Luban.BeanBase
         Range = _buf.ReadFloat();
         Damage = _buf.ReadInt();
         AttackInterval = _buf.ReadFloat();
+        AttackEffect = _buf.ReadString();
+        HitEffect = _buf.ReadString();
     }
 
     public static TowerConfig DeserializeTowerConfig(ByteBuf _buf)
@@ -43,6 +45,8 @@ public sealed partial class TowerConfig : Luban.BeanBase
     public readonly float Range;
     public readonly int Damage;
     public readonly float AttackInterval;
+    public readonly string AttackEffect;
+    public readonly string HitEffect;
    
     public const int __ID__ = -1246506101;
     public override int GetTypeId() => __ID__;
@@ -64,6 +68,8 @@ public sealed partial class TowerConfig : Luban.BeanBase
         + "range:" + Range + ","
         + "damage:" + Damage + ","
         + "attackInterval:" + AttackInterval + ","
+        + "attackEffect:" + AttackEffect + ","
+        + "hitEffect:" + HitEffect + ","
         + "}";
     }
 }

@@ -215,6 +215,9 @@ namespace Game
                 return false;
             }
 
+            TowerRotateView rotateView = tower.gameObject.AddComponent<TowerRotateView>();
+            rotateView.StartRotate();
+
             TowerManager.Instance.Register(tower);
             ItemManager.Instance.TryConsume(config.CostItemId, config.CostCount);
 

@@ -1,94 +1,91 @@
-using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Game.Framework
 {
-    public class EffectManager : Singleton<ResourceManager>
+    public class EffectManager : Singleton<EffectManager>
     {
-        public static EffectManager Instance { get; private set; }
-
-        private const string EffectRootPath = "Effects/";
-
         public void Initialize()
         {
         }
 
-        public GameObject PlayEffect(string effectName, Vector3 position)
+        public async Task<GameObject> PlayEffectAsync(string effectName, Vector3 position,bool autoDestory=true)
         {
-            GameObject prefab = Resources.Load<GameObject>(EffectRootPath + effectName);
+            GameObject prefab = await LoadEffectPrefabAsync(effectName);
             if (prefab == null)
             {
-                Debug.LogWarning($"Effect prefab not found: {EffectRootPath + effectName}");
                 return null;
             }
 
-            GameObject effect = GameObject. Instantiate(prefab, position, Quaternion.identity);
-            DestroyEffectWhenFinished(effect);
-            return effect;
-        }
+            GameObject effect = Object.Instantiate(prefab, position, Quaternion.identity);
 
-        public GameObject PlayPersistentEffect(string effectName, Vector3 position, Transform parent = null)
-        {
-            GameObject prefab = Resources.Load<GameObject>(EffectRootPath + effectName);
-            if (prefab == null)
+            if (autoDestory)
             {
-                Debug.LogWarning($"Effect prefab not found: {EffectRootPath + effectName}");
-                return null;
+                DestroyEffectWhenFinished(effect);
             }
-
-            GameObject effect = Instantiate(prefab, position, Quaternion.identity, parent);
             return effect;
         }
 
-        public void PlayBowAttack(Vector3 startPosition, Vector3 targetPosition)
+        public async Task PlayProjectileWithHitAsync(string projectileEffectName, string hitEffectName, Vector3 startPosition, Vector3 targetPosition)
         {
-            PlayProjectileWithHit("BowAttackEffect", "BowHitEffect", startPosition, targetPosition);
-        }
-
-        public void PlayIceAttack(Vector3 startPosition, Vector3 targetPosition)
-        {
-            PlayProjectileWithHit("IceAttackEffect", "IceHitEffect", startPosition, targetPosition);
-        }
-
-        public void PlayNpcDeath(Vector3 position)
-        {
-            PlayEffect("NpcDeathBurstEffect", position);
-        }
-
-        public void PlayBaseDestroyed(Vector3 position)
-        {
-            PlayEffect("BaseDestroyedEffect", position);
-        }
-
-        private void PlayProjectileWithHit(string projectileEffectName, string hitEffectName, Vector3 startPosition, Vector3 targetPosition)
-        {
-            GameObject projectile = PlayPersistentEffect(projectileEffectName, startPosition);
+            GameObject projectile = await PlayEffectAsync(projectileEffectName, startPosition,false);
             if (projectile == null)
             {
-                PlayEffect(hitEffectName, targetPosition);
+                await PlayEffectAsync(hitEffectName, targetPosition);
                 return;
             }
 
             VisualProjectileEffect visualProjectileEffect = projectile.GetComponent<VisualProjectileEffect>();
             if (visualProjectileEffect == null)
             {
-                GameObject.Destroy(projectile);
-                PlayEffect(hitEffectName, targetPosition);
+                Object.Destroy(projectile);
+                await PlayEffectAsync(hitEffectName, targetPosition);
                 return;
             }
 
             visualProjectileEffect.Play(startPosition, targetPosition);
-            StartCoroutine(PlayHitAfterDelay(hitEffectName, targetPosition, visualProjectileEffect.Duration));
+
+            await DelayByGameTimeAsync(visualProjectileEffect.Duration);
+
+            await PlayEffectAsync(hitEffectName, targetPosition);
         }
 
-        private IEnumerator PlayHitAfterDelay(string hitEffectName, Vector3 targetPosition, float delay)
+        private async Task<GameObject> LoadEffectPrefabAsync(string location)
         {
-            yield return new WaitForSeconds(delay);
-            PlayEffect(hitEffectName, targetPosition);
+            GameObject prefab = await ResourceManager.Instance.LoadAssetAsync<GameObject>(location);
+            if (prefab == null)
+            {
+                Debug.LogWarning($"Effect prefab not found: {location}");
+                return null;
+            }
+
+            return prefab;
+        }
+
+
+        private async Task DelayByGameTimeAsync(float seconds)
+        {
+            if (seconds <= 0f)
+            {
+                return;
+            }
+
+            float timer = 0f;
+
+            while (timer < seconds)
+            {
+                timer += Time.deltaTime;
+                await Task.Yield();
+            }
         }
 
         private void DestroyEffectWhenFinished(GameObject effect)
         {
+            if (effect == null)
+            {
+                return;
+            }
+
             ParticleSystem[] particleSystems = effect.GetComponentsInChildren<ParticleSystem>();
             float maxTime = 0.5f;
 
@@ -96,14 +93,14 @@ namespace Game.Framework
             {
                 ParticleSystem.MainModule main = particleSystems[i].main;
                 float time = main.duration + main.startLifetime.constantMax;
+
                 if (time > maxTime)
                 {
                     maxTime = time;
                 }
             }
 
-          GameObject.  Destroy(effect, maxTime + 0.5f);
+            Object.Destroy(effect, maxTime + 0.5f);
         }
     }
-
 }

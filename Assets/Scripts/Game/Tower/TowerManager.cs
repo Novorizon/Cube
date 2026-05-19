@@ -1,3 +1,4 @@
+using Game.Framework;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -94,7 +95,7 @@ namespace Game
                 return;
             }
 
-            FaceTarget(tower, target);
+            //FaceTarget(tower, target);
 
             if (tower.Data.AttackTimer > 0f)
             {
@@ -102,6 +103,10 @@ namespace Game
             }
 
             tower.Data.AttackTimer = config.AttackInterval;
+
+            Vector3 startPosition = tower.transform.position + Vector3.up * 0.8f;
+            Vector3 targetPosition = target.transform.position + Vector3.up * 0.6f;
+            _ = BattleEffect.PlayProjectileWithHitAsync(config.AttackEffect, config.HitEffect,startPosition, targetPosition);
 
             NpcManager.Instance.TakeDamage(target, config.Damage);
 

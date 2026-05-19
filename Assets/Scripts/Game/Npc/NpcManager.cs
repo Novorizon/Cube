@@ -8,6 +8,7 @@ namespace Game
     {
         private static readonly int WalkHash = Animator.StringToHash("Walk");
         private static readonly int PunchHash = Animator.StringToHash("Punch");
+        private  static readonly int DieHash = Animator.StringToHash("Die");
 
         private readonly List<Npc> activeNpcs = new List<Npc>();
         private readonly MapPathFinder pathFinder = new MapPathFinder();
@@ -145,7 +146,7 @@ namespace Game
 
             npc.InitializeRaw(config, data);
 
-            SetNpcWalk(npc, data.Moving);
+            PlayBoolAnimator(npc,WalkHash, data.Moving);
 
             Register(npc);
 
@@ -260,7 +261,8 @@ namespace Game
             data.Moving = false;
             data.Attacking = false;
 
-            SetNpcWalk(npc, false);
+            PlayBoolAnimator(npc, WalkHash, false);
+            PlayTriggerAnimator(npc, DieHash);
 
             Debug.Log($"Npc killed. Id: {npc.Config?.Id}, RewardGold: {data.RewardGold}");
 
@@ -309,7 +311,7 @@ namespace Game
 
             if (data.Path.Count == 0)
             {
-                SetNpcWalk(npc, false);
+                PlayBoolAnimator(npc, WalkHash, false);
                 return;
             }
 
@@ -384,7 +386,7 @@ namespace Game
             if (!data.Attacking)
             {
                 data.Attacking = true;
-                SetNpcWalk(npc, false);
+                PlayBoolAnimator(npc, WalkHash, false);
                 FaceToPosition(npc, BaseManager.Instance.BasePosition);
             }
 
@@ -410,14 +412,11 @@ namespace Game
             }
 
             FaceToPosition(npc, BaseManager.Instance.BasePosition);
-
-            PlayNpcPunch(npc);
+            PlayTriggerAnimator(npc, PunchHash);
 
             int damage = npc.Data.DamageToBase;
-
-            Debug.Log($"Enemy attack base. Id: {npc.Config?.Id}, Damage: {damage}");
-
             BaseManager.Instance.TakeDamage(damage);
+            Debug.Log($"Enemy attack base. Id: {npc.Config?.Id}, Damage: {damage}");
         }
 
         private void OnNpcReachTarget(Npc npc)
@@ -432,7 +431,7 @@ namespace Game
                 return;
             }
 
-            SetNpcWalk(npc, false);
+            PlayBoolAnimator(npc, WalkHash, false);
 
             npc.Data.ReachedGoal = true;
 
@@ -476,35 +475,22 @@ namespace Game
             return npc.Data.Animator;
         }
 
-        private void SetNpcWalk(Npc npc, bool walk)
+        public void PlayBoolAnimator(Npc npc,int animatorHash,bool value)
         {
-            if (npc == null || npc.Data == null)
-            {
-                return;
-            }
-
-            npc.Data.Moving = walk;
-
             Animator animator = GetAnimator(npc);
-
-            if (animator == null)
+            if (animator != null)
             {
-                return;
+                animator.SetBool(WalkHash, value);
             }
-
-            animator.SetBool(WalkHash, walk);
         }
 
-        private void PlayNpcPunch(Npc npc)
+        public void PlayTriggerAnimator(Npc npc, int animatorHash)
         {
             Animator animator = GetAnimator(npc);
-
-            if (animator == null)
+            if (animator != null)
             {
-                return;
+                animator.SetTrigger(animatorHash);
             }
-
-            animator.SetTrigger(PunchHash);
         }
 
         private void FaceToPosition(Npc npc, Vector3 targetPosition)
