@@ -1,5 +1,7 @@
+using System;
+using System.Collections.Generic;
+using TMPro;
 using UI;
-using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,6 +20,17 @@ namespace Game
 
         [SerializeField]
         private Button cancelButton;
+
+        [SerializeField]
+        private RectTransform contentRoot;
+
+        [SerializeField]
+        private TowerBuildCardView cardPrefab;
+
+        private readonly List<TowerBuildCardView> cards = new List<TowerBuildCardView>();
+        private int selectedTowerConfigId;
+
+        public event Action<int> TowerClicked;
 
         protected override void OnCreate()
         {
@@ -53,37 +66,133 @@ namespace Game
             {
                 cancelButton.onClick.RemoveListener(OnCancelButtonClicked);
             }
+
+            ClearCards();
+            TowerClicked = null;
+        }
+
+        public void Build(IReadOnlyList<TdTowerUiConfig> configs)
+        {
+            ClearCards();
+
+            if (contentRoot == null || cardPrefab == null || configs == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < configs.Count; i++)
+            {
+                TdTowerUiConfig uiConfig = configs[i];
+                if (uiConfig == null)
+                {
+                    continue;
+                }
+
+                int towerId = uiConfig.Id;
+                string towerName = uiConfig.Name;
+                int cost = uiConfig.Cost;
+
+                if (DataManager.Instance != null && DataManager.Instance.Tower.TryGet(towerId, out TowerConfig towerConfig))
+                {
+                    if (string.IsNullOrEmpty(towerName))
+                    {
+                        towerName = towerConfig.Name;
+                    }
+
+                    if (cost <= 0)
+                    {
+                        cost = towerConfig.CostCount;
+                    }
+                }
+
+                TowerBuildCardView card = Instantiate(cardPrefab, contentRoot);
+                card.Init(towerId, towerName, cost, OnTowerCardClicked);
+                card.SetIcon(uiConfig.Icon);
+                card.SetSelected(towerId == selectedTowerConfigId);
+                cards.Add(card);
+            }
+        }
+
+        public void SetSelectedTower(int towerConfigId)
+        {
+            selectedTowerConfigId = towerConfigId;
+            RefreshSelected();
+        }
+
+        public void ClearSelected()
+        {
+            selectedTowerConfigId = 0;
+            RefreshSelected();
+        }
+
+        public void CancelSelect()
+        {
+            OnCancelButtonClicked();
         }
 
         private void OnNormalTowerButtonClicked()
         {
-            if (!DataManager.Instance.Tower.TryGet(NormalTowerConfigId, out TowerConfig config))
-            {
-                Debug.LogWarning($"Select tower failed. Missing tower config: {NormalTowerConfigId}");
-                return;
-            }
-            int gold=ItemManager.Instance.GetCount(ItemIds.Gold);
-            if(gold< config.CostCount)
-            {
-                Debug.LogWarning($"Gold is not enought: {gold}");
-                return;
-            }
-            TowerBuildManager.Instance.SelectTower(NormalTowerConfigId);
+            SelectTower(NormalTowerConfigId);
         }
 
         private void OnIceTowerButtonClicked()
         {
-            if (!TowerManager.Instance.HasGold(IceTowerConfigId))
+            SelectTower(IceTowerConfigId);
+        }
+
+        private void OnTowerCardClicked(int towerConfigId)
+        {
+            SelectTower(towerConfigId);
+        }
+
+        private void SelectTower(int towerConfigId)
+        {
+            if (!TowerManager.Instance.HasGold(towerConfigId))
             {
-                Toast.Warning("½ð±Ò²»×ã");
+                Toast.Warning("é‡‘å¸ä¸è¶³");
                 return;
             }
-            TowerBuildManager.Instance.SelectTower(IceTowerConfigId);
+
+            selectedTowerConfigId = towerConfigId;
+            RefreshSelected();
+
+            TowerBuildManager.Instance.SelectTower(towerConfigId);
+            TowerClicked?.Invoke(towerConfigId);
         }
 
         private void OnCancelButtonClicked()
         {
+            selectedTowerConfigId = 0;
+            RefreshSelected();
+
             TowerBuildManager.Instance.CancelSelect();
+        }
+
+        private void RefreshSelected()
+        {
+            for (int i = 0; i < cards.Count; i++)
+            {
+                TowerBuildCardView card = cards[i];
+                if (card == null)
+                {
+                    continue;
+                }
+
+                card.SetSelected(card.TowerId == selectedTowerConfigId);
+            }
+        }
+
+        private void ClearCards()
+        {
+            for (int i = 0; i < cards.Count; i++)
+            {
+                if (cards[i] != null)
+                {
+                    Destroy(cards[i].gameObject);
+                }
+            }
+
+            cards.Clear();
         }
     }
 }
