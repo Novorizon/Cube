@@ -248,6 +248,7 @@ namespace Game
 
             _ = UIManager.Instance.Panels.ShowAsync("Assets/Arts/UI/Panels/BuildTowerPanel.prefab");
             _ = UIManager.Instance.Panels.ShowAsync("Assets/Arts/UI/Panels/StatusPanel.prefab");
+            _ = UIManager.Instance.Panels.ShowAsync("Assets/Arts/UI/TowerDefense/Prefabs/BattleHud.prefab");
             BaseManager.Instance.LoadBase(mapConfig.BaseLife);
 
             GameInputManager.Instance.SetMode(InputMode.Build);

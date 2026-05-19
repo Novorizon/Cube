@@ -80,6 +80,14 @@ MonoBehaviour:
         FilterRuleName: CollectAll
         AssetTags: 
         UserData: 
+      - CollectPath: Assets/Arts/UI/TowerDefense
+        CollectorGUID: 55513664306c79b4ebc434e82429c577
+        CollectorType: 0
+        AddressRuleName: AddressByFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectAll
+        AssetTags: 
+        UserData: 
     - GroupName: Data
       GroupDesc: 
       AssetTags: 

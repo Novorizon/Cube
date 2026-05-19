@@ -10,7 +10,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/19 23:30:21",
+    "PackageNote": "2026/5/20 0:14:05",
     "AssetList": [
         {
             "Address": "",
@@ -2838,7 +2838,7 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Arts/UI/Toasts/SimpleToast.prefab",
+            "AssetPath": "Assets/Arts/UI/Panels/TowerDefense/BattleHud.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 14,
@@ -2846,7 +2846,31 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Data/Bin/tbitem.bytes",
+            "AssetPath": "Assets/Arts/UI/Panels/TowerDefense/SkillSlot.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 14,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Panels/TowerDefense/TowerBuildCard.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 14,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Panels/TowerDefense/WorldHpBar.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 14,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Toasts/SimpleToast.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 15,
@@ -2854,47 +2878,7 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Data/Bin/tbmap.bytes",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 15,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Data/Bin/tbnpc.bytes",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 15,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Data/Bin/tbtower.bytes",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 15,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Data/Bin/tbwave.bytes",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 15,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Data/Bin/Wave/wave1.bytes",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 16,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/BattleHud.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 17,
@@ -2902,7 +2886,31 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Data/Map/1.json",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/SkillSlot.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 17,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/TowerBuildCard.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 17,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/WorldHpBar.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 17,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/badge.png",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 18,
@@ -2910,10 +2918,234 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Data/Map/NewMap.json",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/button_green.png",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/button_red.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/button_yellow.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/icon_arrowtower.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/icon_bomb.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/icon_cannon.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/icon_coin.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/icon_fire.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/icon_gear.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/icon_heart.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/icon_ice.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/icon_lightning.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/icon_minimap.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/icon_pause.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/icon_skull.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/panel_soft.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/panel_white.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/slot_selected.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Sprites/slot_soft.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 18,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/TowerDefenseUIConfig.asset",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 16,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Bin/tbitem.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 19,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Bin/tbmap.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 19,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Bin/tbnpc.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 19,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Bin/tbtower.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 19,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Bin/tbwave.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 19,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Bin/Wave/wave1.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 20,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 21,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Map/1.json",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 22,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Map/NewMap.json",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 22,
             "DependBundleIDs": []
         }
     ],
@@ -3059,11 +3291,51 @@
             "DependBundleIDs": []
         },
         {
+            "BundleName": "assets_arts_ui_panels_towerdefense.bundle",
+            "UnityCRC": 0,
+            "FileHash": "249a3910d093ab8d9f0b4191c2cc530e",
+            "FileCRC": 0,
+            "FileSize": 194536,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
             "BundleName": "assets_arts_ui_toasts.bundle",
             "UnityCRC": 0,
             "FileHash": "a49da24fbda5a0fb9b83b23e09f787d0",
             "FileCRC": 0,
             "FileSize": 10428,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_arts_ui_towerdefense.bundle",
+            "UnityCRC": 0,
+            "FileHash": "93982fcbc47ced2ebc7951d4077902c1",
+            "FileCRC": 0,
+            "FileSize": 1452,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_arts_ui_towerdefense_prefabs.bundle",
+            "UnityCRC": 0,
+            "FileHash": "1fe0c3a4e402e970085ee6cbf947124e",
+            "FileCRC": 0,
+            "FileSize": 192725,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_arts_ui_towerdefense_sprites.bundle",
+            "UnityCRC": 0,
+            "FileHash": "c00241490293e4ab903420138f296721",
+            "FileCRC": 0,
+            "FileSize": 19844,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
