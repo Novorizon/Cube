@@ -1,30 +1,48 @@
 using System;
 using System.Collections.Generic;
+using UI;
 using UnityEngine;
 
 namespace Game
 {
-    public sealed class SkillPanel : MonoBehaviour
+    public sealed class SkillPanel : UIPanel
     {
-        [SerializeField] private RectTransform contentRoot;
-        [SerializeField] private SkillSlotView slotPrefab;
+        [SerializeField]
+        private RectTransform contentRoot;
+
+        [SerializeField]
+        private SkillSlotView slotPrefab;
 
         private readonly Dictionary<int, SkillSlotView> slots = new Dictionary<int, SkillSlotView>();
 
         public event Action<int> SkillClicked;
 
+        protected override void OnDestroyed()
+        {
+            Clear();
+            SkillClicked = null;
+        }
+
         public void Build(IReadOnlyList<TdSkillUiConfig> configs)
         {
             Clear();
+
             if (contentRoot == null || slotPrefab == null || configs == null)
             {
                 return;
             }
+
             for (int i = 0; i < configs.Count; i++)
             {
+                TdSkillUiConfig config = configs[i];
+                if (config == null)
+                {
+                    continue;
+                }
+
                 SkillSlotView slot = Instantiate(slotPrefab, contentRoot);
-                slot.Init(configs[i], OnSkillClicked);
-                slots[configs[i].Id] = slot;
+                slot.Init(config, OnSkillClicked);
+                slots[config.Id] = slot;
             }
         }
 
@@ -50,6 +68,7 @@ namespace Game
                     Destroy(slot.gameObject);
                 }
             }
+
             slots.Clear();
         }
     }
