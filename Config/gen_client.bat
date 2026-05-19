@@ -45,4 +45,4 @@ if errorlevel 1 (
 )
 
 echo Generate data success.
-pause
+REM pause

@@ -1,14 +1,21 @@
 using Game.Framework;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Game
 {
     public sealed class NpcManager : Singleton<NpcManager>
     {
-        private static readonly int WalkHash = Animator.StringToHash("Walk");
-        private static readonly int PunchHash = Animator.StringToHash("Punch");
-        private  static readonly int DieHash = Animator.StringToHash("Die");
+        public static readonly int WalkHash = Animator.StringToHash("Walk");
+        public static readonly int PunchHash = Animator.StringToHash("Punch");
+        public static readonly int DieHash = Animator.StringToHash("Die");
+
+        public const string IdleStateName = "Idle";
+        public const string WalkStateName = "Walk";
+        public const string PunchStateName = "Punch";
+        public const string DieStateName = "Die";
 
         private readonly List<Npc> activeNpcs = new List<Npc>();
         private readonly MapPathFinder pathFinder = new MapPathFinder();
@@ -146,7 +153,7 @@ namespace Game
 
             npc.InitializeRaw(config, data);
 
-            PlayBoolAnimator(npc,WalkHash, data.Moving);
+            SetWalk(npc, data.Moving);
 
             Register(npc);
 
@@ -155,6 +162,21 @@ namespace Game
             return true;
         }
 
+        public Animator GetAnimator(Npc npc)
+        {
+            if (npc == null || npc.Data == null)
+            {
+                return null;
+            }
+
+            if (npc.Data.Animator != null)
+            {
+                return npc.Data.Animator;
+            }
+
+            npc.Data.Animator = npc.GetComponentInChildren<Animator>();
+            return npc.Data.Animator;
+        }
         public void Register(Npc npc)
         {
             if (npc == null)
@@ -239,11 +261,11 @@ namespace Game
                 return true;
             }
 
-            KillNpc(npc);
+            KillNpcAsync(npc);
             return true;
         }
 
-        public void KillNpc(Npc npc)
+        public async Task KillNpcAsync(Npc npc)
         {
             if (npc == null || npc.Data == null)
             {
@@ -261,8 +283,10 @@ namespace Game
             data.Moving = false;
             data.Attacking = false;
 
-            PlayBoolAnimator(npc, WalkHash, false);
-            PlayTriggerAnimator(npc, DieHash);
+            SetWalk(npc, false);
+
+            Animator animator = GetAnimator(npc);
+            await AnimatorManager.Instance.PlayTriggerAnimator(animator, DieHash, DieStateName, 2f);
 
             Debug.Log($"Npc killed. Id: {npc.Config?.Id}, RewardGold: {data.RewardGold}");
 
@@ -311,7 +335,7 @@ namespace Game
 
             if (data.Path.Count == 0)
             {
-                PlayBoolAnimator(npc, WalkHash, false);
+                SetWalk(npc, false);
                 return;
             }
 
@@ -386,7 +410,7 @@ namespace Game
             if (!data.Attacking)
             {
                 data.Attacking = true;
-                PlayBoolAnimator(npc, WalkHash, false);
+                SetWalk(npc, false);
                 FaceToPosition(npc, BaseManager.Instance.BasePosition);
             }
 
@@ -412,7 +436,8 @@ namespace Game
             }
 
             FaceToPosition(npc, BaseManager.Instance.BasePosition);
-            PlayTriggerAnimator(npc, PunchHash);
+            PlayPunch(npc);
+
 
             int damage = npc.Data.DamageToBase;
             BaseManager.Instance.TakeDamage(damage);
@@ -431,7 +456,7 @@ namespace Game
                 return;
             }
 
-            PlayBoolAnimator(npc, WalkHash, false);
+            SetWalk(npc, false);
 
             npc.Data.ReachedGoal = true;
 
@@ -457,40 +482,6 @@ namespace Game
             FaceToPosition(npc, BaseManager.Instance.BasePosition);
 
             Debug.Log($"Enemy reached base attack position. Id: {npc.Config?.Id}");
-        }
-
-        private Animator GetAnimator(Npc npc)
-        {
-            if (npc == null || npc.Data == null)
-            {
-                return null;
-            }
-
-            if (npc.Data.Animator != null)
-            {
-                return npc.Data.Animator;
-            }
-
-            npc.Data.Animator = npc.GetComponentInChildren<Animator>();
-            return npc.Data.Animator;
-        }
-
-        public void PlayBoolAnimator(Npc npc,int animatorHash,bool value)
-        {
-            Animator animator = GetAnimator(npc);
-            if (animator != null)
-            {
-                animator.SetBool(WalkHash, value);
-            }
-        }
-
-        public void PlayTriggerAnimator(Npc npc, int animatorHash)
-        {
-            Animator animator = GetAnimator(npc);
-            if (animator != null)
-            {
-                animator.SetTrigger(animatorHash);
-            }
         }
 
         private void FaceToPosition(Npc npc, Vector3 targetPosition)
@@ -549,6 +540,16 @@ namespace Game
             }
 
             npcRoot = rootObject.transform;
+        }
+        public void SetWalk(Npc npc, bool value)
+        {
+            Animator animator= GetAnimator(npc);
+            AnimatorManager.Instance.PlayBoolAnimator(animator, WalkHash, value);
+        }
+        public void PlayPunch(Npc npc)
+        {
+            Animator animator = GetAnimator(npc);
+            AnimatorManager.Instance.PlayTriggerAnimator(animator, WalkHash);
         }
     }
 }
