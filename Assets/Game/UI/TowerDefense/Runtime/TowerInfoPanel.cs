@@ -45,23 +45,19 @@ namespace Game
         private Button sellButton;
 
         private int selectedTowerId;
+        private bool initialized;
 
         public event Action<int> UpgradeClicked;
         public event Action<int> SellClicked;
 
         protected override void OnCreate()
         {
-            if (upgradeButton != null)
-            {
-                upgradeButton.onClick.AddListener(OnUpgradeClicked);
-            }
+            Initialize();
+        }
 
-            if (sellButton != null)
-            {
-                sellButton.onClick.AddListener(OnSellClicked);
-            }
-
-            Hide();
+        private void Start()
+        {
+            Initialize();
         }
 
         protected override void OnDestroyed()
@@ -80,8 +76,33 @@ namespace Game
             SellClicked = null;
         }
 
+        public void Initialize()
+        {
+            if (initialized)
+            {
+                return;
+            }
+
+            initialized = true;
+
+            if (upgradeButton != null)
+            {
+                upgradeButton.onClick.RemoveListener(OnUpgradeClicked);
+                upgradeButton.onClick.AddListener(OnUpgradeClicked);
+            }
+
+            if (sellButton != null)
+            {
+                sellButton.onClick.RemoveListener(OnSellClicked);
+                sellButton.onClick.AddListener(OnSellClicked);
+            }
+
+            Hide();
+        }
+
         public void Show(TdTowerRuntimeInfo info)
         {
+            Initialize();
             selectedTowerId = info.TowerId;
 
             if (towerIconImage != null)
