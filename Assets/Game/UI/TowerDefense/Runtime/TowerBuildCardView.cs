@@ -14,7 +14,7 @@ namespace Game
         private Image iconImage;
 
         [SerializeField]
-        private GameObject selectedFrame;
+        private Image selectedFrame;
 
         [SerializeField]
         private TMP_Text nameText;
@@ -61,7 +61,7 @@ namespace Game
         {
             if (selectedFrame != null)
             {
-                selectedFrame.SetActive(selected);
+                selectedFrame.gameObject.SetActive(selected);
             }
         }
 
