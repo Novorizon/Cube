@@ -36,11 +36,4 @@ namespace Game
         public int SellGold;
         public bool CanUpgrade;
     }
-
-    [CreateAssetMenu(menuName = "Game/Tower Defense UI Config", fileName = "TowerDefenseUIConfig")]
-    public sealed class TdUiConfig : ScriptableObject
-    {
-        public TdTowerUiConfig[] Towers;
-        public TdSkillUiConfig[] Skills;
-    }
 }
