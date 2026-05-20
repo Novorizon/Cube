@@ -114,7 +114,7 @@ namespace Game
         {
             if (goldText != null)
             {
-                goldText.text = $"金币: {gold}";
+                goldText.text = $"Gold: {gold}";
             }
         }
 
@@ -122,7 +122,7 @@ namespace Game
         {
             if (baseLifeText != null)
             {
-                baseLifeText.text = $"生命: {currentLife}/{maxLife}";
+                baseLifeText.text = $"HP: {currentLife}/{maxLife}";
             }
 
             if (baseLifeBar != null)
@@ -140,11 +140,11 @@ namespace Game
 
             if (maxWave > 0)
             {
-                waveText.text = $"波次: {currentWave}/{maxWave}";
+                waveText.text = $"Wave: {currentWave}/{maxWave}";
             }
             else
             {
-                waveText.text = $"波次: {currentWave}";
+                waveText.text = $"Wave: {currentWave}";
             }
         }
 
@@ -157,11 +157,11 @@ namespace Game
 
             if (total > 0)
             {
-                enemyText.text = $"敌人: {alive}/{total}";
+                enemyText.text = $"Enemy: {alive}/{total}";
             }
             else
             {
-                enemyText.text = $"敌人: {alive}";
+                enemyText.text = $"Enemy: {alive}";
             }
         }
     }
