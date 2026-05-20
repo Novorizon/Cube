@@ -227,80 +227,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &151502954
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 1138402586}
-    m_Modifications:
-    - target: {fileID: 4790550719291330936, guid: 49a075c419485114f9748aa97037c280,
-        type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790550719291330936, guid: 49a075c419485114f9748aa97037c280,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790550719291330936, guid: 49a075c419485114f9748aa97037c280,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790550719291330936, guid: 49a075c419485114f9748aa97037c280,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790550719291330936, guid: 49a075c419485114f9748aa97037c280,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790550719291330936, guid: 49a075c419485114f9748aa97037c280,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790550719291330936, guid: 49a075c419485114f9748aa97037c280,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790550719291330936, guid: 49a075c419485114f9748aa97037c280,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790550719291330936, guid: 49a075c419485114f9748aa97037c280,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4790550719291330936, guid: 49a075c419485114f9748aa97037c280,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5273896393946844098, guid: 49a075c419485114f9748aa97037c280,
-        type: 3}
-      propertyPath: m_Name
-      value: Meshy_AI_Verdant_Cube_Cake_0518153502_texture
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 49a075c419485114f9748aa97037c280, type: 3}
---- !u!4 &151502955 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4790550719291330936, guid: 49a075c419485114f9748aa97037c280,
-    type: 3}
-  m_PrefabInstance: {fileID: 151502954}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &203844586
 GameObject:
   m_ObjectHideFlags: 0
@@ -632,19 +558,9 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 689079185113467127, guid: fd984ce645c1884448c6fa345bc066e0, type: 3}
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 4566026762680270847, guid: fd984ce645c1884448c6fa345bc066e0,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 151502955}
+    m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fd984ce645c1884448c6fa345bc066e0, type: 3}
---- !u!4 &1138402586 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4566026762680270847, guid: fd984ce645c1884448c6fa345bc066e0,
-    type: 3}
-  m_PrefabInstance: {fileID: 1138402585}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1160234425
 GameObject:
   m_ObjectHideFlags: 0

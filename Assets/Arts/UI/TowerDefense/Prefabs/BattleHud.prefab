@@ -1614,7 +1614,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   contentRoot: {fileID: 949795870639460033}
-  slotPrefab: {fileID: 0}
+  slotPrefab: {fileID: 6946335561501371088, guid: 32c028683a117d64fa706f3d3826a9b4,
+    type: 3}
 --- !u!1 &2697234188544877999
 GameObject:
   m_ObjectHideFlags: 0
