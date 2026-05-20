@@ -118,7 +118,7 @@ namespace Game
 
             if (levelText != null)
             {
-                levelText.text = $"等级 {info.Level}";
+                levelText.text = $"Lv {info.Level}";
             }
 
             if (attackText != null)
@@ -133,12 +133,12 @@ namespace Game
 
             if (rangeText != null)
             {
-                rangeText.text = $"{info.Range:0.#} 格";
+                rangeText.text = $"{info.Range:0.#}";
             }
 
             if (speedText != null)
             {
-                speedText.text = $"{info.AttackInterval:0.#} 秒";
+                speedText.text = $"{info.AttackInterval:0.#}s";
             }
 
             if (upgradeCostText != null)
