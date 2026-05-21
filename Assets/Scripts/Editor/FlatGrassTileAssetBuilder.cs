@@ -1,320 +1,719 @@
 #if UNITY_EDITOR
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Text;
+using System.Xml;
+using System.Xml.Linq;
 using UnityEditor;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
-public static class TDEffectPrefabCreator
+public static class LubanBeanXmlUpdater
 {
-    private const string EffectFolder = "Assets/Resources/Effects";
-    private const string MaterialFolder = "Assets/Resources/Effects/Materials";
+    private const string ConfigRoot = @"D:\Cube\Config";
+    private const string ExcelDir = @"D:\Cube\Assets\Data\Excel";
+    private const string XmlDir = @"D:\Cube\Config\Defines";
+    private const string GenAllBat = @"D:\Cube\Config\gen_all.bat";
 
-    [MenuItem("Tools/TD/Create Effect Prefabs")]
-    public static void CreateEffectPrefabs()
+    [MenuItem("Tools/Luban/Update Bean Xml And Gen All")]
+    public static void UpdateBeanXmlAndGenAll()
     {
-        EnsureFolder("Assets", "Resources");
-        EnsureFolder("Assets/Resources", "Effects");
-        EnsureFolder("Assets/Resources/Effects", "Materials");
-
-        Material whiteMaterial = CreateMaterial("Effect_White", new Color(1f, 1f, 1f, 1f));
-        Material yellowMaterial = CreateMaterial("Effect_Yellow", new Color(1f, 0.75f, 0.2f, 1f));
-        Material orangeMaterial = CreateMaterial("Effect_Orange", new Color(1f, 0.35f, 0.08f, 1f));
-        Material blueMaterial = CreateMaterial("Effect_Blue", new Color(0.35f, 0.75f, 1f, 1f));
-        Material grayMaterial = CreateMaterial("Effect_Gray", new Color(0.45f, 0.45f, 0.45f, 1f));
-        Material darkMaterial = CreateMaterial("Effect_Dark", new Color(0.12f, 0.12f, 0.12f, 1f));
-
-        CreateBowAttackEffect(yellowMaterial);
-        CreateBowHitEffect(yellowMaterial, orangeMaterial);
-
-        CreateIceAttackEffect(blueMaterial, whiteMaterial);
-        CreateIceHitEffect(blueMaterial, whiteMaterial);
-
-        CreateBaseDamageStageOneEffect(grayMaterial);
-        CreateBaseDamageStageTwoEffect(grayMaterial, orangeMaterial);
-        CreateBaseDestroyedEffect(grayMaterial, orangeMaterial, darkMaterial);
-
-        CreateNpcDeathBurstEffect(orangeMaterial, grayMaterial);
-
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-
-        Debug.Log("TD effect prefabs created.");
-    }
-
-    private static void CreateBowAttackEffect(Material material)
-    {
-        GameObject root = new GameObject("BowAttackEffect");
-        root.AddComponent<VisualProjectileEffect>();
-
-        GameObject arrow = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        arrow.name = "ArrowBody";
-        arrow.transform.SetParent(root.transform);
-        arrow.transform.localPosition = Vector3.zero;
-        arrow.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-        arrow.transform.localScale = new Vector3(0.035f, 0.35f, 0.035f);
-
-        Object.DestroyImmediate(arrow.GetComponent<Collider>());
-
-        MeshRenderer renderer = arrow.GetComponent<MeshRenderer>();
-        renderer.sharedMaterial = material;
-
-        TrailRenderer trail = root.AddComponent<TrailRenderer>();
-        trail.time = 0.12f;
-        trail.startWidth = 0.08f;
-        trail.endWidth = 0f;
-        trail.material = material;
-
-        SavePrefab(root);
-    }
-
-    private static void CreateBowHitEffect(Material yellowMaterial, Material orangeMaterial)
-    {
-        GameObject root = new GameObject("BowHitEffect");
-
-        ParticleSystem spark = AddParticleSystem(root, "Spark");
-        ConfigureBurstParticle(spark, 16, 0.18f, 2.8f, 0.07f, yellowMaterial, ParticleSystemShapeType.Sphere);
-
-        ParticleSystem dust = AddParticleSystem(root, "Dust");
-        ConfigureBurstParticle(dust, 10, 0.25f, 1.1f, 0.12f, orangeMaterial, ParticleSystemShapeType.Hemisphere);
-
-        SavePrefab(root);
-    }
-
-    private static void CreateIceAttackEffect(Material blueMaterial, Material whiteMaterial)
-    {
-        GameObject root = new GameObject("IceAttackEffect");
-        root.AddComponent<VisualProjectileEffect>();
-
-        GameObject core = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        core.name = "IceCore";
-        core.transform.SetParent(root.transform);
-        core.transform.localPosition = Vector3.zero;
-        core.transform.localScale = Vector3.one * 0.18f;
-
-        Object.DestroyImmediate(core.GetComponent<Collider>());
-
-        MeshRenderer renderer = core.GetComponent<MeshRenderer>();
-        renderer.sharedMaterial = blueMaterial;
-
-        TrailRenderer trail = root.AddComponent<TrailRenderer>();
-        trail.time = 0.18f;
-        trail.startWidth = 0.14f;
-        trail.endWidth = 0.02f;
-        trail.material = whiteMaterial;
-
-        ParticleSystem mist = AddParticleSystem(root, "IceMist");
-        ConfigureLoopParticle(mist, 20, 0.25f, 0.25f, 0.08f, blueMaterial, ParticleSystemShapeType.Sphere);
-
-        SavePrefab(root);
-    }
-
-    private static void CreateIceHitEffect(Material blueMaterial, Material whiteMaterial)
-    {
-        GameObject root = new GameObject("IceHitEffect");
-
-        ParticleSystem shards = AddParticleSystem(root, "IceShards");
-        ConfigureBurstParticle(shards, 24, 0.32f, 2.2f, 0.08f, blueMaterial, ParticleSystemShapeType.Sphere);
-
-        ParticleSystem frost = AddParticleSystem(root, "FrostRing");
-        ConfigureBurstParticle(frost, 18, 0.45f, 0.9f, 0.14f, whiteMaterial, ParticleSystemShapeType.Circle);
-
-        SavePrefab(root);
-    }
-
-    private static void CreateBaseDamageStageOneEffect(Material grayMaterial)
-    {
-        GameObject root = new GameObject("BaseDamageStageOneEffect");
-
-        ParticleSystem smoke = AddParticleSystem(root, "LightSmoke");
-        ConfigureLoopParticle(smoke, 12, 1.2f, 0.45f, 0.35f, grayMaterial, ParticleSystemShapeType.Cone);
-
-        SavePrefab(root);
-    }
-
-    private static void CreateBaseDamageStageTwoEffect(Material grayMaterial, Material orangeMaterial)
-    {
-        GameObject root = new GameObject("BaseDamageStageTwoEffect");
-
-        ParticleSystem smoke = AddParticleSystem(root, "HeavySmoke");
-        ConfigureLoopParticle(smoke, 24, 1.6f, 0.55f, 0.48f, grayMaterial, ParticleSystemShapeType.Cone);
-
-        ParticleSystem sparks = AddParticleSystem(root, "Sparks");
-        ConfigureLoopParticle(sparks, 18, 0.35f, 1.5f, 0.06f, orangeMaterial, ParticleSystemShapeType.Cone);
-
-        SavePrefab(root);
-    }
-
-    private static void CreateBaseDestroyedEffect(Material grayMaterial, Material orangeMaterial, Material darkMaterial)
-    {
-        GameObject root = new GameObject("BaseDestroyedEffect");
-
-        ParticleSystem explosion = AddParticleSystem(root, "Explosion");
-        ConfigureBurstParticle(explosion, 40, 0.45f, 4.2f, 0.22f, orangeMaterial, ParticleSystemShapeType.Sphere);
-
-        ParticleSystem debris = AddParticleSystem(root, "Debris");
-        ConfigureBurstParticle(debris, 32, 0.8f, 3.4f, 0.16f, darkMaterial, ParticleSystemShapeType.Sphere);
-
-        ParticleSystem smoke = AddParticleSystem(root, "Smoke");
-        ConfigureBurstParticle(smoke, 36, 1.8f, 1.1f, 0.55f, grayMaterial, ParticleSystemShapeType.Hemisphere);
-
-        SavePrefab(root);
-    }
-
-    private static void CreateNpcDeathBurstEffect(Material orangeMaterial, Material grayMaterial)
-    {
-        GameObject root = new GameObject("NpcDeathBurstEffect");
-
-        ParticleSystem burst = AddParticleSystem(root, "DeathBurst");
-        ConfigureBurstParticle(burst, 28, 0.35f, 2.6f, 0.12f, orangeMaterial, ParticleSystemShapeType.Sphere);
-
-        ParticleSystem pieces = AddParticleSystem(root, "SmallPieces");
-        ConfigureBurstParticle(pieces, 18, 0.55f, 1.8f, 0.1f, grayMaterial, ParticleSystemShapeType.Sphere);
-
-        SavePrefab(root);
-    }
-
-    private static ParticleSystem AddParticleSystem(GameObject root, string name)
-    {
-        GameObject child = new GameObject(name);
-        child.transform.SetParent(root.transform);
-        child.transform.localPosition = Vector3.zero;
-        child.transform.localRotation = Quaternion.identity;
-        child.transform.localScale = Vector3.one;
-
-        return child.AddComponent<ParticleSystem>();
-    }
-
-    private static void ConfigureBurstParticle(ParticleSystem particleSystem, int count, float lifetime, float speed, float size, Material material, ParticleSystemShapeType shapeType)
-    {
-        ParticleSystem.MainModule main = particleSystem.main;
-        main.loop = false;
-        main.duration = 0.12f;
-        main.startLifetime = lifetime;
-        main.startSpeed = speed;
-        main.startSize = size;
-        main.simulationSpace = ParticleSystemSimulationSpace.World;
-        main.playOnAwake = true;
-
-        ParticleSystem.EmissionModule emission = particleSystem.emission;
-        emission.enabled = true;
-        emission.rateOverTime = 0f;
-        emission.SetBursts(new ParticleSystem.Burst[]
+        try
         {
-            new ParticleSystem.Burst(0f, (short)count)
-        });
+            int updateCount = UpdateAllXml();
+            Debug.Log("Luban bean xml update finished. Updated xml count: " + updateCount);
 
-        ParticleSystem.ShapeModule shape = particleSystem.shape;
-        shape.enabled = true;
-        shape.shapeType = shapeType;
-        shape.radius = 0.25f;
-        shape.angle = 25f;
+            RunGenAllBat();
 
-        ParticleSystem.ColorOverLifetimeModule colorOverLifetime = particleSystem.colorOverLifetime;
-        colorOverLifetime.enabled = true;
-        Gradient gradient = new Gradient();
-        gradient.SetKeys(
-            new GradientColorKey[]
+            AssetDatabase.Refresh();
+
+            Debug.Log("Luban gen_all finished.");
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError(exception);
+        }
+    }
+
+    [MenuItem("Tools/Luban/Only Update Bean Xml")]
+    public static void OnlyUpdateBeanXml()
+    {
+        try
+        {
+            int updateCount = UpdateAllXml();
+            AssetDatabase.Refresh();
+
+            Debug.Log("Luban bean xml update finished. Updated xml count: " + updateCount);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError(exception);
+        }
+    }
+
+    [MenuItem("Tools/Luban/Only Run Gen All")]
+    public static void OnlyRunGenAll()
+    {
+        try
+        {
+            RunGenAllBat();
+            AssetDatabase.Refresh();
+
+            Debug.Log("Luban gen_all finished.");
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError(exception);
+        }
+    }
+
+    private static int UpdateAllXml()
+    {
+        if (!Directory.Exists(ExcelDir))
+        {
+            throw new DirectoryNotFoundException("Excel dir not found: " + ExcelDir);
+        }
+
+        if (!Directory.Exists(XmlDir))
+        {
+            throw new DirectoryNotFoundException("Xml dir not found: " + XmlDir);
+        }
+
+        string[] xmlFiles = Directory.GetFiles(XmlDir, "*.xml", SearchOption.AllDirectories);
+
+        int updatedCount = 0;
+
+        for (int i = 0; i < xmlFiles.Length; i++)
+        {
+            string xmlFile = xmlFiles[i];
+            string fileName = Path.GetFileName(xmlFile);
+
+            if (string.Equals(fileName, "__root__.xml", StringComparison.OrdinalIgnoreCase))
             {
-                new GradientColorKey(Color.white, 0f),
-                new GradientColorKey(Color.white, 1f)
-            },
-            new GradientAlphaKey[]
-            {
-                new GradientAlphaKey(1f, 0f),
-                new GradientAlphaKey(0f, 1f)
+                continue;
             }
-        );
-        colorOverLifetime.color = gradient;
 
-        ParticleSystemRenderer renderer = particleSystem.GetComponent<ParticleSystemRenderer>();
-        renderer.sharedMaterial = material;
-        renderer.renderMode = ParticleSystemRenderMode.Billboard;
-    }
+            bool updated = UpdateXmlFile(xmlFile);
 
-    private static void ConfigureLoopParticle(ParticleSystem particleSystem, int rate, float lifetime, float speed, float size, Material material, ParticleSystemShapeType shapeType)
-    {
-        ParticleSystem.MainModule main = particleSystem.main;
-        main.loop = true;
-        main.duration = 1f;
-        main.startLifetime = lifetime;
-        main.startSpeed = speed;
-        main.startSize = size;
-        main.simulationSpace = ParticleSystemSimulationSpace.World;
-        main.playOnAwake = true;
-
-        ParticleSystem.EmissionModule emission = particleSystem.emission;
-        emission.enabled = true;
-        emission.rateOverTime = rate;
-
-        ParticleSystem.ShapeModule shape = particleSystem.shape;
-        shape.enabled = true;
-        shape.shapeType = shapeType;
-        shape.radius = 0.25f;
-        shape.angle = 18f;
-
-        ParticleSystem.ColorOverLifetimeModule colorOverLifetime = particleSystem.colorOverLifetime;
-        colorOverLifetime.enabled = true;
-        Gradient gradient = new Gradient();
-        gradient.SetKeys(
-            new GradientColorKey[]
+            if (updated)
             {
-                new GradientColorKey(Color.white, 0f),
-                new GradientColorKey(Color.white, 1f)
-            },
-            new GradientAlphaKey[]
-            {
-                new GradientAlphaKey(0.75f, 0f),
-                new GradientAlphaKey(0f, 1f)
+                updatedCount++;
             }
-        );
-        colorOverLifetime.color = gradient;
-
-        ParticleSystemRenderer renderer = particleSystem.GetComponent<ParticleSystemRenderer>();
-        renderer.sharedMaterial = material;
-        renderer.renderMode = ParticleSystemRenderMode.Billboard;
-    }
-
-    private static Material CreateMaterial(string name, Color color)
-    {
-        string path = $"{MaterialFolder}/{name}.mat";
-        Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
-
-        if (material != null)
-        {
-            return material;
         }
 
-        Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-        if (shader == null)
-        {
-            shader = Shader.Find("Particles/Standard Unlit");
-        }
-
-        if (shader == null)
-        {
-            shader = Shader.Find("Sprites/Default");
-        }
-
-        material = new Material(shader);
-        material.name = name;
-        material.color = color;
-
-        AssetDatabase.CreateAsset(material, path);
-        return material;
+        return updatedCount;
     }
 
-    private static void SavePrefab(GameObject root)
+    private static bool UpdateXmlFile(string xmlPath)
     {
-        string path = $"{EffectFolder}/{root.name}.prefab";
-        PrefabUtility.SaveAsPrefabAsset(root, path);
-        Object.DestroyImmediate(root);
+        XDocument document = XDocument.Load(xmlPath, LoadOptions.PreserveWhitespace);
+
+        XElement root = document.Root;
+
+        if (root == null)
+        {
+            return false;
+        }
+
+        List<XElement> tableElements = root
+            .Descendants("table")
+            .ToList();
+
+        if (tableElements.Count == 0)
+        {
+            return false;
+        }
+
+        bool changed = false;
+
+        for (int i = 0; i < tableElements.Count; i++)
+        {
+            XElement tableElement = tableElements[i];
+
+            string beanName = tableElement.Attribute("value")?.Value?.Trim();
+            string input = tableElement.Attribute("input")?.Value?.Trim();
+
+            if (string.IsNullOrWhiteSpace(beanName) || string.IsNullOrWhiteSpace(input))
+            {
+                continue;
+            }
+
+            string excelPath = Path.Combine(ExcelDir, input);
+
+            if (!File.Exists(excelPath))
+            {
+                Debug.LogWarning("Excel not found. Xml: " + xmlPath + ", input: " + input);
+                continue;
+            }
+
+            List<FieldInfo> fields = ReadExcelFields(excelPath);
+
+            if (fields.Count == 0)
+            {
+                Debug.LogWarning("No fields found. Excel: " + excelPath);
+                continue;
+            }
+
+            XElement beanElement = root
+                .Descendants("bean")
+                .FirstOrDefault(x => string.Equals(x.Attribute("name")?.Value, beanName, StringComparison.Ordinal));
+
+            if (beanElement == null)
+            {
+                Debug.LogWarning("Bean not found. Xml: " + xmlPath + ", bean: " + beanName);
+                continue;
+            }
+
+            ReplaceBeanVars(beanElement, fields);
+
+            changed = true;
+
+            Debug.Log("Updated bean. Xml: " + xmlPath + ", bean: " + beanName + ", excel: " + input);
+        }
+
+        if (!changed)
+        {
+            return false;
+        }
+
+        Backup(xmlPath);
+        SaveXml(document, xmlPath);
+
+        return true;
     }
 
-    private static void EnsureFolder(string parent, string child)
+    private static List<FieldInfo> ReadExcelFields(string excelPath)
     {
-        string path = $"{parent}/{child}";
-        if (!AssetDatabase.IsValidFolder(path))
+        XlsxSheetData sheetData = XlsxReader.ReadFirstSheet(excelPath);
+
+        List<FieldInfo> fields = new List<FieldInfo>();
+
+        int fieldNameRow = 1;
+        int fieldTypeRow = 2;
+        int fieldCommentRow = 3;
+
+        int maxColumn = sheetData.GetMaxColumn(fieldNameRow);
+
+        for (int column = 1; column <= maxColumn; column++)
         {
-            AssetDatabase.CreateFolder(parent, child);
+            string name = sheetData.GetCell(fieldNameRow, column);
+            string type = sheetData.GetCell(fieldTypeRow, column);
+            string comment = sheetData.GetCell(fieldCommentRow, column);
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                continue;
+            }
+
+            if (name.StartsWith("#", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(type))
+            {
+                Debug.LogWarning("Skip field without type. Excel: " + excelPath + ", field: " + name);
+                continue;
+            }
+
+            FieldInfo field = new FieldInfo();
+            field.Name = name.Trim();
+            field.Type = NormalizeType(type.Trim());
+            field.Comment = comment.Trim();
+
+            fields.Add(field);
+        }
+
+        return fields;
+    }
+
+    private static void ReplaceBeanVars(XElement beanElement, List<FieldInfo> fields)
+    {
+        beanElement.RemoveNodes();
+
+        beanElement.Add(new XText(Environment.NewLine));
+
+        for (int i = 0; i < fields.Count; i++)
+        {
+            FieldInfo field = fields[i];
+
+            beanElement.Add(new XText("    "));
+
+            XElement varElement = new XElement("var");
+            varElement.SetAttributeValue("name", field.Name);
+            varElement.SetAttributeValue("type", field.Type);
+
+            if (!string.IsNullOrWhiteSpace(field.Comment))
+            {
+                varElement.SetAttributeValue("comment", field.Comment);
+            }
+
+            beanElement.Add(varElement);
+            beanElement.Add(new XText(Environment.NewLine));
+        }
+
+        beanElement.Add(new XText("  "));
+    }
+
+    private static string NormalizeType(string type)
+    {
+        string value = type.Trim();
+
+        return value switch
+        {
+            "Int" => "int",
+            "INT" => "int",
+            "integer" => "int",
+            "Integer" => "int",
+
+            "Long" => "long",
+            "LONG" => "long",
+
+            "Float" => "float",
+            "FLOAT" => "float",
+
+            "Double" => "double",
+            "DOUBLE" => "double",
+
+            "Bool" => "bool",
+            "BOOL" => "bool",
+            "boolean" => "bool",
+            "Boolean" => "bool",
+
+            "String" => "string",
+            "STRING" => "string",
+
+            _ => value
+        };
+    }
+
+    private static void Backup(string xmlPath)
+    {
+        string backupRoot = Path.Combine(ConfigRoot, "_xml_backup");
+
+        if (!Directory.Exists(backupRoot))
+        {
+            Directory.CreateDirectory(backupRoot);
+        }
+
+        string relativePath = MakeRelativePath(XmlDir, xmlPath);
+        string backupPath = Path.Combine(backupRoot, relativePath + ".bak");
+
+        string backupDir = Path.GetDirectoryName(backupPath);
+
+        if (!string.IsNullOrEmpty(backupDir) && !Directory.Exists(backupDir))
+        {
+            Directory.CreateDirectory(backupDir);
+        }
+
+        if (File.Exists(backupPath))
+        {
+            File.Delete(backupPath);
+        }
+
+        File.Copy(xmlPath, backupPath);
+    }
+
+    private static string MakeRelativePath(string rootDir, string fullPath)
+    {
+        Uri rootUri = new Uri(AppendDirectorySeparatorChar(rootDir));
+        Uri fullUri = new Uri(fullPath);
+
+        string relativePath = Uri.UnescapeDataString(rootUri.MakeRelativeUri(fullUri).ToString());
+        return relativePath.Replace('/', Path.DirectorySeparatorChar);
+    }
+
+    private static string AppendDirectorySeparatorChar(string path)
+    {
+        if (path.EndsWith(Path.DirectorySeparatorChar.ToString()))
+        {
+            return path;
+        }
+
+        return path + Path.DirectorySeparatorChar;
+    }
+
+    private static void SaveXml(XDocument document, string path)
+    {
+        XmlWriterSettings settings = new XmlWriterSettings();
+        settings.Encoding = new UTF8Encoding(false);
+        settings.Indent = true;
+        settings.NewLineChars = "\n";
+        settings.OmitXmlDeclaration = false;
+
+        using FileStream stream = File.Create(path);
+        using XmlWriter writer = XmlWriter.Create(stream, settings);
+
+        document.Save(writer);
+    }
+
+    private static void RunGenAllBat()
+    {
+        if (!File.Exists(GenAllBat))
+        {
+            throw new FileNotFoundException("gen_all.bat not found: " + GenAllBat);
+        }
+
+        ProcessStartInfo startInfo = new ProcessStartInfo();
+        startInfo.FileName = "cmd.exe";
+        startInfo.Arguments = "/c \"" + GenAllBat + "\"";
+        startInfo.WorkingDirectory = ConfigRoot;
+        startInfo.UseShellExecute = false;
+        startInfo.RedirectStandardOutput = true;
+        startInfo.RedirectStandardError = true;
+        startInfo.CreateNoWindow = true;
+        startInfo.StandardOutputEncoding = Encoding.UTF8;
+        startInfo.StandardErrorEncoding = Encoding.UTF8;
+
+        using Process process = new Process();
+        process.StartInfo = startInfo;
+
+        StringBuilder outputBuilder = new StringBuilder();
+        StringBuilder errorBuilder = new StringBuilder();
+
+        process.OutputDataReceived += (sender, args) =>
+        {
+            if (!string.IsNullOrEmpty(args.Data))
+            {
+                outputBuilder.AppendLine(args.Data);
+            }
+        };
+
+        process.ErrorDataReceived += (sender, args) =>
+        {
+            if (!string.IsNullOrEmpty(args.Data))
+            {
+                errorBuilder.AppendLine(args.Data);
+            }
+        };
+
+        process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+        process.WaitForExit();
+
+        string output = outputBuilder.ToString();
+        string error = errorBuilder.ToString();
+
+        if (!string.IsNullOrWhiteSpace(output))
+        {
+            Debug.Log(output);
+        }
+
+        if (!string.IsNullOrWhiteSpace(error))
+        {
+            Debug.LogWarning(error);
+        }
+
+        if (process.ExitCode != 0)
+        {
+            throw new Exception("gen_all.bat failed. ExitCode: " + process.ExitCode);
+        }
+    }
+
+    private sealed class FieldInfo
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string Comment { get; set; } = string.Empty;
+    }
+
+    private sealed class XlsxSheetData
+    {
+        private readonly Dictionary<int, Dictionary<int, string>> cells = new Dictionary<int, Dictionary<int, string>>();
+
+        public void SetCell(int row, int column, string value)
+        {
+            if (!cells.TryGetValue(row, out Dictionary<int, string> rowCells))
+            {
+                rowCells = new Dictionary<int, string>();
+                cells.Add(row, rowCells);
+            }
+
+            rowCells[column] = value;
+        }
+
+        public string GetCell(int row, int column)
+        {
+            if (!cells.TryGetValue(row, out Dictionary<int, string> rowCells))
+            {
+                return string.Empty;
+            }
+
+            if (!rowCells.TryGetValue(column, out string value))
+            {
+                return string.Empty;
+            }
+
+            return value ?? string.Empty;
+        }
+
+        public int GetMaxColumn(int row)
+        {
+            if (!cells.TryGetValue(row, out Dictionary<int, string> rowCells))
+            {
+                return 0;
+            }
+
+            if (rowCells.Count == 0)
+            {
+                return 0;
+            }
+
+            return rowCells.Keys.Max();
+        }
+    }
+
+    private static class XlsxReader
+    {
+        public static XlsxSheetData ReadFirstSheet(string xlsxPath)
+        {
+            using ZipArchive archive = ZipFile.OpenRead(xlsxPath);
+
+            List<string> sharedStrings = ReadSharedStrings(archive);
+
+            string sheetPath = FindFirstSheetPath(archive);
+
+            ZipArchiveEntry sheetEntry = archive.GetEntry(sheetPath);
+
+            if (sheetEntry == null)
+            {
+                throw new FileNotFoundException("Sheet xml not found in xlsx: " + sheetPath);
+            }
+
+            XlsxSheetData sheetData = new XlsxSheetData();
+
+            using Stream stream = sheetEntry.Open();
+            XDocument document = XDocument.Load(stream);
+
+            XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+
+            IEnumerable<XElement> rows = document
+                .Descendants(ns + "sheetData")
+                .Descendants(ns + "row");
+
+            foreach (XElement rowElement in rows)
+            {
+                int rowIndex = ParseInt(rowElement.Attribute("r")?.Value, 0);
+
+                if (rowIndex <= 0)
+                {
+                    continue;
+                }
+
+                IEnumerable<XElement> cellElements = rowElement.Elements(ns + "c");
+
+                foreach (XElement cellElement in cellElements)
+                {
+                    string cellRef = cellElement.Attribute("r")?.Value;
+
+                    if (string.IsNullOrWhiteSpace(cellRef))
+                    {
+                        continue;
+                    }
+
+                    int columnIndex = ColumnNameToIndex(GetColumnName(cellRef));
+
+                    if (columnIndex <= 0)
+                    {
+                        continue;
+                    }
+
+                    string value = ReadCellValue(cellElement, ns, sharedStrings);
+
+                    sheetData.SetCell(rowIndex, columnIndex, value);
+                }
+            }
+
+            return sheetData;
+        }
+
+        private static List<string> ReadSharedStrings(ZipArchive archive)
+        {
+            List<string> result = new List<string>();
+
+            ZipArchiveEntry entry = archive.GetEntry("xl/sharedStrings.xml");
+
+            if (entry == null)
+            {
+                return result;
+            }
+
+            using Stream stream = entry.Open();
+            XDocument document = XDocument.Load(stream);
+
+            XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+
+            IEnumerable<XElement> items = document.Descendants(ns + "si");
+
+            foreach (XElement item in items)
+            {
+                StringBuilder builder = new StringBuilder();
+
+                IEnumerable<XElement> textElements = item.Descendants(ns + "t");
+
+                foreach (XElement textElement in textElements)
+                {
+                    builder.Append(textElement.Value);
+                }
+
+                result.Add(builder.ToString());
+            }
+
+            return result;
+        }
+
+        private static string FindFirstSheetPath(ZipArchive archive)
+        {
+            ZipArchiveEntry workbookEntry = archive.GetEntry("xl/workbook.xml");
+            ZipArchiveEntry relsEntry = archive.GetEntry("xl/_rels/workbook.xml.rels");
+
+            if (workbookEntry == null || relsEntry == null)
+            {
+                return "xl/worksheets/sheet1.xml";
+            }
+
+            XNamespace mainNs = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+            XNamespace relNs = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+            XNamespace packageRelNs = "http://schemas.openxmlformats.org/package/2006/relationships";
+
+            string firstSheetRelId;
+
+            using (Stream workbookStream = workbookEntry.Open())
+            {
+                XDocument workbookDocument = XDocument.Load(workbookStream);
+
+                XElement firstSheet = workbookDocument
+                    .Descendants(mainNs + "sheet")
+                    .FirstOrDefault();
+
+                firstSheetRelId = firstSheet?.Attribute(relNs + "id")?.Value;
+            }
+
+            if (string.IsNullOrWhiteSpace(firstSheetRelId))
+            {
+                return "xl/worksheets/sheet1.xml";
+            }
+
+            using Stream relsStream = relsEntry.Open();
+            XDocument relsDocument = XDocument.Load(relsStream);
+
+            XElement relationship = relsDocument
+                .Descendants(packageRelNs + "Relationship")
+                .FirstOrDefault(x => string.Equals(x.Attribute("Id")?.Value, firstSheetRelId, StringComparison.Ordinal));
+
+            string target = relationship?.Attribute("Target")?.Value;
+
+            if (string.IsNullOrWhiteSpace(target))
+            {
+                return "xl/worksheets/sheet1.xml";
+            }
+
+            target = target.Replace("\\", "/");
+
+            if (target.StartsWith("/"))
+            {
+                target = target.TrimStart('/');
+            }
+            else
+            {
+                target = "xl/" + target;
+            }
+
+            return target;
+        }
+
+        private static string ReadCellValue(XElement cellElement, XNamespace ns, List<string> sharedStrings)
+        {
+            string cellType = cellElement.Attribute("t")?.Value;
+
+            if (cellType == "s")
+            {
+                string rawIndex = cellElement.Element(ns + "v")?.Value;
+
+                int index = ParseInt(rawIndex, -1);
+
+                if (index >= 0 && index < sharedStrings.Count)
+                {
+                    return sharedStrings[index];
+                }
+
+                return string.Empty;
+            }
+
+            if (cellType == "inlineStr")
+            {
+                XElement inlineString = cellElement.Element(ns + "is");
+
+                if (inlineString == null)
+                {
+                    return string.Empty;
+                }
+
+                return string.Concat(inlineString.Descendants(ns + "t").Select(x => x.Value));
+            }
+
+            string value = cellElement.Element(ns + "v")?.Value;
+
+            return value ?? string.Empty;
+        }
+
+        private static string GetColumnName(string cellRef)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            for (int i = 0; i < cellRef.Length; i++)
+            {
+                char c = cellRef[i];
+
+                if (char.IsLetter(c))
+                {
+                    builder.Append(c);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return builder.ToString();
+        }
+
+        private static int ColumnNameToIndex(string columnName)
+        {
+            int result = 0;
+
+            for (int i = 0; i < columnName.Length; i++)
+            {
+                char c = char.ToUpperInvariant(columnName[i]);
+
+                if (c < 'A' || c > 'Z')
+                {
+                    return 0;
+                }
+
+                result *= 26;
+                result += c - 'A' + 1;
+            }
+
+            return result;
+        }
+
+        private static int ParseInt(string value, int defaultValue)
+        {
+            if (int.TryParse(value, out int result))
+            {
+                return result;
+            }
+
+            return defaultValue;
         }
     }
 }
+
 #endif

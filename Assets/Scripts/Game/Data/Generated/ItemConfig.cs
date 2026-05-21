@@ -34,16 +34,49 @@ public sealed partial class ItemConfig : Luban.BeanBase
         return new ItemConfig(_buf);
     }
 
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int Id;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string Name;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string Description;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int ItemType;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int UseScope;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string IconLocation;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string DropPrefabLocation;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly bool AutoPick;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int MaxStack;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int SettlementItemId;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int SettlementCountPerItem;
    
     public const int __ID__ = -764023723;

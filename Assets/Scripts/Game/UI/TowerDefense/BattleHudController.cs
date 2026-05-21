@@ -54,7 +54,7 @@ namespace Game
 
             if (buildTowerPanel != null)
             {
-                buildTowerPanel.Build(config.Towers);
+                buildTowerPanel.Initialize();
             }
 
             if (skillPanel != null)

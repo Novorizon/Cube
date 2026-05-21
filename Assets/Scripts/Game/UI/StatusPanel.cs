@@ -114,7 +114,7 @@ namespace Game
         {
             if (goldText != null)
             {
-                goldText.text = $"Gold: {gold}";
+                goldText.text = $"{gold}";
             }
         }
 

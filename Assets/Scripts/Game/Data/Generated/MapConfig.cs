@@ -32,14 +32,41 @@ public sealed partial class MapConfig : Luban.BeanBase
         return new MapConfig(_buf);
     }
 
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int Id;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string Name;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string Description;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int MapId;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int InitialGold;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int BaseLife;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string WaveEasy;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string WaveNormal;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string WaveHard;
    
     public const int __ID__ = -1840922722;

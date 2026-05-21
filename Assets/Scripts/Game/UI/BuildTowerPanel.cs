@@ -1,8 +1,11 @@
+using Game.Framework;
 using System;
 using System.Collections.Generic;
 using TMPro;
 using UI;
+using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
+using UnityEngine.U2D;
 using UnityEngine.UI;
 
 namespace Game
@@ -71,46 +74,54 @@ namespace Game
             TowerClicked = null;
         }
 
-        public void Build(IReadOnlyList<TdTowerUiConfig> configs)
+        public void Initialize()
         {
-            ClearCards();
-
-            if (contentRoot == null || cardPrefab == null || configs == null)
+            if (contentRoot == null || cardPrefab == null)
             {
                 return;
             }
 
-            for (int i = 0; i < configs.Count; i++)
+            ClearCards();
+            SpriteAtlas atlas = ResourceManager.Instance.LoadSpriteAtlas("Assets/Arts/UI/Atlas/TowerDefense.spriteatlasv2");
+            Sprite[] sprites = new Sprite[atlas.spriteCount];
+            int count = atlas.GetSprites(sprites);
+
+            for (int i = 0; i < count; i++)
             {
-                TdTowerUiConfig uiConfig = configs[i];
-                if (uiConfig == null)
+                Sprite sprite = sprites[i];
+
+                if (sprite == null)
                 {
                     continue;
                 }
 
-                int towerId = uiConfig.Id;
-                string towerName = uiConfig.Name;
-                int cost = uiConfig.Cost;
+                string spriteName = sprite.name.Replace("(Clone)", "");
+                Debug.Log($"Atlas sprite: {spriteName}");
+            }
+            foreach (KeyValuePair<int, TowerConfig> pair in DataManager.Instance.Tower.GetAll())
+            {
+                int towerId = pair.Key;
+                TowerConfig towerConfig = pair.Value;
 
-                if (DataManager.Instance != null && DataManager.Instance.Tower.TryGet(towerId, out TowerConfig towerConfig))
-                {
-                    if (string.IsNullOrEmpty(towerName))
-                    {
-                        towerName = towerConfig.Name;
-                    }
+                if (!towerConfig.Enable)
+                    continue;
 
-                    if (cost <= 0)
-                    {
-                        cost = towerConfig.CostCount;
-                    }
-                }
+                string towerName = towerConfig.Name;
+                string iconLocation = towerConfig.IconLocation;
+                int costItemId = towerConfig.CostItemId;
+                int costCount = towerConfig.CostCount;
+                towerName = towerConfig.Name;
 
+                Sprite icon = atlas.GetSprite(iconLocation); ;
                 TowerBuildCardView card = Instantiate(cardPrefab, contentRoot);
-                card.Init(towerId, towerName, cost, OnTowerCardClicked);
-                card.SetIcon(uiConfig.Icon);
+                card.Init(towerId, towerName, costCount, OnTowerCardClicked);
+                card.SetIcon(icon);
                 card.SetSelected(towerId == selectedTowerConfigId);
                 cards.Add(card);
+                Debug.Log($"TowerId: {towerId}, Name: {towerConfig.Name}, Cost: {towerConfig.CostCount}");
             }
+
+
         }
 
         public void SetSelectedTower(int towerConfigId)

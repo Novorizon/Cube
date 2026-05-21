@@ -6,12 +6,12 @@
     "kind": 100,
     "actorType": 1,
     "prefabLocation": "Assets/Arts/Character/Pirate/Pirate_Male.prefab",
-    "modelScale": 0.5,
-    "maxHp": 100,
     "moveSpeed": 2,
     "damageToBase": 1,
+    "modelScale": 0.5,
     "attackRange": 1,
     "attackInterval": 1,
+    "maxHp": 100,
     "rewardGold": 5
   },
   {
@@ -21,12 +21,12 @@
     "kind": 100,
     "actorType": 1,
     "prefabLocation": "Assets/Arts/Character/Elf.prefab",
-    "modelScale": 0.5,
-    "maxHp": 0,
     "moveSpeed": 3.5,
     "damageToBase": 1,
+    "modelScale": 0.5,
     "attackRange": 0.5,
     "attackInterval": 0.5,
+    "maxHp": 0,
     "rewardGold": 0
   },
   {
@@ -36,12 +36,12 @@
     "kind": 100,
     "actorType": 4,
     "prefabLocation": "Assets/Arts/Character/Elf.prefab",
-    "modelScale": 0.5,
-    "maxHp": 0,
     "moveSpeed": 0,
     "damageToBase": 0,
+    "modelScale": 0.5,
     "attackRange": 0.5,
     "attackInterval": 0.5,
+    "maxHp": 0,
     "rewardGold": 0
   }
 ]

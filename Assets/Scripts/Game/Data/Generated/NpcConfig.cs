@@ -22,12 +22,12 @@ public sealed partial class NpcConfig : Luban.BeanBase
         Kind = _buf.ReadInt();
         ActorType = _buf.ReadInt();
         PrefabLocation = _buf.ReadString();
-        ModelScale = _buf.ReadFloat();
-        MaxHp = _buf.ReadInt();
         MoveSpeed = _buf.ReadFloat();
         DamageToBase = _buf.ReadInt();
+        ModelScale = _buf.ReadFloat();
         AttackRange = _buf.ReadFloat();
         AttackInterval = _buf.ReadFloat();
+        MaxHp = _buf.ReadInt();
         RewardGold = _buf.ReadInt();
     }
 
@@ -36,18 +36,57 @@ public sealed partial class NpcConfig : Luban.BeanBase
         return new NpcConfig(_buf);
     }
 
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int Id;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string Name;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string Description;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int Kind;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int ActorType;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string PrefabLocation;
-    public readonly float ModelScale;
-    public readonly int MaxHp;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly float MoveSpeed;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int DamageToBase;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly float ModelScale;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly float AttackRange;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly float AttackInterval;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly int MaxHp;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int RewardGold;
    
     public const int __ID__ = -1928671901;
@@ -66,12 +105,12 @@ public sealed partial class NpcConfig : Luban.BeanBase
         + "kind:" + Kind + ","
         + "actorType:" + ActorType + ","
         + "prefabLocation:" + PrefabLocation + ","
-        + "modelScale:" + ModelScale + ","
-        + "maxHp:" + MaxHp + ","
         + "moveSpeed:" + MoveSpeed + ","
         + "damageToBase:" + DamageToBase + ","
+        + "modelScale:" + ModelScale + ","
         + "attackRange:" + AttackRange + ","
         + "attackInterval:" + AttackInterval + ","
+        + "maxHp:" + MaxHp + ","
         + "rewardGold:" + RewardGold + ","
         + "}";
     }

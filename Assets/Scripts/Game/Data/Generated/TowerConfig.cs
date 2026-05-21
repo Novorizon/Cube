@@ -26,8 +26,14 @@ public sealed partial class TowerConfig : Luban.BeanBase
         Range = _buf.ReadFloat();
         Damage = _buf.ReadInt();
         AttackInterval = _buf.ReadFloat();
+        UnlockLevel = _buf.ReadInt();
+        Enable = _buf.ReadBool();
         AttackEffect = _buf.ReadString();
         HitEffect = _buf.ReadString();
+        UpgradeCost = _buf.ReadInt();
+        SellGoldRate = _buf.ReadFloat();
+        CanUpgrade = _buf.ReadBool();
+        IconLocation = _buf.ReadString();
     }
 
     public static TowerConfig DeserializeTowerConfig(ByteBuf _buf)
@@ -35,18 +41,78 @@ public sealed partial class TowerConfig : Luban.BeanBase
         return new TowerConfig(_buf);
     }
 
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int Id;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string Name;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string Description;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int TowerType;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string PrefabLocation;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int CostItemId;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int CostCount;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly float Range;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int Damage;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly float AttackInterval;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly int UnlockLevel;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly bool Enable;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string AttackEffect;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string HitEffect;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly int UpgradeCost;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly float SellGoldRate;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly bool CanUpgrade;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly string IconLocation;
    
     public const int __ID__ = -1246506101;
     public override int GetTypeId() => __ID__;
@@ -68,8 +134,14 @@ public sealed partial class TowerConfig : Luban.BeanBase
         + "range:" + Range + ","
         + "damage:" + Damage + ","
         + "attackInterval:" + AttackInterval + ","
+        + "unlockLevel:" + UnlockLevel + ","
+        + "enable:" + Enable + ","
         + "attackEffect:" + AttackEffect + ","
         + "hitEffect:" + HitEffect + ","
+        + "upgradeCost:" + UpgradeCost + ","
+        + "SellGoldRate:" + SellGoldRate + ","
+        + "canUpgrade:" + CanUpgrade + ","
+        + "iconLocation:" + IconLocation + ","
         + "}";
     }
 }

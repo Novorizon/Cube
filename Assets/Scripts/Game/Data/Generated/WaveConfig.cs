@@ -30,12 +30,33 @@ public sealed partial class WaveConfig : Luban.BeanBase
         return new WaveConfig(_buf);
     }
 
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int Id;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int NpcConfigId;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int Count;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly float Interval;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly float StartDelay;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int SpawnMode;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly string Description;
    
     public const int __ID__ = 1814560699;

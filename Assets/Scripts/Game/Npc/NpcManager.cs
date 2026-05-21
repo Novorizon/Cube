@@ -549,7 +549,7 @@ namespace Game
         public void PlayPunch(Npc npc)
         {
             Animator animator = GetAnimator(npc);
-            AnimatorManager.Instance.PlayTriggerAnimator(animator, WalkHash);
+            AnimatorManager.Instance.PlayTriggerAnimator(animator, PunchHash);
         }
     }
 }
