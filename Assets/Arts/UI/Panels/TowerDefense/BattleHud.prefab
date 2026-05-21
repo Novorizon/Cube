@@ -212,10 +212,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapRoot: {fileID: 6254251159371210850}
   iconPrefab: {fileID: 7136534502703027462}
+  enemySprite: {fileID: 0}
+  towerSprite: {fileID: 0}
+  baseSprite: {fileID: 0}
+  pathSprite: {fileID: 0}
+  playerSprite: {fileID: 0}
   enemyColor: {r: 1, g: 0.25, b: 0.2, a: 1}
   towerColor: {r: 0.2, g: 0.55, b: 1, a: 1}
   baseColor: {r: 0.1, g: 0.8, b: 1, a: 1}
   pathColor: {r: 1, g: 0.8, b: 0.25, a: 1}
+  playerColor: {r: 0.2, g: 0.75, b: 1, a: 1}
 --- !u!1 &401515336678843082
 GameObject:
   m_ObjectHideFlags: 0
@@ -4238,7 +4244,7 @@ MonoBehaviour:
   m_BlockingObjects: 0
   m_BlockingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 55
 --- !u!114 &1742570616225328729
 MonoBehaviour:
   m_ObjectHideFlags: 0

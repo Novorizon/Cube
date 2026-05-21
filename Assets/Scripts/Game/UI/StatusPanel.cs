@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Game
 {
-    public sealed class StatusPanel : UIPanel
+    public sealed class StatusPanel : MonoBehaviour
     {
         [SerializeField]
         private UIProgressBar baseLifeBar;
@@ -28,7 +28,8 @@ namespace Game
         private int totalEnemy;
         private Subscriber subscriber;
 
-        protected override void OnCreate()
+
+        private void OnEnable()
         {
             subscriber = new Subscriber();
 
@@ -37,22 +38,17 @@ namespace Game
 
             subscriber.Add(goldChangedSubscription);
             subscriber.Add(baseLifeChangedSubscription);
-
             RefreshAll();
         }
 
-        protected override void OnDestroyed()
+
+        private void OnDestroy()
         {
             if (subscriber != null)
             {
                 subscriber.Clear();
                 subscriber = null;
             }
-        }
-
-        private void OnEnable()
-        {
-            RefreshAll();
         }
 
         public void SetBaseLife(int currentLife, int maxLife)
@@ -122,7 +118,7 @@ namespace Game
         {
             if (baseLifeText != null)
             {
-                baseLifeText.text = $"HP: {currentLife}/{maxLife}";
+                baseLifeText.text = $" {currentLife}/{maxLife}";
             }
 
             if (baseLifeBar != null)
@@ -140,11 +136,11 @@ namespace Game
 
             if (maxWave > 0)
             {
-                waveText.text = $"Wave: {currentWave}/{maxWave}";
+                waveText.text = $" {currentWave}/{maxWave}";
             }
             else
             {
-                waveText.text = $"Wave: {currentWave}";
+                waveText.text = $"{currentWave}";
             }
         }
 
@@ -157,11 +153,11 @@ namespace Game
 
             if (total > 0)
             {
-                enemyText.text = $"Enemy: {alive}/{total}";
+                enemyText.text = $" {alive}/{total}";
             }
             else
             {
-                enemyText.text = $"Enemy: {alive}";
+                enemyText.text = $" {alive}";
             }
         }
     }
