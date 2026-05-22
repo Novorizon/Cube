@@ -1,6 +1,0 @@
-id,name,modifierType,isDebuff,isHidden,isPurgable,removeOnDeath,duration,interval,maxStack,propertyType,propertyValue,state,triggerEventType,triggerActionGroupId,periodicActionGroupId,onCreatedActionGroupId,onDestroyActionGroupId,effectLocation
-3001,Frost Slow,1,true,false,true,true,4,0,1,1,-40,0,0,0,0,0,0,Effect/FrostSlowLoop
-3002,Ice Freeze Slow,1,true,false,true,true,2,0,1,1,-70,0,0,0,0,0,0,Effect/IceFreeze
-3003,Attack Speed Aura Buff,1,false,true,false,true,0,0,1,2,20,0,0,0,0,0,0,Effect/AuraAttackSpeed
-3004,Poison Dot,2,true,false,true,true,6,1,1,0,0,0,0,0,2001,0,0,Effect/PoisonLoop
-3005,Stun,3,true,false,true,true,1.5,0,1,0,0,1,0,0,0,0,0,Effect/StunLoop

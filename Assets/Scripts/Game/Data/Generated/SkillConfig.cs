@@ -20,21 +20,18 @@ public sealed partial class SkillConfig : Luban.BeanBase
         Name = _buf.ReadString();
         Description = _buf.ReadString();
         IconLocation = _buf.ReadString();
-        SkillType = _buf.ReadInt();
-        TargetType = _buf.ReadInt();
-        CastMode = _buf.ReadInt();
-        EffectType = _buf.ReadInt();
-        Range = _buf.ReadFloat();
-        Duration = _buf.ReadFloat();
+        Behavior = _buf.ReadInt();
+        TargetTeam = _buf.ReadInt();
+        CastRange = _buf.ReadFloat();
+        AoeRadius = _buf.ReadFloat();
+        CastPoint = _buf.ReadFloat();
+        ChannelTime = _buf.ReadFloat();
         Cooldown = _buf.ReadFloat();
-        Count = _buf.ReadInt();
-        CostItemId = _buf.ReadInt();
+        CostResourceId = _buf.ReadInt();
         CostCount = _buf.ReadInt();
-        UnlockLevel = _buf.ReadInt();
+        AbilityActionGroupId = _buf.ReadInt();
+        IntrinsicModifierId = _buf.ReadInt();
         Enable = _buf.ReadBool();
-        SortOrder = _buf.ReadInt();
-        EffectPrefabLocation = _buf.ReadString();
-        SoundLocation = _buf.ReadString();
     }
 
     public static SkillConfig DeserializeSkillConfig(ByteBuf _buf)
@@ -61,27 +58,27 @@ public sealed partial class SkillConfig : Luban.BeanBase
     /// <summary>
     /// client
     /// </summary>
-    public readonly int SkillType;
+    public readonly int Behavior;
     /// <summary>
     /// client
     /// </summary>
-    public readonly int TargetType;
+    public readonly int TargetTeam;
     /// <summary>
     /// client
     /// </summary>
-    public readonly int CastMode;
+    public readonly float CastRange;
     /// <summary>
     /// client
     /// </summary>
-    public readonly int EffectType;
+    public readonly float AoeRadius;
     /// <summary>
     /// client
     /// </summary>
-    public readonly float Range;
+    public readonly float CastPoint;
     /// <summary>
     /// client
     /// </summary>
-    public readonly float Duration;
+    public readonly float ChannelTime;
     /// <summary>
     /// client
     /// </summary>
@@ -89,11 +86,7 @@ public sealed partial class SkillConfig : Luban.BeanBase
     /// <summary>
     /// client
     /// </summary>
-    public readonly int Count;
-    /// <summary>
-    /// client
-    /// </summary>
-    public readonly int CostItemId;
+    public readonly int CostResourceId;
     /// <summary>
     /// client
     /// </summary>
@@ -101,23 +94,15 @@ public sealed partial class SkillConfig : Luban.BeanBase
     /// <summary>
     /// client
     /// </summary>
-    public readonly int UnlockLevel;
+    public readonly int AbilityActionGroupId;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly int IntrinsicModifierId;
     /// <summary>
     /// client
     /// </summary>
     public readonly bool Enable;
-    /// <summary>
-    /// client
-    /// </summary>
-    public readonly int SortOrder;
-    /// <summary>
-    /// client
-    /// </summary>
-    public readonly string EffectPrefabLocation;
-    /// <summary>
-    /// client
-    /// </summary>
-    public readonly string SoundLocation;
    
     public const int __ID__ = -844226349;
     public override int GetTypeId() => __ID__;
@@ -133,21 +118,18 @@ public sealed partial class SkillConfig : Luban.BeanBase
         + "name:" + Name + ","
         + "description:" + Description + ","
         + "iconLocation:" + IconLocation + ","
-        + "skillType:" + SkillType + ","
-        + "targetType:" + TargetType + ","
-        + "castMode:" + CastMode + ","
-        + "effectType:" + EffectType + ","
-        + "range:" + Range + ","
-        + "duration:" + Duration + ","
+        + "behavior:" + Behavior + ","
+        + "targetTeam:" + TargetTeam + ","
+        + "castRange:" + CastRange + ","
+        + "aoeRadius:" + AoeRadius + ","
+        + "castPoint:" + CastPoint + ","
+        + "channelTime:" + ChannelTime + ","
         + "cooldown:" + Cooldown + ","
-        + "count:" + Count + ","
-        + "costItemId:" + CostItemId + ","
+        + "costResourceId:" + CostResourceId + ","
         + "costCount:" + CostCount + ","
-        + "unlockLevel:" + UnlockLevel + ","
+        + "abilityActionGroupId:" + AbilityActionGroupId + ","
+        + "intrinsicModifierId:" + IntrinsicModifierId + ","
         + "enable:" + Enable + ","
-        + "sortOrder:" + SortOrder + ","
-        + "effectPrefabLocation:" + EffectPrefabLocation + ","
-        + "soundLocation:" + SoundLocation + ","
         + "}";
     }
 }
