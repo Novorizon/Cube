@@ -184,6 +184,16 @@ namespace Game.Skill
             return runtime.CooldownLeft;
         }
 
+        public bool HasState(ISkillUnit unit, SkillUnitState state)
+        {
+            return modifierManager.HasState(unit, state);
+        }
+
+        public float GetModifierProperty(ISkillUnit unit, SkillModifierPropertyType propertyType)
+        {
+            return modifierManager.GetProperty(unit, propertyType);
+        }
+
         public void FireEvent(SkillMessageTopic topic)
         {
             Messager.Instance.Notify(topic);
@@ -209,7 +219,7 @@ namespace Game.Skill
                 return false;
             }
 
-            if (request.Caster.HasState(SkillUnitState.Stunned) || request.Caster.HasState(SkillUnitState.Silenced))
+            if (HasState(request.Caster, SkillUnitState.Stunned) || HasState(request.Caster, SkillUnitState.Silenced))
             {
                 return false;
             }
