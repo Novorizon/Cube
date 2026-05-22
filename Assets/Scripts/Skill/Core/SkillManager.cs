@@ -77,6 +77,11 @@ namespace Game.Skill
             modifierManager.RegisterModifier(modifierData);
         }
 
+        public void RegisterModifierLogic(int modifierId, ISkillModifierLogic logic)
+        {
+            modifierManager.RegisterModifierLogic(modifierId, logic);
+        }
+
         public bool AddAbility(ISkillUnit owner, SkillConfigData config, ISkillResourceOwner resourceOwner = null)
         {
             return abilityBook.AddAbility(owner, config, resourceOwner);
