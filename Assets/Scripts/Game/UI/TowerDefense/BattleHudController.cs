@@ -19,7 +19,7 @@ namespace Game
         private ItemPanel itemPanel;
 
         [SerializeField]
-        private TargetInfoPanel targetInfoPanel;
+        private InfoPanel targetInfoPanel;
 
         [SerializeField]
         private SkillPanel skillPanel;

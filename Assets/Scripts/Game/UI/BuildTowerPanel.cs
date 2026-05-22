@@ -12,18 +12,6 @@ namespace Game
 {
     public sealed class BuildTowerPanel : UIPanel
     {
-        private const int NormalTowerConfigId = 1001;
-        private const int IceTowerConfigId = 1003;
-
-        //[SerializeField]
-        //private Button normalTowerButton;
-
-        //[SerializeField]
-        //private Button iceTowerButton;
-
-        //[SerializeField]
-        //private Button cancelButton;
-
         [SerializeField]
         private RectTransform contentRoot;
 
@@ -37,39 +25,10 @@ namespace Game
 
         protected override void OnCreate()
         {
-            //if (normalTowerButton != null)
-            //{
-            //    normalTowerButton.onClick.AddListener(OnNormalTowerButtonClicked);
-            //}
-
-            //if (iceTowerButton != null)
-            //{
-            //    iceTowerButton.onClick.AddListener(OnIceTowerButtonClicked);
-            //}
-
-            //if (cancelButton != null)
-            //{
-            //    cancelButton.onClick.AddListener(OnCancelButtonClicked);
-            //}
         }
 
         protected override void OnDestroyed()
         {
-            //if (normalTowerButton != null)
-            //{
-            //    normalTowerButton.onClick.RemoveListener(OnNormalTowerButtonClicked);
-            //}
-
-            //if (iceTowerButton != null)
-            //{
-            //    iceTowerButton.onClick.RemoveListener(OnIceTowerButtonClicked);
-            //}
-
-            //if (cancelButton != null)
-            //{
-            //    cancelButton.onClick.RemoveListener(OnCancelButtonClicked);
-            //}
-
             ClearCards();
             TowerClicked = null;
         }
@@ -86,18 +45,7 @@ namespace Game
             Sprite[] sprites = new Sprite[atlas.spriteCount];
             int count = atlas.GetSprites(sprites);
 
-            for (int i = 0; i < count; i++)
-            {
-                Sprite sprite = sprites[i];
-
-                if (sprite == null)
-                {
-                    continue;
-                }
-
-                string spriteName = sprite.name.Replace("(Clone)", "");
-                Debug.Log($"Atlas sprite: {spriteName}");
-            }
+ 
             foreach (KeyValuePair<int, TowerConfig> pair in DataManager.Instance.Tower.GetAll())
             {
                 int towerId = pair.Key;
@@ -139,16 +87,6 @@ namespace Game
         public void CancelSelect()
         {
             OnCancelButtonClicked();
-        }
-
-        private void OnNormalTowerButtonClicked()
-        {
-            SelectTower(NormalTowerConfigId);
-        }
-
-        private void OnIceTowerButtonClicked()
-        {
-            SelectTower(IceTowerConfigId);
         }
 
         private void OnTowerCardClicked(int towerConfigId)
