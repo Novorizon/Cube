@@ -13,6 +13,12 @@ namespace Game.Skill
     public sealed class SkillAbilityBook
     {
         private readonly Dictionary<int, List<SkillAbilityRecord>> ownerAbilityMap = new Dictionary<int, List<SkillAbilityRecord>>();
+        private readonly SkillManager skillManager;
+
+        public SkillAbilityBook(SkillManager skillManager)
+        {
+            this.skillManager = skillManager;
+        }
 
         public bool AddAbility(ISkillUnit owner, SkillConfigData config, ISkillResourceOwner resourceOwner = null)
         {
@@ -21,7 +27,7 @@ namespace Game.Skill
                 return false;
             }
 
-            SkillManager.Instance.RegisterConfig(config);
+            skillManager.RegisterConfig(config);
 
             if (!ownerAbilityMap.TryGetValue(owner.RuntimeId, out List<SkillAbilityRecord> abilities))
             {
@@ -77,7 +83,7 @@ namespace Game.Skill
             request.TargetPosition = targetUnit != null ? targetUnit.Position : owner.Position;
             request.ResourceOwner = record.ResourceOwner;
 
-            return SkillManager.Instance.Cast(request);
+            return skillManager.Cast(request);
         }
 
         public bool TryGetAbility(ISkillUnit owner, int skillId, out SkillAbilityRecord record)
@@ -138,7 +144,7 @@ namespace Game.Skill
             return null;
         }
 
-        private static void TryAddIntrinsicModifier(SkillAbilityRecord record)
+        private void TryAddIntrinsicModifier(SkillAbilityRecord record)
         {
             if (record == null || record.Owner == null || record.Config == null)
             {
@@ -155,7 +161,7 @@ namespace Game.Skill
                 return;
             }
 
-            bool added = SkillManager.Instance.AddModifier(record.Owner, record.Owner, record.Config.IntrinsicModifierId, -1f);
+            bool added = skillManager.AddModifier(record.Owner, record.Owner, record.Config.IntrinsicModifierId, -1f, record.Config.Id);
             record.IntrinsicModifierAdded = added;
         }
     }
