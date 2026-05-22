@@ -56,6 +56,8 @@ namespace Game.Skill
         public SkillModifierPropertyType PropertyType;
         public float PropertyValue;
         public SkillUnitState State;
+        public SkillTriggerEventType TriggerEventType;
+        public int TriggerActionGroupId;
         public int PeriodicActionGroupId;
         public int OnCreatedActionGroupId;
         public int OnDestroyActionGroupId;
@@ -125,6 +127,16 @@ namespace Game.Skill
         public readonly SkillTargetResult Targets = new SkillTargetResult();
         public ISkillWorld World;
         public ISkillEffectService EffectService;
+    }
+
+    public sealed class SkillTriggerEvent
+    {
+        public SkillTriggerEventType EventType;
+        public int SkillId;
+        public ISkillUnit Source;
+        public ISkillUnit Target;
+        public Vector3 Position;
+        public float Value;
     }
 
     public sealed class SkillActionGroup
