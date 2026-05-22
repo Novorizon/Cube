@@ -1,5 +1,4 @@
 using Game.Framework;
-using System;
 using System.Threading.Tasks;
 using UI;
 using UnityEngine;
@@ -50,6 +49,7 @@ namespace Game
 
         private void OnDestroy()
         {
+            BattleTargetClickManager.Instance.Release();
             GameInputManager.Instance.Release();
         }
     }
