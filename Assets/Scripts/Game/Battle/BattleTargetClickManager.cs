@@ -5,44 +5,28 @@ using UnityEngine.EventSystems;
 namespace Game
 {
     /// <summary>
-    /// TD 战斗内目标点击管理器。
-    /// 统一处理鼠标点击、射线检测、目标识别，并把目标信息传递给 BattleHudController。
+    /// TD 战斗内目标选择管理器。
+    /// 不主动轮询输入，由外部输入系统在点击时调用 SelectByScreenPosition。
     /// </summary>
-    public sealed class BattleTargetClickManager : Singleton<EffectManager>
+    public sealed class BattleTargetClickManager : Singleton<BattleTargetClickManager>
     {
-        [SerializeField]
         private Camera targetCamera;
-
-        [SerializeField]
         private LayerMask targetLayerMask = ~0;
-
-        [SerializeField]
         private float rayDistance = 1000f;
-
-        [SerializeField]
         private BattleHudController battleHud;
 
-        public void Initialize()
+        public void Initialize(BattleHudController battleHud, Camera targetCamera = null)
         {
-            if (targetCamera == null)
-            {
-                targetCamera = Camera.main;
-            }
-        }
+            this.battleHud = battleHud;
 
-        public void Update()
-        {
-            if (!Input.GetMouseButtonDown(0))
+            if (targetCamera != null)
             {
-                return;
+                this.targetCamera = targetCamera;
             }
-
-            if (IsPointerOverUi())
+            else if (this.targetCamera == null)
             {
-                return;
+                this.targetCamera = Camera.main;
             }
-
-            TrySelectTarget(Input.mousePosition);
         }
 
         public void SetBattleHud(BattleHudController battleHud)
@@ -53,6 +37,34 @@ namespace Game
         public void SetTargetCamera(Camera targetCamera)
         {
             this.targetCamera = targetCamera;
+        }
+
+        public void SetTargetLayerMask(LayerMask targetLayerMask)
+        {
+            this.targetLayerMask = targetLayerMask;
+        }
+
+        public void SetRayDistance(float rayDistance)
+        {
+            this.rayDistance = Mathf.Max(1f, rayDistance);
+        }
+
+        /// <summary>
+        /// 由输入系统在点击发生时调用。
+        /// </summary>
+        public void SelectByScreenPosition(Vector2 screenPosition, bool ignoreClickOnUi = true)
+        {
+            if (ignoreClickOnUi && IsPointerOverUi())
+            {
+                return;
+            }
+
+            TrySelectTarget(screenPosition);
+        }
+
+        public void ClearSelection()
+        {
+            battleHud?.ClearTargetInfo();
         }
 
         private bool IsPointerOverUi()
@@ -67,17 +79,19 @@ namespace Game
 
         private void TrySelectTarget(Vector2 screenPosition)
         {
-            if (targetCamera == null)
+            Camera camera = GetTargetCamera();
+
+            if (camera == null)
             {
                 Debug.LogWarning("Select target failed. Target camera is null.");
                 return;
             }
 
-            Ray ray = targetCamera.ScreenPointToRay(screenPosition);
+            Ray ray = camera.ScreenPointToRay(screenPosition);
 
             if (!Physics.Raycast(ray, out RaycastHit hit, rayDistance, targetLayerMask))
             {
-                battleHud?.ClearTargetInfo();
+                ClearSelection();
                 return;
             }
 
@@ -96,7 +110,18 @@ namespace Game
                 return;
             }
 
-            battleHud?.ClearTargetInfo();
+            ClearSelection();
+        }
+
+        private Camera GetTargetCamera()
+        {
+            if (targetCamera != null)
+            {
+                return targetCamera;
+            }
+
+            targetCamera = Camera.main;
+            return targetCamera;
         }
 
         private bool TryShowTowerInfo(Collider hitCollider)
@@ -112,7 +137,7 @@ namespace Game
 
             if (info.Type == TdTargetInfoType.None)
             {
-                battleHud?.ClearTargetInfo();
+                ClearSelection();
                 return true;
             }
 
@@ -133,7 +158,7 @@ namespace Game
 
             if (info.Type == TdTargetInfoType.None)
             {
-                battleHud?.ClearTargetInfo();
+                ClearSelection();
                 return true;
             }
 
