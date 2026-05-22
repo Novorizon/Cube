@@ -6,8 +6,15 @@ using UnityEngine.UI;
 
 namespace Game
 {
+    /// <summary>
+    /// 常驻目标信息面板。
+    /// 有目标时显示目标信息；没有目标时显示空状态，但面板本身不隐藏。
+    /// </summary>
     public sealed class InfoPanel : UIPanel
     {
+        private const string EmptyName = "未选择目标";
+        private const string EmptyValue = "--";
+
         [SerializeField]
         private CanvasGroup canvasGroup;
 
@@ -97,12 +104,14 @@ namespace Game
                 sellButton.onClick.AddListener(OnSellClicked);
             }
 
-            Hide();
+            SetPanelVisible(true);
+            ClearInfo();
         }
 
         public void Show(TdTowerRuntimeInfo info)
         {
             Initialize();
+
             selectedTowerId = info.TowerId;
 
             if (towerIconImage != null)
@@ -113,7 +122,7 @@ namespace Game
 
             if (towerNameText != null)
             {
-                towerNameText.text = info.Name;
+                towerNameText.text = string.IsNullOrEmpty(info.Name) ? EmptyName : info.Name;
             }
 
             if (levelText != null)
@@ -153,19 +162,91 @@ namespace Game
 
             if (upgradeButton != null)
             {
-                upgradeButton.interactable = info.CanUpgrade;
+                upgradeButton.interactable = selectedTowerId > 0 && info.CanUpgrade;
             }
 
-            SetVisible(true);
+            if (sellButton != null)
+            {
+                sellButton.interactable = selectedTowerId > 0;
+            }
+
+            SetPanelVisible(true);
         }
 
+        /// <summary>
+        /// 兼容 BattleHudController.HideTowerInfo 的旧调用。
+        /// InfoPanel 是常驻面板，所以这里只清空内容，不隐藏 GameObject / CanvasGroup。
+        /// </summary>
         public void Hide()
         {
-            selectedTowerId = 0;
-            SetVisible(false);
+            Initialize();
+            ClearInfo();
         }
 
-        private void SetVisible(bool visible)
+        public void ClearInfo()
+        {
+            selectedTowerId = 0;
+
+            if (towerIconImage != null)
+            {
+                towerIconImage.sprite = null;
+                towerIconImage.enabled = false;
+            }
+
+            if (towerNameText != null)
+            {
+                towerNameText.text = EmptyName;
+            }
+
+            if (levelText != null)
+            {
+                levelText.text = EmptyValue;
+            }
+
+            if (attackText != null)
+            {
+                attackText.text = EmptyValue;
+            }
+
+            if (attackAddText != null)
+            {
+                attackAddText.text = string.Empty;
+            }
+
+            if (rangeText != null)
+            {
+                rangeText.text = EmptyValue;
+            }
+
+            if (speedText != null)
+            {
+                speedText.text = EmptyValue;
+            }
+
+            if (upgradeCostText != null)
+            {
+                upgradeCostText.text = EmptyValue;
+            }
+
+            if (sellGoldText != null)
+            {
+                sellGoldText.text = EmptyValue;
+            }
+
+            if (upgradeButton != null)
+            {
+                upgradeButton.interactable = false;
+            }
+
+            if (sellButton != null)
+            {
+                sellButton.interactable = false;
+            }
+
+            SetPanelVisible(true);
+        }
+
+        private void SetPanelVisible(bool visible)
         {
             if (canvasGroup != null)
             {
@@ -180,18 +261,22 @@ namespace Game
 
         private void OnUpgradeClicked()
         {
-            if (selectedTowerId != 0)
+            if (selectedTowerId <= 0)
             {
-                UpgradeClicked?.Invoke(selectedTowerId);
+                return;
             }
+
+            UpgradeClicked?.Invoke(selectedTowerId);
         }
 
         private void OnSellClicked()
         {
-            if (selectedTowerId != 0)
+            if (selectedTowerId <= 0)
             {
-                SellClicked?.Invoke(selectedTowerId);
+                return;
             }
+
+            SellClicked?.Invoke(selectedTowerId);
         }
     }
 }
