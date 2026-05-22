@@ -1,0 +1,10 @@
+id,groupId,order,actionType,targetType,value,radius,duration,modifierId,damageType,effectLocation,soundLocation
+1,1001,1,1,2,120,0,0,0,2,Effect/FireballHit,Sound/Fireball
+2,1002,1,1,4,80,3,0,0,2,Effect/FrostNova,Sound/FrostNova
+3,1002,2,3,4,0,3,4,3001,0,Effect/FrostSlow,
+4,1003,1,1,2,30,0,0,0,1,Effect/IceHit,
+5,1003,2,3,2,0,0,2,3002,0,Effect/IceSlow,
+6,1004,1,2,2,150,0,0,0,0,Effect/Heal,Sound/Heal
+7,1005,1,3,4,0,3,6,3004,0,Effect/PoisonCloud,Sound/Poison
+8,1006,1,1,2,60,0,0,0,2,Effect/StunBolt,Sound/Lightning
+9,1006,2,3,2,0,0,1.5,3005,0,Effect/Stun,
