@@ -19,7 +19,7 @@ namespace Game
         private ItemPanel itemPanel;
 
         [SerializeField]
-        private InfoPanel InfoPanel;
+        private TargetInfoPanel targetInfoPanel;
 
         [SerializeField]
         private SkillPanel skillPanel;
@@ -71,9 +71,9 @@ namespace Game
                 itemPanel.Build();
             }
 
-            if (InfoPanel != null)
+            if (targetInfoPanel != null)
             {
-                InfoPanel.Initialize();
+                targetInfoPanel.Initialize();
             }
         }
 
@@ -89,10 +89,10 @@ namespace Game
                 skillPanel.SkillClicked += OnSkillClicked;
             }
 
-            if (InfoPanel != null)
+            if (targetInfoPanel != null)
             {
-                InfoPanel.UpgradeClicked += OnTowerUpgradeClicked;
-                InfoPanel.SellClicked += OnTowerSellClicked;
+                targetInfoPanel.UpgradeClicked += OnTowerUpgradeClicked;
+                targetInfoPanel.SellClicked += OnTowerSellClicked;
             }
 
             if (battleControlPanel != null)
@@ -119,10 +119,10 @@ namespace Game
                 skillPanel.SkillClicked -= OnSkillClicked;
             }
 
-            if (InfoPanel != null)
+            if (targetInfoPanel != null)
             {
-                InfoPanel.UpgradeClicked -= OnTowerUpgradeClicked;
-                InfoPanel.SellClicked -= OnTowerSellClicked;
+                targetInfoPanel.UpgradeClicked -= OnTowerUpgradeClicked;
+                targetInfoPanel.SellClicked -= OnTowerSellClicked;
             }
 
             if (battleControlPanel != null)
@@ -135,7 +135,6 @@ namespace Game
             {
                 itemPanel.ItemClicked -= OnItemClicked;
             }
-
 
             TowerBuildClicked = null;
             SkillClicked = null;
@@ -166,19 +165,34 @@ namespace Game
             statusPanel?.SetEnemyCount(alive, total);
         }
 
+        public void ShowTargetInfo(TdTargetRuntimeInfo info)
+        {
+            targetInfoPanel?.Show(info);
+        }
+
+        public void ClearTargetInfo()
+        {
+            targetInfoPanel?.ClearInfo();
+        }
+
         public void ShowTowerInfo(TdTowerRuntimeInfo info)
         {
-            InfoPanel?.Show(info);
+            targetInfoPanel?.ShowTower(info);
         }
 
         public void HideTowerInfo()
         {
-            InfoPanel?.Hide();
+            ClearTargetInfo();
         }
 
         public void SetSkillCount(int skillId, int count)
         {
             skillPanel?.SetSkillCount(skillId, count);
+        }
+
+        public void SetItemCount(int itemId, int count)
+        {
+            itemPanel?.SetItemCount(itemId, count);
         }
 
         public void SetMiniMapBounds(Vector2 min, Vector2 max)
@@ -224,10 +238,6 @@ namespace Game
         private void OnAutoNextWaveChanged(bool value)
         {
             AutoNextWaveChanged?.Invoke(value);
-        }
-        public void SetItemCount(int itemId, int count)
-        {
-            itemPanel?.SetItemCount(itemId, count);
         }
 
         private void OnItemClicked(int itemId)
