@@ -2,12 +2,15 @@ namespace Game.Skill
 {
     public enum SkillMessageTopic
     {
-        CastSucceeded = 1,
-        CastFailed = 2,
-        CooldownStarted = 3,
-        CooldownFinished = 4,
-        ModifierAdded = 5,
-        ModifierRemoved = 6,
-        ActionExecuted = 7
+        CastStarted = 1,
+        CastSucceeded = 2,
+        CastFailed = 3,
+        CastInterrupted = 4,
+        ChannelFinished = 5,
+        CooldownStarted = 6,
+        CooldownFinished = 7,
+        ModifierAdded = 8,
+        ModifierRemoved = 9,
+        ActionExecuted = 10
     }
 }
