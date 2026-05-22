@@ -5841,6 +5841,9 @@ MonoBehaviour:
   speedText: {fileID: 5521850471586916383}
   upgradeCostText: {fileID: 1614535014033568637}
   sellGoldText: {fileID: 264733709588430058}
+  contentRoot: {fileID: 6959559899606267457}
+  infoSlotPrefab: {fileID: -4399316447645164243, guid: f7242e1313dce4242befefaa54461aad,
+    type: 3}
   upgradeButton: {fileID: 8294168680408449657}
   sellButton: {fileID: 6286919398553116991}
 --- !u!1 &7060146795380868739
@@ -6536,7 +6539,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: -0.000019073, y: -14.93}
+  m_AnchoredPosition: {x: -0.000015258789, y: -14.93}
   m_SizeDelta: {x: 141, y: 30}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &6886088575117688562

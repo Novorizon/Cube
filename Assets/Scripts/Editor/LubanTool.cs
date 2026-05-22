@@ -20,7 +20,7 @@ public static class LubanTool
     private const string XmlDir = @"D:\Cube\Data\Defines";
     private const string GenAllBat = @"D:\Cube\Data\gen_all.bat";
 
-    [MenuItem("Tools/Luban/Update All")]
+    [MenuItem("Luban/Update All")]
     public static void Update()
     {
         try
