@@ -5,4 +5,5 @@
   <include name="item.xml" />
   <include name="map.xml" />
   <include name="wave.xml" />
+  <include name="skill.xml" />
 </module>
