@@ -16,6 +16,7 @@ public partial class Tables
     public TbItem TbItem {get; }
     public TbMap TbMap {get; }
     public TbNpc TbNpc {get; }
+    public TbSkill TbSkill {get; }
     public TbTower TbTower {get; }
     public TbWave TbWave {get; }
 
@@ -24,6 +25,7 @@ public partial class Tables
         TbItem = new TbItem(loader("tbitem"));
         TbMap = new TbMap(loader("tbmap"));
         TbNpc = new TbNpc(loader("tbnpc"));
+        TbSkill = new TbSkill(loader("tbskill"));
         TbTower = new TbTower(loader("tbtower"));
         TbWave = new TbWave(loader("tbwave"));
         ResolveRef();
@@ -34,6 +36,7 @@ public partial class Tables
         TbItem.ResolveRef(this);
         TbMap.ResolveRef(this);
         TbNpc.ResolveRef(this);
+        TbSkill.ResolveRef(this);
         TbTower.ResolveRef(this);
         TbWave.ResolveRef(this);
     }
