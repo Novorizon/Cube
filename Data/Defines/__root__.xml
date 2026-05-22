@@ -6,4 +6,7 @@
   <include name="map.xml" />
   <include name="wave.xml" />
   <include name="skill.xml" />
+  <include name="skill_action.xml" />
+  <include name="skill_modifier.xml" />
+  <include name="skill_system_enum.xml" />
 </module>
