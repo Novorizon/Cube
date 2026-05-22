@@ -1,4 +1,5 @@
 using Game.Framework;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -248,7 +249,7 @@ namespace Game
 
             int sellGold = Mathf.RoundToInt(config.CostCount * config.SellGoldRate);
 
-            return new TdTargetRuntimeInfo
+            TdTargetRuntimeInfo info = new TdTargetRuntimeInfo
             {
                 Type = TdTargetInfoType.Tower,
                 TargetId = tower.ConfigId,
@@ -264,6 +265,18 @@ namespace Game
                 CanUpgrade = config.CanUpgrade,
                 CanSell = true
             };
+
+            info.InfoSlots = new List<TdInfoSlotData>
+            {
+                new TdInfoSlotData("level", "等级", $"Lv {info.Level}"),
+                new TdInfoSlotData("attack", "攻击", info.Attack.ToString(), info.AttackAdd > 0 ? $"+{info.AttackAdd}" : string.Empty),
+                new TdInfoSlotData("range", "范围", $"{info.Range:0.#}"),
+                new TdInfoSlotData("speed", "攻速", $"{info.AttackInterval:0.#}s"),
+                new TdInfoSlotData("upgradeCost", "升级", info.CanUpgrade ? info.UpgradeCost.ToString() : "--"),
+                new TdInfoSlotData("sellGold", "出售", info.SellGold.ToString())
+            };
+
+            return info;
         }
 
         private TdTargetRuntimeInfo BuildNpcInfo(Npc npc)
@@ -273,7 +286,7 @@ namespace Game
                 return default;
             }
 
-            return new TdTargetRuntimeInfo
+            TdTargetRuntimeInfo info = new TdTargetRuntimeInfo
             {
                 Type = TdTargetInfoType.Npc,
                 TargetId = npc.Config.Id,
@@ -287,11 +300,21 @@ namespace Game
                 CanUpgrade = false,
                 CanSell = false
             };
+
+            info.InfoSlots = new List<TdInfoSlotData>
+            {
+                new TdInfoSlotData("hp", "生命", $"{Mathf.Max(0, info.CurrentHp)}/{info.MaxHp}"),
+                new TdInfoSlotData("attack", "伤害", info.Attack.ToString()),
+                new TdInfoSlotData("range", "攻击范围", $"{info.Range:0.#}"),
+                new TdInfoSlotData("speed", "攻击间隔", $"{info.AttackInterval:0.#}s")
+            };
+
+            return info;
         }
 
         private TdTargetRuntimeInfo BuildBaseInfo()
         {
-            return new TdTargetRuntimeInfo
+            TdTargetRuntimeInfo info = new TdTargetRuntimeInfo
             {
                 Type = TdTargetInfoType.Base,
                 TargetId = 1,
@@ -302,6 +325,13 @@ namespace Game
                 CanUpgrade = false,
                 CanSell = false
             };
+
+            info.InfoSlots = new List<TdInfoSlotData>
+            {
+                new TdInfoSlotData("hp", "生命", $"{Mathf.Max(0, info.CurrentHp)}/{info.MaxHp}")
+            };
+
+            return info;
         }
     }
 }
