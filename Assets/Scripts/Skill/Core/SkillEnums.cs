@@ -78,4 +78,15 @@ namespace Game.Skill
         Magical = 2,
         Pure = 3
     }
+
+    public enum SkillTriggerEventType
+    {
+        None = 0,
+        AbilityCast = 1,
+        DamageDealt = 2,
+        DamageTaken = 3,
+        Healed = 4,
+        AttackLanded = 5,
+        Death = 6
+    }
 }
