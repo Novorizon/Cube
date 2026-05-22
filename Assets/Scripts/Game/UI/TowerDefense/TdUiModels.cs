@@ -35,6 +35,7 @@ namespace Game
     public struct TdInfoSlotData
     {
         public string Key;
+        public Sprite Icon;
         public string Name;
         public string Value;
         public string AddValue;
@@ -43,6 +44,17 @@ namespace Game
         public TdInfoSlotData(string key, string name, string value, string addValue = null, bool visible = true)
         {
             Key = key;
+            Icon = null;
+            Name = name;
+            Value = value;
+            AddValue = addValue;
+            Visible = visible;
+        }
+
+        public TdInfoSlotData(string key, Sprite icon, string name, string value, string addValue = null, bool visible = true)
+        {
+            Key = key;
+            Icon = icon;
             Name = name;
             Value = value;
             AddValue = addValue;
