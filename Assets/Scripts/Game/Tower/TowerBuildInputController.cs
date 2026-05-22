@@ -12,6 +12,7 @@ namespace Game
 
         public void Initialize()
         {
+            base.Initialize();
             mainCamera = Camera.main;
             initialized = true;
         }
