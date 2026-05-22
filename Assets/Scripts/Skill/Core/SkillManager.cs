@@ -11,34 +11,18 @@ namespace Game.Skill
         private readonly Dictionary<long, SkillRuntime> runtimeMap = new Dictionary<long, SkillRuntime>();
         private readonly SkillActionExecutor actionExecutor = new SkillActionExecutor();
         private readonly SkillModifierManager modifierManager = new SkillModifierManager();
+        private readonly SkillAbilityBook abilityBook = new SkillAbilityBook();
 
         private ISkillWorld world;
         private ISkillEffectService effectService;
+        private SkillEventData lastEventData;
         private bool initialized;
 
-        public ISkillWorld World
-        {
-            get
-            {
-                return world;
-            }
-        }
-
-        public ISkillEffectService EffectService
-        {
-            get
-            {
-                return effectService;
-            }
-        }
-
-        public SkillModifierManager ModifierManager
-        {
-            get
-            {
-                return modifierManager;
-            }
-        }
+        public ISkillWorld World => world;
+        public ISkillEffectService EffectService => effectService;
+        public SkillModifierManager ModifierManager => modifierManager;
+        public SkillAbilityBook AbilityBook => abilityBook;
+        public SkillEventData LastEventData => lastEventData;
 
         public void Initialize(ISkillWorld world, ISkillEffectService effectService)
         {
@@ -48,6 +32,7 @@ namespace Game.Skill
             configMap.Clear();
             actionGroupMap.Clear();
             runtimeMap.Clear();
+            abilityBook.Clear();
 
             RegisterBuiltinActions();
             modifierManager.Initialize(this);
@@ -63,6 +48,7 @@ namespace Game.Skill
                 return;
             }
 
+            UpdateCasting(deltaTime);
             UpdateCooldown(deltaTime);
             modifierManager.Update(deltaTime);
         }
@@ -98,58 +84,71 @@ namespace Game.Skill
             modifierManager.RegisterModifier(modifierData);
         }
 
+        public bool AddAbility(ISkillUnit owner, SkillConfigData config, ISkillResourceOwner resourceOwner = null)
+        {
+            return abilityBook.AddAbility(owner, config, resourceOwner);
+        }
+
+        public bool CastOwnedAbility(ISkillUnit owner, int skillId, ISkillUnit targetUnit = null)
+        {
+            return abilityBook.Cast(owner, skillId, targetUnit);
+        }
+
         public bool Cast(SkillCastRequest request)
         {
-            if (request == null || request.Caster == null)
+            if (!TryPrepareCast(request, out SkillConfigData config, out SkillRuntime runtime, out SkillContext context))
             {
-                FireEvent(SkillMessageTopic.CastFailed);
                 return false;
             }
 
-            if (!configMap.TryGetValue(request.SkillId, out SkillConfigData config))
+            if (config.CastPoint > 0f)
             {
-                Debug.LogWarning($"Cast skill failed. Missing config. skillId: {request.SkillId}");
-                FireEvent(SkillMessageTopic.CastFailed);
+                runtime.IsCasting = true;
+                runtime.CastPointLeft = config.CastPoint;
+                runtime.PendingRequest = request;
+                FireEvent(CreateEventData(SkillMessageTopic.CastStarted, context));
+                return true;
+            }
+
+            return ExecutePreparedCast(config, runtime, context, request);
+        }
+
+        public bool Interrupt(ISkillUnit owner, int skillId)
+        {
+            if (owner == null)
+            {
                 return false;
             }
 
-            if (!CanCast(config, request))
+            SkillRuntime runtime = GetRuntime(owner.RuntimeId, skillId);
+
+            if (!runtime.IsCasting && !runtime.IsChanneling)
             {
-                FireEvent(SkillMessageTopic.CastFailed);
                 return false;
             }
 
-            SkillRuntime runtime = GetRuntime(request.Caster.RuntimeId, config.Id);
-            SkillContext context = BuildContext(config, runtime, request);
-
-            if (!SkillTargetSystem.BuildTargets(context))
-            {
-                Debug.LogWarning($"Cast skill failed. Invalid target. skillId: {config.Id}");
-                FireEvent(SkillMessageTopic.CastFailed);
-                return false;
-            }
-
-            if (!PayCost(config, request))
-            {
-                FireEvent(SkillMessageTopic.CastFailed);
-                return false;
-            }
-
-            ExecuteActionGroup(config.AbilityActionGroupId, context);
-
-            if (config.Cooldown > 0f)
-            {
-                runtime.CooldownLeft = config.Cooldown;
-                FireEvent(SkillMessageTopic.CooldownStarted);
-            }
-
-            FireEvent(SkillMessageTopic.CastSucceeded);
+            runtime.IsCasting = false;
+            runtime.CastPointLeft = 0f;
+            runtime.IsChanneling = false;
+            runtime.ChannelTimeLeft = 0f;
+            runtime.PendingRequest = null;
+            FireEvent(SkillMessageTopic.CastInterrupted);
             return true;
         }
 
         public bool AddModifier(ISkillUnit caster, ISkillUnit target, int modifierId, float duration)
         {
             return modifierManager.AddModifier(caster, target, modifierId, duration);
+        }
+
+        public int PurgeDebuffs(ISkillUnit unit)
+        {
+            return modifierManager.RemoveModifiers(unit, true, true);
+        }
+
+        public int RemoveAllModifiers(ISkillUnit unit)
+        {
+            return modifierManager.RemoveModifiers(unit, false, false);
         }
 
         public void ExecuteActionGroup(int actionGroupId, SkillContext context)
@@ -169,7 +168,7 @@ namespace Game.Skill
             for (int i = 0; i < actions.Count; i++)
             {
                 actionExecutor.Execute(actions[i], context, this);
-                FireEvent(SkillMessageTopic.ActionExecuted);
+                FireEvent(CreateEventData(SkillMessageTopic.ActionExecuted, context, actions[i]));
             }
         }
 
@@ -196,7 +195,79 @@ namespace Game.Skill
 
         public void FireEvent(SkillMessageTopic topic)
         {
-            Messager.Instance.Notify(topic);
+            SkillEventData eventData = new SkillEventData();
+            eventData.Topic = topic;
+            FireEvent(eventData);
+        }
+
+        public void FireEvent(SkillEventData eventData)
+        {
+            lastEventData = eventData;
+            Messager.Instance.Notify(eventData.Topic);
+        }
+
+        private bool TryPrepareCast(SkillCastRequest request, out SkillConfigData config, out SkillRuntime runtime, out SkillContext context)
+        {
+            config = null;
+            runtime = null;
+            context = null;
+
+            if (request == null || request.Caster == null)
+            {
+                FireEvent(SkillMessageTopic.CastFailed);
+                return false;
+            }
+
+            if (!configMap.TryGetValue(request.SkillId, out config))
+            {
+                Debug.LogWarning($"Cast skill failed. Missing config. skillId: {request.SkillId}");
+                FireEvent(SkillMessageTopic.CastFailed);
+                return false;
+            }
+
+            if (!CanCast(config, request))
+            {
+                FireEvent(SkillMessageTopic.CastFailed);
+                return false;
+            }
+
+            runtime = GetRuntime(request.Caster.RuntimeId, config.Id);
+            context = BuildContext(config, runtime, request);
+
+            if (!SkillTargetSystem.BuildTargets(context))
+            {
+                Debug.LogWarning($"Cast skill failed. Invalid target. skillId: {config.Id}");
+                FireEvent(SkillMessageTopic.CastFailed);
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool ExecutePreparedCast(SkillConfigData config, SkillRuntime runtime, SkillContext context, SkillCastRequest request)
+        {
+            if (!PayCost(config, request))
+            {
+                FireEvent(SkillMessageTopic.CastFailed);
+                return false;
+            }
+
+            ExecuteActionGroup(config.AbilityActionGroupId, context);
+
+            if ((config.Behavior & SkillAbilityBehavior.Channel) != 0 && config.ChannelTime > 0f)
+            {
+                runtime.IsChanneling = true;
+                runtime.ChannelTimeLeft = config.ChannelTime;
+            }
+
+            if (config.Cooldown > 0f)
+            {
+                runtime.CooldownLeft = config.Cooldown;
+                FireEvent(CreateEventData(SkillMessageTopic.CooldownStarted, context));
+            }
+
+            FireEvent(CreateEventData(SkillMessageTopic.CastSucceeded, context));
+            return true;
         }
 
         private SkillContext BuildContext(SkillConfigData config, SkillRuntime runtime, SkillCastRequest request)
@@ -219,6 +290,11 @@ namespace Game.Skill
                 return false;
             }
 
+            if ((config.Behavior & SkillAbilityBehavior.Passive) != 0)
+            {
+                return false;
+            }
+
             if (HasState(request.Caster, SkillUnitState.Stunned) || HasState(request.Caster, SkillUnitState.Silenced))
             {
                 return false;
@@ -226,7 +302,7 @@ namespace Game.Skill
 
             SkillRuntime runtime = GetRuntime(request.Caster.RuntimeId, config.Id);
 
-            if (runtime.CooldownLeft > 0f)
+            if (runtime.CooldownLeft > 0f || runtime.IsCasting || runtime.IsChanneling)
             {
                 return false;
             }
@@ -280,6 +356,42 @@ namespace Game.Skill
             return ((long)ownerRuntimeId << 32) ^ (uint)skillId;
         }
 
+        private void UpdateCasting(float deltaTime)
+        {
+            foreach (SkillRuntime runtime in runtimeMap.Values)
+            {
+                if (runtime.IsCasting)
+                {
+                    runtime.CastPointLeft -= deltaTime;
+
+                    if (runtime.CastPointLeft <= 0f && runtime.PendingRequest != null)
+                    {
+                        SkillCastRequest request = runtime.PendingRequest;
+                        runtime.IsCasting = false;
+                        runtime.CastPointLeft = 0f;
+                        runtime.PendingRequest = null;
+
+                        if (TryPrepareCast(request, out SkillConfigData config, out SkillRuntime preparedRuntime, out SkillContext context))
+                        {
+                            ExecutePreparedCast(config, preparedRuntime, context, request);
+                        }
+                    }
+                }
+
+                if (runtime.IsChanneling)
+                {
+                    runtime.ChannelTimeLeft -= deltaTime;
+
+                    if (runtime.ChannelTimeLeft <= 0f)
+                    {
+                        runtime.IsChanneling = false;
+                        runtime.ChannelTimeLeft = 0f;
+                        FireEvent(SkillMessageTopic.ChannelFinished);
+                    }
+                }
+            }
+        }
+
         private void UpdateCooldown(float deltaTime)
         {
             foreach (SkillRuntime runtime in runtimeMap.Values)
@@ -297,6 +409,19 @@ namespace Game.Skill
                     FireEvent(SkillMessageTopic.CooldownFinished);
                 }
             }
+        }
+
+        private SkillEventData CreateEventData(SkillMessageTopic topic, SkillContext context, SkillActionData actionData = null)
+        {
+            SkillEventData eventData = new SkillEventData();
+            eventData.Topic = topic;
+            eventData.SkillId = context != null && context.Config != null ? context.Config.Id : 0;
+            eventData.ActionId = actionData != null ? actionData.Id : 0;
+            eventData.Caster = context != null ? context.Caster : null;
+            eventData.Target = context != null ? context.TargetUnit : null;
+            eventData.Position = context != null ? context.TargetPosition : Vector3.zero;
+            eventData.Value = actionData != null ? actionData.Value : 0f;
+            return eventData;
         }
 
         private void RegisterBuiltinActions()
