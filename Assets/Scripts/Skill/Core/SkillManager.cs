@@ -151,6 +151,11 @@ namespace Game.Skill
             return modifierManager.RemoveModifiers(unit, false, false);
         }
 
+        public void HandleTriggerEvent(SkillTriggerEvent triggerEvent)
+        {
+            modifierManager.HandleTriggerEvent(triggerEvent);
+        }
+
         public void ExecuteActionGroup(int actionGroupId, SkillContext context)
         {
             if (actionGroupId <= 0 || context == null)
