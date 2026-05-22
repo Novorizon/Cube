@@ -36,6 +36,7 @@ namespace Game
         public event Action<int> TowerSellClicked;
         public event Action<float> SpeedChanged;
         public event Action<bool> AutoNextWaveChanged;
+        public event Action<int> ItemClicked;
 
         protected override void OnCreate()
         {
@@ -64,6 +65,16 @@ namespace Game
             {
                 skillPanel.Build(config.Skills);
             }
+
+            if (itemPanel != null)
+            {
+                itemPanel.Build();
+            }
+
+            if (InfoPanel != null)
+            {
+                InfoPanel.Initialize();
+            }
         }
 
         private void RegisterEvents()
@@ -88,6 +99,11 @@ namespace Game
             {
                 battleControlPanel.SpeedChanged += OnSpeedChanged;
                 battleControlPanel.AutoNextWaveChanged += OnAutoNextWaveChanged;
+            }
+
+            if (itemPanel != null)
+            {
+                itemPanel.ItemClicked += OnItemClicked;
             }
         }
 
@@ -115,12 +131,19 @@ namespace Game
                 battleControlPanel.AutoNextWaveChanged -= OnAutoNextWaveChanged;
             }
 
+            if (itemPanel != null)
+            {
+                itemPanel.ItemClicked -= OnItemClicked;
+            }
+
+
             TowerBuildClicked = null;
             SkillClicked = null;
             TowerUpgradeClicked = null;
             TowerSellClicked = null;
             SpeedChanged = null;
             AutoNextWaveChanged = null;
+            ItemClicked = null;
         }
 
         public void SetBaseLife(int current, int max)
@@ -201,6 +224,15 @@ namespace Game
         private void OnAutoNextWaveChanged(bool value)
         {
             AutoNextWaveChanged?.Invoke(value);
+        }
+        public void SetItemCount(int itemId, int count)
+        {
+            itemPanel?.SetItemCount(itemId, count);
+        }
+
+        private void OnItemClicked(int itemId)
+        {
+            ItemClicked?.Invoke(itemId);
         }
     }
 }
