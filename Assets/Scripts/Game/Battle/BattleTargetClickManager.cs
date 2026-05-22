@@ -5,23 +5,16 @@ using UnityEngine.InputSystem;
 
 namespace Game
 {
-    /// <summary>
-    /// TD 战斗内目标选择管理器。
-    /// 不主动轮询输入，订阅 GameInputManager 的 GameplaySelectPerformed 事件。
-    /// </summary>
     public sealed class BattleTargetClickManager : Singleton<BattleTargetClickManager>
     {
         private Camera targetCamera;
         private LayerMask targetLayerMask = ~0;
         private float rayDistance = 1000f;
-        private BattleHudController battleHud;
         private bool initialized;
         private bool inputRegistered;
 
-        public void Initialize(BattleHudController battleHud = null, Camera targetCamera = null)
+        public void Initialize(Camera targetCamera = null)
         {
-            this.battleHud = battleHud;
-
             if (targetCamera != null)
             {
                 this.targetCamera = targetCamera;
@@ -35,7 +28,6 @@ namespace Game
             {
                 GameInputManager.Instance.BattleSelectPerformed += OnBattleSelectPerformed;
                 GameInputManager.Instance.GameplayCancelPerformed += OnGameplayCancelPerformed;
-
                 inputRegistered = true;
             }
 
@@ -52,13 +44,7 @@ namespace Game
 
             inputRegistered = false;
             initialized = false;
-            battleHud = null;
             targetCamera = null;
-        }
-
-        public void SetBattleHud(BattleHudController battleHud)
-        {
-            this.battleHud = battleHud;
         }
 
         public void SetTargetCamera(Camera targetCamera)
@@ -76,10 +62,6 @@ namespace Game
             this.rayDistance = Mathf.Max(1f, rayDistance);
         }
 
-        /// <summary>
-        /// 外部如果有特殊输入入口，也可以直接调用这个方法。
-        /// 默认情况下由 GameInputManager.GameplaySelectPerformed 调用。
-        /// </summary>
         public void SelectByScreenPosition(Vector2 screenPosition, bool ignoreClickOnUi = true)
         {
             if (!initialized)
@@ -107,7 +89,7 @@ namespace Game
 
         public void ClearSelection()
         {
-            battleHud?.ClearTargetInfo();
+            Messager.Instance.Notify(BattleMessageTopic.TargetInfoCleared, new TargetInfoClearMessage());
         }
 
         private void OnBattleSelectPerformed(InputAction.CallbackContext context)
@@ -205,7 +187,7 @@ namespace Game
                 return true;
             }
 
-            battleHud?.ShowTargetInfo(info);
+            NotifyTargetInfo(info);
             return true;
         }
 
@@ -226,7 +208,7 @@ namespace Game
                 return true;
             }
 
-            battleHud?.ShowTargetInfo(info);
+            NotifyTargetInfo(info);
             return true;
         }
 
@@ -239,9 +221,15 @@ namespace Game
                 return false;
             }
 
-            TdTargetRuntimeInfo info = BuildBaseInfo();
-            battleHud?.ShowTargetInfo(info);
+            NotifyTargetInfo(BuildBaseInfo());
             return true;
+        }
+
+        private void NotifyTargetInfo(TdTargetRuntimeInfo info)
+        {
+            TargetInfoMessage message = new TargetInfoMessage();
+            message.Info = info;
+            Messager.Instance.Notify(BattleMessageTopic.TargetInfoChanged, message);
         }
 
         private TdTargetRuntimeInfo BuildTowerInfo(Tower tower)
