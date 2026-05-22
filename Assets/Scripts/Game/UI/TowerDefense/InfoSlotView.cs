@@ -1,10 +1,14 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game
 {
     public sealed class InfoSlotView : MonoBehaviour
     {
+        [SerializeField]
+        private Image iconImage;
+
         [SerializeField]
         private TMP_Text nameText;
 
@@ -32,6 +36,12 @@ namespace Game
         public void SetData(TdInfoSlotData data)
         {
             slotKey = data.Key;
+
+            if (iconImage != null)
+            {
+                iconImage.sprite = data.Icon;
+                iconImage.enabled = data.Icon != null;
+            }
 
             if (nameText != null)
             {
