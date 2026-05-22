@@ -6,6 +6,9 @@ namespace Game.Skill
     {
         private readonly List<SkillModifierInstance> modifiers = new List<SkillModifierInstance>();
         private readonly Dictionary<int, SkillModifierData> modifierMap = new Dictionary<int, SkillModifierData>();
+        private readonly Dictionary<int, ISkillModifierLogic> logicMap = new Dictionary<int, ISkillModifierLogic>();
+        private readonly ISkillModifierLogic defaultLogic = new DefaultSkillModifierLogic();
+
         private SkillManager skillManager;
 
         public IReadOnlyList<SkillModifierInstance> Modifiers => modifiers;
@@ -14,6 +17,7 @@ namespace Game.Skill
         {
             this.skillManager = skillManager;
             modifiers.Clear();
+            logicMap.Clear();
         }
 
         public void RegisterModifier(SkillModifierData modifierData)
@@ -24,6 +28,16 @@ namespace Game.Skill
             }
 
             modifierMap[modifierData.Id] = modifierData;
+        }
+
+        public void RegisterModifierLogic(int modifierId, ISkillModifierLogic logic)
+        {
+            if (modifierId <= 0 || logic == null)
+            {
+                return;
+            }
+
+            logicMap[modifierId] = logic;
         }
 
         public void Update(float deltaTime)
@@ -38,7 +52,11 @@ namespace Game.Skill
                     continue;
                 }
 
-                UpdateDuration(instance, deltaTime, i);
+                if (UpdateDuration(instance, deltaTime, i))
+                {
+                    continue;
+                }
+
                 UpdateInterval(instance, deltaTime);
             }
         }
@@ -72,6 +90,7 @@ namespace Game.Skill
 
             modifiers.Add(instance);
             ExecuteActionGroup(modifierData.OnCreatedActionGroupId, instance);
+            GetLogic(instance).OnCreated(CreateContext(instance));
             skillManager.FireEvent(SkillMessageTopic.ModifierAdded);
             return true;
         }
@@ -122,12 +141,14 @@ namespace Game.Skill
                     continue;
                 }
 
-                if (instance.Data.TriggerEventType != triggerEvent.EventType || instance.Data.TriggerActionGroupId <= 0)
+                if (!IsTriggerRelated(instance, triggerEvent))
                 {
                     continue;
                 }
 
-                if (!IsTriggerRelated(instance, triggerEvent))
+                GetLogic(instance).OnTriggerEvent(CreateContext(instance), triggerEvent);
+
+                if (instance.Data.TriggerEventType != triggerEvent.EventType || instance.Data.TriggerActionGroupId <= 0)
                 {
                     continue;
                 }
@@ -149,12 +170,12 @@ namespace Game.Skill
             {
                 SkillModifierInstance instance = modifiers[i];
 
-                if (instance.Parent != unit || instance.Data == null || instance.Data.PropertyType != propertyType)
+                if (instance.Parent != unit)
                 {
                     continue;
                 }
 
-                value += instance.Data.PropertyValue * instance.StackCount;
+                value += GetLogic(instance).GetProperty(CreateContext(instance), propertyType);
             }
 
             return value;
@@ -171,7 +192,12 @@ namespace Game.Skill
             {
                 SkillModifierInstance instance = modifiers[i];
 
-                if (instance.Parent == unit && instance.Data != null && instance.Data.State == state)
+                if (instance.Parent != unit)
+                {
+                    continue;
+                }
+
+                if (GetLogic(instance).HasState(CreateContext(instance), state))
                 {
                     return true;
                 }
@@ -188,19 +214,22 @@ namespace Game.Skill
             }
         }
 
-        private void UpdateDuration(SkillModifierInstance instance, float deltaTime, int index)
+        private bool UpdateDuration(SkillModifierInstance instance, float deltaTime, int index)
         {
             if (instance.Duration <= 0f)
             {
-                return;
+                return false;
             }
 
             instance.TimeLeft -= deltaTime;
 
-            if (instance.TimeLeft <= 0f)
+            if (instance.TimeLeft > 0f)
             {
-                RemoveAt(index);
+                return false;
             }
+
+            RemoveAt(index);
+            return true;
         }
 
         private void UpdateInterval(SkillModifierInstance instance, float deltaTime)
@@ -219,6 +248,7 @@ namespace Game.Skill
 
             instance.IntervalTimer = instance.Interval;
             ExecuteActionGroup(instance.Data.PeriodicActionGroupId, instance);
+            GetLogic(instance).OnInterval(CreateContext(instance));
         }
 
         private bool ShouldRemoveForDeadParent(SkillModifierInstance instance)
@@ -269,14 +299,34 @@ namespace Game.Skill
             }
 
             instance.TimeLeft = duration > 0f ? duration : instance.Duration;
+            GetLogic(instance).OnRefresh(CreateContext(instance));
         }
 
         private void RemoveAt(int index)
         {
             SkillModifierInstance instance = modifiers[index];
             ExecuteActionGroup(instance.Data != null ? instance.Data.OnDestroyActionGroupId : 0, instance);
+            GetLogic(instance).OnRemoved(CreateContext(instance));
             modifiers.RemoveAt(index);
             skillManager.FireEvent(SkillMessageTopic.ModifierRemoved);
+        }
+
+        private ISkillModifierLogic GetLogic(SkillModifierInstance instance)
+        {
+            if (instance != null && logicMap.TryGetValue(instance.ModifierId, out ISkillModifierLogic logic))
+            {
+                return logic;
+            }
+
+            return defaultLogic;
+        }
+
+        private SkillModifierContext CreateContext(SkillModifierInstance instance)
+        {
+            SkillModifierContext context = new SkillModifierContext();
+            context.Instance = instance;
+            context.SkillManager = skillManager;
+            return context;
         }
 
         private void ExecuteActionGroup(int actionGroupId, SkillModifierInstance instance)
