@@ -1,0 +1,54 @@
+using TMPro;
+using UnityEngine;
+
+namespace Game
+{
+    public sealed class InfoSlotView : MonoBehaviour
+    {
+        [SerializeField]
+        private TMP_Text nameText;
+
+        [SerializeField]
+        private TMP_Text valueText;
+
+        [SerializeField]
+        private TMP_Text addValueText;
+
+        private string slotKey;
+
+        public string SlotKey
+        {
+            get
+            {
+                return slotKey;
+            }
+        }
+
+        public void Init(TdInfoSlotData data)
+        {
+            SetData(data);
+        }
+
+        public void SetData(TdInfoSlotData data)
+        {
+            slotKey = data.Key;
+
+            if (nameText != null)
+            {
+                nameText.text = string.IsNullOrEmpty(data.Name) ? string.Empty : data.Name;
+            }
+
+            if (valueText != null)
+            {
+                valueText.text = string.IsNullOrEmpty(data.Value) ? "--" : data.Value;
+            }
+
+            if (addValueText != null)
+            {
+                addValueText.text = string.IsNullOrEmpty(data.AddValue) ? string.Empty : data.AddValue;
+            }
+
+            gameObject.SetActive(data.Visible);
+        }
+    }
+}
