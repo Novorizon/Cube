@@ -122,7 +122,9 @@ namespace Game.Framework
 
         public event Action<InputAction.CallbackContext> JumpStarted;
         public event Action<InputAction.CallbackContext> JumpCanceled;
-        public event Action<InputAction.CallbackContext> AttackPerformed;
+        public event Action<InputAction.CallbackContext> GameplaySelectPerformed;
+        public event Action<InputAction.CallbackContext> GameplayAttackCommandPerformed;
+        public event Action<InputAction.CallbackContext> GameplayCancelPerformed;
         public event Action<InputAction.CallbackContext> InteractPerformed;
         public event Action<InputAction.CallbackContext> PausePerformed;
 
@@ -152,7 +154,6 @@ namespace Game.Framework
             initialized = true;
 
             SetMode(defaultMode);
-
         }
 
         public void Release()
@@ -178,7 +179,9 @@ namespace Game.Framework
 
             JumpStarted = null;
             JumpCanceled = null;
-            AttackPerformed = null;
+            GameplaySelectPerformed = null;
+            GameplayAttackCommandPerformed = null;
+            GameplayCancelPerformed = null;
             InteractPerformed = null;
             PausePerformed = null;
 
@@ -279,7 +282,9 @@ namespace Game.Framework
         {
             controls.Gameplay.Jump.started += OnJumpStarted;
             controls.Gameplay.Jump.canceled += OnJumpCanceled;
-            controls.Gameplay.Attack.performed += OnAttackPerformed;
+            controls.Gameplay.Select.performed += OnGameplaySelectPerformed;
+            controls.Gameplay.AttackCommand.performed += OnGameplayAttackCommandPerformed;
+            controls.Gameplay.Cancel.performed += OnGameplayCancelPerformed;
             controls.Gameplay.Interact.performed += OnInteractPerformed;
 
             controls.Common.Pause.performed += OnPausePerformed;
@@ -301,7 +306,9 @@ namespace Game.Framework
         {
             controls.Gameplay.Jump.started -= OnJumpStarted;
             controls.Gameplay.Jump.canceled -= OnJumpCanceled;
-            controls.Gameplay.Attack.performed -= OnAttackPerformed;
+            controls.Gameplay.Select.performed -= OnGameplaySelectPerformed;
+            controls.Gameplay.AttackCommand.performed -= OnGameplayAttackCommandPerformed;
+            controls.Gameplay.Cancel.performed -= OnGameplayCancelPerformed;
             controls.Gameplay.Interact.performed -= OnInteractPerformed;
 
             controls.Common.Pause.performed -= OnPausePerformed;
@@ -337,9 +344,19 @@ namespace Game.Framework
             JumpCanceled?.Invoke(context);
         }
 
-        private void OnAttackPerformed(InputAction.CallbackContext context)
+        private void OnGameplaySelectPerformed(InputAction.CallbackContext context)
         {
-            AttackPerformed?.Invoke(context);
+            GameplaySelectPerformed?.Invoke(context);
+        }
+
+        private void OnGameplayAttackCommandPerformed(InputAction.CallbackContext context)
+        {
+            GameplayAttackCommandPerformed?.Invoke(context);
+        }
+
+        private void OnGameplayCancelPerformed(InputAction.CallbackContext context)
+        {
+            GameplayCancelPerformed?.Invoke(context);
         }
 
         private void OnInteractPerformed(InputAction.CallbackContext context)
@@ -397,14 +414,6 @@ namespace Game.Framework
             DialogueCancelPerformed?.Invoke(context);
         }
 
-
-
-        //拖动地图、持续旋转镜头需要判断“按钮是否按住”。
-        //Place：左键点击，选中地块 / 放塔
-        //Remove：中键或右键拖动地图
-        //Rotate：右键或键盘按住旋转镜头
-        //Scroll：滚轮缩放
-        //Cancel：ESC 取消选择/退出建造模式
         public bool BuildPlaceHeld
         {
             get
