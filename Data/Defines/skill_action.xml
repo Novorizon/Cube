@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="SkillActionConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="groupId" type="int" comment="client" />
+    <var name="order" type="int" comment="client" />
+    <var name="actionType" type="int" comment="client" />
+    <var name="targetType" type="int" comment="client" />
+    <var name="value" type="float" comment="client" />
+    <var name="radius" type="float" comment="client" />
+    <var name="duration" type="float" comment="client" />
+    <var name="modifierId" type="int" comment="client" />
+    <var name="damageType" type="int" comment="client" />
+    <var name="effectLocation" type="string" comment="client" />
+    <var name="soundLocation" type="string" comment="client" />
+  </bean>
+
+  <table name="TbSkillAction" value="SkillActionConfig" input="skill_action.xlsx" mode="map" index="id" />
+</module>
