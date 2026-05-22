@@ -34,6 +34,7 @@ namespace Game
             MapManager.Instance.Initialize();
             TowerBuildManager.Instance.Initialize();
             TowerBuildInputController.Instance.Initialize();
+            BattleTargetClickManager.Instance.Initialize();
 
             UIManager.Instance.UseResourceManagerLoader();
 

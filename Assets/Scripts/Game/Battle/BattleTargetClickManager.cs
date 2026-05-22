@@ -1,3 +1,4 @@
+using Game.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -7,7 +8,7 @@ namespace Game
     /// TD 战斗内目标点击管理器。
     /// 统一处理鼠标点击、射线检测、目标识别，并把目标信息传递给 BattleHudController。
     /// </summary>
-    public sealed class BattleTargetClickManager : MonoBehaviour
+    public sealed class BattleTargetClickManager : Singleton<EffectManager>
     {
         [SerializeField]
         private Camera targetCamera;
@@ -21,7 +22,7 @@ namespace Game
         [SerializeField]
         private BattleHudController battleHud;
 
-        private void Awake()
+        public void Initialize()
         {
             if (targetCamera == null)
             {
@@ -29,7 +30,7 @@ namespace Game
             }
         }
 
-        private void Update()
+        public void Update()
         {
             if (!Input.GetMouseButtonDown(0))
             {
