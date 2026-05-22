@@ -124,6 +124,36 @@ namespace Game.Skill
             return count;
         }
 
+        public void HandleTriggerEvent(SkillTriggerEvent triggerEvent)
+        {
+            if (triggerEvent == null || triggerEvent.EventType == SkillTriggerEventType.None)
+            {
+                return;
+            }
+
+            for (int i = 0; i < modifiers.Count; i++)
+            {
+                SkillModifierInstance instance = modifiers[i];
+
+                if (instance == null || instance.Data == null)
+                {
+                    continue;
+                }
+
+                if (instance.Data.TriggerEventType != triggerEvent.EventType || instance.Data.TriggerActionGroupId <= 0)
+                {
+                    continue;
+                }
+
+                if (!IsTriggerRelated(instance, triggerEvent))
+                {
+                    continue;
+                }
+
+                ExecuteTriggerActionGroup(instance.Data.TriggerActionGroupId, instance, triggerEvent);
+            }
+        }
+
         public float GetProperty(ISkillUnit unit, SkillModifierPropertyType propertyType)
         {
             if (unit == null || propertyType == SkillModifierPropertyType.None)
@@ -191,6 +221,11 @@ namespace Game.Skill
             return instance.Data == null || instance.Data.RemoveOnDeath;
         }
 
+        private bool IsTriggerRelated(SkillModifierInstance instance, SkillTriggerEvent triggerEvent)
+        {
+            return triggerEvent.Source == instance.Parent || triggerEvent.Target == instance.Parent;
+        }
+
         private SkillModifierInstance FindModifier(ISkillUnit target, int modifierId)
         {
             for (int i = 0; i < modifiers.Count; i++)
@@ -241,6 +276,24 @@ namespace Game.Skill
             context.Caster = instance.Caster;
             context.TargetUnit = instance.Parent;
             context.Targets.Add(instance.Parent);
+            context.World = skillManager.World;
+            context.EffectService = skillManager.EffectService;
+            skillManager.ExecuteActionGroup(actionGroupId, context);
+        }
+
+        private void ExecuteTriggerActionGroup(int actionGroupId, SkillModifierInstance instance, SkillTriggerEvent triggerEvent)
+        {
+            if (actionGroupId <= 0 || instance == null || triggerEvent == null || skillManager == null)
+            {
+                return;
+            }
+
+            SkillContext context = new SkillContext();
+            context.Config = SkillConfigData.Empty;
+            context.Caster = instance.Caster;
+            context.TargetUnit = triggerEvent.Target != null ? triggerEvent.Target : instance.Parent;
+            context.TargetPosition = triggerEvent.Position;
+            context.Targets.Add(context.TargetUnit);
             context.World = skillManager.World;
             context.EffectService = skillManager.EffectService;
             skillManager.ExecuteActionGroup(actionGroupId, context);
