@@ -1,12 +1,13 @@
 using Game.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 namespace Game
 {
     /// <summary>
     /// TD 战斗内目标选择管理器。
-    /// 不主动轮询输入，由外部输入系统在点击时调用 SelectByScreenPosition。
+    /// 不主动轮询输入，订阅 GameInputManager 的 Gameplay.Attack 事件。
     /// </summary>
     public sealed class BattleTargetClickManager : Singleton<BattleTargetClickManager>
     {
@@ -14,8 +15,10 @@ namespace Game
         private LayerMask targetLayerMask = ~0;
         private float rayDistance = 1000f;
         private BattleHudController battleHud;
+        private bool initialized;
+        private bool inputRegistered;
 
-        public void Initialize(BattleHudController battleHud, Camera targetCamera = null)
+        public void Initialize(BattleHudController battleHud = null, Camera targetCamera = null)
         {
             this.battleHud = battleHud;
 
@@ -27,6 +30,27 @@ namespace Game
             {
                 this.targetCamera = Camera.main;
             }
+
+            if (!inputRegistered)
+            {
+                GameInputManager.Instance.AttackPerformed += OnAttackPerformed;
+                inputRegistered = true;
+            }
+
+            initialized = true;
+        }
+
+        public void Release()
+        {
+            if (inputRegistered && GameInputManager.IsCreated)
+            {
+                GameInputManager.Instance.AttackPerformed -= OnAttackPerformed;
+            }
+
+            inputRegistered = false;
+            initialized = false;
+            battleHud = null;
+            targetCamera = null;
         }
 
         public void SetBattleHud(BattleHudController battleHud)
@@ -50,10 +74,26 @@ namespace Game
         }
 
         /// <summary>
-        /// 由输入系统在点击发生时调用。
+        /// 外部如果有特殊输入入口，也可以直接调用这个方法。
+        /// 默认情况下由 GameInputManager.AttackPerformed 调用。
         /// </summary>
         public void SelectByScreenPosition(Vector2 screenPosition, bool ignoreClickOnUi = true)
         {
+            if (!initialized)
+            {
+                Initialize();
+            }
+
+            if (GameInputManager.Instance.CurrentMode != InputMode.Gameplay)
+            {
+                return;
+            }
+
+            if (TowerBuildManager.Instance.HasSelectedTower)
+            {
+                return;
+            }
+
             if (ignoreClickOnUi && IsPointerOverUi())
             {
                 return;
@@ -65,6 +105,17 @@ namespace Game
         public void ClearSelection()
         {
             battleHud?.ClearTargetInfo();
+        }
+
+        private void OnAttackPerformed(InputAction.CallbackContext context)
+        {
+            if (context.canceled)
+            {
+                return;
+            }
+
+            Vector2 screenPosition = GameInputManager.Instance.PointerPosition;
+            SelectByScreenPosition(screenPosition);
         }
 
         private bool IsPointerOverUi()
