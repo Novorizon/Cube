@@ -5,6 +5,8 @@ namespace Game.Skill
 {
     public sealed class SkillConfigData
     {
+        public static readonly SkillConfigData Empty = new SkillConfigData();
+
         public int Id;
         public string Name;
         public string Description;
@@ -84,8 +86,12 @@ namespace Game.Skill
         public int OwnerRuntimeId;
         public int Level = 1;
         public float CooldownLeft;
+        public float CastPointLeft;
+        public bool IsCasting;
         public bool IsChanneling;
         public float ChannelTimeLeft;
+
+        public SkillCastRequest PendingRequest;
 
         public SkillRuntime(int ownerRuntimeId, int skillId)
         {
