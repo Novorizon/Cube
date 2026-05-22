@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Game
 {
-    public sealed class TowerInfoPanel : UIPanel
+    public sealed class InfoPanel : UIPanel
     {
         [SerializeField]
         private CanvasGroup canvasGroup;

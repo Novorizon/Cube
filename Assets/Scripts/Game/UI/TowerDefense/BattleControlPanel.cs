@@ -10,6 +10,9 @@ namespace Game
         [SerializeField] private Button speed2Button;
         [SerializeField] private Button speed3Button;
         [SerializeField] private Toggle autoNextWaveToggle;
+        [SerializeField] private Button pauseButton;
+        [SerializeField] private Button soundButton;
+        [SerializeField] private Button settingButton;
 
         public event Action<float> SpeedChanged;
         public event Action<bool> AutoNextWaveChanged;
@@ -32,6 +35,18 @@ namespace Game
             {
                 autoNextWaveToggle.onValueChanged.AddListener(OnAutoNextWaveChanged);
             }
+            if (pauseButton != null)
+            {
+                pauseButton.onClick.AddListener(() => SetSpeed(1f));
+            }
+            if (soundButton != null)
+            {
+                soundButton.onClick.AddListener(() => SetSpeed(1f));
+            }
+            if (settingButton != null)
+            {
+                settingButton.onClick.AddListener(() => SetSpeed(1f));
+            }
         }
 
         public void SetSpeed(float speed)
@@ -53,5 +68,17 @@ namespace Game
         {
             AutoNextWaveChanged?.Invoke(value);
         }
+        public void SetPause()
+        {
+        }
+
+        public void SetSound()
+        {
+        }
+
+        public void OpenSetting()
+        {
+        }
+
     }
 }

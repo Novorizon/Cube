@@ -15,14 +15,14 @@ namespace Game
         private const int NormalTowerConfigId = 1001;
         private const int IceTowerConfigId = 1003;
 
-        [SerializeField]
-        private Button normalTowerButton;
+        //[SerializeField]
+        //private Button normalTowerButton;
 
-        [SerializeField]
-        private Button iceTowerButton;
+        //[SerializeField]
+        //private Button iceTowerButton;
 
-        [SerializeField]
-        private Button cancelButton;
+        //[SerializeField]
+        //private Button cancelButton;
 
         [SerializeField]
         private RectTransform contentRoot;
@@ -37,38 +37,38 @@ namespace Game
 
         protected override void OnCreate()
         {
-            if (normalTowerButton != null)
-            {
-                normalTowerButton.onClick.AddListener(OnNormalTowerButtonClicked);
-            }
+            //if (normalTowerButton != null)
+            //{
+            //    normalTowerButton.onClick.AddListener(OnNormalTowerButtonClicked);
+            //}
 
-            if (iceTowerButton != null)
-            {
-                iceTowerButton.onClick.AddListener(OnIceTowerButtonClicked);
-            }
+            //if (iceTowerButton != null)
+            //{
+            //    iceTowerButton.onClick.AddListener(OnIceTowerButtonClicked);
+            //}
 
-            if (cancelButton != null)
-            {
-                cancelButton.onClick.AddListener(OnCancelButtonClicked);
-            }
+            //if (cancelButton != null)
+            //{
+            //    cancelButton.onClick.AddListener(OnCancelButtonClicked);
+            //}
         }
 
         protected override void OnDestroyed()
         {
-            if (normalTowerButton != null)
-            {
-                normalTowerButton.onClick.RemoveListener(OnNormalTowerButtonClicked);
-            }
+            //if (normalTowerButton != null)
+            //{
+            //    normalTowerButton.onClick.RemoveListener(OnNormalTowerButtonClicked);
+            //}
 
-            if (iceTowerButton != null)
-            {
-                iceTowerButton.onClick.RemoveListener(OnIceTowerButtonClicked);
-            }
+            //if (iceTowerButton != null)
+            //{
+            //    iceTowerButton.onClick.RemoveListener(OnIceTowerButtonClicked);
+            //}
 
-            if (cancelButton != null)
-            {
-                cancelButton.onClick.RemoveListener(OnCancelButtonClicked);
-            }
+            //if (cancelButton != null)
+            //{
+            //    cancelButton.onClick.RemoveListener(OnCancelButtonClicked);
+            //}
 
             ClearCards();
             TowerClicked = null;

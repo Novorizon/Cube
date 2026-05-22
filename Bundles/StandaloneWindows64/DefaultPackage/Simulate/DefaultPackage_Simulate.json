@@ -10,7 +10,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/21 20:52:30",
+    "PackageNote": "2026/5/22 14:47:56",
     "AssetList": [
         {
             "Address": "",
@@ -3606,7 +3606,23 @@
         },
         {
             "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/SpeedButton.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 35,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/TowerBuildCard.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 35,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/TowerCard.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 35,
@@ -3827,7 +3843,7 @@
             "UnityCRC": 0,
             "FileHash": "3c8eccd722162e353771dd383cba8341",
             "FileCRC": 0,
-            "FileSize": 394,
+            "FileSize": 544,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -4057,7 +4073,7 @@
             "UnityCRC": 0,
             "FileHash": "1fe0c3a4e402e970085ee6cbf947124e",
             "FileCRC": 0,
-            "FileSize": 342822,
+            "FileSize": 391979,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

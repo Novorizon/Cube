@@ -16,7 +16,10 @@ namespace Game
         private BuildTowerPanel buildTowerPanel;
 
         [SerializeField]
-        private TowerInfoPanel towerInfoPanel;
+        private ItemPanel itemPanel;
+
+        [SerializeField]
+        private InfoPanel InfoPanel;
 
         [SerializeField]
         private SkillPanel skillPanel;
@@ -75,10 +78,10 @@ namespace Game
                 skillPanel.SkillClicked += OnSkillClicked;
             }
 
-            if (towerInfoPanel != null)
+            if (InfoPanel != null)
             {
-                towerInfoPanel.UpgradeClicked += OnTowerUpgradeClicked;
-                towerInfoPanel.SellClicked += OnTowerSellClicked;
+                InfoPanel.UpgradeClicked += OnTowerUpgradeClicked;
+                InfoPanel.SellClicked += OnTowerSellClicked;
             }
 
             if (battleControlPanel != null)
@@ -100,10 +103,10 @@ namespace Game
                 skillPanel.SkillClicked -= OnSkillClicked;
             }
 
-            if (towerInfoPanel != null)
+            if (InfoPanel != null)
             {
-                towerInfoPanel.UpgradeClicked -= OnTowerUpgradeClicked;
-                towerInfoPanel.SellClicked -= OnTowerSellClicked;
+                InfoPanel.UpgradeClicked -= OnTowerUpgradeClicked;
+                InfoPanel.SellClicked -= OnTowerSellClicked;
             }
 
             if (battleControlPanel != null)
@@ -142,12 +145,12 @@ namespace Game
 
         public void ShowTowerInfo(TdTowerRuntimeInfo info)
         {
-            towerInfoPanel?.Show(info);
+            InfoPanel?.Show(info);
         }
 
         public void HideTowerInfo()
         {
-            towerInfoPanel?.Hide();
+            InfoPanel?.Hide();
         }
 
         public void SetSkillCount(int skillId, int count)

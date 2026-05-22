@@ -8,13 +8,13 @@ namespace Game
     public sealed class StatusPanel : MonoBehaviour
     {
         [SerializeField]
-        private UIProgressBar baseLifeBar;
+        private UIProgressBar baseHpFill;
 
         [SerializeField]
         private TMP_Text goldText;
 
         [SerializeField]
-        private TMP_Text baseLifeText;
+        private TMP_Text baseHpText;
 
         [SerializeField]
         private TMP_Text waveText;
@@ -116,14 +116,14 @@ namespace Game
 
         private void RefreshBaseLife(int currentLife, int maxLife)
         {
-            if (baseLifeText != null)
+            if (baseHpText != null)
             {
-                baseLifeText.text = $" {currentLife}/{maxLife}";
+                baseHpText.text = $" {currentLife}/{maxLife}";
             }
 
-            if (baseLifeBar != null)
+            if (baseHpFill != null)
             {
-                baseLifeBar.SetValue(currentLife, maxLife);
+                baseHpFill.SetValue(currentLife, maxLife);
             }
         }
 
