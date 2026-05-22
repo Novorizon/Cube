@@ -9,8 +9,6 @@ namespace Game.Skill
         bool IsAlive { get; }
         Vector3 Position { get; }
 
-        float GetProperty(SkillModifierPropertyType propertyType);
-        bool HasState(SkillUnitState state);
         void TakeDamage(SkillDamageInfo damageInfo);
         void Heal(SkillHealInfo healInfo);
     }
