@@ -6,6 +6,7 @@ namespace Game.Framework
         Gameplay = 1,
         UI = 2,
         Build = 3,
-        Dialogue = 4
+        Dialogue = 4,
+        Battle = 5,
     }
 }

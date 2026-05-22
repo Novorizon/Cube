@@ -131,6 +131,8 @@ namespace Game.Framework
         public event Action<InputAction.CallbackContext> UISubmitPerformed;
         public event Action<InputAction.CallbackContext> UICancelPerformed;
 
+        public event Action<InputAction.CallbackContext> BattleSelectPerformed;
+
         public event Action<InputAction.CallbackContext> BuildPlacePerformed;
         public event Action<InputAction.CallbackContext> BuildRemovePerformed;
         public event Action<InputAction.CallbackContext> BuildRotatePerformed;
@@ -188,6 +190,8 @@ namespace Game.Framework
             UISubmitPerformed = null;
             UICancelPerformed = null;
 
+            BattleSelectPerformed = null;
+
             BuildPlacePerformed = null;
             BuildRemovePerformed = null;
             BuildRotatePerformed = null;
@@ -222,6 +226,10 @@ namespace Game.Framework
 
                 case InputMode.Dialogue:
                     controls.Dialogue.Enable();
+                    break;
+
+                case InputMode.Battle:
+                    controls.Battle.Enable();
                     break;
 
                 case InputMode.None:
@@ -292,10 +300,11 @@ namespace Game.Framework
             controls.UI.Submit.performed += OnUISubmitPerformed;
             controls.UI.Cancel.performed += OnUICancelPerformed;
 
-            controls.Build.Place.performed += OnBuildPlacePerformed;
-            controls.Build.Remove.performed += OnBuildRemovePerformed;
-            controls.Build.Rotate.performed += OnBuildRotatePerformed;
-            controls.Build.Cancel.performed += OnBuildCancelPerformed;
+            controls.Battle.Select.performed += OnBattleSelectPerformed;
+            controls.Battle.Place.performed += OnBuildPlacePerformed;
+            controls.Battle.Remove.performed += OnBuildRemovePerformed;
+            controls.Battle.Rotate.performed += OnBuildRotatePerformed;
+            controls.Battle.Cancel.performed += OnBuildCancelPerformed;
 
             controls.Dialogue.Continue.performed += OnDialogueContinuePerformed;
             controls.Dialogue.Skip.performed += OnDialogueSkipPerformed;
@@ -316,10 +325,11 @@ namespace Game.Framework
             controls.UI.Submit.performed -= OnUISubmitPerformed;
             controls.UI.Cancel.performed -= OnUICancelPerformed;
 
-            controls.Build.Place.performed -= OnBuildPlacePerformed;
-            controls.Build.Remove.performed -= OnBuildRemovePerformed;
-            controls.Build.Rotate.performed -= OnBuildRotatePerformed;
-            controls.Build.Cancel.performed -= OnBuildCancelPerformed;
+            controls.Battle.Select.performed -= OnBattleSelectPerformed;
+            controls.Battle.Place.performed -= OnBuildPlacePerformed;
+            controls.Battle.Remove.performed -= OnBuildRemovePerformed;
+            controls.Battle.Rotate.performed -= OnBuildRotatePerformed;
+            controls.Battle.Cancel.performed -= OnBuildCancelPerformed;
 
             controls.Dialogue.Continue.performed -= OnDialogueContinuePerformed;
             controls.Dialogue.Skip.performed -= OnDialogueSkipPerformed;
@@ -414,11 +424,16 @@ namespace Game.Framework
             DialogueCancelPerformed?.Invoke(context);
         }
 
+        private void OnBattleSelectPerformed(InputAction.CallbackContext context)
+        {
+            BattleSelectPerformed?.Invoke(context);
+        }
+
         public bool BuildPlaceHeld
         {
             get
             {
-                return initialized && controls.Build.Place.IsPressed();
+                return initialized && controls.Battle.Place.IsPressed();
             }
         }
 
@@ -426,7 +441,7 @@ namespace Game.Framework
         {
             get
             {
-                return initialized && controls.Build.Remove.IsPressed();
+                return initialized && controls.Battle.Remove.IsPressed();
             }
         }
 
@@ -434,7 +449,7 @@ namespace Game.Framework
         {
             get
             {
-                return initialized && controls.Build.Rotate.IsPressed();
+                return initialized && controls.Battle.Rotate.IsPressed();
             }
         }
 
@@ -442,7 +457,7 @@ namespace Game.Framework
         {
             get
             {
-                return initialized && controls.Build.Cancel.IsPressed();
+                return initialized && controls.Battle.Cancel.IsPressed();
             }
         }
     }

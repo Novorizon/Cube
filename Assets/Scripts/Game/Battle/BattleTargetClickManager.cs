@@ -33,8 +33,9 @@ namespace Game
 
             if (!inputRegistered)
             {
-                GameInputManager.Instance.GameplaySelectPerformed += OnGameplaySelectPerformed;
+                GameInputManager.Instance.BattleSelectPerformed += OnBattleSelectPerformed;
                 GameInputManager.Instance.GameplayCancelPerformed += OnGameplayCancelPerformed;
+
                 inputRegistered = true;
             }
 
@@ -45,7 +46,7 @@ namespace Game
         {
             if (inputRegistered && GameInputManager.IsCreated)
             {
-                GameInputManager.Instance.GameplaySelectPerformed -= OnGameplaySelectPerformed;
+                GameInputManager.Instance.BattleSelectPerformed -= OnBattleSelectPerformed;
                 GameInputManager.Instance.GameplayCancelPerformed -= OnGameplayCancelPerformed;
             }
 
@@ -86,7 +87,7 @@ namespace Game
                 Initialize();
             }
 
-            if (GameInputManager.Instance.CurrentMode != InputMode.Gameplay)
+            if (GameInputManager.Instance.CurrentMode != InputMode.Battle)
             {
                 return;
             }
@@ -109,7 +110,7 @@ namespace Game
             battleHud?.ClearTargetInfo();
         }
 
-        private void OnGameplaySelectPerformed(InputAction.CallbackContext context)
+        private void OnBattleSelectPerformed(InputAction.CallbackContext context)
         {
             if (context.canceled)
             {

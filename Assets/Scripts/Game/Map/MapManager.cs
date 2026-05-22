@@ -251,7 +251,7 @@ namespace Game
             _ = UIManager.Instance.Panels.ShowAsync("Assets/Arts/UI/TowerDefense/Prefabs/BattleHud.prefab");
             BaseManager.Instance.LoadBase(mapConfig.BaseLife);
 
-            GameInputManager.Instance.SetMode(InputMode.Build);
+            GameInputManager.Instance.SetMode(InputMode.Battle);
 
             if (!DataManager.Instance.LoadWave(mapConfig.WaveNormal))
             {
