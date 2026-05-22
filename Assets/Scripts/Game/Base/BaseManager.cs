@@ -1,5 +1,4 @@
 using Game.Framework;
-using System;
 using UnityEngine;
 
 namespace Game
@@ -13,13 +12,13 @@ namespace Game
         private int currentLife;
         private bool initialized;
 
-        public int MaxLife=> maxLife;
+        public int MaxLife => maxLife;
 
         public int CurrentLife => currentLife;
 
-        public bool IsDead=>initialized && currentLife <= 0;
+        public bool IsDead => initialized && currentLife <= 0;
 
-        public bool HasBaseObject=> baseObject != null;
+        public bool HasBaseObject => baseObject != null;
 
         public Vector3 BasePosition
         {
@@ -60,6 +59,8 @@ namespace Game
             Vector3 position = GetBaseWorldPosition(goalPoint);
             baseObject = GameObject.Instantiate(prefab, position, Quaternion.identity);
             baseObject.name = "PlayerBase";
+            EnsureBaseView(baseObject);
+
             Debug.Log($"Load base success. GoalPoint: {goalPoint}, Position: {position}");
 
             maxLife = Mathf.Max(1, life);
@@ -109,6 +110,19 @@ namespace Game
             if (currentLife <= 0)
             {
                 Debug.Log("Base destroyed. Game over.");
+            }
+        }
+
+        private void EnsureBaseView(GameObject target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            if (target.GetComponent<BaseView>() == null)
+            {
+                target.AddComponent<BaseView>();
             }
         }
 
