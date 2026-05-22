@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game
@@ -31,6 +32,25 @@ namespace Game
     }
 
     [Serializable]
+    public struct TdInfoSlotData
+    {
+        public string Key;
+        public string Name;
+        public string Value;
+        public string AddValue;
+        public bool Visible;
+
+        public TdInfoSlotData(string key, string name, string value, string addValue = null, bool visible = true)
+        {
+            Key = key;
+            Name = name;
+            Value = value;
+            AddValue = addValue;
+            Visible = visible;
+        }
+    }
+
+    [Serializable]
     public struct TdTargetRuntimeInfo
     {
         public TdTargetInfoType Type;
@@ -52,6 +72,8 @@ namespace Game
         public int SellGold;
         public bool CanUpgrade;
         public bool CanSell;
+
+        public List<TdInfoSlotData> InfoSlots;
     }
 
     [Serializable]
@@ -68,5 +90,6 @@ namespace Game
         public int UpgradeCost;
         public int SellGold;
         public bool CanUpgrade;
+        public List<TdInfoSlotData> InfoSlots;
     }
 }
