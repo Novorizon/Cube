@@ -7,7 +7,7 @@ namespace Game
 {
     /// <summary>
     /// TD 战斗内目标选择管理器。
-    /// 不主动轮询输入，订阅 GameInputManager 的 Gameplay.Attack 事件。
+    /// 不主动轮询输入，订阅 GameInputManager 的 GameplaySelectPerformed 事件。
     /// </summary>
     public sealed class BattleTargetClickManager : Singleton<BattleTargetClickManager>
     {
@@ -33,7 +33,8 @@ namespace Game
 
             if (!inputRegistered)
             {
-                GameInputManager.Instance.AttackPerformed += OnAttackPerformed;
+                GameInputManager.Instance.GameplaySelectPerformed += OnGameplaySelectPerformed;
+                GameInputManager.Instance.GameplayCancelPerformed += OnGameplayCancelPerformed;
                 inputRegistered = true;
             }
 
@@ -44,7 +45,8 @@ namespace Game
         {
             if (inputRegistered && GameInputManager.IsCreated)
             {
-                GameInputManager.Instance.AttackPerformed -= OnAttackPerformed;
+                GameInputManager.Instance.GameplaySelectPerformed -= OnGameplaySelectPerformed;
+                GameInputManager.Instance.GameplayCancelPerformed -= OnGameplayCancelPerformed;
             }
 
             inputRegistered = false;
@@ -75,7 +77,7 @@ namespace Game
 
         /// <summary>
         /// 外部如果有特殊输入入口，也可以直接调用这个方法。
-        /// 默认情况下由 GameInputManager.AttackPerformed 调用。
+        /// 默认情况下由 GameInputManager.GameplaySelectPerformed 调用。
         /// </summary>
         public void SelectByScreenPosition(Vector2 screenPosition, bool ignoreClickOnUi = true)
         {
@@ -107,7 +109,7 @@ namespace Game
             battleHud?.ClearTargetInfo();
         }
 
-        private void OnAttackPerformed(InputAction.CallbackContext context)
+        private void OnGameplaySelectPerformed(InputAction.CallbackContext context)
         {
             if (context.canceled)
             {
@@ -116,6 +118,16 @@ namespace Game
 
             Vector2 screenPosition = GameInputManager.Instance.PointerPosition;
             SelectByScreenPosition(screenPosition);
+        }
+
+        private void OnGameplayCancelPerformed(InputAction.CallbackContext context)
+        {
+            if (context.canceled)
+            {
+                return;
+            }
+
+            ClearSelection();
         }
 
         private bool IsPointerOverUi()
