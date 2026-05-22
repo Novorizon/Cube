@@ -19,53 +19,5 @@
     <var name="enable" type="bool" comment="client" />
   </bean>
 
-  <bean name="SkillActionConfig">
-    <var name="id" type="int" comment="client" />
-    <var name="groupId" type="int" comment="client" />
-    <var name="order" type="int" comment="client" />
-    <var name="actionType" type="int" comment="client" />
-    <var name="targetType" type="int" comment="client" />
-    <var name="value" type="float" comment="client" />
-    <var name="radius" type="float" comment="client" />
-    <var name="duration" type="float" comment="client" />
-    <var name="modifierId" type="int" comment="client" />
-    <var name="damageType" type="int" comment="client" />
-    <var name="effectLocation" type="string" comment="client" />
-    <var name="soundLocation" type="string" comment="client" />
-  </bean>
-
-  <bean name="SkillModifierConfig">
-    <var name="id" type="int" comment="client" />
-    <var name="name" type="string" comment="client" />
-    <var name="modifierType" type="int" comment="client" />
-    <var name="isDebuff" type="bool" comment="client" />
-    <var name="isHidden" type="bool" comment="client" />
-    <var name="isPurgable" type="bool" comment="client" />
-    <var name="removeOnDeath" type="bool" comment="client" />
-    <var name="duration" type="float" comment="client" />
-    <var name="interval" type="float" comment="client" />
-    <var name="maxStack" type="int" comment="client" />
-    <var name="propertyType" type="int" comment="client" />
-    <var name="propertyValue" type="float" comment="client" />
-    <var name="state" type="int" comment="client" />
-    <var name="triggerEventType" type="int" comment="client" />
-    <var name="triggerActionGroupId" type="int" comment="client" />
-    <var name="periodicActionGroupId" type="int" comment="client" />
-    <var name="onCreatedActionGroupId" type="int" comment="client" />
-    <var name="onDestroyActionGroupId" type="int" comment="client" />
-    <var name="effectLocation" type="string" comment="client" />
-  </bean>
-
-  <bean name="SkillSystemEnumConfig">
-    <var name="id" type="int" comment="client" />
-    <var name="group" type="string" comment="client" />
-    <var name="name" type="string" comment="client" />
-    <var name="value" type="int" comment="client" />
-    <var name="description" type="string" comment="client" />
-  </bean>
-
   <table name="TbSkill" value="SkillConfig" input="skill.xlsx" mode="map" index="id" />
-  <table name="TbSkillAction" value="SkillActionConfig" input="skill_action.xlsx" mode="map" index="id" />
-  <table name="TbSkillModifier" value="SkillModifierConfig" input="skill_modifier.xlsx" mode="map" index="id" />
-  <table name="TbSkillSystemEnum" value="SkillSystemEnumConfig" input="skill_system_enum.xlsx" mode="map" index="id" />
 </module>
