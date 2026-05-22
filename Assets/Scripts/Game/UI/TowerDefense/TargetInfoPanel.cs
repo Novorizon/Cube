@@ -1,4 +1,5 @@
 using System;
+using Game.Framework;
 using TMPro;
 using UI;
 using UnityEngine;
@@ -63,6 +64,7 @@ namespace Game
         private TdTargetInfoType selectedTargetType;
         private int selectedTargetId;
         private bool initialized;
+        private Subscriber subscriber;
 
         public event Action<int> UpgradeClicked;
         public event Action<int> SellClicked;
@@ -79,6 +81,12 @@ namespace Game
 
         protected override void OnDestroyed()
         {
+            if (subscriber != null)
+            {
+                subscriber.Clear();
+                subscriber = null;
+            }
+
             if (upgradeButton != null)
             {
                 upgradeButton.onClick.RemoveListener(OnUpgradeClicked);
@@ -101,6 +109,7 @@ namespace Game
             }
 
             initialized = true;
+            RegisterMessageHandlers();
 
             if (upgradeButton != null)
             {
@@ -311,6 +320,27 @@ namespace Game
             }
 
             gameObject.SetActive(visible);
+        }
+
+        private void RegisterMessageHandlers()
+        {
+            subscriber = new Subscriber();
+
+            ISubscription targetInfoChangedSubscription = Messager.Instance.Subscribe<BattleMessageTopic, TargetInfoMessage>(BattleMessageTopic.TargetInfoChanged, OnTargetInfoMessage);
+            ISubscription targetInfoClearedSubscription = Messager.Instance.Subscribe<BattleMessageTopic, TargetInfoClearMessage>(BattleMessageTopic.TargetInfoCleared, OnTargetInfoClearMessage);
+
+            subscriber.Add(targetInfoChangedSubscription);
+            subscriber.Add(targetInfoClearedSubscription);
+        }
+
+        private void OnTargetInfoMessage(TargetInfoMessage message)
+        {
+            Show(message.Info);
+        }
+
+        private void OnTargetInfoClearMessage(TargetInfoClearMessage message)
+        {
+            ClearInfo();
         }
 
         private void OnUpgradeClicked()
