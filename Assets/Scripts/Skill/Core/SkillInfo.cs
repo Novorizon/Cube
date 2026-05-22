@@ -5,8 +5,6 @@ namespace Game.Skill
 {
     public sealed class SkillConfigData
     {
-        public static readonly SkillConfigData Empty = new SkillConfigData();
-
         public int Id;
         public string Name;
         public string Description;
@@ -119,6 +117,8 @@ namespace Game.Skill
 
     public sealed class SkillContext
     {
+        public int SkillId;
+        public int ActionGroupId;
         public SkillConfigData Config;
         public SkillRuntime Runtime;
         public ISkillUnit Caster;
