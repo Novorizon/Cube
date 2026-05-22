@@ -13,15 +13,15 @@ using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-public static class LubanBeanXmlUpdater
+public static class LubanTool
 {
-    private const string ConfigRoot = @"D:\Cube\Config";
-    private const string ExcelDir = @"D:\Cube\Assets\Data\Excel";
-    private const string XmlDir = @"D:\Cube\Config\Defines";
-    private const string GenAllBat = @"D:\Cube\Config\gen_all.bat";
+    private const string ConfigRoot = @"D:\Cube\Data";
+    private const string ExcelDir = @"D:\Cube\Data\Excel";
+    private const string XmlDir = @"D:\Cube\Data\Defines";
+    private const string GenAllBat = @"D:\Cube\Data\gen_all.bat";
 
-    [MenuItem("Tools/Luban/Update Bean Xml And Gen All")]
-    public static void UpdateBeanXmlAndGenAll()
+    [MenuItem("Tools/Luban/Update All")]
+    public static void Update()
     {
         try
         {
@@ -30,38 +30,6 @@ public static class LubanBeanXmlUpdater
 
             RunGenAllBat();
 
-            AssetDatabase.Refresh();
-
-            Debug.Log("Luban gen_all finished.");
-        }
-        catch (Exception exception)
-        {
-            Debug.LogError(exception);
-        }
-    }
-
-    [MenuItem("Tools/Luban/Only Update Bean Xml")]
-    public static void OnlyUpdateBeanXml()
-    {
-        try
-        {
-            int updateCount = UpdateAllXml();
-            AssetDatabase.Refresh();
-
-            Debug.Log("Luban bean xml update finished. Updated xml count: " + updateCount);
-        }
-        catch (Exception exception)
-        {
-            Debug.LogError(exception);
-        }
-    }
-
-    [MenuItem("Tools/Luban/Only Run Gen All")]
-    public static void OnlyRunGenAll()
-    {
-        try
-        {
-            RunGenAllBat();
             AssetDatabase.Refresh();
 
             Debug.Log("Luban gen_all finished.");
