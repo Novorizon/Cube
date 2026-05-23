@@ -2,12 +2,21 @@ using System.Collections.Generic;
 
 namespace Game.Skill
 {
+    /// <summary>
+    /// 单个技能动作处理器接口。
+    /// Action 是技能系统最小的可组合效果单元，例如伤害、治疗、添加 Modifier。
+    /// 普通技能优先通过 Excel 配置 Action；特殊技能可以新增 C# Action 实现这个接口。
+    /// </summary>
     public interface ISkillAction
     {
         SkillActionType ActionType { get; }
         void Execute(SkillActionData actionData, SkillContext context, SkillManager skillManager);
     }
 
+    /// <summary>
+    /// 根据 SkillActionType 分发到对应的 ISkillAction。
+    /// 它只负责查找和调用处理器，不保存技能配置，也不决定执行顺序。
+    /// </summary>
     public sealed class SkillActionExecutor
     {
         private readonly Dictionary<SkillActionType, ISkillAction> actionMap = new Dictionary<SkillActionType, ISkillAction>();
@@ -39,6 +48,10 @@ namespace Game.Skill
         }
     }
 
+    /// <summary>
+    /// 对上下文目标造成伤害。
+    /// 真正的扣血逻辑由业务层 ISkillUnit.TakeDamage 实现，技能底层只构造 SkillDamageInfo。
+    /// </summary>
     public sealed class DamageAction : ISkillAction
     {
         public SkillActionType ActionType
@@ -86,6 +99,10 @@ namespace Game.Skill
         }
     }
 
+    /// <summary>
+    /// 对上下文目标进行治疗。
+    /// 真正的回血逻辑由业务层 ISkillUnit.Heal 实现。
+    /// </summary>
     public sealed class HealAction : ISkillAction
     {
         public SkillActionType ActionType
@@ -131,6 +148,9 @@ namespace Game.Skill
         }
     }
 
+    /// <summary>
+    /// 给目标添加 Modifier。减速、眩晕、中毒、被动属性都通过 Modifier 表达。
+    /// </summary>
     public sealed class ApplyModifierAction : ISkillAction
     {
         public SkillActionType ActionType
@@ -165,6 +185,9 @@ namespace Game.Skill
         }
     }
 
+    /// <summary>
+    /// 发送一个技能事件。当前实现较轻量，主要用于配置驱动的事件通知。
+    /// </summary>
     public sealed class FireEventAction : ISkillAction
     {
         public SkillActionType ActionType
