@@ -3,6 +3,10 @@ using UnityEngine;
 
 namespace Game.Skill
 {
+    /// <summary>
+    /// 技能主配置数据，对应 skill.xlsx / SkillConfig。
+    /// 它描述技能本体：目标方式、施法距离、前摇、引导、冷却、消耗、ActionGroup 和被动 intrinsic modifier。
+    /// </summary>
     public sealed class SkillConfigData
     {
         public int Id;
@@ -23,6 +27,10 @@ namespace Game.Skill
         public bool Enable = true;
     }
 
+    /// <summary>
+    /// 技能动作配置数据，对应 skill_action.xlsx / SkillActionConfig。
+    /// 多行相同 GroupId 的动作组成一个动作组，按 Order 顺序执行。
+    /// </summary>
     public sealed class SkillActionData
     {
         public int Id;
@@ -39,6 +47,10 @@ namespace Game.Skill
         public string SoundLocation;
     }
 
+    /// <summary>
+    /// Modifier 配置数据，对应 skill_modifier.xlsx / SkillModifierConfig。
+    /// 用于表达 Buff、Debuff、属性修正、状态控制、周期触发和事件触发。
+    /// </summary>
     public sealed class SkillModifierData
     {
         public int Id;
@@ -62,6 +74,9 @@ namespace Game.Skill
         public string EffectLocation;
     }
 
+    /// <summary>
+    /// 传给业务单位的伤害信息。技能底层只生成信息，实际扣血由业务层实现。
+    /// </summary>
     public sealed class SkillDamageInfo
     {
         public ISkillUnit Source;
@@ -72,6 +87,9 @@ namespace Game.Skill
         public bool IsCritical;
     }
 
+    /// <summary>
+    /// 传给业务单位的治疗信息。技能底层只生成信息，实际回血由业务层实现。
+    /// </summary>
     public sealed class SkillHealInfo
     {
         public ISkillUnit Source;
@@ -80,6 +98,10 @@ namespace Game.Skill
         public float Value;
     }
 
+    /// <summary>
+    /// 单位身上某个技能的运行时状态。
+    /// 同一个 skillId 在不同 ownerRuntimeId 上拥有独立冷却、前摇和引导状态。
+    /// </summary>
     public sealed class SkillRuntime
     {
         public int SkillId;
@@ -100,6 +122,9 @@ namespace Game.Skill
         }
     }
 
+    /// <summary>
+    /// 一次释放技能的输入请求。业务层把 caster、目标单位、目标点和资源提供者填进来。
+    /// </summary>
     public sealed class SkillCastRequest
     {
         public int SkillId;
@@ -115,6 +140,10 @@ namespace Game.Skill
         }
     }
 
+    /// <summary>
+    /// Action 执行时共享的上下文。
+    /// Config 可以为空，例如 Modifier 周期触发 ActionGroup 时没有主动技能配置；此时 SkillId 仍然表示来源技能。
+    /// </summary>
     public sealed class SkillContext
     {
         public int SkillId;
@@ -129,6 +158,10 @@ namespace Game.Skill
         public ISkillEffectService EffectService;
     }
 
+    /// <summary>
+    /// 业务层传入技能系统的战斗事件，例如攻击命中、受到伤害、死亡。
+    /// Modifier 可以根据 TriggerEventType 响应这些事件。
+    /// </summary>
     public sealed class SkillTriggerEvent
     {
         public SkillTriggerEventType EventType;
@@ -139,6 +172,9 @@ namespace Game.Skill
         public float Value;
     }
 
+    /// <summary>
+    /// 同一个 groupId 下的动作组。Action 按 Order 从小到大执行。
+    /// </summary>
     public sealed class SkillActionGroup
     {
         private readonly List<SkillActionData> actions = new List<SkillActionData>();
