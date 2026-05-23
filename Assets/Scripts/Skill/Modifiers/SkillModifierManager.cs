@@ -2,6 +2,11 @@ using System.Collections.Generic;
 
 namespace Game.Skill
 {
+    /// <summary>
+    /// Modifier 生命周期系统。
+    /// Modifier 是持续状态的统一表达：减速、眩晕、中毒、被动属性、周期伤害、事件触发等都在这里管理。
+    /// 业务层不应该直接修改 Modifier 列表，而应该通过 SkillManager 暴露的方法添加、驱散或查询。
+    /// </summary>
     public sealed class SkillModifierManager
     {
         private readonly List<SkillModifierInstance> modifiers = new List<SkillModifierInstance>();
@@ -30,6 +35,9 @@ namespace Game.Skill
             modifierMap[modifierData.Id] = modifierData;
         }
 
+        /// <summary>
+        /// 注册特殊 C# Modifier 逻辑。普通 Modifier 走 DefaultSkillModifierLogic 即可。
+        /// </summary>
         public void RegisterModifierLogic(int modifierId, ISkillModifierLogic logic)
         {
             if (modifierId <= 0 || logic == null)
@@ -61,6 +69,9 @@ namespace Game.Skill
             }
         }
 
+        /// <summary>
+        /// 添加 Modifier。若目标身上已有同 id Modifier，则刷新持续时间并按 MaxStack 叠层。
+        /// </summary>
         public bool AddModifier(ISkillUnit caster, ISkillUnit target, int modifierId, float duration, int sourceSkillId = 0)
         {
             if (target == null || !modifierMap.TryGetValue(modifierId, out SkillModifierData modifierData))
@@ -95,6 +106,9 @@ namespace Game.Skill
             return true;
         }
 
+        /// <summary>
+        /// 移除 Modifier。debuffOnly 用于只驱散负面效果，purgableOnly 用于只移除可驱散效果。
+        /// </summary>
         public int RemoveModifiers(ISkillUnit unit, bool debuffOnly, bool purgableOnly)
         {
             int count = 0;
@@ -125,6 +139,10 @@ namespace Game.Skill
             return count;
         }
 
+        /// <summary>
+        /// 处理业务层传入的战斗事件，例如攻击命中、受伤、死亡。
+        /// 满足 TriggerEventType 的 Modifier 会执行配置的 TriggerActionGroup，并通知 C# ModifierLogic。
+        /// </summary>
         public void HandleTriggerEvent(SkillTriggerEvent triggerEvent)
         {
             if (triggerEvent == null || triggerEvent.EventType == SkillTriggerEventType.None)
@@ -157,6 +175,10 @@ namespace Game.Skill
             }
         }
 
+        /// <summary>
+        /// 查询某单位当前所有 Modifier 对某个属性的修正总和。
+        /// 例如 MoveSpeedPercent = -40 表示基础速度乘以 0.6。
+        /// </summary>
         public float GetProperty(ISkillUnit unit, SkillModifierPropertyType propertyType)
         {
             if (unit == null || propertyType == SkillModifierPropertyType.None)
@@ -181,6 +203,9 @@ namespace Game.Skill
             return value;
         }
 
+        /// <summary>
+        /// 查询单位是否被某种状态影响，例如 Stunned、Silenced。
+        /// </summary>
         public bool HasState(ISkillUnit unit, SkillUnitState state)
         {
             if (unit == null || state == SkillUnitState.None)
