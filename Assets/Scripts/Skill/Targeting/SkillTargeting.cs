@@ -3,6 +3,11 @@ using UnityEngine;
 
 namespace Game.Skill
 {
+    /// <summary>
+    /// 目标过滤条件。
+    /// 当前只处理最基础的阵营过滤：友方、敌方、双方。
+    /// 后续如果需要 Dota 风格的英雄/小兵/建筑/魔免/死亡单位过滤，可以继续扩展这里。
+    /// </summary>
     public sealed class SkillTargetFilter
     {
         public ISkillUnit Caster;
@@ -39,6 +44,10 @@ namespace Game.Skill
         }
     }
 
+    /// <summary>
+    /// 目标收集结果。
+    /// Action 执行时通常读取 SkillContext.Targets，而不是重新找目标。
+    /// </summary>
     public sealed class SkillTargetResult
     {
         private readonly List<ISkillUnit> units = new List<ISkillUnit>();
@@ -88,6 +97,11 @@ namespace Game.Skill
         }
     }
 
+    /// <summary>
+    /// 目标构建系统。
+    /// 根据 SkillConfigData.Behavior 解析无目标、单位目标、点目标和点选范围目标。
+    /// 它不直接访问业务对象列表，范围查找通过 ISkillWorld.FindUnits 完成。
+    /// </summary>
     public static class SkillTargetSystem
     {
         public static bool BuildTargets(SkillContext context)
