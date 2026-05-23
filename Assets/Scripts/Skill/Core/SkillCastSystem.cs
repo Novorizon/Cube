@@ -3,6 +3,11 @@ using UnityEngine;
 
 namespace Game.Skill
 {
+    /// <summary>
+    /// 施法流程系统。
+    /// 只负责“能不能放”和“什么时候真正生效”：配置注册、目标检查、资源检查、前摇、引导、冷却和打断。
+    /// 具体技能效果不在这里写，而是交给 SkillActionSystem 执行 action group。
+    /// </summary>
     public sealed class SkillCastSystem
     {
         private readonly Dictionary<int, SkillConfigData> configMap = new Dictionary<int, SkillConfigData>();
@@ -36,6 +41,10 @@ namespace Game.Skill
             UpdateCooldown(deltaTime);
         }
 
+        /// <summary>
+        /// 请求释放一个主动技能。
+        /// 如果配置了 CastPoint，这里只进入前摇，前摇结束后会再次检查目标和释放条件。
+        /// </summary>
         public bool Cast(SkillCastRequest request)
         {
             if (!TryPrepareCast(request, out SkillConfigData config, out SkillRuntime runtime, out SkillContext context))
@@ -55,6 +64,10 @@ namespace Game.Skill
             return ExecutePreparedCast(config, runtime, context, request);
         }
 
+        /// <summary>
+        /// 中断指定单位的某个技能前摇或引导。
+        /// 眩晕、死亡、移动打断等业务规则可以在业务层判定后调用这里。
+        /// </summary>
         public bool Interrupt(ISkillUnit owner, int skillId)
         {
             if (owner == null)
