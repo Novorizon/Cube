@@ -14,6 +14,10 @@ namespace Game
         public ConfigTableReader<TowerConfig> Tower { get; private set; }
         public ConfigTableReader<ItemConfig> Item { get; private set; }
         public ConfigTableReader<MapConfig> Map { get; private set; }
+        public ConfigTableReader<SkillConfig> Skill { get; private set; }
+        public ConfigTableReader<SkillActionConfig> SkillAction { get; private set; }
+        public ConfigTableReader<SkillModifierConfig> SkillModifier { get; private set; }
+        public ConfigTableReader<SkillSystemEnumConfig> SkillSystemEnum { get; private set; }
 
         /// <summary>
         /// 当前已加载地图对应的波次表。
@@ -41,6 +45,10 @@ namespace Game
             Tower = new ConfigTableReader<TowerConfig>("TbTower", tables.TbTower.DataMap);
             Item = new ConfigTableReader<ItemConfig>("TbItem", tables.TbItem.DataMap);
             Map = new ConfigTableReader<MapConfig>("TbMap", tables.TbMap.DataMap);
+            Skill = new ConfigTableReader<SkillConfig>("TbSkill", tables.TbSkill.DataMap);
+            SkillAction = new ConfigTableReader<SkillActionConfig>("TbSkillAction", tables.TbSkillAction.DataMap);
+            SkillModifier = new ConfigTableReader<SkillModifierConfig>("TbSkillModifier", tables.TbSkillModifier.DataMap);
+            SkillSystemEnum = new ConfigTableReader<SkillSystemEnumConfig>("TbSkillSystemEnum", tables.TbSkillSystemEnum.DataMap);
 
             Wave = null;
 
