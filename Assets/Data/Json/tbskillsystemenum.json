@@ -1,0 +1,359 @@
+[
+  {
+    "id": 1,
+    "group": "SkillAbilityBehavior",
+    "name": "None",
+    "value": 0,
+    "description": "None"
+  },
+  {
+    "id": 2,
+    "group": "SkillAbilityBehavior",
+    "name": "NoTarget",
+    "value": 1,
+    "description": "No target ability"
+  },
+  {
+    "id": 3,
+    "group": "SkillAbilityBehavior",
+    "name": "UnitTarget",
+    "value": 2,
+    "description": "Unit target ability"
+  },
+  {
+    "id": 4,
+    "group": "SkillAbilityBehavior",
+    "name": "PointTarget",
+    "value": 4,
+    "description": "Point target ability"
+  },
+  {
+    "id": 5,
+    "group": "SkillAbilityBehavior",
+    "name": "Passive",
+    "value": 8,
+    "description": "Passive ability"
+  },
+  {
+    "id": 6,
+    "group": "SkillAbilityBehavior",
+    "name": "Toggle",
+    "value": 16,
+    "description": "Toggle ability placeholder"
+  },
+  {
+    "id": 7,
+    "group": "SkillAbilityBehavior",
+    "name": "Channel",
+    "value": 32,
+    "description": "Channel ability"
+  },
+  {
+    "id": 8,
+    "group": "SkillAbilityBehavior",
+    "name": "Aoe",
+    "value": 64,
+    "description": "Area of effect flag"
+  },
+  {
+    "id": 9,
+    "group": "SkillTargetTeam",
+    "name": "None",
+    "value": 0,
+    "description": "None"
+  },
+  {
+    "id": 10,
+    "group": "SkillTargetTeam",
+    "name": "Friendly",
+    "value": 1,
+    "description": "Friendly target"
+  },
+  {
+    "id": 11,
+    "group": "SkillTargetTeam",
+    "name": "Enemy",
+    "value": 2,
+    "description": "Enemy target"
+  },
+  {
+    "id": 12,
+    "group": "SkillTargetTeam",
+    "name": "Both",
+    "value": 3,
+    "description": "Both teams"
+  },
+  {
+    "id": 13,
+    "group": "SkillTargetType",
+    "name": "None",
+    "value": 0,
+    "description": "None"
+  },
+  {
+    "id": 14,
+    "group": "SkillTargetType",
+    "name": "Caster",
+    "value": 1,
+    "description": "Caster"
+  },
+  {
+    "id": 15,
+    "group": "SkillTargetType",
+    "name": "Unit",
+    "value": 2,
+    "description": "Unit"
+  },
+  {
+    "id": 16,
+    "group": "SkillTargetType",
+    "name": "Point",
+    "value": 3,
+    "description": "Point"
+  },
+  {
+    "id": 17,
+    "group": "SkillTargetType",
+    "name": "Area",
+    "value": 4,
+    "description": "Area"
+  },
+  {
+    "id": 18,
+    "group": "SkillTargetType",
+    "name": "CurrentTargets",
+    "value": 5,
+    "description": "Current context targets"
+  },
+  {
+    "id": 19,
+    "group": "SkillActionType",
+    "name": "None",
+    "value": 0,
+    "description": "None"
+  },
+  {
+    "id": 20,
+    "group": "SkillActionType",
+    "name": "Damage",
+    "value": 1,
+    "description": "Damage"
+  },
+  {
+    "id": 21,
+    "group": "SkillActionType",
+    "name": "Heal",
+    "value": 2,
+    "description": "Heal"
+  },
+  {
+    "id": 22,
+    "group": "SkillActionType",
+    "name": "ApplyModifier",
+    "value": 3,
+    "description": "Apply modifier"
+  },
+  {
+    "id": 23,
+    "group": "SkillActionType",
+    "name": "FireEvent",
+    "value": 4,
+    "description": "Fire event"
+  },
+  {
+    "id": 24,
+    "group": "SkillModifierType",
+    "name": "None",
+    "value": 0,
+    "description": "None"
+  },
+  {
+    "id": 25,
+    "group": "SkillModifierType",
+    "name": "Property",
+    "value": 1,
+    "description": "Property modifier"
+  },
+  {
+    "id": 26,
+    "group": "SkillModifierType",
+    "name": "Periodic",
+    "value": 2,
+    "description": "Periodic modifier"
+  },
+  {
+    "id": 27,
+    "group": "SkillModifierType",
+    "name": "State",
+    "value": 3,
+    "description": "State modifier"
+  },
+  {
+    "id": 28,
+    "group": "SkillModifierType",
+    "name": "Aura",
+    "value": 4,
+    "description": "Aura placeholder"
+  },
+  {
+    "id": 29,
+    "group": "SkillModifierPropertyType",
+    "name": "None",
+    "value": 0,
+    "description": "None"
+  },
+  {
+    "id": 30,
+    "group": "SkillModifierPropertyType",
+    "name": "MoveSpeedPercent",
+    "value": 1,
+    "description": "Move speed percent"
+  },
+  {
+    "id": 31,
+    "group": "SkillModifierPropertyType",
+    "name": "AttackSpeedPercent",
+    "value": 2,
+    "description": "Attack speed percent"
+  },
+  {
+    "id": 32,
+    "group": "SkillModifierPropertyType",
+    "name": "DamageBonus",
+    "value": 3,
+    "description": "Damage bonus"
+  },
+  {
+    "id": 33,
+    "group": "SkillModifierPropertyType",
+    "name": "ArmorBonus",
+    "value": 4,
+    "description": "Armor bonus"
+  },
+  {
+    "id": 34,
+    "group": "SkillModifierPropertyType",
+    "name": "IncomingDamagePercent",
+    "value": 5,
+    "description": "Incoming damage percent"
+  },
+  {
+    "id": 35,
+    "group": "SkillModifierPropertyType",
+    "name": "OutgoingDamagePercent",
+    "value": 6,
+    "description": "Outgoing damage percent"
+  },
+  {
+    "id": 36,
+    "group": "SkillUnitState",
+    "name": "None",
+    "value": 0,
+    "description": "None"
+  },
+  {
+    "id": 37,
+    "group": "SkillUnitState",
+    "name": "Stunned",
+    "value": 1,
+    "description": "Stunned"
+  },
+  {
+    "id": 38,
+    "group": "SkillUnitState",
+    "name": "Silenced",
+    "value": 2,
+    "description": "Silenced"
+  },
+  {
+    "id": 39,
+    "group": "SkillUnitState",
+    "name": "Rooted",
+    "value": 3,
+    "description": "Rooted"
+  },
+  {
+    "id": 40,
+    "group": "SkillUnitState",
+    "name": "Invulnerable",
+    "value": 4,
+    "description": "Invulnerable"
+  },
+  {
+    "id": 41,
+    "group": "SkillDamageType",
+    "name": "None",
+    "value": 0,
+    "description": "None"
+  },
+  {
+    "id": 42,
+    "group": "SkillDamageType",
+    "name": "Physical",
+    "value": 1,
+    "description": "Physical damage"
+  },
+  {
+    "id": 43,
+    "group": "SkillDamageType",
+    "name": "Magical",
+    "value": 2,
+    "description": "Magical damage"
+  },
+  {
+    "id": 44,
+    "group": "SkillDamageType",
+    "name": "Pure",
+    "value": 3,
+    "description": "Pure damage"
+  },
+  {
+    "id": 45,
+    "group": "SkillTriggerEventType",
+    "name": "None",
+    "value": 0,
+    "description": "None"
+  },
+  {
+    "id": 46,
+    "group": "SkillTriggerEventType",
+    "name": "AbilityCast",
+    "value": 1,
+    "description": "Ability cast"
+  },
+  {
+    "id": 47,
+    "group": "SkillTriggerEventType",
+    "name": "DamageDealt",
+    "value": 2,
+    "description": "Damage dealt"
+  },
+  {
+    "id": 48,
+    "group": "SkillTriggerEventType",
+    "name": "DamageTaken",
+    "value": 3,
+    "description": "Damage taken"
+  },
+  {
+    "id": 49,
+    "group": "SkillTriggerEventType",
+    "name": "Healed",
+    "value": 4,
+    "description": "Healed"
+  },
+  {
+    "id": 50,
+    "group": "SkillTriggerEventType",
+    "name": "AttackLanded",
+    "value": 5,
+    "description": "Attack landed"
+  },
+  {
+    "id": 51,
+    "group": "SkillTriggerEventType",
+    "name": "Death",
+    "value": 6,
+    "description": "Death"
+  }
+]
