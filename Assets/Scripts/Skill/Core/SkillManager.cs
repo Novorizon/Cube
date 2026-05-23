@@ -3,6 +3,11 @@ using UnityEngine;
 
 namespace Game.Skill
 {
+    /// <summary>
+    /// 技能系统对业务层暴露的唯一门面。
+    /// 业务层只应该通过 SkillManager 初始化、注册配置、释放技能、查询 Modifier 结果。
+    /// SkillManager 可以引用技能底层各子系统；业务层不应该直接操作子系统内部状态。
+    /// </summary>
     public sealed class SkillManager : Singleton<SkillManager>
     {
         private readonly SkillEventDispatcher eventDispatcher = new SkillEventDispatcher();
@@ -15,22 +20,55 @@ namespace Game.Skill
         private ISkillEffectService effectService;
         private bool initialized;
 
+        /// <summary>
+        /// 技能系统查询战场单位、视野、时间等信息的世界接口，由业务层适配实现。
+        /// </summary>
         public ISkillWorld World => world;
+
+        /// <summary>
+        /// 技能系统播放表现效果的接口，由业务层适配实现。
+        /// </summary>
         public ISkillEffectService EffectService => effectService;
+
+        /// <summary>
+        /// 技能事件分发器。业务层可以订阅它来刷新 UI、播放表现或记录日志。
+        /// </summary>
         public SkillEventDispatcher EventDispatcher => eventDispatcher;
+
+        /// <summary>
+        /// Modifier 子系统，负责 Buff、Debuff、状态、属性修正和周期触发。
+        /// </summary>
         public SkillModifierManager ModifierManager => modifierManager;
+
+        /// <summary>
+        /// 单位技能持有关系。用于被动技能、技能栏、单位拥有技能的释放方式。
+        /// </summary>
         public SkillAbilityBook AbilityBook => abilityBook;
+
+        /// <summary>
+        /// Action 子系统，负责根据 groupId 执行技能动作组。
+        /// </summary>
         public SkillActionSystem ActionSystem => actionSystem;
+
+        /// <summary>
+        /// 施法子系统，负责释放检查、前摇、引导、冷却和资源消耗。
+        /// </summary>
         public SkillCastSystem CastSystem => castSystem;
 
         public SkillManager()
         {
+            // 当前实现中，子系统仍通过注入的 SkillManager 门面互相访问。
+            // 这避免了 SkillManager.Instance 硬引用，但仍不是完全单向依赖。
+            // 未来如果继续收敛，可以用 SkillRuntimeServices 代替这里的门面反向引用。
             actionSystem = new SkillActionSystem(this);
             modifierManager = new SkillModifierManager();
             abilityBook = new SkillAbilityBook(this);
             castSystem = new SkillCastSystem(this);
         }
 
+        /// <summary>
+        /// 初始化技能系统。业务层必须先提供世界接口和表现接口，再注册配置和释放技能。
+        /// </summary>
         public void Initialize(ISkillWorld world, ISkillEffectService effectService)
         {
             this.world = world;
@@ -46,6 +84,9 @@ namespace Game.Skill
             Debug.Log("SkillManager initialized.");
         }
 
+        /// <summary>
+        /// 每帧驱动施法、冷却、引导和 Modifier 生命周期。
+        /// </summary>
         public void Update(float deltaTime)
         {
             if (!initialized)
