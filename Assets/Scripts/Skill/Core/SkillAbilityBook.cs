@@ -2,6 +2,10 @@ using System.Collections.Generic;
 
 namespace Game.Skill
 {
+    /// <summary>
+    /// 单个单位拥有的技能记录。
+    /// 这里保存业务层适配出来的 owner、技能配置，以及该技能释放时使用的资源提供者。
+    /// </summary>
     public sealed class SkillAbilityRecord
     {
         public ISkillUnit Owner;
@@ -10,6 +14,11 @@ namespace Game.Skill
         public bool IntrinsicModifierAdded;
     }
 
+    /// <summary>
+    /// 单位技能持有表。
+    /// 它解决“某个单位拥有哪些技能”以及“被动技能自动挂 intrinsic modifier”的问题。
+    /// 当前塔防最小闭环可以先直接调用 SkillManager.Cast，不一定必须使用 AbilityBook。
+    /// </summary>
     public sealed class SkillAbilityBook
     {
         private readonly Dictionary<int, List<SkillAbilityRecord>> ownerAbilityMap = new Dictionary<int, List<SkillAbilityRecord>>();
@@ -20,6 +29,9 @@ namespace Game.Skill
             this.skillManager = skillManager;
         }
 
+        /// <summary>
+        /// 给单位添加技能。若配置了 intrinsicModifierId，会自动给 owner 添加一个永久 Modifier。
+        /// </summary>
         public bool AddAbility(ISkillUnit owner, SkillConfigData config, ISkillResourceOwner resourceOwner = null)
         {
             if (owner == null || config == null)
@@ -71,6 +83,9 @@ namespace Game.Skill
             return FindAbility(abilities, skillId) != null;
         }
 
+        /// <summary>
+        /// 释放 owner 已拥有的技能。适合英雄技能栏、塔拥有固定技能等场景。
+        /// </summary>
         public bool Cast(ISkillUnit owner, int skillId, ISkillUnit targetUnit = null)
         {
             if (!TryGetAbility(owner, skillId, out SkillAbilityRecord record))
