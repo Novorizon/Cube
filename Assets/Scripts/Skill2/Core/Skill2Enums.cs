@@ -1,0 +1,221 @@
+using System;
+
+namespace Skill2
+{
+    [Flags]
+    public enum SkillAbilityBehavior
+    {
+        None = 0,
+        Hidden = 1 << 0,
+        Passive = 1 << 1,
+        NoTarget = 1 << 2,
+        UnitTarget = 1 << 3,
+        PointTarget = 1 << 4,
+        Aoe = 1 << 5,
+        Channelled = 1 << 6,
+        Toggle = 1 << 7,
+        Immediate = 1 << 8,
+        RootDisables = 1 << 9,
+        AutoCast = 1 << 10,
+        OptionalUnitTarget = 1 << 11,
+        Directional = 1 << 12
+    }
+
+    [Flags]
+    public enum SkillTargetTeam
+    {
+        None = 0,
+        Friendly = 1 << 0,
+        Enemy = 1 << 1,
+        Both = Friendly | Enemy
+    }
+
+    [Flags]
+    public enum SkillUnitType
+    {
+        None = 0,
+        Hero = 1 << 0,
+        Basic = 1 << 1,
+        Building = 1 << 2,
+        Creep = 1 << 3,
+        Ward = 1 << 4,
+        Other = 1 << 5,
+        All = Hero | Basic | Building | Creep | Ward | Other
+    }
+
+    [Flags]
+    public enum SkillTargetFlags
+    {
+        None = 0,
+        Dead = 1 << 0,
+        MagicImmuneEnemies = 1 << 1,
+        Invulnerable = 1 << 2,
+        IncludeSelf = 1 << 3,
+        ExcludeSelf = 1 << 4,
+        VisibleOnly = 1 << 5,
+        IgnoreLineOfSight = 1 << 6,
+        Untargetable = 1 << 7
+    }
+
+    [Flags]
+    public enum SkillUnitState
+    {
+        None = 0,
+        Stunned = 1 << 0,
+        Silenced = 1 << 1,
+        Muted = 1 << 2,
+        Rooted = 1 << 3,
+        Disarmed = 1 << 4,
+        Hexed = 1 << 5,
+        Invulnerable = 1 << 6,
+        MagicImmune = 1 << 7,
+        OutOfGame = 1 << 8,
+        CommandRestricted = 1 << 9,
+        NoUnitCollision = 1 << 10,
+        Untargetable = 1 << 11
+    }
+
+    public enum SkillDamageType
+    {
+        None = 0,
+        Physical = 1,
+        Magical = 2,
+        Pure = 3
+    }
+
+    [Flags]
+    public enum SkillDamageFlags
+    {
+        None = 0,
+        NoSpellAmplification = 1 << 0,
+        HpLoss = 1 << 1,
+        NonLethal = 1 << 2,
+        IgnoreBlock = 1 << 3,
+        Reflected = 1 << 4,
+        NoDamageMultiplier = 1 << 5,
+        IgnoreInvulnerable = 1 << 6,
+        PiercesSpellImmunity = 1 << 7
+    }
+
+    [Flags]
+    public enum SkillModifierAttribute
+    {
+        None = 0,
+        Permanent = 1 << 0,
+        Multiple = 1 << 1,
+        IgnoreInvulnerable = 1 << 2,
+        Aura = 1 << 3,
+        NoDurationRefresh = 1 << 4,
+        StackIndependent = 1 << 5
+    }
+
+    public enum SkillModifierProperty
+    {
+        None = 0,
+        MoveSpeedBonusPercent = 1,
+        AttackSpeedBonus = 2,
+        DamageOutgoingPercent = 3,
+        DamageIncomingPercent = 4,
+        SpellAmplifyPercent = 5,
+        ArmorBonus = 6,
+        HealthRegen = 7,
+        CooldownReductionPercent = 8,
+        CastRangeBonus = 9
+    }
+
+    public enum SkillModifierEventType
+    {
+        None = 0,
+        OrderIssued = 1,
+        AbilityExecuted = 2,
+        AbilityFullyCast = 3,
+        ChannelFinished = 4,
+        DamageCalculated = 5,
+        DamageDealt = 6,
+        DamageTaken = 7,
+        Healed = 8,
+        AttackStart = 9,
+        AttackLanded = 10,
+        Death = 11,
+        ProjectileHit = 12,
+        ModifierAdded = 13,
+        ModifierRemoved = 14
+    }
+
+    public enum SkillCastFailureReason
+    {
+        None = 0,
+        MissingAbility = 1,
+        AbilityHidden = 2,
+        AbilityPassive = 3,
+        NotTrained = 4,
+        NotActivated = 5,
+        DeadCaster = 6,
+        Stunned = 7,
+        Silenced = 8,
+        Rooted = 9,
+        Cooldown = 10,
+        NoCharges = 11,
+        NotEnoughMana = 12,
+        InvalidTarget = 13,
+        OutOfRange = 14,
+        NoVision = 15,
+        Channeling = 16,
+        Casting = 17,
+        CustomRejected = 18
+    }
+
+    public enum SkillAbilityPhase
+    {
+        Idle = 0,
+        Casting = 1,
+        Channeling = 2
+    }
+
+    public enum SkillEventType
+    {
+        AbilityAdded = 1,
+        AbilityRemoved = 2,
+        CastStarted = 3,
+        CastFailed = 4,
+        SpellStarted = 5,
+        AbilityFullyCast = 6,
+        ChannelStarted = 7,
+        ChannelFinished = 8,
+        ToggleChanged = 9,
+        CooldownStarted = 10,
+        CooldownFinished = 11,
+        ChargeChanged = 12,
+        ModifierAdded = 13,
+        ModifierRemoved = 14,
+        DamageApplied = 15,
+        HealApplied = 16,
+        ProjectileCreated = 17,
+        ProjectileHit = 18,
+        ProjectileDestroyed = 19,
+        ThinkerCreated = 20,
+        ThinkerDestroyed = 21
+    }
+
+    public enum SkillActionType
+    {
+        None = 0,
+        Damage = 1,
+        Heal = 2,
+        AddModifier = 3,
+        Purge = 4,
+        CreateTrackingProjectile = 5,
+        CreateLinearProjectile = 6,
+        PlayEffect = 7,
+        PlaySound = 8
+    }
+
+    public enum SkillActionTarget
+    {
+        None = 0,
+        Caster = 1,
+        PrimaryTarget = 2,
+        ContextTargets = 3,
+        Point = 4
+    }
+}
