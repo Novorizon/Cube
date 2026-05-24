@@ -1,4 +1,4 @@
-using Ability;
+using Game.Ability;
 using UnityEngine;
 
 namespace Game

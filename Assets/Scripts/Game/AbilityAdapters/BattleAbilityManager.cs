@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Game.Framework;
-using Ability;
+using Game.Ability;
 using UnityEngine;
-using RuntimeAbility = Ability.Ability;
+using RuntimeAbility = Game.Ability.Ability;
 
 namespace Game
 {

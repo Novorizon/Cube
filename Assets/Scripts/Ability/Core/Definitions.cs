@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Ability
+namespace Game.Ability
 {
     [Serializable]
     public sealed class LevelValue

@@ -1,6 +1,6 @@
 using System;
 
-namespace Ability
+namespace Game.Ability
 {
     [Flags]
     public enum AbilityBehavior

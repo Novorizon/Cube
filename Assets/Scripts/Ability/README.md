@@ -1,6 +1,6 @@
 # Ability
 
-`Ability` is an independent Dota-style ability runtime. It intentionally lives outside the simplified `Game.Skill` module and uses the `Ability` namespace.
+`Ability` is an independent Dota-style ability runtime. It intentionally lives outside the simplified `Game.Skill` module and uses the `Game.Ability` namespace.
 
 ## Main Concepts
 

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Ability
+namespace Game.Ability
 {
     public sealed class AbilitySystem
     {

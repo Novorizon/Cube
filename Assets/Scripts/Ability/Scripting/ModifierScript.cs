@@ -1,4 +1,4 @@
-namespace Ability
+namespace Game.Ability
 {
     public abstract class ModifierScript
     {
