@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Framework;
 using Ability;
 using UnityEngine;
+using RuntimeAbility = Ability.Ability;
 
 namespace Game
 {
@@ -96,22 +97,22 @@ namespace Game
             return baseUnit;
         }
 
-        public Ability AddAbilityToNpc(Npc npc, int skillId, int level = 1)
+        public RuntimeAbility AddAbilityToNpc(Npc npc, int skillId, int level = 1)
         {
             return AddAbility(GetUnit(npc), skillId, level);
         }
 
-        public Ability AddAbilityToTower(Tower tower, int skillId, int level = 1)
+        public RuntimeAbility AddAbilityToTower(Tower tower, int skillId, int level = 1)
         {
             return AddAbility(GetUnit(tower), skillId, level);
         }
 
-        public Ability AddAbilityToBase(int skillId, int level = 1)
+        public RuntimeAbility AddAbilityToBase(int skillId, int level = 1)
         {
             return AddAbility(GetBaseUnit(), skillId, level);
         }
 
-        public Ability AddAbility(IUnit owner, int skillId, int level = 1)
+        public RuntimeAbility AddAbility(IUnit owner, int skillId, int level = 1)
         {
             if (!initialized || owner == null)
             {
@@ -130,7 +131,7 @@ namespace Game
 
         public CastResult CastAbility(IUnit caster, int skillId)
         {
-            Ability ability = EnsureAbility(caster, skillId);
+            RuntimeAbility ability = EnsureAbility(caster, skillId);
             if (ability == null)
             {
                 return CastResult.Fail(CastFailureReason.MissingAbility);
@@ -141,7 +142,7 @@ namespace Game
 
         public CastResult CastAbilityOnTarget(IUnit caster, int skillId, IUnit target)
         {
-            Ability ability = EnsureAbility(caster, skillId);
+            RuntimeAbility ability = EnsureAbility(caster, skillId);
             if (ability == null)
             {
                 return CastResult.Fail(CastFailureReason.MissingAbility);
@@ -152,7 +153,7 @@ namespace Game
 
         public CastResult CastAbilityOnPosition(IUnit caster, int skillId, Vector3 position)
         {
-            Ability ability = EnsureAbility(caster, skillId);
+            RuntimeAbility ability = EnsureAbility(caster, skillId);
             if (ability == null)
             {
                 return CastResult.Fail(CastFailureReason.MissingAbility);
@@ -178,7 +179,7 @@ namespace Game
 
         public CastResult CastAbilityAtBestTarget(IUnit caster, int skillId)
         {
-            Ability ability = EnsureAbility(caster, skillId);
+            RuntimeAbility ability = EnsureAbility(caster, skillId);
             if (ability == null)
             {
                 return CastResult.Fail(CastFailureReason.MissingAbility);
@@ -338,7 +339,7 @@ namespace Game
             return Engine.AddModifier(unit, unit, AbilityConfigConverter.ModifierName(modifierId), duration);
         }
 
-        private Ability EnsureAbility(IUnit caster, int skillId)
+        private RuntimeAbility EnsureAbility(IUnit caster, int skillId)
         {
             if (!initialized || caster == null)
             {
@@ -346,7 +347,7 @@ namespace Game
             }
 
             string abilityName = AbilityConfigConverter.AbilityName(skillId);
-            Ability ability = Engine.FindAbility(caster, abilityName);
+            RuntimeAbility ability = Engine.FindAbility(caster, abilityName);
             if (ability != null)
             {
                 return ability;

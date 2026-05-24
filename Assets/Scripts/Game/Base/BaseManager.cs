@@ -113,6 +113,39 @@ namespace Game
             }
         }
 
+        public void Heal(int amount)
+        {
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            if (currentLife <= 0)
+            {
+                return;
+            }
+
+            int before = currentLife;
+            currentLife += amount;
+
+            if (currentLife > maxLife)
+            {
+                currentLife = maxLife;
+            }
+
+            if (currentLife == before)
+            {
+                return;
+            }
+
+            BaseLifeMessage message = new BaseLifeMessage();
+            message.CurrentLife = currentLife;
+            message.MaxLife = maxLife;
+            Messager.Instance.Notify(BattleMessageTopic.BaseLifeChanged, message);
+
+            Debug.Log($"Base healed. Heal: {currentLife - before}, Life: {currentLife}/{maxLife}");
+        }
+
         private void EnsureBaseView(GameObject target)
         {
             if (target == null)
