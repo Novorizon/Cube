@@ -11,7 +11,7 @@ namespace Game
     /// Game-layer facade for the ability runtime.
     /// It adapts TD managers/config tables to Game.Ability and is the intended business entry point.
     /// </summary>
-    public sealed class BattleAbilityManager : Singleton<BattleAbilityManager>
+    public sealed class AbilityManager : Singleton<AbilityManager>
     {
         private const float GlobalSearchRadius = 9999f;
 
@@ -36,7 +36,7 @@ namespace Game
             RegisterDefinitions();
 
             initialized = true;
-            Debug.Log("BattleAbilityManager initialized.");
+            Debug.Log("AbilityManager initialized.");
             return true;
         }
 

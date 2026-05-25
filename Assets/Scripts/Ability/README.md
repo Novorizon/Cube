@@ -17,7 +17,7 @@
 ## Integration Boundary
 
 Business code implements `IUnit`, `IResourceOwner`, `IWorld`, and `IPresentation`.
-This project provides TD adapters under `Assets/Scripts/Game/AbilityAdapters`, with `BattleAbilityManager` as the business-facing facade.
+This project provides TD adapters under `Assets/Scripts/Game/AbilityAdapters`, with `AbilityManager` as the business-facing facade.
 
 ## Business Calls
 

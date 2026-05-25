@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="AbilityActionConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="groupId" type="int" comment="client" />
+    <var name="order" type="int" comment="client" />
+    <var name="actionType" type="int" comment="client" />
+    <var name="target" type="int" comment="client" />
+    <var name="value" type="string" comment="client" />
+    <var name="valueSpecialName" type="string" comment="client" />
+    <var name="duration" type="string" comment="client" />
+    <var name="durationSpecialName" type="string" comment="client" />
+    <var name="damageType" type="int" comment="client" />
+    <var name="damageFlags" type="int" comment="client" />
+    <var name="modifierId" type="int" comment="client" />
+    <var name="projectileId" type="int" comment="client" />
+    <var name="purgePositiveBuffs" type="bool" comment="client" />
+    <var name="purgeDebuffs" type="bool" comment="client" />
+    <var name="purgeOnlyPurgable" type="bool" comment="client" />
+    <var name="effectName" type="string" comment="client" />
+    <var name="soundName" type="string" comment="client" />
+  </bean>
+
+  <table name="TbAbilityActionConfig" value="AbilityActionConfig" input="AbilityAction.xlsx" mode="map" index="id" />
+</module>

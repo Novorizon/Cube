@@ -9,4 +9,11 @@
   <include name="skill_action.xml" />
   <include name="skill_modifier.xml" />
   <include name="skill_system_enum.xml" />
+  <include name="ability_config.xml" />
+  <include name="ability_action.xml" />
+  <include name="ability_modifier.xml" />
+  <include name="ability_modifier_property.xml" />
+  <include name="ability_projectile.xml" />
+  <include name="ability_special_value.xml" />
+  <include name="ability_system_enum.xml" />
 </module>

@@ -13,6 +13,13 @@ namespace Game
 {
 public partial class Tables
 {
+    public TbAbilityActionConfig TbAbilityActionConfig {get; }
+    public TbAbilityConfig TbAbilityConfig {get; }
+    public TbAbilityModifierConfig TbAbilityModifierConfig {get; }
+    public TbAbilityModifierPropertyConfig TbAbilityModifierPropertyConfig {get; }
+    public TbAbilityProjectileConfig TbAbilityProjectileConfig {get; }
+    public TbAbilitySpecialValueConfig TbAbilitySpecialValueConfig {get; }
+    public TbAbilitySystemEnumConfig TbAbilitySystemEnumConfig {get; }
     public TbItem TbItem {get; }
     public TbMap TbMap {get; }
     public TbNpc TbNpc {get; }
@@ -25,6 +32,13 @@ public partial class Tables
 
     public Tables(System.Func<string, ByteBuf> loader)
     {
+        TbAbilityActionConfig = new TbAbilityActionConfig(loader("tbabilityactionconfig"));
+        TbAbilityConfig = new TbAbilityConfig(loader("tbabilityconfig"));
+        TbAbilityModifierConfig = new TbAbilityModifierConfig(loader("tbabilitymodifierconfig"));
+        TbAbilityModifierPropertyConfig = new TbAbilityModifierPropertyConfig(loader("tbabilitymodifierpropertyconfig"));
+        TbAbilityProjectileConfig = new TbAbilityProjectileConfig(loader("tbabilityprojectileconfig"));
+        TbAbilitySpecialValueConfig = new TbAbilitySpecialValueConfig(loader("tbabilityspecialvalueconfig"));
+        TbAbilitySystemEnumConfig = new TbAbilitySystemEnumConfig(loader("tbabilitysystemenumconfig"));
         TbItem = new TbItem(loader("tbitem"));
         TbMap = new TbMap(loader("tbmap"));
         TbNpc = new TbNpc(loader("tbnpc"));
@@ -39,6 +53,13 @@ public partial class Tables
     
     private void ResolveRef()
     {
+        TbAbilityActionConfig.ResolveRef(this);
+        TbAbilityConfig.ResolveRef(this);
+        TbAbilityModifierConfig.ResolveRef(this);
+        TbAbilityModifierPropertyConfig.ResolveRef(this);
+        TbAbilityProjectileConfig.ResolveRef(this);
+        TbAbilitySpecialValueConfig.ResolveRef(this);
+        TbAbilitySystemEnumConfig.ResolveRef(this);
         TbItem.ResolveRef(this);
         TbMap.ResolveRef(this);
         TbNpc.ResolveRef(this);

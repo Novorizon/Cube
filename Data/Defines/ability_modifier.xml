@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="AbilityModifierConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="name" type="string" comment="client" />
+    <var name="displayName" type="string" comment="client" />
+    <var name="isHidden" type="bool" comment="client" />
+    <var name="isDebuff" type="bool" comment="client" />
+    <var name="isPurgable" type="bool" comment="client" />
+    <var name="removeOnDeath" type="bool" comment="client" />
+    <var name="duration" type="float" comment="client" />
+    <var name="interval" type="float" comment="client" />
+    <var name="maxStack" type="int" comment="client" />
+    <var name="attributes" type="int" comment="client" />
+    <var name="states" type="int" comment="client" />
+    <var name="propertyGroupId" type="int" comment="client" />
+    <var name="onCreatedActionGroupId" type="int" comment="client" />
+    <var name="onRefreshActionGroupId" type="int" comment="client" />
+    <var name="onDestroyActionGroupId" type="int" comment="client" />
+    <var name="intervalActionGroupId" type="int" comment="client" />
+    <var name="triggerEventType" type="int" comment="client" />
+    <var name="triggerActionGroupId" type="int" comment="client" />
+    <var name="auraModifierId" type="int" comment="client" />
+    <var name="auraRadius" type="float" comment="client" />
+    <var name="auraDuration" type="float" comment="client" />
+    <var name="auraThinkInterval" type="float" comment="client" />
+    <var name="auraTargetTeam" type="int" comment="client" />
+    <var name="auraTargetType" type="int" comment="client" />
+    <var name="auraTargetFlags" type="int" comment="client" />
+    <var name="scriptName" type="string" comment="client" />
+  </bean>
+
+  <table name="TbAbilityModifierConfig" value="AbilityModifierConfig" input="AbilityModifier.xlsx" mode="map" index="id" />
+</module>

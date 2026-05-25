@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="AbilityProjectileConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="name" type="string" comment="client" />
+    <var name="speed" type="float" comment="client" />
+    <var name="radius" type="float" comment="client" />
+    <var name="distance" type="float" comment="client" />
+    <var name="deleteOnHit" type="bool" comment="client" />
+    <var name="providesVision" type="bool" comment="client" />
+    <var name="visionRadius" type="float" comment="client" />
+    <var name="targetTeam" type="int" comment="client" />
+    <var name="targetType" type="int" comment="client" />
+    <var name="targetFlags" type="int" comment="client" />
+    <var name="effectName" type="string" comment="client" />
+    <var name="soundName" type="string" comment="client" />
+  </bean>
+
+  <table name="TbAbilityProjectileConfig" value="AbilityProjectileConfig" input="AbilityProjectile.xlsx" mode="map" index="id" />
+</module>

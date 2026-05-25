@@ -10,9 +10,9 @@ namespace Game
     /// </summary>
     public sealed class TdWorld : IWorld
     {
-        private readonly BattleAbilityManager owner;
+        private readonly AbilityManager owner;
 
-        public TdWorld(BattleAbilityManager owner)
+        public TdWorld(AbilityManager owner)
         {
             this.owner = owner;
         }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="AbilityConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="name" type="string" comment="client" />
+    <var name="displayName" type="string" comment="client" />
+    <var name="description" type="string" comment="client" />
+    <var name="icon" type="string" comment="client" />
+    <var name="maxLevel" type="int" comment="client" />
+    <var name="behavior" type="int" comment="client" />
+    <var name="targetTeam" type="int" comment="client" />
+    <var name="targetType" type="int" comment="client" />
+    <var name="targetFlags" type="int" comment="client" />
+    <var name="castRange" type="string" comment="client" />
+    <var name="aoeRadius" type="string" comment="client" />
+    <var name="castPoint" type="string" comment="client" />
+    <var name="castBackswing" type="string" comment="client" />
+    <var name="channelTime" type="string" comment="client" />
+    <var name="cooldown" type="string" comment="client" />
+    <var name="manaCost" type="string" comment="client" />
+    <var name="maxCharges" type="int" comment="client" />
+    <var name="chargeRestoreTime" type="float" comment="client" />
+    <var name="startFullCharges" type="bool" comment="client" />
+    <var name="chargeUsesCooldown" type="bool" comment="client" />
+    <var name="actionGroupId" type="int" comment="client" />
+    <var name="intrinsicModifierId" type="int" comment="client" />
+    <var name="scriptName" type="string" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbAbilityConfig" value="AbilityConfig" input="AbilityConfig.xlsx" mode="map" index="id" />
+</module>

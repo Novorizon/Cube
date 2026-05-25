@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="AbilityModifierPropertyConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="groupId" type="int" comment="client" />
+    <var name="property" type="int" comment="client" />
+    <var name="value" type="float" comment="client" />
+  </bean>
+
+  <table name="TbAbilityModifierPropertyConfig" value="AbilityModifierPropertyConfig" input="AbilityModifierProperty.xlsx" mode="map" index="id" />
+</module>
