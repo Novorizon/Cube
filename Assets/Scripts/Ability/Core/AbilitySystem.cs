@@ -4,12 +4,18 @@ using UnityEngine;
 
 namespace Game.Ability
 {
+    /// <summary>
+    /// Central runtime for definitions, ability instances, modifiers, thinkers, and projectiles.
+    /// It is intentionally Game-agnostic: all business state is reached through adapters.
+    /// </summary>
     public sealed class AbilitySystem
     {
+        // Definitions and script factories are registered once, then reused by runtime instances.
         private readonly Dictionary<string, AbilityDefinition> abilityDefinitions = new Dictionary<string, AbilityDefinition>();
         private readonly Dictionary<string, ModifierDefinition> modifierDefinitions = new Dictionary<string, ModifierDefinition>();
         private readonly Dictionary<string, Func<AbilityScript>> abilityFactories = new Dictionary<string, Func<AbilityScript>>();
         private readonly Dictionary<string, Func<ModifierScript>> modifierFactories = new Dictionary<string, Func<ModifierScript>>();
+        // Runtime containers are owned by the engine so removal can clean up modifiers automatically.
         private readonly Dictionary<int, List<Ability>> abilitiesByUnit = new Dictionary<int, List<Ability>>();
         private readonly List<Modifier> modifiers = new List<Modifier>();
         private readonly List<Projectile> projectiles = new List<Projectile>();
@@ -22,6 +28,9 @@ namespace Game.Ability
         public IReadOnlyList<Thinker> Thinkers => thinkers;
         public event Action<RuntimeEvent> EventRaised;
 
+        /// <summary>
+        /// Binds engine-neutral services. Calling Initialize also clears all runtime state.
+        /// </summary>
         public void Initialize(IWorld world, IPresentation presentation = null)
         {
             World = world;
@@ -29,6 +38,9 @@ namespace Game.Ability
             ClearRuntime();
         }
 
+        /// <summary>
+        /// Removes every runtime object and invokes destruction hooks before references are dropped.
+        /// </summary>
         public void ClearRuntime()
         {
             for (int i = modifiers.Count - 1; i >= 0; i--)
@@ -106,6 +118,7 @@ namespace Game.Ability
                 return null;
             }
 
+            // One owner has one runtime instance per ability name, matching a trained ability slot.
             Ability existing = FindAbility(owner, abilityName);
             if (existing != null)
             {
@@ -179,6 +192,7 @@ namespace Game.Ability
                 return CastResult.Fail(CastFailureReason.InvalidTarget);
             }
 
+            // Modifiers see cast attempts before ability validation finishes.
             DispatchModifierEvent(new ModifierEvent { EventType = ModifierEventType.OrderIssued, Engine = this, Source = order.Caster, Target = order.Target, Order = order, Position = order.HasTargetPosition ? order.TargetPosition : order.Caster.Position });
 
             Ability ability = FindAbility(order.Caster, order.AbilityName);
@@ -209,6 +223,7 @@ namespace Game.Ability
 
         public void Update(float deltaTime)
         {
+            // Snapshot collections before ticking. Ticks may add/remove runtime objects.
             List<Ability> abilitySnapshot = new List<Ability>();
             foreach (List<Ability> abilities in abilitiesByUnit.Values)
             {
@@ -275,6 +290,7 @@ namespace Game.Ability
                 return null;
             }
 
+            // Non-Multiple modifiers refresh the existing instance instead of creating duplicates.
             if ((definition.Attributes & ModifierAttribute.Multiple) == 0)
             {
                 Modifier existing = FindRefreshableModifier(caster, parent, ability, modifierName);
@@ -304,6 +320,7 @@ namespace Game.Ability
                 return false;
             }
 
+            // Removal is the single place that fires OnDestroy and makes states/properties disappear.
             modifier.Destroy();
             DispatchModifierEvent(new ModifierEvent { EventType = ModifierEventType.ModifierRemoved, Engine = this, Source = modifier.Caster, Target = modifier.Parent, Ability = modifier.Ability, Modifier = modifier });
             RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.ModifierRemoved, Ability = modifier.Ability, Modifier = modifier, Caster = modifier.Caster, Target = modifier.Parent });
@@ -348,6 +365,7 @@ namespace Game.Ability
                 return false;
             }
 
+            // Base unit flags and modifier-granted states are both part of the final state query.
             if (state == UnitState.Invulnerable && unit.IsInvulnerable)
             {
                 return true;
@@ -381,6 +399,7 @@ namespace Game.Ability
             propertyContext.Engine = this;
             propertyContext.Unit = unit;
 
+            // Properties are additive here; multiplicative behavior can be implemented in scripts.
             float total = 0f;
             for (int i = 0; i < modifiers.Count; i++)
             {
@@ -401,6 +420,7 @@ namespace Game.Ability
                 return;
             }
 
+            // World returns broad candidates; TargetQuery applies canonical ability rules.
             List<IUnit> candidates = new List<IUnit>();
             World.FindUnits(center, radius, query, candidates);
             for (int i = 0; i < candidates.Count; i++)
@@ -451,6 +471,7 @@ namespace Game.Ability
                 return result;
             }
 
+            // Calculate in the engine, then ask the Game adapter to mutate real HP.
             float amount = Mathf.Max(0f, damageInfo.Amount);
             if ((damageInfo.Flags & DamageFlags.NoDamageMultiplier) == 0)
             {
@@ -554,6 +575,7 @@ namespace Game.Ability
                 return;
             }
 
+            // Aura effects are represented as short-lived child modifiers refreshed by the source.
             ModifierDefinition definition = aura.Definition;
             TargetQuery query = new TargetQuery { Caster = aura.Parent, Team = definition.AuraTargetTeam, Types = definition.AuraTargetType, Flags = definition.AuraTargetFlags };
             List<IUnit> units = new List<IUnit>();
@@ -571,6 +593,7 @@ namespace Game.Ability
                 return;
             }
 
+            // Snapshot event listeners because callbacks can add or remove modifiers.
             Modifier[] snapshot = modifiers.ToArray();
             for (int i = 0; i < snapshot.Length; i++)
             {

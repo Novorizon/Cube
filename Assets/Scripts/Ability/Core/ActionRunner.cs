@@ -3,8 +3,13 @@ using UnityEngine;
 
 namespace Game.Ability
 {
+    /// <summary>
+    /// Executes simple data-driven actions. Custom AbilityScript/ModifierScript code can still
+    /// call the same primitives when a skill needs logic beyond config.
+    /// </summary>
     public static class ActionRunner
     {
+        // Reused within one execution path to avoid allocations in common action loops.
         private static readonly List<IUnit> ScratchTargets = new List<IUnit>();
 
         public static void Execute(IReadOnlyList<ActionDefinition> actions, CastContext context)
@@ -27,6 +32,7 @@ namespace Game.Ability
                 return;
             }
 
+            // ActionType performs the gameplay operation; optional VFX/SFX are also played below.
             switch (action.ActionType)
             {
                 case ActionType.Damage:
@@ -211,6 +217,7 @@ namespace Game.Ability
 
         private static void ResolveTargets(ActionTarget target, CastContext context)
         {
+            // ContextTargets are pre-filtered by Targeting for AOE/no-target casts.
             ScratchTargets.Clear();
             switch (target)
             {

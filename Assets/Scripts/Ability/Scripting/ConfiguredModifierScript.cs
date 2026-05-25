@@ -1,5 +1,8 @@
 namespace Game.Ability
 {
+    /// <summary>
+    /// Default script used when a modifier is fully described by configured lifecycle actions.
+    /// </summary>
     public sealed class ConfiguredModifierScript : ModifierScript
     {
         public override void OnCreated(ModifierApplyOptions options)
@@ -34,6 +37,7 @@ namespace Game.Ability
                 return;
             }
 
+            // Trigger actions prefer the event target but fall back to the modifier parent.
             IUnit target = modifierEvent.Target ?? Parent;
             ActionRunner.Execute(Modifier.Definition.TriggerActions, CreateContext(target));
         }

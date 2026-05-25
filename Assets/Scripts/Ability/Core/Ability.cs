@@ -2,6 +2,10 @@ using UnityEngine;
 
 namespace Game.Ability
 {
+    /// <summary>
+    /// Runtime ability instance owned by one unit.
+    /// It stores level, cooldown, charges, cast point, channel state, and its C# script.
+    /// </summary>
     public sealed class Ability
     {
         public AbilitySystem Engine { get; }
@@ -21,6 +25,7 @@ namespace Game.Ability
         private float castPointRemaining;
         private float channelRemaining;
         private float chargeRestoreRemaining;
+        // Intrinsic modifiers are tied to the ability lifetime and removed with the ability.
         private Modifier intrinsicModifier;
 
         internal Ability(AbilitySystem engine, AbilityDefinition definition, IUnit owner, IResourceOwner resourceOwner, AbilityScript script, int level)
@@ -115,6 +120,7 @@ namespace Game.Ability
                 return CastResult.Fail(CastFailureReason.InvalidTarget);
             }
 
+            // Basic checks are engine-owned. AbilityScript.CastFilter handles custom rejection.
             CastResult result = CanCastBasic();
             if (!result.Success)
             {
@@ -142,6 +148,7 @@ namespace Game.Ability
 
             if ((Definition.Behavior & AbilityBehavior.Toggle) != 0)
             {
+                // Toggle abilities change persistent state without entering cast point/channel phases.
                 ToggleEnabled = !ToggleEnabled;
                 Script.OnToggle(ToggleEnabled);
                 Engine.RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.ToggleChanged, Ability = this, Caster = Owner, Value = ToggleEnabled ? 1f : 0f });
@@ -151,6 +158,8 @@ namespace Game.Ability
             float castPoint = Mathf.Max(0f, Script.GetCastPoint());
             if (castPoint > 0f)
             {
+                // Store the order and rebuild the context when the cast point finishes.
+                // This lets range/target validity be checked against the latest world state.
                 Phase = AbilityPhase.Casting;
                 castPointRemaining = castPoint;
                 pendingOrder = order;
@@ -164,6 +173,7 @@ namespace Game.Ability
 
         public void Interrupt()
         {
+            // Cast point interruption cancels the spell; channel interruption finishes with a flag.
             if (Phase == AbilityPhase.Casting)
             {
                 Phase = AbilityPhase.Idle;
@@ -198,6 +208,7 @@ namespace Game.Ability
             Interrupt();
             if (intrinsicModifier != null)
             {
+                // Removing the modifier is enough to remove all granted states and properties.
                 Engine.RemoveModifier(intrinsicModifier);
                 intrinsicModifier = null;
             }
@@ -275,6 +286,7 @@ namespace Game.Ability
                 return;
             }
 
+            // Resources and charges are consumed only when the spell actually executes.
             if (Definition.Charges != null)
             {
                 SetCharges(Charges - 1);
@@ -288,6 +300,7 @@ namespace Game.Ability
                 StartCooldown();
             }
 
+            // Event order mirrors the useful Dota split between execution and fully-cast reactions.
             Engine.DispatchModifierEvent(new ModifierEvent { EventType = ModifierEventType.AbilityExecuted, Engine = Engine, Source = Owner, Ability = this, Position = context.TargetPosition });
             Engine.RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.SpellStarted, Ability = this, Caster = Owner, Target = context.Target, Position = context.TargetPosition });
             Script.OnSpellStart(context);
@@ -297,6 +310,7 @@ namespace Game.Ability
             float channelTime = Mathf.Max(0f, Script.GetChannelTime());
             if ((Definition.Behavior & AbilityBehavior.Channelled) != 0 && channelTime > 0f)
             {
+                // Channel state is owned by the ability; ongoing effects should live in modifiers/thinkers.
                 Phase = AbilityPhase.Channeling;
                 channelRemaining = channelTime;
                 channelContext = context;
@@ -380,6 +394,7 @@ namespace Game.Ability
 
         private void ApplyIntrinsicModifier()
         {
+            // Intrinsics are permanent modifiers attached to passive or owned abilities.
             string modifierName = Script.GetIntrinsicModifierName();
             if (string.IsNullOrEmpty(modifierName) || intrinsicModifier != null)
             {

@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Game.Ability
 {
+    /// <summary>
+    /// Canonical target filter shared by casts, auras, projectiles, and business helpers.
+    /// </summary>
     public sealed class TargetQuery
     {
         public IUnit Caster;
@@ -75,6 +78,9 @@ namespace Game.Ability
         }
     }
 
+    /// <summary>
+    /// Builds a cast context from a raw order and validates Dota-like targeting rules.
+    /// </summary>
     public static class Targeting
     {
         public static bool BuildCastContext(AbilitySystem engine, Ability ability, CastOrder order, out CastContext context, out CastResult result)
@@ -105,6 +111,7 @@ namespace Game.Ability
 
             if ((behavior & AbilityBehavior.NoTarget) != 0)
             {
+                // No-target spells execute at the caster position, but may still collect AOE targets.
                 context.TargetPosition = order.Caster.Position;
                 AddAreaTargets(engine, context, query, order.Caster.Position, aoeRadius);
                 result = CastResult.Ok();
@@ -147,6 +154,7 @@ namespace Game.Ability
 
                 if ((behavior & AbilityBehavior.Aoe) != 0 && aoeRadius > 0f)
                 {
+                    // The clicked unit remains Target; nearby units are added to Targets.
                     AddAreaTargets(engine, context, query, context.TargetPosition, aoeRadius);
                 }
 
@@ -177,6 +185,7 @@ namespace Game.Ability
                 context.TargetPosition = order.TargetPosition;
                 if ((behavior & AbilityBehavior.Aoe) != 0 && aoeRadius > 0f)
                 {
+                    // Point-target AOE spells resolve their affected units once at cast time.
                     AddAreaTargets(engine, context, query, order.TargetPosition, aoeRadius);
                 }
 

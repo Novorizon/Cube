@@ -1,5 +1,8 @@
 namespace Game.Ability
 {
+    /// <summary>
+    /// C# extension point for persistent area logic created by abilities.
+    /// </summary>
     public abstract class ThinkerScript
     {
         public Thinker Thinker { get; private set; }

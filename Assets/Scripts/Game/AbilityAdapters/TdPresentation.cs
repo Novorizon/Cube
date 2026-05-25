@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Game
 {
+    /// <summary>
+    /// Presentation adapter for effects and sounds requested by the ability runtime.
+    /// </summary>
     public sealed class TdPresentation : IPresentation
     {
         public void PlayEffect(string effectName, Vector3 position)

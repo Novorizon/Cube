@@ -4,6 +4,10 @@ using UnityEngine;
 
 namespace Game
 {
+    /// <summary>
+    /// World adapter backed by current TD managers.
+    /// It returns broad candidates; AbilitySystem/TargetQuery perform final filtering.
+    /// </summary>
     public sealed class TdWorld : IWorld
     {
         private readonly BattleAbilityManager owner;
@@ -22,6 +26,7 @@ namespace Game
                 return;
             }
 
+            // Add all supported unit categories. Filtering by team/type/state happens in the engine.
             AddNpcs(center, radius, results);
             AddTowers(center, radius, results);
             AddBase(center, radius, results);

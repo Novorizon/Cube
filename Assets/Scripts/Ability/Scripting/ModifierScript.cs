@@ -1,5 +1,9 @@
 namespace Game.Ability
 {
+    /// <summary>
+    /// C# extension point for modifier behavior.
+    /// Modifiers are the durable home for buffs, debuffs, auras, states, and property changes.
+    /// </summary>
     public abstract class ModifierScript
     {
         public Modifier Modifier { get; private set; }
@@ -31,11 +35,13 @@ namespace Game.Ability
                 return 0f;
             }
 
+            // Default modifier properties stack additively by stack count.
             return value * Modifier.StackCount;
         }
 
         public virtual bool CheckState(UnitState state)
         {
+            // States are bit flags on the definition unless a custom script overrides this.
             return Modifier != null && Modifier.Definition != null && (Modifier.Definition.States & state) != 0;
         }
 

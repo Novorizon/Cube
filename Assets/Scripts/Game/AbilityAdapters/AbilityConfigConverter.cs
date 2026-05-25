@@ -3,6 +3,10 @@ using Game.Ability;
 
 namespace Game
 {
+    /// <summary>
+    /// Converts existing TD skill tables into Game.Ability definitions.
+    /// Keep enum mapping explicit because table numbers are data contracts, not runtime enum values.
+    /// </summary>
     public static class AbilityConfigConverter
     {
         public static string AbilityName(int skillId)
@@ -42,6 +46,7 @@ namespace Game
 
             foreach (List<SkillActionConfig> list in groups.Values)
             {
+                // Preserve designer-authored action order inside each group.
                 list.Sort(CompareActionOrder);
             }
 
@@ -55,6 +60,7 @@ namespace Game
                 return null;
             }
 
+            // Config data is copied into engine-owned definition objects; no Game classes leak inward.
             AbilityDefinition definition = new AbilityDefinition
             {
                 Name = AbilityName(config.Id),
@@ -165,6 +171,7 @@ namespace Game
                 SoundName = config.SoundLocation
             };
 
+            // Effect-only or sound-only rows are valid presentation actions.
             if (action.ActionType == ActionType.None)
             {
                 if (!string.IsNullOrEmpty(config.EffectLocation))

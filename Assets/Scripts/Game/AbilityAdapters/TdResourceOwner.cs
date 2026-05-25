@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Game
 {
+    /// <summary>
+    /// Maps ability mana cost to the current item/resource inventory system.
+    /// </summary>
     public sealed class TdResourceOwner : IResourceOwner
     {
         private readonly int resourceItemId;

@@ -7,10 +7,15 @@ using RuntimeAbility = Game.Ability.Ability;
 
 namespace Game
 {
+    /// <summary>
+    /// Game-layer facade for the ability runtime.
+    /// It adapts TD managers/config tables to Game.Ability and is the intended business entry point.
+    /// </summary>
     public sealed class BattleAbilityManager : Singleton<BattleAbilityManager>
     {
         private const float GlobalSearchRadius = 9999f;
 
+        // Keep stable adapters per live Game object so modifiers can compare units by EntityId.
         private readonly Dictionary<int, TdUnit> npcUnits = new Dictionary<int, TdUnit>();
         private readonly Dictionary<int, TdUnit> towerUnits = new Dictionary<int, TdUnit>();
         private readonly List<IUnit> searchResults = new List<IUnit>();
@@ -26,6 +31,7 @@ namespace Game
             towerUnits.Clear();
             baseUnit = null;
 
+            // Core runtime only sees interfaces; all project-specific lookup stays in adapters.
             Engine.Initialize(new TdWorld(this), new TdPresentation());
             RegisterDefinitions();
 
@@ -125,6 +131,7 @@ namespace Game
                 return null;
             }
 
+            // Current config still uses Skill ids. They are translated to ability names at the edge.
             IResourceOwner resourceOwner = config.CostResourceId > 0 ? new TdResourceOwner(config.CostResourceId) : null;
             return Engine.AddAbility(owner, AbilityConfigConverter.AbilityName(skillId), level, resourceOwner);
         }
@@ -185,6 +192,7 @@ namespace Game
                 return CastResult.Fail(CastFailureReason.MissingAbility);
             }
 
+            // Convenience helper for existing AI/TD logic. Explicit casts should use Engine/target APIs.
             AbilityDefinition definition = ability.Definition;
             AbilityBehavior behavior = definition.Behavior;
 
@@ -261,6 +269,7 @@ namespace Game
 
         public DamageResult ApplyTowerAttackDamage(Tower tower, Npc target, float damage)
         {
+            // Route attack damage through the same modifier-aware pipeline as ability damage.
             return Engine.ApplyDamage(new DamageInfo
             {
                 Engine = Engine,
@@ -346,6 +355,7 @@ namespace Game
                 return null;
             }
 
+            // Existing business callers can cast by skill id without manually adding the ability first.
             string abilityName = AbilityConfigConverter.AbilityName(skillId);
             RuntimeAbility ability = Engine.FindAbility(caster, abilityName);
             if (ability != null)
@@ -406,6 +416,7 @@ namespace Game
 
         private void RegisterDefinitions()
         {
+            // Build all definitions from tables at startup; runtime instances reference these by name.
             Dictionary<int, List<SkillActionConfig>> actionGroups = AbilityConfigConverter.BuildActionGroups(DataManager.Instance.SkillAction);
 
             if (DataManager.Instance.SkillModifier != null && DataManager.Instance.SkillModifier.GetAll() != null)

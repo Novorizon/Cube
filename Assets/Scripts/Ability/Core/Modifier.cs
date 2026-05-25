@@ -2,6 +2,10 @@ using UnityEngine;
 
 namespace Game.Ability
 {
+    /// <summary>
+    /// Runtime modifier instance attached to one parent unit.
+    /// It owns duration, stacks, interval thinking, aura refresh, and state/property contribution.
+    /// </summary>
     public sealed class Modifier
     {
         public AbilitySystem Engine { get; }
@@ -53,6 +57,7 @@ namespace Game.Ability
 
         public void Refresh(ModifierApplyOptions options)
         {
+            // Refresh handles both duration reset and stack growth according to attributes.
             if ((Definition.Attributes & ModifierAttribute.NoDurationRefresh) == 0)
             {
                 Duration = ResolveDuration(Definition, options);
@@ -79,6 +84,7 @@ namespace Game.Ability
             }
 
             ElapsedTime += deltaTime;
+            // States and properties disappear automatically once a modifier is removed.
             if (ShouldRemoveForDeath())
             {
                 Engine.RemoveModifier(this);

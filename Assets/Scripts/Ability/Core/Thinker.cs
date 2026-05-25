@@ -1,5 +1,8 @@
 namespace Game.Ability
 {
+    /// <summary>
+    /// Area/runtime object for persistent ground logic, similar to Dota thinkers.
+    /// </summary>
     public sealed class Thinker
     {
         public AbilitySystem Engine { get; }
@@ -38,6 +41,7 @@ namespace Game.Ability
                 return;
             }
 
+            // OnThink runs every frame; OnIntervalThink runs on a configured cadence.
             Script.OnThink(deltaTime);
             if (Interval > 0f)
             {

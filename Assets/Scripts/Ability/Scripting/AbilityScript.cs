@@ -2,6 +2,10 @@ using UnityEngine;
 
 namespace Game.Ability
 {
+    /// <summary>
+    /// C# extension point for ability-specific behavior.
+    /// This replaces a Lua layer while keeping the core runtime data-driven and testable.
+    /// </summary>
     public abstract class AbilityScript
     {
         public Ability Ability { get; private set; }
@@ -62,11 +66,13 @@ namespace Game.Ability
         public virtual void OnChannelFinish(bool interrupted) { }
         public virtual void OnToggle(bool enabled) { }
 
+        // Return true when custom hit logic wants the projectile removed immediately.
         public virtual bool OnProjectileHit(Projectile projectile, IUnit target, Vector3 position)
         {
             return false;
         }
 
+        // Convenience helper for Dota-style named tuning values.
         protected float GetSpecialValue(string name)
         {
             return Ability != null ? Ability.GetSpecialValue(name) : 0f;

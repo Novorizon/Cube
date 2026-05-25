@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace Game.Ability
 {
+    /// <summary>
+    /// Dota-style level-scaled number. If no per-level values are provided, BaseValue is used.
+    /// </summary>
     [Serializable]
     public sealed class LevelValue
     {
@@ -31,6 +34,9 @@ namespace Game.Ability
         }
     }
 
+    /// <summary>
+    /// Charge and replenish rules for abilities such as stored casts.
+    /// </summary>
     [Serializable]
     public sealed class ChargeDefinition
     {
@@ -40,6 +46,9 @@ namespace Game.Ability
         public bool UsesCooldown = true;
     }
 
+    /// <summary>
+    /// Data-only ability configuration. Runtime state lives in Ability, not in this definition.
+    /// </summary>
     [Serializable]
     public sealed class AbilityDefinition
     {
@@ -61,7 +70,9 @@ namespace Game.Ability
         public LevelValue ManaCost = LevelValue.Constant(0f);
         public ChargeDefinition Charges;
         public string IntrinsicModifierName;
+        // Named tuning values for custom C# scripts, matching Dota's "special values" idea.
         public readonly Dictionary<string, LevelValue> SpecialValues = new Dictionary<string, LevelValue>();
+        // Data-driven actions for simple abilities that do not need custom AbilityScript code.
         public readonly List<ActionDefinition> Actions = new List<ActionDefinition>();
 
         public float GetSpecialValue(string name, int level)
@@ -75,6 +86,9 @@ namespace Game.Ability
         }
     }
 
+    /// <summary>
+    /// One data-driven operation executed by ActionRunner.
+    /// </summary>
     [Serializable]
     public sealed class ActionDefinition
     {
@@ -115,6 +129,9 @@ namespace Game.Ability
         }
     }
 
+    /// <summary>
+    /// Data-only modifier configuration. The runtime Modifier owns duration, stacks, and timers.
+    /// </summary>
     [Serializable]
     public sealed class ModifierDefinition
     {
@@ -130,12 +147,14 @@ namespace Game.Ability
         public ModifierAttribute Attributes = ModifierAttribute.None;
         public readonly Dictionary<ModifierProperty, float> Properties = new Dictionary<ModifierProperty, float>();
         public UnitState States = UnitState.None;
+        // Lifecycle action lists let config-only modifiers cover common buff/debuff behavior.
         public readonly List<ActionDefinition> OnCreatedActions = new List<ActionDefinition>();
         public readonly List<ActionDefinition> OnRefreshActions = new List<ActionDefinition>();
         public readonly List<ActionDefinition> OnDestroyActions = new List<ActionDefinition>();
         public readonly List<ActionDefinition> IntervalActions = new List<ActionDefinition>();
         public ModifierEventType TriggerEventType = ModifierEventType.None;
         public readonly List<ActionDefinition> TriggerActions = new List<ActionDefinition>();
+        // Aura source modifiers periodically refresh this modifier on valid nearby units.
         public string AuraModifierName;
         public float AuraRadius;
         public float AuraDuration = 0.5f;
@@ -145,6 +164,9 @@ namespace Game.Ability
         public TargetFlags AuraTargetFlags = TargetFlags.None;
     }
 
+    /// <summary>
+    /// Runtime projectile tuning shared by tracking and linear projectiles.
+    /// </summary>
     [Serializable]
     public sealed class ProjectileDefinition
     {

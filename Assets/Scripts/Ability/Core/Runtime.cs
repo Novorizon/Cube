@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Game.Ability
 {
+    /// <summary>
+    /// A single command from gameplay/UI/AI into the ability system.
+    /// </summary>
     public sealed class CastOrder
     {
         public IUnit Caster;
@@ -14,6 +17,9 @@ namespace Game.Ability
         public bool Queue;
     }
 
+    /// <summary>
+    /// Result returned to callers immediately after a cast request is validated or rejected.
+    /// </summary>
     public sealed class CastResult
     {
         public bool Success;
@@ -31,6 +37,10 @@ namespace Game.Ability
         }
     }
 
+    /// <summary>
+    /// Immutable-enough context assembled for one spell execution.
+    /// It carries the primary target plus any area targets resolved at cast time.
+    /// </summary>
     public sealed class CastContext
     {
         private readonly List<IUnit> targets = new List<IUnit>();
@@ -52,6 +62,10 @@ namespace Game.Ability
         }
     }
 
+    /// <summary>
+    /// Options used when applying or refreshing a modifier.
+    /// Numbers and Objects are escape hatches for custom C# scripts.
+    /// </summary>
     public sealed class ModifierApplyOptions
     {
         public float Duration = float.NaN;
@@ -62,6 +76,9 @@ namespace Game.Ability
         public readonly Dictionary<string, object> Objects = new Dictionary<string, object>();
     }
 
+    /// <summary>
+    /// Input to the engine damage pipeline.
+    /// </summary>
     public sealed class DamageInfo
     {
         public AbilitySystem Engine;
@@ -73,6 +90,9 @@ namespace Game.Ability
         public DamageFlags Flags = DamageFlags.None;
     }
 
+    /// <summary>
+    /// Final damage result after immunity checks and modifier multipliers.
+    /// </summary>
     public sealed class DamageResult
     {
         public IUnit Attacker;
@@ -86,6 +106,9 @@ namespace Game.Ability
         public string BlockReason;
     }
 
+    /// <summary>
+    /// Input to the heal pipeline. The Game adapter applies the actual HP change.
+    /// </summary>
     public sealed class HealInfo
     {
         public IUnit Source;
@@ -94,6 +117,9 @@ namespace Game.Ability
         public float Amount;
     }
 
+    /// <summary>
+    /// Internal event delivered to modifiers so they can react to orders, casts, damage, and more.
+    /// </summary>
     public sealed class ModifierEvent
     {
         public ModifierEventType EventType;
@@ -111,6 +137,9 @@ namespace Game.Ability
         public float Value;
     }
 
+    /// <summary>
+    /// Context passed when querying additive modifier properties.
+    /// </summary>
     public sealed class ModifierPropertyContext
     {
         public AbilitySystem Engine;
@@ -120,6 +149,9 @@ namespace Game.Ability
         public DamageResult DamageResult;
     }
 
+    /// <summary>
+    /// Factory request for projectile creation.
+    /// </summary>
     public sealed class ProjectileRequest
     {
         public ProjectileDefinition Definition;
@@ -132,6 +164,9 @@ namespace Game.Ability
         public bool Tracking;
     }
 
+    /// <summary>
+    /// Factory request for area thinkers, such as persistent ground effects.
+    /// </summary>
     public sealed class ThinkerRequest
     {
         public string Name;
@@ -144,6 +179,9 @@ namespace Game.Ability
         public ThinkerScript Script;
     }
 
+    /// <summary>
+    /// Public runtime notification stream for presentation, logging, and tests.
+    /// </summary>
     public sealed class RuntimeEvent
     {
         public RuntimeEventType EventType;

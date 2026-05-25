@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Game.Ability
 {
+    /// <summary>
+    /// Runtime projectile. It only tracks movement and hit detection; hit effects belong to scripts.
+    /// </summary>
     public sealed class Projectile
     {
         public ProjectileDefinition Definition { get; }
@@ -72,6 +75,7 @@ namespace Game.Ability
             Position += Direction * step;
             traveledDistance += step;
 
+            // Linear projectiles query a small area around their current position each tick.
             TargetQuery query = new TargetQuery
             {
                 Caster = Caster,
@@ -99,6 +103,7 @@ namespace Game.Ability
 
         private void Hit(AbilitySystem engine, IUnit target)
         {
+            // AbilityScript decides custom hit behavior and can force projectile deletion.
             bool destroy = Definition.DeleteOnHit;
             if (Ability != null && Ability.Script != null)
             {

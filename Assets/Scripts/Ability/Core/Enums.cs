@@ -2,6 +2,9 @@ using System;
 
 namespace Game.Ability
 {
+    /// <summary>
+    /// Bit flags describing how an ability is aimed and executed.
+    /// </summary>
     [Flags]
     public enum AbilityBehavior
     {
@@ -21,6 +24,9 @@ namespace Game.Ability
         Directional = 1 << 12
     }
 
+    /// <summary>
+    /// Team relationship allowed by a target query.
+    /// </summary>
     [Flags]
     public enum TargetTeam
     {
@@ -30,6 +36,9 @@ namespace Game.Ability
         Both = Friendly | Enemy
     }
 
+    /// <summary>
+    /// Broad unit categories used by target filters.
+    /// </summary>
     [Flags]
     public enum UnitType
     {
@@ -43,6 +52,9 @@ namespace Game.Ability
         All = Hero | Basic | Building | Creep | Ward | Other
     }
 
+    /// <summary>
+    /// Additional targeting exceptions and restrictions.
+    /// </summary>
     [Flags]
     public enum TargetFlags
     {
@@ -57,6 +69,9 @@ namespace Game.Ability
         Untargetable = 1 << 7
     }
 
+    /// <summary>
+    /// States contributed by units or modifiers.
+    /// </summary>
     [Flags]
     public enum UnitState
     {
@@ -75,6 +90,9 @@ namespace Game.Ability
         Untargetable = 1 << 11
     }
 
+    /// <summary>
+    /// Damage category used by immunity and modifier calculations.
+    /// </summary>
     public enum DamageType
     {
         None = 0,
@@ -83,6 +101,9 @@ namespace Game.Ability
         Pure = 3
     }
 
+    /// <summary>
+    /// Per-damage-call exceptions for the damage pipeline.
+    /// </summary>
     [Flags]
     public enum DamageFlags
     {
@@ -97,6 +118,9 @@ namespace Game.Ability
         PiercesSpellImmunity = 1 << 7
     }
 
+    /// <summary>
+    /// Runtime behavior flags for modifier stacking, persistence, and aura semantics.
+    /// </summary>
     [Flags]
     public enum ModifierAttribute
     {
@@ -109,6 +133,9 @@ namespace Game.Ability
         StackIndependent = 1 << 5
     }
 
+    /// <summary>
+    /// Additive property channels queried by business systems and damage calculations.
+    /// </summary>
     public enum ModifierProperty
     {
         None = 0,
@@ -123,6 +150,9 @@ namespace Game.Ability
         CastRangeBonus = 9
     }
 
+    /// <summary>
+    /// Events broadcast to modifiers for reactive behavior.
+    /// </summary>
     public enum ModifierEventType
     {
         None = 0,
@@ -142,6 +172,9 @@ namespace Game.Ability
         ModifierRemoved = 14
     }
 
+    /// <summary>
+    /// Stable cast rejection reasons for UI, AI, and tests.
+    /// </summary>
     public enum CastFailureReason
     {
         None = 0,
@@ -165,6 +198,9 @@ namespace Game.Ability
         CustomRejected = 18
     }
 
+    /// <summary>
+    /// Runtime phase for a single ability instance.
+    /// </summary>
     public enum AbilityPhase
     {
         Idle = 0,
@@ -172,6 +208,9 @@ namespace Game.Ability
         Channeling = 2
     }
 
+    /// <summary>
+    /// Public event stream emitted by AbilitySystem.
+    /// </summary>
     public enum RuntimeEventType
     {
         AbilityAdded = 1,
@@ -197,6 +236,9 @@ namespace Game.Ability
         ThinkerDestroyed = 21
     }
 
+    /// <summary>
+    /// Data-driven operation kinds supported by ActionRunner.
+    /// </summary>
     public enum ActionType
     {
         None = 0,
@@ -210,6 +252,9 @@ namespace Game.Ability
         PlaySound = 8
     }
 
+    /// <summary>
+    /// Target resolution mode for a data-driven action.
+    /// </summary>
     public enum ActionTarget
     {
         None = 0,

@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Game
 {
+    /// <summary>
+    /// Business object categories currently exposed to the ability runtime.
+    /// </summary>
     public enum TdUnitKind
     {
         None = 0,
@@ -11,6 +14,10 @@ namespace Game
         Base = 3
     }
 
+    /// <summary>
+    /// Adapter that exposes Npc, Tower, and Base as ability-system units.
+    /// It is also the only place where damage/heal results mutate real TD game state.
+    /// </summary>
     public sealed class TdUnit : IUnit
     {
         public const int PlayerTeamId = 1;
@@ -166,6 +173,7 @@ namespace Game
                 return;
             }
 
+            // The engine has already handled immunity and modifiers; apply the final integer damage.
             switch (kind)
             {
                 case TdUnitKind.Npc:
@@ -191,6 +199,7 @@ namespace Game
                 return;
             }
 
+            // Healing is rounded at the adapter boundary to match existing integer HP data.
             switch (kind)
             {
                 case TdUnitKind.Npc:
