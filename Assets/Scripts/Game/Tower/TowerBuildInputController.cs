@@ -17,6 +17,27 @@ namespace Game
             initialized = true;
         }
 
+        public bool RefreshPreviewAtCurrentPointer()
+        {
+            if (!initialized)
+            {
+                return false;
+            }
+
+            if (!TowerBuildManager.Instance.HasSelectedTower)
+            {
+                return false;
+            }
+
+            if (Mouse.current == null)
+            {
+                return false;
+            }
+
+            Vector2 screenPosition = Mouse.current.position.ReadValue();
+            return RefreshPreview(screenPosition);
+        }
+
         private void Update()
         {
             if (!initialized)
@@ -37,8 +58,7 @@ namespace Game
             Vector2 screenPosition = Mouse.current.position.ReadValue();
             bool pointerOverUi = IsPointerOverUI();
 
-            TileView tileView = PickTile(screenPosition);
-            TowerBuildManager.Instance.UpdatePreview(tileView);
+            RefreshPreview(screenPosition);
 
             if (!pointerOverUi && Mouse.current.leftButton.wasPressedThisFrame)
             {
@@ -54,6 +74,13 @@ namespace Game
             {
                 TowerBuildManager.Instance.CancelSelect();
             }
+        }
+
+        private bool RefreshPreview(Vector2 screenPosition)
+        {
+            TileView tileView = PickTile(screenPosition);
+            TowerBuildManager.Instance.UpdatePreview(tileView);
+            return tileView != null;
         }
 
         private TileView PickTile(Vector2 screenPosition)

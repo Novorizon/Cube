@@ -103,6 +103,7 @@ namespace Game
             RefreshSelected();
 
             TowerBuildManager.Instance.SelectTower(towerConfigId);
+            TowerBuildInputController.Instance.RefreshPreviewAtCurrentPointer();
             TowerClicked?.Invoke(towerConfigId);
         }
 

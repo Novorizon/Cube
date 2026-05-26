@@ -13,7 +13,7 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 101,
+    "id": 1000101,
     "name": "伐木炸弹",
     "description": "TD内使用，摧毁阻挡路径或建塔区域的树木",
     "itemType": 2,
@@ -26,7 +26,7 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 102,
+    "id": 1000102,
     "name": "拆桥工具",
     "description": "TD内使用，摧毁或修复桥相关机关的临时道具",
     "itemType": 2,
@@ -39,7 +39,7 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 201,
+    "id": 3000201,
     "name": "箭塔图纸",
     "description": "TD内获得的图纸，可在结算时转换为外部图纸道具",
     "itemType": 3,
@@ -52,7 +52,7 @@
     "settlementCountPerItem": 1
   },
   {
-    "id": 301,
+    "id": 5000301,
     "name": "海岛种子",
     "description": "TD内获得，战斗结束后结算为经营外种子",
     "itemType": 4,
@@ -65,7 +65,7 @@
     "settlementCountPerItem": 1
   },
   {
-    "id": 401,
+    "id": 4000401,
     "name": "黏液核心",
     "description": "怪物掉落材料，可用于TD内商人兑换，也可结算到外部",
     "itemType": 5,

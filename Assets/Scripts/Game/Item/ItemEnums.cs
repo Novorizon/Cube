@@ -1,5 +1,6 @@
 public enum ItemType
 {
+    // ItemType is a behavior category. Concrete item id ranges are defined in ItemIds.
     None = 0,
     Currency = 1,
     Consumable = 2,
