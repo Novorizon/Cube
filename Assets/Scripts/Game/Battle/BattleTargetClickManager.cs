@@ -8,11 +8,15 @@ namespace Game
 {
     public sealed class BattleTargetClickManager : Singleton<BattleTargetClickManager>
     {
+        private const string BasePreviewPrefabLocation = "Assets/Arts/Base/Base.prefab";
+
         private Camera targetCamera;
         private LayerMask targetLayerMask = ~0;
         private float rayDistance = 1000f;
         private bool initialized;
         private bool inputRegistered;
+        private readonly Dictionary<string, Sprite> iconCache = new Dictionary<string, Sprite>();
+        private readonly HashSet<string> missingIconWarnings = new HashSet<string>();
 
         public void Initialize(Camera targetCamera = null)
         {
@@ -28,7 +32,6 @@ namespace Game
             if (!inputRegistered)
             {
                 GameInputManager.Instance.BattleSelectPerformed += OnBattleSelectPerformed;
-                GameInputManager.Instance.GameplayCancelPerformed += OnGameplayCancelPerformed;
                 inputRegistered = true;
             }
 
@@ -40,12 +43,13 @@ namespace Game
             if (inputRegistered && GameInputManager.IsCreated)
             {
                 GameInputManager.Instance.BattleSelectPerformed -= OnBattleSelectPerformed;
-                GameInputManager.Instance.GameplayCancelPerformed -= OnGameplayCancelPerformed;
             }
 
             inputRegistered = false;
             initialized = false;
             targetCamera = null;
+            iconCache.Clear();
+            missingIconWarnings.Clear();
         }
 
         public void SetTargetCamera(Camera targetCamera)
@@ -104,16 +108,6 @@ namespace Game
             SelectByScreenPosition(screenPosition);
         }
 
-        private void OnGameplayCancelPerformed(InputAction.CallbackContext context)
-        {
-            if (context.canceled)
-            {
-                return;
-            }
-
-            ClearSelection();
-        }
-
         private bool IsPointerOverUi()
         {
             if (EventSystem.current == null)
@@ -135,29 +129,46 @@ namespace Game
             }
 
             Ray ray = camera.ScreenPointToRay(screenPosition);
+            RaycastHit[] hits = Physics.RaycastAll(ray, rayDistance, targetLayerMask);
 
-            if (!Physics.Raycast(ray, out RaycastHit hit, rayDistance, targetLayerMask))
+            if (hits == null || hits.Length == 0)
             {
                 ClearSelection();
                 return;
             }
 
-            if (TryShowTowerInfo(hit.collider))
-            {
-                return;
-            }
+            System.Array.Sort(hits, CompareRaycastHitDistance);
 
-            if (TryShowNpcInfo(hit.collider))
+            for (int i = 0; i < hits.Length; i++)
             {
-                return;
-            }
+                Collider hitCollider = hits[i].collider;
+                if (hitCollider == null)
+                {
+                    continue;
+                }
 
-            if (TryShowBaseInfo(hit.collider))
-            {
-                return;
+                if (TryShowTowerInfo(hitCollider))
+                {
+                    return;
+                }
+
+                if (TryShowNpcInfo(hitCollider))
+                {
+                    return;
+                }
+
+                if (TryShowBaseInfo(hitCollider))
+                {
+                    return;
+                }
             }
 
             ClearSelection();
+        }
+
+        private int CompareRaycastHitDistance(RaycastHit a, RaycastHit b)
+        {
+            return a.distance.CompareTo(b.distance);
         }
 
         private Camera GetTargetCamera()
@@ -247,7 +258,15 @@ namespace Game
                 return default;
             }
 
-            int sellGold = Mathf.RoundToInt(config.CostCount * config.SellGoldRate);
+            TowerLevelConfig levelConfig = DataManager.Instance.GetTowerLevel(tower.ConfigId, tower.Level);
+            if (levelConfig == null)
+            {
+                return default;
+            }
+
+            DataManager.Instance.TryGetNextTowerLevel(tower, out TowerLevelConfig nextLevelConfig);
+            int sellGold = TowerBuildManager.Instance.CalculateSellCount(tower);
+            int attackAdd = nextLevelConfig != null ? nextLevelConfig.Damage - levelConfig.Damage : 0;
 
             TdTargetRuntimeInfo info = new TdTargetRuntimeInfo
             {
@@ -255,20 +274,23 @@ namespace Game
                 TargetId = tower.ConfigId,
                 Name = config.Name,
                 Description = config.Description,
-                Level = 1,
-                Attack = config.Damage,
-                AttackAdd = 0,
-                Range = config.Range,
-                AttackInterval = config.AttackInterval,
-                UpgradeCost = config.UpgradeCost,
+                Icon = LoadIconSprite(config.IconLocation),
+                PreviewPrefabLocation = levelConfig.PrefabLocation,
+                Coord = tower.Coord,
+                Level = tower.Level,
+                Attack = levelConfig.Damage,
+                AttackAdd = attackAdd,
+                Range = levelConfig.Range,
+                AttackInterval = levelConfig.AttackInterval,
+                UpgradeCost = nextLevelConfig != null ? nextLevelConfig.UpgradeCost : 0,
                 SellGold = sellGold,
-                CanUpgrade = config.CanUpgrade,
+                CanUpgrade = nextLevelConfig != null,
                 CanSell = true
             };
 
             info.InfoSlots = new List<TdInfoSlotData>
             {
-                new TdInfoSlotData("level", "等级", $"Lv {info.Level}"),
+                new TdInfoSlotData("level", "等级", info.Level.ToString()),
                 new TdInfoSlotData("attack", "攻击", info.Attack.ToString(), info.AttackAdd > 0 ? $"+{info.AttackAdd}" : string.Empty),
                 new TdInfoSlotData("range", "范围", $"{info.Range:0.#}"),
                 new TdInfoSlotData("speed", "攻速", $"{info.AttackInterval:0.#}s"),
@@ -292,6 +314,7 @@ namespace Game
                 TargetId = npc.Config.Id,
                 Name = npc.Config.Name,
                 Description = npc.Config.Description,
+                PreviewPrefabLocation = npc.Config.PrefabLocation,
                 CurrentHp = npc.Data.CurrentHp,
                 MaxHp = npc.Data.MaxHp,
                 Attack = npc.Data.DamageToBase,
@@ -306,7 +329,9 @@ namespace Game
                 new TdInfoSlotData("hp", "生命", $"{Mathf.Max(0, info.CurrentHp)}/{info.MaxHp}"),
                 new TdInfoSlotData("attack", "伤害", info.Attack.ToString()),
                 new TdInfoSlotData("range", "攻击范围", $"{info.Range:0.#}"),
-                new TdInfoSlotData("speed", "攻击间隔", $"{info.AttackInterval:0.#}s")
+                new TdInfoSlotData("speed", "攻击间隔", $"{info.AttackInterval:0.#}s"),
+                new TdInfoSlotData("moveSpeed", "移动速度", $"{npc.Data.MoveSpeed:0.#}"),
+                new TdInfoSlotData("reward", "击杀金币", npc.Data.RewardGold.ToString())
             };
 
             return info;
@@ -320,6 +345,7 @@ namespace Game
                 TargetId = 1,
                 Name = "基地",
                 Description = "保护基地，生命归零则战斗失败。",
+                PreviewPrefabLocation = BasePreviewPrefabLocation,
                 CurrentHp = BaseManager.Instance.CurrentLife,
                 MaxHp = BaseManager.Instance.MaxLife,
                 CanUpgrade = false,
@@ -332,6 +358,41 @@ namespace Game
             };
 
             return info;
+        }
+
+        private Sprite LoadIconSprite(string location)
+        {
+            if (string.IsNullOrWhiteSpace(location))
+            {
+                return null;
+            }
+
+            if (iconCache.TryGetValue(location, out Sprite cachedSprite))
+            {
+                return cachedSprite;
+            }
+
+            if (!location.StartsWith("Assets/", System.StringComparison.Ordinal))
+            {
+                if (missingIconWarnings.Add(location))
+                {
+                    Debug.LogWarning($"Target icon location must be a full asset path. location: {location}");
+                }
+
+                return null;
+            }
+
+            Sprite sprite = ResourceManager.Instance.LoadAsset<Sprite>(location);
+            if (sprite != null)
+            {
+                iconCache[location] = sprite;
+            }
+            else if (missingIconWarnings.Add(location))
+            {
+                Debug.LogWarning($"Target icon load failed. location: {location}");
+            }
+
+            return sprite;
         }
     }
 }

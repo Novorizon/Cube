@@ -1,16 +1,16 @@
 ///------------------------------------
-/// Author：guanjinbiao
-/// Mail：novogooglor@gmail.com
-/// Date：2025-12-10
-/// Description：地图管理器
+/// Author锛歡uanjinbiao
+/// Mail锛歯ovogooglor@gmail.com
+/// Date锛?025-12-10
+/// Description锛氬湴鍥剧鐞嗗櫒
 ///------------------------------------
 
 using Game.Framework;
 using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UI;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Game
@@ -18,9 +18,12 @@ namespace Game
     public class MapManager : Singleton<MapManager>
     {
         private const string PrefabConfigPath = "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset";
+        private const string BattleHudPrefabPath = "Assets/Arts/UI/TowerDefense/Prefabs/BattleHud.prefab";
+        private const string MainMenuPagePath = "Assets/Arts/UI/Pages/MainMenuPage.prefab";
 
         private MapTilePrefabConfig mapTilePrefabConfig;
         private MapData currentMap;
+        private int currentMapConfigId;
 
         private readonly Dictionary<Vector3Int, MapTileData> tileMap = new Dictionary<Vector3Int, MapTileData>();
         private readonly Dictionary<Vector3Int, TileData> tileDataMap = new Dictionary<Vector3Int, TileData>();
@@ -127,6 +130,8 @@ namespace Game
                 return false;
             }
 
+            ClearBattleRuntime(true);
+            currentMapConfigId = mapId;
             ItemManager.Instance.AddItem(ItemIds.Gold, mapConfig.InitialGold);
 
             bool loadDataSuccess = LoadMapData(location);
@@ -138,7 +143,6 @@ namespace Game
             CreateMap();
             AfterMapCreated(mapConfig);
             return true;
-
         }
 
 
@@ -248,20 +252,214 @@ namespace Game
 
             //_ = UIManager.Instance.Panels.ShowAsync("Assets/Arts/UI/Panels/BuildTowerPanel.prefab");
             //_ = UIManager.Instance.Panels.ShowAsync("Assets/Arts/UI/Panels/StatusPanel.prefab");
-            _ = UIManager.Instance.Panels.ShowAsync("Assets/Arts/UI/TowerDefense/Prefabs/BattleHud.prefab");
-            BaseManager.Instance.LoadBase(mapConfig.BaseLife);
+            ShowBattleHudAsync().Forget();
+            BattleFlowManager.Instance.BeginBattle(mapConfig);
+
+            if (!BaseManager.Instance.LoadBase(mapConfig.BaseLife))
+            {
+                BattleFlowManager.Instance.CompleteDefeat("Base load failed.");
+                return;
+            }
 
             GameInputManager.Instance.SetMode(InputMode.Battle);
 
             if (!DataManager.Instance.LoadWave(mapConfig.WaveNormal))
             {
+                BattleFlowManager.Instance.CompleteDefeat("Wave data load failed.");
                 return;
             }
 
             //WaveConfig waveConfig = DataManager.Instance.Wave.Get(1);
-            WaveManager.Instance.StartWave();
+            if (!WaveManager.Instance.StartWave())
+            {
+                BattleFlowManager.Instance.CompleteDefeat("Wave start failed.");
+            }
         }
 
+        private async Task ShowBattleHudAsync()
+        {
+            UIHandle handle = await UIManager.Instance.Panels.ShowAsync(BattleHudPrefabPath);
+            if (!handle.IsValid)
+            {
+                return;
+            }
+
+            if (handle.View is BattleHudController battleHud)
+            {
+                battleHud.SkillClicked -= OnBattleHudSkillClicked;
+                battleHud.SkillClicked += OnBattleHudSkillClicked;
+                battleHud.AutoNextWaveChanged -= OnBattleHudAutoNextWaveChanged;
+                battleHud.AutoNextWaveChanged += OnBattleHudAutoNextWaveChanged;
+                battleHud.TowerSellTargetClicked -= OnBattleHudTowerSellClicked;
+                battleHud.TowerSellTargetClicked += OnBattleHudTowerSellClicked;
+                battleHud.TowerUpgradeTargetClicked -= OnBattleHudTowerUpgradeClicked;
+                battleHud.TowerUpgradeTargetClicked += OnBattleHudTowerUpgradeClicked;
+                battleHud.ItemClicked -= OnBattleHudItemClicked;
+                battleHud.ItemClicked += OnBattleHudItemClicked;
+            }
+        }
+
+        private void OnBattleHudSkillClicked(int skillId)
+        {
+            Ability.CastResult result = AbilityManager.Instance.CastBaseAbilityAtBestTarget(skillId);
+            if (result == null || result.Success)
+            {
+                return;
+            }
+
+            Debug.LogWarning($"Cast skill failed. skillId: {skillId}, reason: {result.FailureReason}, message: {result.Message}");
+        }
+
+        private void OnBattleHudAutoNextWaveChanged(bool autoNextWave)
+        {
+            // true means waves chain immediately after spawn completion; false waits for the field to clear.
+            WaveManager.Instance.SetWaitAllEnemiesKilledBeforeNextWave(!autoNextWave);
+        }
+
+        private void OnBattleHudTowerSellClicked(TdTargetRuntimeInfo info)
+        {
+            if (info.Type != TdTargetInfoType.Tower)
+            {
+                return;
+            }
+
+            if (!TryGetTower(info.Coord, out Tower tower) || tower == null)
+            {
+                Toast.Warning("未找到要出售的塔");
+                return;
+            }
+
+            if (!TowerBuildManager.Instance.TrySellTower(tower, out int sellItemId, out int sellCount))
+            {
+                return;
+            }
+
+            BattleTargetClickManager.Instance.ClearSelection();
+            Toast.Info($"出售成功 +{sellCount}");
+        }
+
+        private void OnBattleHudTowerUpgradeClicked(TdTargetRuntimeInfo info)
+        {
+            if (info.Type != TdTargetInfoType.Tower)
+            {
+                return;
+            }
+
+            if (!TryGetTower(info.Coord, out Tower tower) || tower == null)
+            {
+                Toast.Warning("未找到要升级的塔");
+                return;
+            }
+
+            if (TowerBuildManager.Instance.TryUpgradeTower(tower))
+            {
+                BattleTargetClickManager.Instance.ClearSelection();
+            }
+        }
+
+        private void OnBattleHudItemClicked(int itemId)
+        {
+            Toast.Warning($"道具 {itemId} 的使用逻辑尚未配置");
+        }
+
+        public void RestartCurrentMap()
+        {
+            int mapId = currentMapConfigId;
+            if (mapId <= 0 && BattleFlowManager.Instance.LastEndMessage != null)
+            {
+                mapId = BattleFlowManager.Instance.LastEndMessage.MapId;
+            }
+
+            if (mapId <= 0)
+            {
+                Debug.LogWarning("Restart map failed. Current map id is invalid.");
+                return;
+            }
+
+            LoadMap(mapId);
+        }
+
+        public bool HasNextMap(int mapId)
+        {
+            return TryGetNextMapId(mapId, out int nextMapId);
+        }
+
+        public bool LoadNextMap(int mapId)
+        {
+            if (!TryGetNextMapId(mapId, out int nextMapId))
+            {
+                Toast.Info("已是最后一关");
+                return false;
+            }
+
+            return LoadMap(nextMapId);
+        }
+
+        public void ReturnToMainMenu()
+        {
+            ReturnToMainMenuAsync().Forget();
+        }
+
+        private async Task ReturnToMainMenuAsync()
+        {
+            ClearBattleRuntime(true);
+
+            if (GameInputManager.IsCreated)
+            {
+                GameInputManager.Instance.SetMode(InputMode.Gameplay);
+            }
+
+            await UIManager.Instance.Pages.ResetToAsync(MainMenuPagePath);
+        }
+
+        private bool TryGetNextMapId(int mapId, out int nextMapId)
+        {
+            nextMapId = 0;
+
+            if (DataManager.Instance.Map == null || DataManager.Instance.Map.GetAll() == null)
+            {
+                return false;
+            }
+
+            foreach (KeyValuePair<int, MapConfig> pair in DataManager.Instance.Map.GetAll())
+            {
+                int candidateId = pair.Key;
+                if (candidateId <= mapId)
+                {
+                    continue;
+                }
+
+                if (nextMapId == 0 || candidateId < nextMapId)
+                {
+                    nextMapId = candidateId;
+                }
+            }
+
+            return nextMapId > 0;
+        }
+
+        private void ClearBattleRuntime(bool hideBattleUi)
+        {
+            Time.timeScale = 1f;
+            WaveManager.Instance.Stop();
+            WaveManager.Instance.Clear();
+            NpcManager.Instance.Clear();
+            TowerManager.Instance.Clear();
+            TowerBuildManager.Instance.Clear();
+            BattleTargetClickManager.Instance.ClearSelection();
+            BaseManager.Instance.ClearBaseObject();
+            AbilityManager.Instance.Release();
+            AbilityManager.Instance.Initialize();
+            ItemManager.Instance.Clear();
+            DataManager.Instance.ClearWave();
+            BattleFlowManager.Instance.Initialize();
+            ClearMap();
+
+            if (hideBattleUi)
+            {
+                UIManager.Instance.Panels.HideAll(true);
+            }
+        }
         private void RebuildTileIndex()
         {
             tileMap.Clear();

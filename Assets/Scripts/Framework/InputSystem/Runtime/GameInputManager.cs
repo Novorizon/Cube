@@ -60,6 +60,19 @@ namespace Game.Framework
             }
         }
 
+        public Vector2 BattleMove
+        {
+            get
+            {
+                if (!initialized)
+                {
+                    return Vector2.zero;
+                }
+
+                return controls.Battle.Move.ReadValue<Vector2>();
+            }
+        }
+
         public Vector2 BuildLook
         {
             get
@@ -282,6 +295,7 @@ namespace Game.Framework
         {
             controls.Gameplay.Disable();
             controls.UI.Disable();
+            controls.Battle.Disable();
             controls.Build.Disable();
             controls.Dialogue.Disable();
         }

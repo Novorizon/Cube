@@ -12,6 +12,8 @@ namespace Game
         private int currentConfigIndex;
         private int currentWaveSpawnedCount;
         private int aliveEnemyCount;
+        private int killedEnemyCount;
+        private int totalEnemyCount;
 
         private float spawnTimer;
         private bool initialized;
@@ -21,11 +23,11 @@ namespace Game
 
         /// <summary>
         /// true:
-        ///     Ã¿Ò»²¨¶¼±ØĞëµÈµĞÈËÈ«²¿Çå¿Õ£¬²Å½øÈëÏÂÒ»²¨¡£
+        ///     æ¯ä¸€æ³¢éƒ½å¿…é¡»ç­‰æ•Œäººå…¨éƒ¨æ¸…ç©ºï¼Œæ‰è¿›å…¥ä¸‹ä¸€æ³¢ã€‚
         /// false:
-        ///     µ±Ç°²¨È«²¿Éú³ÉÍêºó£¬Ö±½Ó½øÈëÏÂÒ»²¨¡£
-        ///     ÏÂÒ»²¨»á°´×Ô¼ºµÄ startDelay ÑÓ³Ù¿ªÊ¼Éú³É¡£
-        ///     ×îºóÒ»²¨ÈÔÈ»»áµÈ´ıÈ«²¿µĞÈËÇå¿Õºó Victory¡£
+        ///     å½“å‰æ³¢å…¨éƒ¨ç”Ÿæˆå®Œåï¼Œç›´æ¥è¿›å…¥ä¸‹ä¸€æ³¢ã€‚
+        ///     ä¸‹ä¸€æ³¢ä¼šæŒ‰è‡ªå·±çš„ startDelay å»¶è¿Ÿå¼€å§‹ç”Ÿæˆã€‚
+        ///     æœ€åä¸€æ³¢ä»ç„¶ä¼šç­‰å¾…å…¨éƒ¨æ•Œäººæ¸…ç©ºå Victoryã€‚
         /// </summary>
         private bool waitAllEnemiesKilledBeforeNextWave;
 
@@ -50,6 +52,22 @@ namespace Game
             get
             {
                 return aliveEnemyCount;
+            }
+        }
+
+        public int KilledEnemyCount
+        {
+            get
+            {
+                return killedEnemyCount;
+            }
+        }
+
+        public int TotalEnemyCount
+        {
+            get
+            {
+                return totalEnemyCount;
             }
         }
 
@@ -134,6 +152,7 @@ namespace Game
             }
 
             ResetRuntimeState();
+            totalEnemyCount = CalculateTotalEnemyCount();
 
             running = true;
             allWavesFinished = false;
@@ -195,7 +214,14 @@ namespace Game
                 return;
             }
 
+            // Ignore late death notifications after defeat has already stopped wave simulation.
+            if (!running && !allWavesFinished)
+            {
+                return;
+            }
+
             aliveEnemyCount--;
+            killedEnemyCount++;
 
             if (aliveEnemyCount < 0)
             {
@@ -326,6 +352,7 @@ namespace Game
             NotifyWaveChanged();
 
             Debug.Log("All waves finished. Victory.");
+            BattleFlowManager.Instance.CompleteVictory();
         }
 
         private bool IsLastWave()
@@ -339,6 +366,8 @@ namespace Game
             currentWaveIndex = 0;
             currentWaveSpawnedCount = 0;
             aliveEnemyCount = 0;
+            killedEnemyCount = 0;
+            totalEnemyCount = 0;
             spawnTimer = 0f;
             currentWaveAllSpawned = false;
         }
@@ -348,8 +377,39 @@ namespace Game
             WaveMessage message = new WaveMessage();
             message.CurrentWave = currentWaveIndex;
             message.MaxWave = MaxWave;
+            message.AliveEnemyCount = aliveEnemyCount;
+            message.TotalEnemyCount = totalEnemyCount;
+            message.KilledEnemyCount = killedEnemyCount;
+            message.CurrentWaveSpawnedCount = currentWaveSpawnedCount;
+            message.CurrentWaveTotalCount = GetCurrentWaveTotalCount();
 
             Messager.Instance.Notify(BattleMessageTopic.WaveChanged, message);
+        }
+
+        private int CalculateTotalEnemyCount()
+        {
+            int total = 0;
+            for (int i = 0; i < waveConfigs.Count; i++)
+            {
+                WaveConfig config = waveConfigs[i];
+                if (config != null && config.Count > 0)
+                {
+                    total += config.Count;
+                }
+            }
+
+            return total;
+        }
+
+        private int GetCurrentWaveTotalCount()
+        {
+            if (currentConfigIndex < 0 || currentConfigIndex >= waveConfigs.Count)
+            {
+                return 0;
+            }
+
+            WaveConfig config = waveConfigs[currentConfigIndex];
+            return config != null ? Mathf.Max(0, config.Count) : 0;
         }
 
         private int CompareWaveConfig(WaveConfig a, WaveConfig b)

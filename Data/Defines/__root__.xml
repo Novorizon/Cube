@@ -2,6 +2,7 @@
 <module name="">
   <include name="npc.xml" />
   <include name="tower.xml" />
+  <include name="tower_level.xml" />
   <include name="item.xml" />
   <include name="map.xml" />
   <include name="wave.xml" />

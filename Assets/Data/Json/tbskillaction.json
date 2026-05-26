@@ -10,8 +10,8 @@
     "duration": 0,
     "modifierId": 0,
     "damageType": 2,
-    "effectLocation": "Effect/FireballHit",
-    "soundLocation": "Sound/Fireball"
+    "effectLocation": "Assets/Arts/Effects/BowHitEffect.prefab",
+    "soundLocation": ""
   },
   {
     "id": 2,
@@ -24,8 +24,8 @@
     "duration": 0,
     "modifierId": 0,
     "damageType": 2,
-    "effectLocation": "Effect/FrostNova",
-    "soundLocation": "Sound/FrostNova"
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
+    "soundLocation": ""
   },
   {
     "id": 3,
@@ -38,7 +38,7 @@
     "duration": 4,
     "modifierId": 3001,
     "damageType": 0,
-    "effectLocation": "Effect/FrostSlow",
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
     "soundLocation": ""
   },
   {
@@ -52,7 +52,7 @@
     "duration": 0,
     "modifierId": 0,
     "damageType": 1,
-    "effectLocation": "Effect/IceHit",
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
     "soundLocation": ""
   },
   {
@@ -66,7 +66,7 @@
     "duration": 2,
     "modifierId": 3002,
     "damageType": 0,
-    "effectLocation": "Effect/IceSlow",
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
     "soundLocation": ""
   },
   {
@@ -80,8 +80,8 @@
     "duration": 0,
     "modifierId": 0,
     "damageType": 0,
-    "effectLocation": "Effect/Heal",
-    "soundLocation": "Sound/Heal"
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
+    "soundLocation": ""
   },
   {
     "id": 7,
@@ -94,8 +94,8 @@
     "duration": 6,
     "modifierId": 3004,
     "damageType": 0,
-    "effectLocation": "Effect/PoisonCloud",
-    "soundLocation": "Sound/Poison"
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
+    "soundLocation": ""
   },
   {
     "id": 8,
@@ -108,8 +108,8 @@
     "duration": 0,
     "modifierId": 0,
     "damageType": 2,
-    "effectLocation": "Effect/StunBolt",
-    "soundLocation": "Sound/Lightning"
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
+    "soundLocation": ""
   },
   {
     "id": 9,
@@ -122,7 +122,7 @@
     "duration": 1.5,
     "modifierId": 3005,
     "damageType": 0,
-    "effectLocation": "Effect/Stun",
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
     "soundLocation": ""
   },
   {
@@ -136,7 +136,7 @@
     "duration": -1,
     "modifierId": 3003,
     "damageType": 0,
-    "effectLocation": "Effect/AuraAttackSpeed",
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
     "soundLocation": ""
   }
 ]

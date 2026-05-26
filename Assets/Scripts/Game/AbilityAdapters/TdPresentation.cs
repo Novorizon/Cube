@@ -1,5 +1,6 @@
 using Game.Framework;
 using Game.Ability;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game
@@ -9,10 +10,22 @@ namespace Game
     /// </summary>
     public sealed class TdPresentation : IPresentation
     {
+        private static readonly HashSet<string> InvalidEffectWarnings = new HashSet<string>();
+
         public void PlayEffect(string effectName, Vector3 position)
         {
-            if (string.IsNullOrEmpty(effectName))
+            if (string.IsNullOrWhiteSpace(effectName))
             {
+                return;
+            }
+
+            if (!effectName.StartsWith("Assets/", System.StringComparison.Ordinal))
+            {
+                if (InvalidEffectWarnings.Add(effectName))
+                {
+                    Debug.LogWarning($"Ability effect location must be a full asset path. location: {effectName}");
+                }
+
                 return;
             }
 
@@ -38,5 +51,6 @@ namespace Game
 
             Debug.Log($"Ability sound requested: {soundName}, position: {position}");
         }
+
     }
 }

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="TowerLevelConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="towerId" type="int" comment="client" />
+    <var name="level" type="int" comment="client" />
+    <var name="prefabLocation" type="string" comment="client" />
+    <var name="costItemId" type="int" comment="client" />
+    <var name="buildCost" type="int" comment="client" />
+    <var name="upgradeCostItemId" type="int" comment="client" />
+    <var name="upgradeCost" type="int" comment="client" />
+    <var name="sellGoldRate" type="float" comment="client" />
+    <var name="range" type="float" comment="client" />
+    <var name="damage" type="int" comment="client" />
+    <var name="attackInterval" type="float" comment="client" />
+    <var name="attackEffect" type="string" comment="client" />
+    <var name="hitEffect" type="string" comment="client" />
+    <var name="skillId" type="int" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbTowerLevel" value="TowerLevelConfig" input="tower_level.xlsx" mode="map" index="id" />
+</module>

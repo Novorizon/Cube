@@ -290,10 +290,26 @@ namespace Game
 
             Debug.Log($"Npc killed. Id: {npc.Config?.Id}, RewardGold: {data.RewardGold}");
 
+            Vector3 deathPosition = npc.transform.position;
             Remove(npc);
 
             ItemManager.Instance.AddItem(ItemIds.Gold, data.RewardGold);
+            NotifyGoldFly(deathPosition, data.RewardGold);
+            WaveManager.Instance.NotifyEnemyKilled(npc);
 
+        }
+
+        private void NotifyGoldFly(Vector3 worldPosition, int count)
+        {
+            if (count <= 0)
+            {
+                return;
+            }
+
+            GoldFlyMessage message = new GoldFlyMessage();
+            message.WorldPosition = worldPosition;
+            message.Count = count;
+            Messager.Instance.Notify(BattleMessageTopic.GoldFlyRequested, message);
         }
 
         private void UpdateNpc(Npc npc, float deltaTime)
@@ -315,6 +331,13 @@ namespace Game
                 return;
             }
 
+            if (AbilityManager.Instance.IsStunned(npc) || AbilityManager.Instance.IsCommandRestricted(npc))
+            {
+                data.Attacking = false;
+                SetWalk(npc, false);
+                return;
+            }
+
             if (npc.ActorType == ActorType.Enemy)
             {
                 if (TryUpdateEnemyAttackBase(npc, deltaTime))
@@ -323,10 +346,18 @@ namespace Game
                 }
             }
 
+            if (AbilityManager.Instance.IsRooted(npc))
+            {
+                SetWalk(npc, false);
+                return;
+            }
+
             if (!data.Moving)
             {
                 return;
             }
+
+            SetWalk(npc, true);
 
             if (data.ReachedGoal)
             {
@@ -349,7 +380,14 @@ namespace Game
             Vector3 targetPosition = GetWorldPosition(targetCoord);
             Vector3 currentPosition = npc.transform.position;
 
-            float step = data.MoveSpeed * deltaTime;
+            float moveSpeedMultiplier = AbilityManager.Instance.GetMoveSpeedMultiplier(npc);
+            if (moveSpeedMultiplier <= 0f)
+            {
+                SetWalk(npc, false);
+                return;
+            }
+
+            float step = data.MoveSpeed * moveSpeedMultiplier * deltaTime;
             npc.transform.position = Vector3.MoveTowards(currentPosition, targetPosition, step);
 
             Vector3 direction = targetPosition - currentPosition;
@@ -391,6 +429,12 @@ namespace Game
 
             if (data.Dead)
             {
+                return false;
+            }
+
+            if (AbilityManager.Instance.IsStunned(npc))
+            {
+                data.Attacking = false;
                 return false;
             }
 
@@ -440,7 +484,7 @@ namespace Game
 
 
             int damage = npc.Data.DamageToBase;
-            BaseManager.Instance.TakeDamage(damage);
+            AbilityManager.Instance.ApplyNpcAttackDamageToBase(npc, damage);
             Debug.Log($"Enemy attack base. Id: {npc.Config?.Id}, Damage: {damage}");
         }
 

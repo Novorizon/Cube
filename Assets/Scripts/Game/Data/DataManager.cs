@@ -1,5 +1,6 @@
 using Game.Framework;
 using Luban;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game
@@ -12,6 +13,7 @@ namespace Game
 
         public ConfigTableReader<NpcConfig> Npc { get; private set; }
         public ConfigTableReader<TowerConfig> Tower { get; private set; }
+        public ConfigTableReader<TowerLevelConfig> TowerLevel { get; private set; }
         public ConfigTableReader<ItemConfig> Item { get; private set; }
         public ConfigTableReader<MapConfig> Map { get; private set; }
         public ConfigTableReader<SkillConfig> Skill { get; private set; }
@@ -43,6 +45,7 @@ namespace Game
 
             Npc = new ConfigTableReader<NpcConfig>("TbNpc", tables.TbNpc.DataMap);
             Tower = new ConfigTableReader<TowerConfig>("TbTower", tables.TbTower.DataMap);
+            TowerLevel = new ConfigTableReader<TowerLevelConfig>("TbTowerLevel", tables.TbTowerLevel.DataMap);
             Item = new ConfigTableReader<ItemConfig>("TbItem", tables.TbItem.DataMap);
             Map = new ConfigTableReader<MapConfig>("TbMap", tables.TbMap.DataMap);
             Skill = new ConfigTableReader<SkillConfig>("TbSkill", tables.TbSkill.DataMap);
@@ -89,6 +92,72 @@ namespace Game
         public void ClearWave()
         {
             Wave = null;
+        }
+
+        public static int MakeTowerLevelId(int towerId, int level)
+        {
+            return towerId * 100 + level;
+        }
+
+        public TowerLevelConfig GetTowerLevel(int towerId, int level)
+        {
+            if (TryGetTowerLevel(towerId, level, out TowerLevelConfig config))
+            {
+                return config;
+            }
+
+            Debug.LogError($"Tower level config not found. towerId: {towerId}, level: {level}");
+            return null;
+        }
+
+        public bool TryGetTowerLevel(int towerId, int level, out TowerLevelConfig config)
+        {
+            config = null;
+
+            if (TowerLevel == null || towerId <= 0 || level <= 0)
+            {
+                return false;
+            }
+
+            if (!TowerLevel.TryGet(MakeTowerLevelId(towerId, level), out config))
+            {
+                return false;
+            }
+
+            return config != null && config.Enable;
+        }
+
+        public bool TryGetNextTowerLevel(Tower tower, out TowerLevelConfig config)
+        {
+            config = null;
+
+            if (tower == null)
+            {
+                return false;
+            }
+
+            return TryGetTowerLevel(tower.ConfigId, tower.Level + 1, out config);
+        }
+
+        public int GetMaxTowerLevel(int towerId)
+        {
+            int maxLevel = 0;
+
+            if (TowerLevel == null || TowerLevel.GetAll() == null)
+            {
+                return maxLevel;
+            }
+
+            foreach (KeyValuePair<int, TowerLevelConfig> pair in TowerLevel.GetAll())
+            {
+                TowerLevelConfig config = pair.Value;
+                if (config != null && config.Enable && config.TowerId == towerId && config.Level > maxLevel)
+                {
+                    maxLevel = config.Level;
+                }
+            }
+
+            return maxLevel;
         }
 
         private Tables LoadTables()

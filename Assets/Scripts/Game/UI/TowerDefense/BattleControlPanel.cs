@@ -17,6 +17,9 @@ namespace Game
         public event Action<float> SpeedChanged;
         public event Action<bool> AutoNextWaveChanged;
 
+        private float lastSpeed = 1f;
+        private bool paused;
+
         private void Awake()
         {
             if (speed1Button != null)
@@ -37,22 +40,24 @@ namespace Game
             }
             if (pauseButton != null)
             {
-                pauseButton.onClick.AddListener(() => SetSpeed(1f));
+                pauseButton.onClick.AddListener(SetPause);
             }
             if (soundButton != null)
             {
-                soundButton.onClick.AddListener(() => SetSpeed(1f));
+                soundButton.onClick.AddListener(SetSound);
             }
             if (settingButton != null)
             {
-                settingButton.onClick.AddListener(() => SetSpeed(1f));
+                settingButton.onClick.AddListener(OpenSetting);
             }
         }
 
         public void SetSpeed(float speed)
         {
-            Time.timeScale = Mathf.Max(0.01f, speed);
-            SpeedChanged?.Invoke(speed);
+            paused = false;
+            lastSpeed = Mathf.Max(0.01f, speed);
+            Time.timeScale = lastSpeed;
+            SpeedChanged?.Invoke(lastSpeed);
         }
 
         public void SetAutoNextWave(bool value)
@@ -70,14 +75,19 @@ namespace Game
         }
         public void SetPause()
         {
+            paused = !paused;
+            Time.timeScale = paused ? 0f : lastSpeed;
+            SpeedChanged?.Invoke(Time.timeScale);
         }
 
         public void SetSound()
         {
+            // Audio mute will be routed here once an audio manager exists.
         }
 
         public void OpenSetting()
         {
+            // Settings popup is intentionally left as a UI binding point.
         }
 
     }

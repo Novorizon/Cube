@@ -11,13 +11,12 @@ namespace Game
         private bool enableInput = true;
 
         [SerializeField]
-        private float rotateSpeed = 0.2f;
-
-        [SerializeField]
         private float minDragDelta = 0.01f;
 
-        private TileView selectedTile;
+        [SerializeField]
+        private float keyboardPanSpeed = 8f;
 
+        private TileView selectedTile;
 
         private void OnEnable()
         {
@@ -32,7 +31,7 @@ namespace Game
 
         private void Start()
         {
-            // 防止这个物体比 GameEntry 更早 Enable，导致 OnEnable 时 GameInputManager 还没初始化。
+            // This object can wake before GameEntry finishes input initialization.
             if (!GameInputManager.IsCreated)
             {
                 return;
@@ -68,10 +67,12 @@ namespace Game
                 return;
             }
 
-            if (GameInputManager.Instance.CurrentMode != InputMode.Build)
+            if (!IsCameraInputMode())
             {
                 return;
             }
+
+            HandleKeyboardCameraMove();
 
             if (IsPointerOverUI())
             {
@@ -79,13 +80,47 @@ namespace Game
             }
 
             HandleCameraDrag();
-            HandleCameraRotate();
             HandleCameraZoom();
+        }
+
+        private void HandleKeyboardCameraMove()
+        {
+            Vector2 move = GetCameraMoveInput();
+
+            if (move.sqrMagnitude < 0.0001f)
+            {
+                return;
+            }
+
+            if (move.sqrMagnitude > 1f)
+            {
+                move.Normalize();
+            }
+
+            float distance = keyboardPanSpeed * Time.unscaledDeltaTime;
+            CameraManager.Instance.PanByWorldDirection(move, distance);
+        }
+
+        private Vector2 GetCameraMoveInput()
+        {
+            InputMode mode = GameInputManager.Instance.CurrentMode;
+
+            if (mode == InputMode.Build)
+            {
+                return GameInputManager.Instance.BuildMove;
+            }
+
+            if (mode == InputMode.Battle)
+            {
+                return GameInputManager.Instance.BattleMove;
+            }
+
+            return Vector2.zero;
         }
 
         private void HandleCameraDrag()
         {
-            if (!GameInputManager.Instance.BuildRemoveHeld)
+            if (!GameInputManager.Instance.BuildPlaceHeld && !GameInputManager.Instance.BuildRemoveHeld)
             {
                 return;
             }
@@ -98,23 +133,6 @@ namespace Game
             }
 
             CameraManager.Instance.PanByScreenDelta(delta);
-        }
-
-        private void HandleCameraRotate()
-        {
-            if (!GameInputManager.Instance.BuildRotateHeld)
-            {
-                return;
-            }
-
-            Vector2 delta = GameInputManager.Instance.PointerDelta;
-
-            if (Mathf.Abs(delta.x) < minDragDelta)
-            {
-                return;
-            }
-
-            CameraManager.Instance.RotateAroundFocus(delta.x * rotateSpeed);
         }
 
         private void HandleCameraZoom()
@@ -186,9 +204,6 @@ namespace Game
             {
                 selectedTile.SetSelected(true);
                 Debug.Log($"Select tile: {selectedTile.Coord}, Type: {selectedTile.Type}");
-
-                //判断是否可建造
-                //显示选中框
             }
         }
 
@@ -212,6 +227,12 @@ namespace Game
             }
 
             return EventSystem.current.IsPointerOverGameObject();
+        }
+
+        private bool IsCameraInputMode()
+        {
+            InputMode mode = GameInputManager.Instance.CurrentMode;
+            return mode == InputMode.Build || mode == InputMode.Battle;
         }
     }
 }

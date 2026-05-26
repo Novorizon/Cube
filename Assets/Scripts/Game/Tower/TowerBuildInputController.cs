@@ -35,17 +35,12 @@ namespace Game
             }
 
             Vector2 screenPosition = Mouse.current.position.ReadValue();
-
-            if (IsPointerOverUI())
-            {
-                TowerBuildManager.Instance.UpdatePreview(null);
-                return;
-            }
+            bool pointerOverUi = IsPointerOverUI();
 
             TileView tileView = PickTile(screenPosition);
             TowerBuildManager.Instance.UpdatePreview(tileView);
 
-            if (Mouse.current.leftButton.wasPressedThisFrame)
+            if (!pointerOverUi && Mouse.current.leftButton.wasPressedThisFrame)
             {
                 TowerBuildManager.Instance.TryBuildPreviewTower();
             }

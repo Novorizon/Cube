@@ -66,6 +66,7 @@ namespace Game
             maxLife = Mathf.Max(1, life);
             currentLife = maxLife;
             Debug.Log($"Base initialized. Life: {currentLife}/{maxLife}");
+            NotifyBaseLifeChanged();
 
             return true;
         }
@@ -100,16 +101,14 @@ namespace Game
                 currentLife = 0;
             }
 
-            BaseLifeMessage message = new BaseLifeMessage();
-            message.CurrentLife = currentLife;
-            message.MaxLife = maxLife;
-            Messager.Instance.Notify(BattleMessageTopic.BaseLifeChanged, message);
+            NotifyBaseLifeChanged();
 
             Debug.Log($"Base damaged. Damage: {damage}, Life: {currentLife}/{maxLife}");
 
             if (currentLife <= 0)
             {
                 Debug.Log("Base destroyed. Game over.");
+                BattleFlowManager.Instance.CompleteDefeat("Base destroyed.");
             }
         }
 
@@ -138,10 +137,7 @@ namespace Game
                 return;
             }
 
-            BaseLifeMessage message = new BaseLifeMessage();
-            message.CurrentLife = currentLife;
-            message.MaxLife = maxLife;
-            Messager.Instance.Notify(BattleMessageTopic.BaseLifeChanged, message);
+            NotifyBaseLifeChanged();
 
             Debug.Log($"Base healed. Heal: {currentLife - before}, Life: {currentLife}/{maxLife}");
         }
@@ -157,6 +153,14 @@ namespace Game
             {
                 target.AddComponent<BaseView>();
             }
+        }
+
+        private void NotifyBaseLifeChanged()
+        {
+            BaseLifeMessage message = new BaseLifeMessage();
+            message.CurrentLife = currentLife;
+            message.MaxLife = maxLife;
+            Messager.Instance.Notify(BattleMessageTopic.BaseLifeChanged, message);
         }
 
         private Vector3 GetBaseWorldPosition(Vector3Int coord)

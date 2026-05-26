@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using UI;
 using UnityEngine;
-using UnityEngine.U2D;
 
 namespace Game
 {
@@ -15,12 +14,8 @@ namespace Game
         [SerializeField]
         private ItemSlotView slotPrefab;
 
-        [SerializeField]
-        private string atlasLocation = "Assets/Arts/UI/Atlas/TowerDefense.spriteatlasv2";
-
         private readonly Dictionary<int, ItemSlotView> slots = new Dictionary<int, ItemSlotView>();
-
-        private SpriteAtlas atlas;
+        private readonly HashSet<string> missingIconWarnings = new HashSet<string>();
 
         public event Action<int> ItemClicked;
 
@@ -53,8 +48,6 @@ namespace Game
             {
                 return;
             }
-
-            atlas = ResourceManager.Instance.LoadSpriteAtlas(atlasLocation);
 
             IReadOnlyDictionary<int, ItemData> items = ItemManager.Instance.GetAllItems();
 
@@ -103,15 +96,8 @@ namespace Game
                 return;
             }
 
-            Sprite icon = null;
-
-            if (atlas != null && !string.IsNullOrEmpty(config.IconLocation))
-            {
-                icon = atlas.GetSprite(config.IconLocation);
-            }
-
             ItemSlotView slot = Instantiate(slotPrefab, contentRoot);
-            slot.Init(config, count, icon, OnItemClicked);
+            slot.Init(config, count, LoadIcon(config.IconLocation), OnItemClicked);
             slots[itemId] = slot;
         }
 
@@ -131,6 +117,32 @@ namespace Game
             }
 
             slots.Clear();
+        }
+
+        private Sprite LoadIcon(string location)
+        {
+            if (string.IsNullOrWhiteSpace(location))
+            {
+                return null;
+            }
+
+            if (!location.StartsWith("Assets/", StringComparison.Ordinal))
+            {
+                if (missingIconWarnings.Add(location))
+                {
+                    Debug.LogWarning($"Item icon location must be a full asset path. location: {location}");
+                }
+
+                return null;
+            }
+
+            Sprite sprite = ResourceManager.Instance.LoadAsset<Sprite>(location);
+            if (sprite == null && missingIconWarnings.Add(location))
+            {
+                Debug.LogWarning($"Item icon load failed. location: {location}");
+            }
+
+            return sprite;
         }
     }
 }

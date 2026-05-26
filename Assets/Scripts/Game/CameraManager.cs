@@ -176,6 +176,39 @@ namespace Game
             }
         }
 
+        public void PanByWorldDirection(Vector2 direction, float distance)
+        {
+            if (!EnsureCamera())
+            {
+                return;
+            }
+
+            if (direction.sqrMagnitude < 0.0001f || distance <= 0f)
+            {
+                return;
+            }
+
+            Vector3 right = mainCamera.transform.right;
+            Vector3 forward = Vector3.ProjectOnPlane(mainCamera.transform.forward, Vector3.up);
+
+            if (forward.sqrMagnitude < 0.0001f)
+            {
+                forward = Vector3.ProjectOnPlane(mainCamera.transform.up, Vector3.up);
+            }
+
+            right.y = 0f;
+            right.Normalize();
+            forward.Normalize();
+
+            Vector3 move = (right * direction.x + forward * direction.y) * distance;
+            mainCamera.transform.position += move;
+
+            if (hasFocus)
+            {
+                currentFocus += move;
+            }
+        }
+
         public void RotateAroundFocus(float deltaYaw)
         {
             if (!EnsureCamera())

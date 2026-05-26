@@ -18,7 +18,7 @@
     "periodicActionGroupId": 0,
     "onCreatedActionGroupId": 0,
     "onDestroyActionGroupId": 0,
-    "effectLocation": "Effect/FrostSlowLoop"
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab"
   },
   {
     "id": 3002,
@@ -39,7 +39,7 @@
     "periodicActionGroupId": 0,
     "onCreatedActionGroupId": 0,
     "onDestroyActionGroupId": 0,
-    "effectLocation": "Effect/IceFreeze"
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab"
   },
   {
     "id": 3003,
@@ -60,7 +60,7 @@
     "periodicActionGroupId": 0,
     "onCreatedActionGroupId": 0,
     "onDestroyActionGroupId": 0,
-    "effectLocation": "Effect/AuraAttackSpeed"
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab"
   },
   {
     "id": 3004,
@@ -81,7 +81,7 @@
     "periodicActionGroupId": 2001,
     "onCreatedActionGroupId": 0,
     "onDestroyActionGroupId": 0,
-    "effectLocation": "Effect/PoisonLoop"
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab"
   },
   {
     "id": 3005,
@@ -102,6 +102,6 @@
     "periodicActionGroupId": 0,
     "onCreatedActionGroupId": 0,
     "onDestroyActionGroupId": 0,
-    "effectLocation": "Effect/StunLoop"
+    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab"
   }
 ]

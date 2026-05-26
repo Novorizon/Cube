@@ -29,6 +29,8 @@ namespace Game
             NpcManager.Instance.Initialize();
             TowerManager.Instance.Initialize();
             WaveManager.Instance.Initialize();
+            AbilityManager.Instance.Initialize();
+            BattleFlowManager.Instance.Initialize();
 
             MapManager.Instance.Initialize();
             TowerBuildManager.Instance.Initialize();
@@ -42,13 +44,32 @@ namespace Game
 
         private void Update()
         {
+            if (!BattleFlowManager.Instance.IsRunning)
+            {
+                return;
+            }
+
+            AbilityManager.Instance.Update(Time.deltaTime);
             NpcManager.Instance.Update(Time.deltaTime);
+
+            if (!BattleFlowManager.Instance.IsRunning)
+            {
+                return;
+            }
+
             TowerManager.Instance.Update(Time.deltaTime);
+
+            if (!BattleFlowManager.Instance.IsRunning)
+            {
+                return;
+            }
+
             WaveManager.Instance.Update(Time.deltaTime);
         }
 
         private void OnDestroy()
         {
+            AbilityManager.Instance.Release();
             BattleTargetClickManager.Instance.Release();
             GameInputManager.Instance.Release();
         }

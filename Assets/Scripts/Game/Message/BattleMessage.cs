@@ -14,6 +14,9 @@ namespace Game
         NpcSpawned,
         TargetInfoChanged,
         TargetInfoCleared,
+        BattleStateChanged,
+        BattleEnded,
+        GoldFlyRequested,
     }
 
     public class BattleStatusMessage : IMessage
@@ -30,6 +33,12 @@ namespace Game
         public int Gold;
     }
 
+    public class GoldFlyMessage : IMessage
+    {
+        public UnityEngine.Vector3 WorldPosition;
+        public int Count;
+    }
+
     public class BaseLifeMessage : IMessage
     {
         public int CurrentLife;
@@ -40,6 +49,28 @@ namespace Game
     {
         public int CurrentWave;
         public int MaxWave;
+        public int AliveEnemyCount;
+        public int TotalEnemyCount;
+        public int KilledEnemyCount;
+        public int CurrentWaveSpawnedCount;
+        public int CurrentWaveTotalCount;
+    }
+
+    public class BattleStateMessage : IMessage
+    {
+        public BattleState State;
+        public int MapId;
+        public string MapName;
+    }
+
+    public class BattleEndedMessage : IMessage
+    {
+        public BattleState State;
+        public bool Victory;
+        public int MapId;
+        public string MapName;
+        public string Reason;
+        public BattleSettlementReward Reward;
     }
 
     public class TargetInfoMessage : IMessage

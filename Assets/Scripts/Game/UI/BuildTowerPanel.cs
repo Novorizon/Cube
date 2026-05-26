@@ -3,9 +3,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UI;
-using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
-using UnityEngine.U2D;
 using UnityEngine.UI;
 
 namespace Game
@@ -19,6 +17,7 @@ namespace Game
         private TowerBuildCardView cardPrefab;
 
         private readonly List<TowerBuildCardView> cards = new List<TowerBuildCardView>();
+        private readonly HashSet<string> missingIconWarnings = new HashSet<string>();
         private int selectedTowerConfigId;
 
         public event Action<int> TowerClicked;
@@ -41,11 +40,6 @@ namespace Game
             }
 
             ClearCards();
-            SpriteAtlas atlas = ResourceManager.Instance.LoadSpriteAtlas("Assets/Arts/UI/Atlas/TowerDefense.spriteatlasv2");
-            Sprite[] sprites = new Sprite[atlas.spriteCount];
-            int count = atlas.GetSprites(sprites);
-
- 
             foreach (KeyValuePair<int, TowerConfig> pair in DataManager.Instance.Tower.GetAll())
             {
                 int towerId = pair.Key;
@@ -56,17 +50,20 @@ namespace Game
 
                 string towerName = towerConfig.Name;
                 string iconLocation = towerConfig.IconLocation;
-                int costItemId = towerConfig.CostItemId;
                 int costCount = towerConfig.CostCount;
+                if (DataManager.Instance.TryGetTowerLevel(towerId, 1, out TowerLevelConfig levelConfig))
+                {
+                    costCount = levelConfig.BuildCost;
+                }
                 towerName = towerConfig.Name;
 
-                Sprite icon = atlas.GetSprite(iconLocation); ;
+                Sprite icon = LoadIcon(iconLocation);
                 TowerBuildCardView card = Instantiate(cardPrefab, contentRoot);
                 card.Init(towerId, towerName, costCount, OnTowerCardClicked);
                 card.SetIcon(icon);
                 card.SetSelected(towerId == selectedTowerConfigId);
                 cards.Add(card);
-                Debug.Log($"TowerId: {towerId}, Name: {towerConfig.Name}, Cost: {towerConfig.CostCount}");
+                Debug.Log($"TowerId: {towerId}, Name: {towerConfig.Name}, Cost: {costCount}");
             }
 
 
@@ -142,6 +139,32 @@ namespace Game
             }
 
             cards.Clear();
+        }
+
+        private Sprite LoadIcon(string location)
+        {
+            if (string.IsNullOrWhiteSpace(location))
+            {
+                return null;
+            }
+
+            if (!location.StartsWith("Assets/", StringComparison.Ordinal))
+            {
+                if (missingIconWarnings.Add(location))
+                {
+                    Debug.LogWarning($"Tower icon location must be a full asset path. location: {location}");
+                }
+
+                return null;
+            }
+
+            Sprite sprite = ResourceManager.Instance.LoadAsset<Sprite>(location);
+            if (sprite == null && missingIconWarnings.Add(location))
+            {
+                Debug.LogWarning($"Tower icon load failed. location: {location}");
+            }
+
+            return sprite;
         }
     }
 }

@@ -179,6 +179,11 @@ namespace Game
             return CastAbilityAtBestTarget(GetUnit(tower), skillId);
         }
 
+        public CastResult CastTowerAbilityOnTarget(Tower tower, int skillId, Npc target)
+        {
+            return CastAbilityOnTarget(GetUnit(tower), skillId, GetUnit(target));
+        }
+
         public CastResult CastBaseAbilityAtBestTarget(int skillId)
         {
             return CastAbilityAtBestTarget(GetBaseUnit(), skillId);

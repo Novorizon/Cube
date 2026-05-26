@@ -28,6 +28,7 @@ public partial class Tables
     public TbSkillModifier TbSkillModifier {get; }
     public TbSkillSystemEnum TbSkillSystemEnum {get; }
     public TbTower TbTower {get; }
+    public TbTowerLevel TbTowerLevel {get; }
     public TbWave TbWave {get; }
 
     public Tables(System.Func<string, ByteBuf> loader)
@@ -47,6 +48,7 @@ public partial class Tables
         TbSkillModifier = new TbSkillModifier(loader("tbskillmodifier"));
         TbSkillSystemEnum = new TbSkillSystemEnum(loader("tbskillsystemenum"));
         TbTower = new TbTower(loader("tbtower"));
+        TbTowerLevel = new TbTowerLevel(loader("tbtowerlevel"));
         TbWave = new TbWave(loader("tbwave"));
         ResolveRef();
     }
@@ -68,6 +70,7 @@ public partial class Tables
         TbSkillModifier.ResolveRef(this);
         TbSkillSystemEnum.ResolveRef(this);
         TbTower.ResolveRef(this);
+        TbTowerLevel.ResolveRef(this);
         TbWave.ResolveRef(this);
     }
 }

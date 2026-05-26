@@ -78,9 +78,14 @@ namespace Game
                 return;
             }
 
-            TowerConfig config = DataManager.Instance.Tower.Get(tower.ConfigId);
+            TowerLevelConfig config = DataManager.Instance.GetTowerLevel(tower.ConfigId, tower.Level);
 
             if (config == null)
+            {
+                return;
+            }
+
+            if (AbilityManager.Instance.IsActionRestricted(tower))
             {
                 return;
             }
@@ -102,15 +107,29 @@ namespace Game
                 return;
             }
 
-            tower.Data.AttackTimer = config.AttackInterval;
+            tower.Data.AttackTimer = config.AttackInterval * AbilityManager.Instance.GetAttackIntervalMultiplier(tower);
+
+            if (config.SkillId > 0)
+            {
+                Ability.CastResult result = AbilityManager.Instance.CastTowerAbilityOnTarget(tower, config.SkillId, target);
+
+                if (result == null || result.Success)
+                {
+                    Debug.Log($"Tower cast skill. towerConfigId: {tower.ConfigId}, level: {tower.Level}, skillId: {config.SkillId}, target: {target.name}");
+                    return;
+                }
+
+                Debug.LogWarning($"Tower cast skill failed. towerConfigId: {tower.ConfigId}, level: {tower.Level}, skillId: {config.SkillId}, reason: {result.FailureReason}, message: {result.Message}");
+                return;
+            }
 
             Vector3 startPosition = tower.transform.position + Vector3.up * 0.8f;
             Vector3 targetPosition = target.transform.position + Vector3.up * 0.6f;
-            _ = BattleEffect.PlayProjectileWithHitAsync(config.AttackEffect, config.HitEffect,startPosition, targetPosition);
+            _ = BattleEffect.PlayProjectileWithHitAsync(config.AttackEffect, config.HitEffect, startPosition, targetPosition);
 
-            NpcManager.Instance.TakeDamage(target, config.Damage);
+            AbilityManager.Instance.ApplyTowerAttackDamage(tower, target, config.Damage);
 
-            Debug.Log($"Tower attack. towerConfigId: {tower.ConfigId}, target: {target.name}, damage: {config.Damage}");
+            Debug.Log($"Tower attack. towerConfigId: {tower.ConfigId}, level: {tower.Level}, target: {target.name}, damage: {config.Damage}");
         }
 
         private Npc FindTarget(Tower tower, float range)
@@ -169,15 +188,16 @@ namespace Game
 
         public bool HasGold(int towerConfigId)
         {
-            if (!DataManager.Instance.Tower.TryGet(towerConfigId, out TowerConfig config))
+            if (!DataManager.Instance.TryGetTowerLevel(towerConfigId, 1, out TowerLevelConfig config))
             {
-                Debug.LogWarning($"Select tower failed. Missing tower config: {towerConfigId}");
+                Debug.LogWarning($"Select tower failed. Missing tower level config: {towerConfigId}, level: 1");
                 return false;
             }
-            int gold = ItemManager.Instance.GetCount(ItemIds.Gold);
-            if (gold < config.CostCount)
+            int costItemId = config.CostItemId > 0 ? config.CostItemId : ItemIds.Gold;
+            int itemCount = ItemManager.Instance.GetCount(costItemId);
+            if (itemCount < config.BuildCost)
             {
-                Debug.LogWarning($"Gold is not enought: {gold}");
+                Debug.LogWarning($"Build cost is not enough. itemId: {costItemId}, current: {itemCount}, need: {config.BuildCost}");
                 return false;
             }
             return true;

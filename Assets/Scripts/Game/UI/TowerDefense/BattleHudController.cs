@@ -1,13 +1,20 @@
 using System;
+using System.Collections;
+using Game.Framework;
+using TMPro;
 using UI;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game
 {
     public sealed class BattleHudController : UIPanel
     {
-        [SerializeField]
-        private TdUiConfig config;
+        private const string DefaultFontAssetPath = "Assets/Arts/Font/NotoSansSC-Regular SDF.asset";
+        private const string GoldIconAssetPath = "Assets/Arts/UI/Icons/Item/Gold.png";
+
+        private static TMP_FontAsset defaultFontAsset;
+        private static Sprite goldIconSprite;
 
         [SerializeField]
         private StatusPanel statusPanel;
@@ -30,18 +37,44 @@ namespace Game
         [SerializeField]
         private MiniMapPanel miniMapPanel;
 
+        private Subscriber subscriber;
+        private GameObject battleResultDialog;
+        private TMP_Text battleResultTitleText;
+        private TMP_Text battleResultMapText;
+        private TMP_Text battleResultReasonText;
+        private TMP_Text battleResultRewardText;
+        private Button battleResultNextButton;
+        private Button battleResultRestartButton;
+        private Button battleResultMenuButton;
+
         public event Action<int> TowerBuildClicked;
         public event Action<int> SkillClicked;
         public event Action<int> TowerUpgradeClicked;
         public event Action<int> TowerSellClicked;
+        public event Action<TdTargetRuntimeInfo> TowerUpgradeTargetClicked;
+        public event Action<TdTargetRuntimeInfo> TowerSellTargetClicked;
         public event Action<float> SpeedChanged;
         public event Action<bool> AutoNextWaveChanged;
         public event Action<int> ItemClicked;
 
         protected override void OnCreate()
         {
+            ResolveMissingReferences();
             InitializePanels();
             RegisterEvents();
+        }
+
+        private void ResolveMissingReferences()
+        {
+            if (statusPanel == null)
+            {
+                statusPanel = GetComponentInChildren<StatusPanel>(true);
+            }
+
+            if (targetInfoPanel == null)
+            {
+                targetInfoPanel = GetComponentInChildren<InfoPanel>(true);
+            }
         }
 
         protected override void OnDestroyed()
@@ -51,9 +84,9 @@ namespace Game
 
         public void InitializePanels()
         {
-            if (config == null)
+            if (statusPanel != null)
             {
-                return;
+                statusPanel.RefreshAll();
             }
 
             if (buildTowerPanel != null)
@@ -63,7 +96,7 @@ namespace Game
 
             if (skillPanel != null)
             {
-                skillPanel.Build(config.Skills);
+                skillPanel.Build();
             }
 
             if (itemPanel != null)
@@ -93,6 +126,8 @@ namespace Game
             {
                 targetInfoPanel.UpgradeClicked += OnTowerUpgradeClicked;
                 targetInfoPanel.SellClicked += OnTowerSellClicked;
+                targetInfoPanel.UpgradeTargetClicked += OnTowerUpgradeTargetClicked;
+                targetInfoPanel.SellTargetClicked += OnTowerSellTargetClicked;
             }
 
             if (battleControlPanel != null)
@@ -105,6 +140,14 @@ namespace Game
             {
                 itemPanel.ItemClicked += OnItemClicked;
             }
+
+            subscriber?.Clear();
+            subscriber = new Subscriber();
+            subscriber.Add(Messager.Instance.Subscribe<BattleMessageTopic, GoldsMessage>(BattleMessageTopic.GoldChanged, OnGoldChanged));
+            subscriber.Add(Messager.Instance.Subscribe<BattleMessageTopic, BaseLifeMessage>(BattleMessageTopic.BaseLifeChanged, OnBaseLifeChanged));
+            subscriber.Add(Messager.Instance.Subscribe<BattleMessageTopic, WaveMessage>(BattleMessageTopic.WaveChanged, OnWaveChanged));
+            subscriber.Add(Messager.Instance.Subscribe<BattleMessageTopic, BattleEndedMessage>(BattleMessageTopic.BattleEnded, OnBattleEnded));
+            subscriber.Add(Messager.Instance.Subscribe<BattleMessageTopic, GoldFlyMessage>(BattleMessageTopic.GoldFlyRequested, OnGoldFlyRequested));
         }
 
         private void UnregisterEvents()
@@ -123,6 +166,8 @@ namespace Game
             {
                 targetInfoPanel.UpgradeClicked -= OnTowerUpgradeClicked;
                 targetInfoPanel.SellClicked -= OnTowerSellClicked;
+                targetInfoPanel.UpgradeTargetClicked -= OnTowerUpgradeTargetClicked;
+                targetInfoPanel.SellTargetClicked -= OnTowerSellTargetClicked;
             }
 
             if (battleControlPanel != null)
@@ -136,10 +181,18 @@ namespace Game
                 itemPanel.ItemClicked -= OnItemClicked;
             }
 
+            if (subscriber != null)
+            {
+                subscriber.Clear();
+                subscriber = null;
+            }
+
             TowerBuildClicked = null;
             SkillClicked = null;
             TowerUpgradeClicked = null;
             TowerSellClicked = null;
+            TowerUpgradeTargetClicked = null;
+            TowerSellTargetClicked = null;
             SpeedChanged = null;
             AutoNextWaveChanged = null;
             ItemClicked = null;
@@ -230,6 +283,16 @@ namespace Game
             TowerSellClicked?.Invoke(towerId);
         }
 
+        private void OnTowerUpgradeTargetClicked(TdTargetRuntimeInfo info)
+        {
+            TowerUpgradeTargetClicked?.Invoke(info);
+        }
+
+        private void OnTowerSellTargetClicked(TdTargetRuntimeInfo info)
+        {
+            TowerSellTargetClicked?.Invoke(info);
+        }
+
         private void OnSpeedChanged(float speed)
         {
             SpeedChanged?.Invoke(speed);
@@ -243,6 +306,395 @@ namespace Game
         private void OnItemClicked(int itemId)
         {
             ItemClicked?.Invoke(itemId);
+        }
+
+        private void OnGoldChanged(GoldsMessage message)
+        {
+            if (message == null)
+            {
+                return;
+            }
+
+            statusPanel?.SetGold(message.Gold);
+        }
+
+        private void OnBaseLifeChanged(BaseLifeMessage message)
+        {
+            if (message == null)
+            {
+                return;
+            }
+
+            statusPanel?.SetBaseLife(message.CurrentLife, message.MaxLife);
+        }
+
+        private void OnWaveChanged(WaveMessage message)
+        {
+            statusPanel?.SetWaveState(message);
+        }
+
+        private void OnBattleEnded(BattleEndedMessage message)
+        {
+            ShowBattleResultDialog(message);
+        }
+
+        private void OnGoldFlyRequested(GoldFlyMessage message)
+        {
+            if (message == null || message.Count <= 0 || statusPanel == null)
+            {
+                return;
+            }
+
+            RectTransform root = transform as RectTransform;
+            RectTransform target = statusPanel.GoldAnchor;
+            if (root == null || target == null)
+            {
+                return;
+            }
+
+            Canvas canvas = GetComponentInParent<Canvas>();
+            Camera uiCamera = GetCanvasCamera(canvas);
+            Camera worldCamera = Camera.main;
+            if (worldCamera == null)
+            {
+                return;
+            }
+
+            Vector2 startScreenPosition = worldCamera.WorldToScreenPoint(message.WorldPosition);
+            Vector2 endScreenPosition = RectTransformUtility.WorldToScreenPoint(uiCamera, target.position);
+
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(root, startScreenPosition, uiCamera, out Vector2 startLocalPosition))
+            {
+                return;
+            }
+
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(root, endScreenPosition, uiCamera, out Vector2 endLocalPosition))
+            {
+                return;
+            }
+
+            StartCoroutine(PlayGoldFlyAsync(root, startLocalPosition, endLocalPosition, message.Count));
+        }
+
+        private IEnumerator PlayGoldFlyAsync(RectTransform root, Vector2 startPosition, Vector2 endPosition, int count)
+        {
+            GameObject iconObject = CreateRectObject("GoldFlyIcon", root);
+            RectTransform iconRect = iconObject.transform as RectTransform;
+            iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRect.pivot = new Vector2(0.5f, 0.5f);
+            iconRect.sizeDelta = new Vector2(34f, 34f);
+            iconRect.anchoredPosition = startPosition;
+
+            Image iconImage = iconObject.AddComponent<Image>();
+            iconImage.raycastTarget = false;
+            iconImage.sprite = GetGoldIconSprite();
+            iconImage.color = new Color(1f, 0.93f, 0.32f, 1f);
+
+            TMP_Text countText = null;
+            if (count > 1)
+            {
+                countText = CreateText("Count", iconObject.transform, 18, FontStyles.Bold, TextAlignmentOptions.Center);
+                countText.text = $"+{count}";
+                countText.raycastTarget = false;
+                countText.color = new Color(1f, 0.96f, 0.55f, 1f);
+                SetRect(countText.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -15f), new Vector2(80f, 24f));
+            }
+
+            Vector2 controlPosition = (startPosition + endPosition) * 0.5f + new Vector2(0f, 95f);
+            float duration = 0.62f;
+            float elapsed = 0f;
+
+            while (elapsed < duration && iconRect != null)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float eased = 1f - Mathf.Pow(1f - t, 3f);
+                iconRect.anchoredPosition = EvaluateQuadraticBezier(startPosition, controlPosition, endPosition, eased);
+                iconRect.localScale = Vector3.one * Mathf.Lerp(1.15f, 0.72f, eased);
+
+                Color color = iconImage.color;
+                color.a = Mathf.Lerp(1f, 0.15f, Mathf.Clamp01((t - 0.72f) / 0.28f));
+                iconImage.color = color;
+                if (countText != null)
+                {
+                    countText.alpha = color.a;
+                }
+
+                yield return null;
+            }
+
+            Destroy(iconObject);
+            StartCoroutine(PunchGoldAnchorAsync());
+        }
+
+        private IEnumerator PunchGoldAnchorAsync()
+        {
+            RectTransform target = statusPanel != null ? statusPanel.GoldAnchor : null;
+            if (target == null)
+            {
+                yield break;
+            }
+
+            Vector3 originalScale = target.localScale;
+            float duration = 0.16f;
+            float elapsed = 0f;
+
+            while (elapsed < duration && target != null)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float scale = 1f + Mathf.Sin(t * Mathf.PI) * 0.18f;
+                target.localScale = originalScale * scale;
+                yield return null;
+            }
+
+            if (target != null)
+            {
+                target.localScale = originalScale;
+            }
+        }
+
+        private static Vector2 EvaluateQuadraticBezier(Vector2 start, Vector2 control, Vector2 end, float t)
+        {
+            float u = 1f - t;
+            return u * u * start + 2f * u * t * control + t * t * end;
+        }
+
+        private static Camera GetCanvasCamera(Canvas canvas)
+        {
+            if (canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay)
+            {
+                return null;
+            }
+
+            return canvas.worldCamera;
+        }
+
+        private static Sprite GetGoldIconSprite()
+        {
+            if (goldIconSprite != null)
+            {
+                return goldIconSprite;
+            }
+
+            goldIconSprite = ResourceManager.Instance.LoadAsset<Sprite>(GoldIconAssetPath);
+            return goldIconSprite;
+        }
+
+        private void ShowBattleResultDialog(BattleEndedMessage message)
+        {
+            EnsureBattleResultDialog();
+
+            if (battleResultDialog == null)
+            {
+                return;
+            }
+
+            bool victory = message != null && message.Victory;
+            battleResultTitleText.text = victory ? "战斗胜利" : "战斗失败";
+            battleResultMapText.text = message != null && !string.IsNullOrWhiteSpace(message.MapName) ? message.MapName : "当前关卡";
+            battleResultReasonText.text = message != null && !string.IsNullOrWhiteSpace(message.Reason) ? message.Reason : string.Empty;
+            battleResultRewardText.text = BuildRewardText(message);
+            RefreshBattleResultButtons(message, victory);
+            battleResultDialog.SetActive(true);
+        }
+
+        private void RefreshBattleResultButtons(BattleEndedMessage message, bool victory)
+        {
+            int mapId = message != null ? message.MapId : 0;
+            bool hasNextMap = victory && MapManager.Instance.HasNextMap(mapId);
+
+            if (battleResultNextButton != null)
+            {
+                battleResultNextButton.gameObject.SetActive(hasNextMap);
+            }
+
+            if (battleResultRestartButton != null)
+            {
+                RectTransform restartRect = battleResultRestartButton.GetComponent<RectTransform>();
+                restartRect.anchoredPosition = hasNextMap ? new Vector2(0f, 34f) : new Vector2(-86f, 34f);
+            }
+
+            if (battleResultMenuButton != null)
+            {
+                RectTransform menuRect = battleResultMenuButton.GetComponent<RectTransform>();
+                menuRect.anchoredPosition = hasNextMap ? new Vector2(152f, 34f) : new Vector2(86f, 34f);
+            }
+        }
+        private string BuildRewardText(BattleEndedMessage message)
+        {
+            if (message == null || !message.Victory)
+            {
+                return "奖励：无";
+            }
+
+            if (message.Reward == null || message.Reward.OuterItemMap == null || message.Reward.OuterItemMap.Count == 0)
+            {
+                return "奖励：无";
+            }
+
+            System.Text.StringBuilder builder = new System.Text.StringBuilder("奖励：");
+            bool first = true;
+
+            foreach (System.Collections.Generic.KeyValuePair<int, int> pair in message.Reward.OuterItemMap)
+            {
+                if (!first)
+                {
+                    builder.Append("，");
+                }
+
+                builder.Append(pair.Key);
+                builder.Append(" x");
+                builder.Append(pair.Value);
+                first = false;
+            }
+
+            return builder.ToString();
+        }
+
+        private void EnsureBattleResultDialog()
+        {
+            if (battleResultDialog != null)
+            {
+                return;
+            }
+
+            RectTransform parent = transform as RectTransform;
+            battleResultDialog = CreateRectObject("BattleResultDialog", parent);
+            RectTransform dialogRect = battleResultDialog.transform as RectTransform;
+            Stretch(dialogRect);
+
+            Image blockerImage = battleResultDialog.AddComponent<Image>();
+            blockerImage.color = new Color(0f, 0f, 0f, 0.55f);
+
+            GameObject panel = CreateRectObject("Panel", dialogRect);
+            RectTransform panelRect = panel.transform as RectTransform;
+            panelRect.anchorMin = new Vector2(0.5f, 0.5f);
+            panelRect.anchorMax = new Vector2(0.5f, 0.5f);
+            panelRect.pivot = new Vector2(0.5f, 0.5f);
+            panelRect.sizeDelta = new Vector2(460f, 300f);
+            panelRect.anchoredPosition = Vector2.zero;
+
+            Image panelImage = panel.AddComponent<Image>();
+            panelImage.color = new Color(0.98f, 0.9f, 0.72f, 0.98f);
+
+            battleResultTitleText = CreateText("Title", panelRect, 34, FontStyles.Bold, TextAlignmentOptions.Center);
+            SetRect(battleResultTitleText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -42f), new Vector2(-40f, 54f));
+
+            battleResultMapText = CreateText("Map", panelRect, 22, FontStyles.Normal, TextAlignmentOptions.Center);
+            SetRect(battleResultMapText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -88f), new Vector2(-48f, 34f));
+
+            battleResultReasonText = CreateText("Reason", panelRect, 20, FontStyles.Normal, TextAlignmentOptions.Center);
+            SetRect(battleResultReasonText.rectTransform, new Vector2(0f, 0.5f), new Vector2(1f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 20f), new Vector2(-56f, 70f));
+
+            battleResultRewardText = CreateText("Reward", panelRect, 20, FontStyles.Normal, TextAlignmentOptions.Center);
+            SetRect(battleResultRewardText.rectTransform, new Vector2(0f, 0.5f), new Vector2(1f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -54f), new Vector2(-56f, 44f));
+
+            battleResultNextButton = CreateButton("NextButton", panelRect, "下一关");
+            SetRect(battleResultNextButton.GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-152f, 34f), new Vector2(132f, 46f));
+            battleResultNextButton.onClick.AddListener(OnBattleResultNextClicked);
+
+            battleResultRestartButton = CreateButton("RestartButton", panelRect, "重新开始");
+            SetRect(battleResultRestartButton.GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 34f), new Vector2(132f, 46f));
+            battleResultRestartButton.onClick.AddListener(OnBattleResultRestartClicked);
+
+            battleResultMenuButton = CreateButton("MenuButton", panelRect, "主菜单");
+            SetRect(battleResultMenuButton.GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(152f, 34f), new Vector2(132f, 46f));
+            battleResultMenuButton.onClick.AddListener(OnBattleResultMenuClicked);
+
+            battleResultDialog.SetActive(false);
+        }
+
+        private void OnBattleResultNextClicked()
+        {
+            BattleEndedMessage message = BattleFlowManager.Instance.LastEndMessage;
+            int mapId = message != null ? message.MapId : 0;
+            MapManager.Instance.LoadNextMap(mapId);
+        }
+
+        private void OnBattleResultRestartClicked()
+        {
+            MapManager.Instance.RestartCurrentMap();
+        }
+
+        private void OnBattleResultMenuClicked()
+        {
+            MapManager.Instance.ReturnToMainMenu();
+        }
+        private void HideBattleResultDialog()
+        {
+            if (battleResultDialog != null)
+            {
+                battleResultDialog.SetActive(false);
+            }
+        }
+
+        private static GameObject CreateRectObject(string name, Transform parent)
+        {
+            GameObject instance = new GameObject(name, typeof(RectTransform));
+            instance.transform.SetParent(parent, false);
+            return instance;
+        }
+
+        private static TMP_Text CreateText(string name, Transform parent, float fontSize, FontStyles style, TextAlignmentOptions alignment)
+        {
+            GameObject instance = CreateRectObject(name, parent);
+            TextMeshProUGUI text = instance.AddComponent<TextMeshProUGUI>();
+            TMP_FontAsset fontAsset = GetDefaultFontAsset();
+            if (fontAsset != null)
+            {
+                text.font = fontAsset;
+            }
+
+            text.fontSize = fontSize;
+            text.fontStyle = style;
+            text.alignment = alignment;
+            text.color = new Color(0.25f, 0.13f, 0.05f, 1f);
+            text.enableWordWrapping = true;
+            return text;
+        }
+
+        private static TMP_FontAsset GetDefaultFontAsset()
+        {
+            if (defaultFontAsset != null)
+            {
+                return defaultFontAsset;
+            }
+
+            defaultFontAsset = ResourceManager.Instance.LoadAsset<TMP_FontAsset>(DefaultFontAssetPath);
+            return defaultFontAsset;
+        }
+
+        private static Button CreateButton(string name, Transform parent, string label)
+        {
+            GameObject instance = CreateRectObject(name, parent);
+            Image image = instance.AddComponent<Image>();
+            image.color = new Color(0.64f, 0.24f, 0.08f, 1f);
+
+            Button button = instance.AddComponent<Button>();
+            button.targetGraphic = image;
+
+            TMP_Text text = CreateText("Text", instance.transform, 22, FontStyles.Bold, TextAlignmentOptions.Center);
+            text.text = label;
+            text.color = Color.white;
+            Stretch(text.rectTransform);
+
+            return button;
+        }
+
+        private static void Stretch(RectTransform rectTransform)
+        {
+            SetRect(rectTransform, Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f), Vector2.zero, Vector2.zero);
+        }
+
+        private static void SetRect(RectTransform rectTransform, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot, Vector2 anchoredPosition, Vector2 sizeDelta)
+        {
+            rectTransform.anchorMin = anchorMin;
+            rectTransform.anchorMax = anchorMax;
+            rectTransform.pivot = pivot;
+            rectTransform.anchoredPosition = anchoredPosition;
+            rectTransform.sizeDelta = sizeDelta;
         }
     }
 }

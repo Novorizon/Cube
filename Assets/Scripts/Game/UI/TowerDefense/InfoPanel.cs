@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using UI;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Game
@@ -17,9 +18,11 @@ namespace Game
         private CanvasGroup canvasGroup;
 
         [SerializeField]
+        [FormerlySerializedAs("towerIconImage")]
         private Image targetIconImage;
 
         [SerializeField]
+        [FormerlySerializedAs("towerNameText")]
         private TMP_Text targetNameText;
 
         [SerializeField]
@@ -68,13 +71,19 @@ namespace Game
         private Button sellButton;
 
         private readonly Dictionary<string, InfoSlotView> slots = new Dictionary<string, InfoSlotView>();
+        private static readonly Dictionary<TdTargetInfoType, Sprite> fallbackIconCache = new Dictionary<TdTargetInfoType, Sprite>();
+
         private TdTargetInfoType selectedTargetType;
         private int selectedTargetId;
+        private TdTargetRuntimeInfo selectedInfo;
         private bool initialized;
+        private TargetModelPreview modelPreview;
         private Subscriber subscriber;
 
         public event Action<int> UpgradeClicked;
         public event Action<int> SellClicked;
+        public event Action<TdTargetRuntimeInfo> UpgradeTargetClicked;
+        public event Action<TdTargetRuntimeInfo> SellTargetClicked;
 
         protected override void OnCreate()
         {
@@ -104,10 +113,18 @@ namespace Game
                 sellButton.onClick.RemoveListener(OnSellClicked);
             }
 
+            if (modelPreview != null)
+            {
+                modelPreview.Dispose();
+                modelPreview = null;
+            }
+
             ClearInfoSlots();
 
             UpgradeClicked = null;
             SellClicked = null;
+            UpgradeTargetClicked = null;
+            SellTargetClicked = null;
         }
 
         public void Initialize()
@@ -119,6 +136,7 @@ namespace Game
 
             initialized = true;
             RegisterMessageHandlers();
+            EnsureModelPreview();
 
             if (upgradeButton != null)
             {
@@ -142,11 +160,18 @@ namespace Game
 
             selectedTargetType = info.Type;
             selectedTargetId = info.TargetId;
+            selectedInfo = info;
 
             if (targetIconImage != null)
             {
-                targetIconImage.sprite = info.Icon;
-                targetIconImage.enabled = info.Icon != null;
+                targetIconImage.sprite = info.Icon != null ? info.Icon : GetFallbackIcon(info.Type);
+                targetIconImage.enabled = targetIconImage.sprite != null;
+            }
+
+            bool previewVisible = modelPreview != null && modelPreview.Show(info.PreviewPrefabLocation);
+            if (previewVisible && targetIconImage != null)
+            {
+                targetIconImage.enabled = false;
             }
 
             if (targetNameText != null)
@@ -173,6 +198,7 @@ namespace Game
                 TargetId = info.TowerId,
                 Name = info.Name,
                 Icon = info.Icon,
+                PreviewPrefabLocation = info.PreviewPrefabLocation,
                 Level = info.Level,
                 Attack = info.Attack,
                 AttackAdd = info.AttackAdd,
@@ -190,53 +216,49 @@ namespace Game
 
         public void SetInfoSlots(IReadOnlyList<TdInfoSlotData> slotDataList)
         {
+            ClearInfoSlots();
+
             if (contentRoot == null || infoSlotPrefab == null)
             {
                 return;
             }
 
-            HashSet<string> activeKeys = new HashSet<string>();
-
-            if (slotDataList != null)
+            if (slotDataList == null)
             {
-                for (int i = 0; i < slotDataList.Count; i++)
-                {
-                    TdInfoSlotData data = slotDataList[i];
-
-                    if (string.IsNullOrEmpty(data.Key))
-                    {
-                        data.Key = string.IsNullOrEmpty(data.Name) ? i.ToString() : data.Name;
-                    }
-
-                    activeKeys.Add(data.Key);
-
-                    if (!slots.TryGetValue(data.Key, out InfoSlotView slot) || slot == null)
-                    {
-                        slot = Instantiate(infoSlotPrefab, contentRoot);
-                        slots[data.Key] = slot;
-                        slot.Init(data);
-                    }
-                    else
-                    {
-                        slot.SetData(data);
-                    }
-
-                    slot.transform.SetAsLastSibling();
-                }
+                return;
             }
 
-            RemoveUnusedInfoSlots(activeKeys);
+            for (int i = 0; i < slotDataList.Count; i++)
+            {
+                TdInfoSlotData data = slotDataList[i];
+
+                if (string.IsNullOrEmpty(data.Key))
+                {
+                    data.Key = string.IsNullOrEmpty(data.Name) ? i.ToString() : data.Name;
+                }
+
+                InfoSlotView slot = Instantiate(infoSlotPrefab, contentRoot);
+                slot.Init(data);
+                slots[data.Key] = slot;
+                slot.transform.SetAsLastSibling();
+            }
         }
 
         public void ClearInfo()
         {
             selectedTargetType = TdTargetInfoType.None;
             selectedTargetId = 0;
+            selectedInfo = default;
 
             if (targetIconImage != null)
             {
                 targetIconImage.sprite = null;
                 targetIconImage.enabled = false;
+            }
+
+            if (modelPreview != null)
+            {
+                modelPreview.Clear();
             }
 
             if (targetNameText != null)
@@ -255,7 +277,7 @@ namespace Game
             SetPanelVisible(true);
         }
 
-        protected void SetPanelVisible(bool visible)
+        private void SetPanelVisible(bool visible)
         {
             if (canvasGroup != null)
             {
@@ -266,6 +288,17 @@ namespace Game
             }
 
             gameObject.SetActive(visible);
+        }
+
+        private void EnsureModelPreview()
+        {
+            if (targetIconImage == null || modelPreview != null)
+            {
+                return;
+            }
+
+            modelPreview = new TargetModelPreview();
+            modelPreview.Initialize(targetIconImage);
         }
 
         private IReadOnlyList<TdInfoSlotData> GetInfoSlots(TdTargetRuntimeInfo info)
@@ -282,7 +315,7 @@ namespace Game
         {
             List<TdInfoSlotData> result = new List<TdInfoSlotData>();
 
-            AddInfoSlot(result, "level", "等级", info.Level > 0 ? $"Lv {info.Level}" : EmptyValue);
+            AddInfoSlot(result, "level", "等级", info.Level > 0 ? info.Level.ToString() : EmptyValue);
             AddInfoSlot(result, "hp", "生命", info.MaxHp > 0 ? $"{Mathf.Max(0, info.CurrentHp)}/{info.MaxHp}" : EmptyValue);
             AddInfoSlot(result, "attack", "攻击", info.Attack > 0 ? info.Attack.ToString() : EmptyValue, info.AttackAdd > 0 ? $"+{info.AttackAdd}" : string.Empty);
             AddInfoSlot(result, "range", "范围", info.Range > 0f ? $"{info.Range:0.#}" : EmptyValue);
@@ -303,61 +336,31 @@ namespace Game
             result.Add(new TdInfoSlotData(key, name, value, addValue));
         }
 
-        private void RemoveUnusedInfoSlots(HashSet<string> activeKeys)
+        private void ClearInfoSlots()
         {
-            List<string> removeKeys = null;
+            slots.Clear();
 
-            foreach (KeyValuePair<string, InfoSlotView> pair in slots)
-            {
-                if (activeKeys.Contains(pair.Key))
-                {
-                    continue;
-                }
-
-                if (removeKeys == null)
-                {
-                    removeKeys = new List<string>();
-                }
-
-                removeKeys.Add(pair.Key);
-            }
-
-            if (removeKeys == null)
+            if (contentRoot == null)
             {
                 return;
             }
 
-            for (int i = 0; i < removeKeys.Count; i++)
+            for (int i = contentRoot.childCount - 1; i >= 0; i--)
             {
-                string key = removeKeys[i];
-
-                if (slots.TryGetValue(key, out InfoSlotView slot) && slot != null)
+                Transform child = contentRoot.GetChild(i);
+                if (child != null && child.GetComponent<InfoSlotView>() != null)
                 {
-                    Destroy(slot.gameObject);
-                }
-
-                slots.Remove(key);
-            }
-        }
-
-        private void ClearInfoSlots()
-        {
-            foreach (InfoSlotView slot in slots.Values)
-            {
-                if (slot != null)
-                {
-                    Destroy(slot.gameObject);
+                    child.gameObject.SetActive(false);
+                    Destroy(child.gameObject);
                 }
             }
-
-            slots.Clear();
         }
 
         private void UpdateLegacyTexts(TdTargetRuntimeInfo info)
         {
             if (levelText != null)
             {
-                levelText.text = info.Level > 0 ? $"Lv {info.Level}" : EmptyValue;
+                levelText.text = info.Level > 0 ? info.Level.ToString() : EmptyValue;
             }
 
             if (hpText != null)
@@ -451,14 +454,18 @@ namespace Game
 
         private void UpdateActionButtons(TdTargetRuntimeInfo info)
         {
+            bool isTower = info.Type == TdTargetInfoType.Tower && info.TargetId > 0;
+
             if (upgradeButton != null)
             {
-                upgradeButton.interactable = info.Type == TdTargetInfoType.Tower && info.TargetId > 0 && info.CanUpgrade;
+                upgradeButton.gameObject.SetActive(isTower);
+                upgradeButton.interactable = isTower && info.CanUpgrade;
             }
 
             if (sellButton != null)
             {
-                sellButton.interactable = info.Type == TdTargetInfoType.Tower && info.TargetId > 0 && info.CanSell;
+                sellButton.gameObject.SetActive(isTower);
+                sellButton.interactable = isTower && info.CanSell;
             }
         }
 
@@ -491,6 +498,7 @@ namespace Game
             }
 
             UpgradeClicked?.Invoke(selectedTargetId);
+            UpgradeTargetClicked?.Invoke(selectedInfo);
         }
 
         private void OnSellClicked()
@@ -501,6 +509,56 @@ namespace Game
             }
 
             SellClicked?.Invoke(selectedTargetId);
+            SellTargetClicked?.Invoke(selectedInfo);
+        }
+
+        private static Sprite GetFallbackIcon(TdTargetInfoType type)
+        {
+            if (type == TdTargetInfoType.None)
+            {
+                return null;
+            }
+
+            if (fallbackIconCache.TryGetValue(type, out Sprite sprite))
+            {
+                return sprite;
+            }
+
+            Color color;
+            switch (type)
+            {
+                case TdTargetInfoType.Tower:
+                    color = new Color(0.95f, 0.64f, 0.18f, 1f);
+                    break;
+                case TdTargetInfoType.Npc:
+                    color = new Color(0.82f, 0.24f, 0.18f, 1f);
+                    break;
+                case TdTargetInfoType.Base:
+                    color = new Color(0.18f, 0.54f, 0.95f, 1f);
+                    break;
+                default:
+                    color = new Color(0.7f, 0.7f, 0.7f, 1f);
+                    break;
+            }
+
+            Texture2D texture = new Texture2D(32, 32, TextureFormat.RGBA32, false);
+            texture.name = $"TargetFallbackIcon_{type}";
+            Color clear = new Color(0f, 0f, 0f, 0f);
+            Vector2 center = new Vector2(15.5f, 15.5f);
+
+            for (int y = 0; y < 32; y++)
+            {
+                for (int x = 0; x < 32; x++)
+                {
+                    float distance = Vector2.Distance(new Vector2(x, y), center);
+                    texture.SetPixel(x, y, distance <= 14f ? color : clear);
+                }
+            }
+
+            texture.Apply();
+            sprite = Sprite.Create(texture, new Rect(0, 0, 32, 32), new Vector2(0.5f, 0.5f), 32f);
+            fallbackIconCache[type] = sprite;
+            return sprite;
         }
     }
 }

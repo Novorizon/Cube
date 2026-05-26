@@ -8,10 +8,12 @@ namespace Game
     {
         private int selectedTowerConfigId;
         private TowerConfig selectedTowerConfig;
+        private TowerLevelConfig selectedTowerLevelConfig;
         private Transform towerRoot;
         private Transform previewRoot;
         private GameObject previewInstance;
         private TowerConfig previewConfig;
+        private TowerLevelConfig previewLevelConfig;
         private Vector3Int previewCoord;
         private bool hasPreviewCoord;
         private bool previewCanBuild;
@@ -44,7 +46,7 @@ namespace Game
         {
             get
             {
-                return selectedTowerConfigId > 0 && selectedTowerConfig != null;
+                return selectedTowerConfigId > 0 && selectedTowerConfig != null && selectedTowerLevelConfig != null;
             }
         }
 
@@ -52,7 +54,9 @@ namespace Game
         {
             selectedTowerConfigId = 0;
             selectedTowerConfig = null;
+            selectedTowerLevelConfig = null;
             previewConfig = null;
+            previewLevelConfig = null;
             hasPreviewCoord = false;
             previewCanBuild = false;
 
@@ -60,6 +64,31 @@ namespace Game
             EnsurePreviewRoot();
 
             return true;
+        }
+
+        public void Clear()
+        {
+            CancelSelect();
+            DestroyPreview();
+
+            if (towerRoot == null)
+            {
+                EnsureTowerRoot();
+            }
+
+            if (towerRoot == null)
+            {
+                return;
+            }
+
+            for (int i = towerRoot.childCount - 1; i >= 0; i--)
+            {
+                Transform child = towerRoot.GetChild(i);
+                if (child != null)
+                {
+                    GameObject.Destroy(child.gameObject);
+                }
+            }
         }
 
         public void SelectTower(int towerConfigId)
@@ -70,23 +99,32 @@ namespace Game
                 return;
             }
 
-            if (string.IsNullOrEmpty(config.PrefabLocation))
+            if (!DataManager.Instance.TryGetTowerLevel(towerConfigId, 1, out TowerLevelConfig levelConfig))
             {
-                Debug.LogWarning($"Select tower failed. Missing tower prefab location: {towerConfigId}");
+                Debug.LogWarning($"Select tower failed. Missing tower level config: {towerConfigId}, level: 1");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(levelConfig.PrefabLocation))
+            {
+                Debug.LogWarning($"Select tower failed. Missing tower prefab location: {towerConfigId}, level: 1");
                 return;
             }
 
             selectedTowerConfigId = towerConfigId;
             selectedTowerConfig = config;
+            selectedTowerLevelConfig = levelConfig;
 
-            CreatePreview(config);
+            CreatePreview(config, levelConfig);
         }
 
         public void CancelSelect()
         {
             selectedTowerConfigId = 0;
             selectedTowerConfig = null;
+            selectedTowerLevelConfig = null;
             previewConfig = null;
+            previewLevelConfig = null;
             hasPreviewCoord = false;
             previewCanBuild = false;
 
@@ -111,7 +149,7 @@ namespace Game
 
             if (previewInstance == null)
             {
-                CreatePreview(selectedTowerConfig);
+                CreatePreview(selectedTowerConfig, selectedTowerLevelConfig);
 
                 if (previewInstance == null)
                 {
@@ -153,13 +191,13 @@ namespace Game
             if (!previewCanBuild)
             {
                 Debug.Log($"Build tower failed. Preview coord is not buildable: {previewCoord}");
-                Toast.Warning("�õؿ鲻�ɽ���");
+                Toast.Warning("该地块不可建造");
                 return false;
             }
 
             if (!TowerManager.Instance.HasGold(selectedTowerConfigId))
             {
-                Toast.Warning("��Ҳ���");
+                Toast.Warning("金币不足");
                 return false;
             }
 
@@ -174,9 +212,15 @@ namespace Game
                 return false;
             }
 
-            if (string.IsNullOrEmpty(config.PrefabLocation))
+            if (!DataManager.Instance.TryGetTowerLevel(towerConfigId, 1, out TowerLevelConfig levelConfig))
             {
-                Debug.LogWarning($"Build tower failed. Missing tower prefab location: {towerConfigId}");
+                Debug.LogWarning($"Build tower failed. Missing tower level config: {towerConfigId}, level: 1");
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(levelConfig.PrefabLocation))
+            {
+                Debug.LogWarning($"Build tower failed. Missing tower prefab location: {towerConfigId}, level: 1");
                 return false;
             }
 
@@ -186,17 +230,25 @@ namespace Game
                 return false;
             }
 
-            GameObject prefab = ResourceManager.Instance.LoadGameObject(config.PrefabLocation);
+            int costItemId = GetCostItemId(levelConfig.CostItemId);
+            if (!ItemManager.Instance.TryConsume(costItemId, levelConfig.BuildCost))
+            {
+                Toast.Warning("金币不足");
+                return false;
+            }
+
+            GameObject prefab = ResourceManager.Instance.LoadGameObject(levelConfig.PrefabLocation);
 
             if (prefab == null)
             {
-                Debug.LogWarning($"Build tower failed. Load prefab failed. towerConfigId: {towerConfigId}, location: {config.PrefabLocation}");
+                ItemManager.Instance.AddItem(costItemId, levelConfig.BuildCost);
+                Debug.LogWarning($"Build tower failed. Load prefab failed. towerConfigId: {towerConfigId}, location: {levelConfig.PrefabLocation}");
                 return false;
             }
 
             Vector3 position = GetTowerWorldPosition(coord);
             GameObject instance = GameObject.Instantiate(prefab, position, Quaternion.identity, towerRoot);
-            instance.name = $"Tower_{towerConfigId}_{coord.x}_{coord.y}_{coord.z}";
+            instance.name = $"Tower_{towerConfigId}_{levelConfig.Level}_{coord.x}_{coord.y}_{coord.z}";
 
             Tower tower = instance.GetComponent<Tower>();
 
@@ -205,12 +257,13 @@ namespace Game
                 tower = instance.AddComponent<Tower>();
             }
 
-            tower.Initialize(config.Id, coord);
+            tower.Initialize(config.Id, levelConfig.Level, coord);
 
             bool placed = MapManager.Instance.TryPlaceTower(coord, tower);
 
             if (!placed)
             {
+                ItemManager.Instance.AddItem(costItemId, levelConfig.BuildCost);
                 GameObject.Destroy(instance);
                 return false;
             }
@@ -219,19 +272,178 @@ namespace Game
             rotateView.StartRotate();
 
             TowerManager.Instance.Register(tower);
-            ItemManager.Instance.TryConsume(config.CostItemId, config.CostCount);
+            return true;
+        }
+
+        public bool TryUpgradeTower(Tower tower)
+        {
+            if (tower == null)
+            {
+                return false;
+            }
+
+            if (!DataManager.Instance.TryGetNextTowerLevel(tower, out TowerLevelConfig nextLevelConfig))
+            {
+                Toast.Info("已达最高等级");
+                return false;
+            }
+
+            int costItemId = GetCostItemId(nextLevelConfig.UpgradeCostItemId);
+            if (!ItemManager.Instance.TryConsume(costItemId, nextLevelConfig.UpgradeCost))
+            {
+                Toast.Warning("金币不足");
+                return false;
+            }
+
+            if (ApplyTowerLevel(tower, nextLevelConfig))
+            {
+                Toast.Info($"升级成功 Lv {nextLevelConfig.Level}");
+                return true;
+            }
+
+            ItemManager.Instance.AddItem(costItemId, nextLevelConfig.UpgradeCost);
+            return false;
+        }
+
+        public bool TrySellTower(Tower tower, out int sellItemId, out int sellCount)
+        {
+            sellItemId = ItemIds.Gold;
+            sellCount = 0;
+
+            if (tower == null)
+            {
+                return false;
+            }
+
+            TowerLevelConfig currentLevelConfig = DataManager.Instance.GetTowerLevel(tower.ConfigId, tower.Level);
+            if (currentLevelConfig == null)
+            {
+                Toast.Warning("出售失败：塔等级配置缺失");
+                return false;
+            }
+
+            sellItemId = GetCostItemId(currentLevelConfig.CostItemId);
+            sellCount = CalculateSellCount(tower);
+
+            if (!MapManager.Instance.RemoveTower(tower.Coord))
+            {
+                Toast.Warning("出售失败：地块状态异常");
+                return false;
+            }
+
+            TowerManager.Instance.Unregister(tower);
+            GameObject.Destroy(tower.gameObject);
+
+            if (sellCount > 0)
+            {
+                ItemManager.Instance.AddItem(sellItemId, sellCount);
+            }
 
             return true;
         }
 
-        private void CreatePreview(TowerConfig config)
+        public int CalculateSellCount(Tower tower)
         {
-            if (config == null || string.IsNullOrEmpty(config.PrefabLocation))
+            if (tower == null)
+            {
+                return 0;
+            }
+
+            TowerLevelConfig currentLevelConfig = DataManager.Instance.GetTowerLevel(tower.ConfigId, tower.Level);
+            if (currentLevelConfig == null)
+            {
+                return 0;
+            }
+
+            int totalCost = 0;
+            for (int level = 1; level <= tower.Level; level++)
+            {
+                if (!DataManager.Instance.TryGetTowerLevel(tower.ConfigId, level, out TowerLevelConfig levelConfig))
+                {
+                    continue;
+                }
+
+                totalCost += level == 1 ? levelConfig.BuildCost : levelConfig.UpgradeCost;
+            }
+
+            return Mathf.RoundToInt(totalCost * currentLevelConfig.SellGoldRate);
+        }
+
+        private bool ApplyTowerLevel(Tower tower, TowerLevelConfig nextLevelConfig)
+        {
+            TowerLevelConfig currentLevelConfig = DataManager.Instance.GetTowerLevel(tower.ConfigId, tower.Level);
+            if (currentLevelConfig == null)
+            {
+                return false;
+            }
+
+            if (currentLevelConfig.PrefabLocation == nextLevelConfig.PrefabLocation)
+            {
+                tower.SetLevel(nextLevelConfig.Level);
+                return true;
+            }
+
+            return ReplaceTowerObject(tower, nextLevelConfig);
+        }
+
+        private bool ReplaceTowerObject(Tower oldTower, TowerLevelConfig nextLevelConfig)
+        {
+            GameObject prefab = ResourceManager.Instance.LoadGameObject(nextLevelConfig.PrefabLocation);
+            if (prefab == null)
+            {
+                Debug.LogWarning($"Upgrade tower failed. Load prefab failed. towerConfigId: {nextLevelConfig.TowerId}, level: {nextLevelConfig.Level}, location: {nextLevelConfig.PrefabLocation}");
+                Toast.Warning("升级失败：模型资源缺失");
+                return false;
+            }
+
+            Vector3Int coord = oldTower.Coord;
+            Vector3 position = oldTower.transform.position;
+            Quaternion rotation = oldTower.transform.rotation;
+
+            GameObject instance = GameObject.Instantiate(prefab, position, rotation, towerRoot);
+            instance.name = $"Tower_{nextLevelConfig.TowerId}_{nextLevelConfig.Level}_{coord.x}_{coord.y}_{coord.z}";
+
+            Tower newTower = instance.GetComponent<Tower>();
+            if (newTower == null)
+            {
+                newTower = instance.AddComponent<Tower>();
+            }
+
+            newTower.Initialize(nextLevelConfig.TowerId, nextLevelConfig.Level, coord);
+
+            // Replacement is only needed when a level swaps prefab; the tile occupancy moves atomically here.
+            if (!MapManager.Instance.RemoveTower(coord))
+            {
+                GameObject.Destroy(instance);
+                Toast.Warning("升级失败：地块状态异常");
+                return false;
+            }
+
+            TowerManager.Instance.Unregister(oldTower);
+            GameObject.Destroy(oldTower.gameObject);
+
+            if (!MapManager.Instance.TryPlaceTower(coord, newTower))
+            {
+                TowerManager.Instance.Unregister(newTower);
+                GameObject.Destroy(instance);
+                Toast.Warning("升级失败：地块状态异常");
+                return false;
+            }
+
+            TowerRotateView rotateView = newTower.gameObject.AddComponent<TowerRotateView>();
+            rotateView.StartRotate();
+            TowerManager.Instance.Register(newTower);
+            return true;
+        }
+
+        private void CreatePreview(TowerConfig config, TowerLevelConfig levelConfig)
+        {
+            if (config == null || levelConfig == null || string.IsNullOrEmpty(levelConfig.PrefabLocation))
             {
                 return;
             }
 
-            if (previewInstance != null && previewConfig == config)
+            if (previewInstance != null && previewConfig == config && previewLevelConfig == levelConfig)
             {
                 previewInstance.SetActive(false);
                 return;
@@ -239,17 +451,18 @@ namespace Game
 
             DestroyPreview();
 
-            GameObject prefab = ResourceManager.Instance.LoadGameObject(config.PrefabLocation);
+            GameObject prefab = ResourceManager.Instance.LoadGameObject(levelConfig.PrefabLocation);
 
             if (prefab == null)
             {
-                Debug.LogWarning($"Create tower preview failed. Load prefab failed. towerConfigId: {config.Id}, location: {config.PrefabLocation}");
+                Debug.LogWarning($"Create tower preview failed. Load prefab failed. towerConfigId: {config.Id}, location: {levelConfig.PrefabLocation}");
                 return;
             }
 
             previewConfig = config;
+            previewLevelConfig = levelConfig;
             previewInstance = GameObject.Instantiate(prefab, previewRoot);
-            previewInstance.name = $"Tower_{config.Id}_Preview";
+            previewInstance.name = $"Tower_{config.Id}_{levelConfig.Level}_Preview";
             previewInstance.SetActive(false);
 
             PreparePreviewObject(previewInstance);
@@ -265,6 +478,7 @@ namespace Game
             GameObject.Destroy(previewInstance);
             previewInstance = null;
             previewConfig = null;
+            previewLevelConfig = null;
         }
 
         private void HidePreview()
@@ -361,6 +575,11 @@ namespace Game
             float tileSize = MapManager.Instance.TileSize;
 
             return tilePosition + Vector3.up * tileSize;
+        }
+
+        private int GetCostItemId(int itemId)
+        {
+            return itemId > 0 ? itemId : ItemIds.Gold;
         }
 
         private void EnsureTowerRoot()

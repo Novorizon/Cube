@@ -16,19 +16,20 @@ namespace Game
         private int skillId;
         private Action<int> clicked;
 
-        public void Init(TdSkillUiConfig config, Action<int> onClicked)
+        public void Init(SkillConfig config, Sprite icon, int count, Action<int> onClicked)
         {
             skillId = config.Id;
             clicked = onClicked;
             if (iconImage != null)
             {
-                iconImage.sprite = config.Icon;
+                iconImage.sprite = icon;
+                iconImage.enabled = icon != null;
             }
             if (nameText != null)
             {
                 nameText.text = config.Name;
             }
-            SetCount(config.Count);
+            SetCount(count);
             if (button != null)
             {
                 button.onClick.RemoveAllListeners();

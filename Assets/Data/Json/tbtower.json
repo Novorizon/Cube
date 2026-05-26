@@ -17,7 +17,7 @@
     "upgradeCost": 100,
     "SellGoldRate": 9,
     "canUpgrade": true,
-    "iconLocation": "ui_td_tower_arrow_icon"
+    "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Towers/ui_td_tower_arrow_icon.png"
   },
   {
     "id": 1002,
@@ -37,7 +37,7 @@
     "upgradeCost": 100,
     "SellGoldRate": 9,
     "canUpgrade": true,
-    "iconLocation": "ui_td_tower_fire_icon"
+    "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Towers/ui_td_tower_fire_icon.png"
   },
   {
     "id": 1003,
@@ -57,7 +57,7 @@
     "upgradeCost": 100,
     "SellGoldRate": 9,
     "canUpgrade": true,
-    "iconLocation": "ui_td_tower_ice_icon"
+    "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Towers/ui_td_tower_ice_icon.png"
   },
   {
     "id": 1004,
@@ -77,7 +77,7 @@
     "upgradeCost": 100,
     "SellGoldRate": 9,
     "canUpgrade": true,
-    "iconLocation": "ui_td_tower_cannon_icon"
+    "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Towers/ui_td_tower_cannon_icon.png"
   },
   {
     "id": 1005,
@@ -97,6 +97,6 @@
     "upgradeCost": 100,
     "SellGoldRate": 9,
     "canUpgrade": true,
-    "iconLocation": "ui_td_tower_cannon_icon"
+    "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Towers/ui_td_tower_cannon_icon.png"
   }
 ]

@@ -4,24 +4,6 @@ using UnityEngine;
 
 namespace Game
 {
-    [Serializable]
-    public sealed class TdTowerUiConfig
-    {
-        public int Id;
-        public string Name;
-        public Sprite Icon;
-        public int Cost;
-    }
-
-    [Serializable]
-    public sealed class TdSkillUiConfig
-    {
-        public int Id;
-        public string Name;
-        public Sprite Icon;
-        public int Count;
-    }
-
     public enum TdTargetInfoType
     {
         None = 0,
@@ -70,6 +52,8 @@ namespace Game
         public string Name;
         public string Description;
         public Sprite Icon;
+        public string PreviewPrefabLocation;
+        public Vector3Int Coord;
 
         public int Level;
         public int CurrentHp;
@@ -94,6 +78,7 @@ namespace Game
         public int TowerId;
         public string Name;
         public Sprite Icon;
+        public string PreviewPrefabLocation;
         public int Level;
         public int Attack;
         public int AttackAdd;
