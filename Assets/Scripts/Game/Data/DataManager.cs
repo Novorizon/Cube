@@ -1,5 +1,6 @@
 using Game.Framework;
 using Luban;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,6 +13,7 @@ namespace Game
         public static DataManager Instance { get; } = new DataManager();
 
         public ConfigTableReader<NpcConfig> Npc { get; private set; }
+        public ConfigTableReader<NpcDropConfig> NpcDrop { get; private set; }
         public ConfigTableReader<TowerConfig> Tower { get; private set; }
         public ConfigTableReader<TowerLevelConfig> TowerLevel { get; private set; }
         public ConfigTableReader<ItemConfig> Item { get; private set; }
@@ -28,6 +30,7 @@ namespace Game
         public ConfigTableReader<WaveConfig> Wave { get; private set; }
 
         private Tables tables;
+        private readonly Dictionary<int, List<NpcDropConfig>> npcDropMap = new Dictionary<int, List<NpcDropConfig>>();
 
         private DataManager()
         {
@@ -44,6 +47,7 @@ namespace Game
             }
 
             Npc = new ConfigTableReader<NpcConfig>("TbNpc", tables.TbNpc.DataMap);
+            NpcDrop = new ConfigTableReader<NpcDropConfig>("TbNpcDrop", tables.TbNpcDrop.DataMap);
             Tower = new ConfigTableReader<TowerConfig>("TbTower", tables.TbTower.DataMap);
             TowerLevel = new ConfigTableReader<TowerLevelConfig>("TbTowerLevel", tables.TbTowerLevel.DataMap);
             Item = new ConfigTableReader<ItemConfig>("TbItem", tables.TbItem.DataMap);
@@ -54,6 +58,7 @@ namespace Game
             SkillSystemEnum = new ConfigTableReader<SkillSystemEnumConfig>("TbSkillSystemEnum", tables.TbSkillSystemEnum.DataMap);
 
             Wave = null;
+            BuildNpcDropIndex();
 
             Debug.Log("DataManager initialized.");
         }
@@ -127,6 +132,21 @@ namespace Game
             return config != null && config.Enable;
         }
 
+        public IReadOnlyList<NpcDropConfig> GetNpcDrops(int npcId)
+        {
+            if (npcId <= 0)
+            {
+                return Array.Empty<NpcDropConfig>();
+            }
+
+            if (!npcDropMap.TryGetValue(npcId, out List<NpcDropConfig> drops))
+            {
+                return Array.Empty<NpcDropConfig>();
+            }
+
+            return drops;
+        }
+
         public bool TryGetNextTowerLevel(Tower tower, out TowerLevelConfig config)
         {
             config = null;
@@ -163,6 +183,34 @@ namespace Game
         private Tables LoadTables()
         {
             return new Tables(LoadByteBuf);
+        }
+
+        private void BuildNpcDropIndex()
+        {
+            npcDropMap.Clear();
+
+            IReadOnlyDictionary<int, NpcDropConfig> configs = NpcDrop?.GetAll();
+            if (configs == null)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<int, NpcDropConfig> pair in configs)
+            {
+                NpcDropConfig config = pair.Value;
+                if (config == null || config.NpcId <= 0 || config.ItemId <= 0)
+                {
+                    continue;
+                }
+
+                if (!npcDropMap.TryGetValue(config.NpcId, out List<NpcDropConfig> drops))
+                {
+                    drops = new List<NpcDropConfig>();
+                    npcDropMap.Add(config.NpcId, drops);
+                }
+
+                drops.Add(config);
+            }
         }
 
         private ByteBuf LoadByteBuf(string file)

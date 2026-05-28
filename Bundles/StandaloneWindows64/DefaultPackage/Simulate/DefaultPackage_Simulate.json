@@ -10,7 +10,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/26 17:24:13",
+    "PackageNote": "2026/5/28 16:55:49",
     "AssetList": [
         {
             "Address": "",
@@ -3734,6 +3734,14 @@
         },
         {
             "Address": "",
+            "AssetPath": "Assets/Data/Bin/tbnpcdrop.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 35,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Data/Bin/tbskill.bytes",
             "AssetGUID": "",
             "AssetTags": [],
@@ -4177,7 +4185,7 @@
             "UnityCRC": 0,
             "FileHash": "8502b3caa13ac1a33f913c862a6bdd2a",
             "FileCRC": 0,
-            "FileSize": 9679,
+            "FileSize": 9542,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -4197,7 +4205,7 @@
             "UnityCRC": 0,
             "FileHash": "4679f4c61b2786dc47891b8f79f758a3",
             "FileCRC": 0,
-            "FileSize": 955,
+            "FileSize": 951,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

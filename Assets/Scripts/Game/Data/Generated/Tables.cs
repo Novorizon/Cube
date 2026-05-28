@@ -23,6 +23,7 @@ public partial class Tables
     public TbItem TbItem {get; }
     public TbMap TbMap {get; }
     public TbNpc TbNpc {get; }
+    public TbNpcDrop TbNpcDrop {get; }
     public TbSkill TbSkill {get; }
     public TbSkillAction TbSkillAction {get; }
     public TbSkillModifier TbSkillModifier {get; }
@@ -43,6 +44,7 @@ public partial class Tables
         TbItem = new TbItem(loader("tbitem"));
         TbMap = new TbMap(loader("tbmap"));
         TbNpc = new TbNpc(loader("tbnpc"));
+        TbNpcDrop = new TbNpcDrop(loader("tbnpcdrop"));
         TbSkill = new TbSkill(loader("tbskill"));
         TbSkillAction = new TbSkillAction(loader("tbskillaction"));
         TbSkillModifier = new TbSkillModifier(loader("tbskillmodifier"));
@@ -65,6 +67,7 @@ public partial class Tables
         TbItem.ResolveRef(this);
         TbMap.ResolveRef(this);
         TbNpc.ResolveRef(this);
+        TbNpcDrop.ResolveRef(this);
         TbSkill.ResolveRef(this);
         TbSkillAction.ResolveRef(this);
         TbSkillModifier.ResolveRef(this);

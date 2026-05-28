@@ -1,3 +1,5 @@
+using Game;
+using Game.Framework;
 using UnityEngine;
 
 /// <summary>
@@ -58,9 +60,25 @@ public class ItemDrop : MonoBehaviour
 
         picked = true;
 
+        Vector3 pickPosition = transform.position;
         ItemManager.Instance.AddItem(itemId, count);
+        NotifyItemFly(pickPosition);
 
         Destroy(gameObject);
+    }
+
+    private void NotifyItemFly(Vector3 worldPosition)
+    {
+        if (itemId <= 0 || count <= 0)
+        {
+            return;
+        }
+
+        ItemFlyMessage message = new ItemFlyMessage();
+        message.WorldPosition = worldPosition;
+        message.ItemId = itemId;
+        message.Count = count;
+        Messager.Instance.Notify(BattleMessageTopic.ItemFlyRequested, message);
     }
 
     private void OnMouseDown()

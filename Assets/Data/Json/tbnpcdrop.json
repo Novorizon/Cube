@@ -1,0 +1,18 @@
+[
+  {
+    "id": 100101,
+    "npcId": 1001,
+    "itemId": 3000201,
+    "minCount": 1,
+    "maxCount": 1,
+    "chancePermyriad": 10000
+  },
+  {
+    "id": 100201,
+    "npcId": 1002,
+    "itemId": 1000101,
+    "minCount": 1,
+    "maxCount": 1,
+    "chancePermyriad": 10000
+  }
+]

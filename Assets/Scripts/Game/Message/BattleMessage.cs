@@ -17,6 +17,7 @@ namespace Game
         BattleStateChanged,
         BattleEnded,
         GoldFlyRequested,
+        ItemFlyRequested,
     }
 
     public class BattleStatusMessage : IMessage
@@ -36,6 +37,13 @@ namespace Game
     public class GoldFlyMessage : IMessage
     {
         public UnityEngine.Vector3 WorldPosition;
+        public int Count;
+    }
+
+    public class ItemFlyMessage : IMessage
+    {
+        public UnityEngine.Vector3 WorldPosition;
+        public int ItemId;
         public int Count;
     }
 

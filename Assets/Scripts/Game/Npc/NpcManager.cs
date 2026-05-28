@@ -291,12 +291,46 @@ namespace Game
             Debug.Log($"Npc killed. Id: {npc.Config?.Id}, RewardGold: {data.RewardGold}");
 
             Vector3 deathPosition = npc.transform.position;
+            int npcConfigId = npc.Config != null ? npc.Config.Id : 0;
+
+            DropNpcItems(npcConfigId, deathPosition);
             Remove(npc);
 
             ItemManager.Instance.AddItem(ItemIds.Gold, data.RewardGold);
             NotifyGoldFly(deathPosition, data.RewardGold);
             WaveManager.Instance.NotifyEnemyKilled(npc);
 
+        }
+
+        private void DropNpcItems(int npcConfigId, Vector3 deathPosition)
+        {
+            IReadOnlyList<NpcDropConfig> drops = DataManager.Instance.GetNpcDrops(npcConfigId);
+
+            for (int i = 0; i < drops.Count; i++)
+            {
+                NpcDropConfig drop = drops[i];
+                if (drop == null || drop.ItemId <= 0)
+                {
+                    continue;
+                }
+
+                int chance = Mathf.Clamp(drop.ChancePermyriad, 0, 10000);
+                if (chance <= 0)
+                {
+                    continue;
+                }
+
+                if (chance < 10000 && Random.Range(0, 10000) >= chance)
+                {
+                    continue;
+                }
+
+                int minCount = Mathf.Max(1, drop.MinCount);
+                int maxCount = Mathf.Max(minCount, drop.MaxCount);
+                int count = Random.Range(minCount, maxCount + 1);
+
+                ItemDropManager.Instance.DropItem(drop.ItemId, count, deathPosition, true);
+            }
         }
 
         private void NotifyGoldFly(Vector3 worldPosition, int count)

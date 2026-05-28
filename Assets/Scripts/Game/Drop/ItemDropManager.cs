@@ -1,3 +1,4 @@
+using Game.Framework;
 using UnityEngine;
 
 /// <summary>
@@ -16,25 +17,34 @@ namespace Game
 
         public void DropItem(int itemId, int count, Vector3 position)
         {
-            ItemConfig config = DataManager.Instance.Item.Get(itemId);
+            DropItem(itemId, count, position, null);
+        }
 
-            if (config == null)
+        public void DropItem(int itemId, int count, Vector3 position, bool? autoPickOverride)
+        {
+            if (count <= 0)
             {
+                return;
+            }
+
+            if (DataManager.Instance.Item == null || !DataManager.Instance.Item.TryGet(itemId, out ItemConfig config) || config == null)
+            {
+                Debug.LogWarning($"Drop item failed. Missing item config. itemId: {itemId}");
                 return;
             }
 
             if (string.IsNullOrEmpty(config.DropPrefabLocation))
             {
-                ItemManager.Instance.AddItem(itemId, count);
+                AddItemDirectly(itemId, count, position);
                 return;
             }
 
-            GameObject prefab = Resources.Load<GameObject>(config.DropPrefabLocation);
+            GameObject prefab = ResourceManager.Instance.LoadGameObject(config.DropPrefabLocation);
 
             if (prefab == null)
             {
                 Debug.LogWarning($"Drop prefab not found. itemId: {itemId}, location: {config.DropPrefabLocation}");
-                ItemManager.Instance.AddItem(itemId, count);
+                AddItemDirectly(itemId, count, position);
                 return;
             }
 
@@ -46,7 +56,28 @@ namespace Game
                 itemDrop = instance.AddComponent<ItemDrop>();
             }
 
-            itemDrop.Initialize(itemId, count, config.AutoPick);
+            bool autoPick = autoPickOverride ?? config.AutoPick;
+            itemDrop.Initialize(itemId, count, autoPick);
+        }
+
+        private void AddItemDirectly(int itemId, int count, Vector3 position)
+        {
+            ItemManager.Instance.AddItem(itemId, count);
+            NotifyItemFly(itemId, count, position);
+        }
+
+        private void NotifyItemFly(int itemId, int count, Vector3 position)
+        {
+            if (itemId <= 0 || count <= 0)
+            {
+                return;
+            }
+
+            ItemFlyMessage message = new ItemFlyMessage();
+            message.WorldPosition = position;
+            message.ItemId = itemId;
+            message.Count = count;
+            Messager.Instance.Notify(BattleMessageTopic.ItemFlyRequested, message);
         }
     }
 }

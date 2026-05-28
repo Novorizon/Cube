@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="NpcDropConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="npcId" type="int" comment="client" />
+    <var name="itemId" type="int" comment="client" />
+    <var name="minCount" type="int" comment="client" />
+    <var name="maxCount" type="int" comment="client" />
+    <var name="chancePermyriad" type="int" comment="client" />
+  </bean>
+
+  <table name="TbNpcDrop" value="NpcDropConfig" input="npc_drop.xlsx" mode="map" index="id" />
+</module>

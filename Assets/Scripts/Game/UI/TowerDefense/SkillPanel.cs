@@ -71,6 +71,44 @@ namespace Game
             }
         }
 
+        public bool TryGetTargetForItem(int itemId, out RectTransform target)
+        {
+            target = null;
+
+            foreach (KeyValuePair<int, SkillConfig> pair in slotConfigs)
+            {
+                SkillConfig config = pair.Value;
+                if (config == null || config.CostResourceId != itemId)
+                {
+                    continue;
+                }
+
+                if (!slots.TryGetValue(pair.Key, out SkillSlotView slot) || slot == null)
+                {
+                    continue;
+                }
+
+                target = slot.transform as RectTransform;
+                return target != null;
+            }
+
+            return false;
+        }
+
+        public bool UsesItem(int itemId)
+        {
+            foreach (KeyValuePair<int, SkillConfig> pair in slotConfigs)
+            {
+                SkillConfig config = pair.Value;
+                if (config != null && config.CostResourceId == itemId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void OnSkillClicked(int skillId)
         {
             SkillClicked?.Invoke(skillId);

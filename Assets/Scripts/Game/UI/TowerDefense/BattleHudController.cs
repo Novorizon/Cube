@@ -148,6 +148,7 @@ namespace Game
             subscriber.Add(Messager.Instance.Subscribe<BattleMessageTopic, WaveMessage>(BattleMessageTopic.WaveChanged, OnWaveChanged));
             subscriber.Add(Messager.Instance.Subscribe<BattleMessageTopic, BattleEndedMessage>(BattleMessageTopic.BattleEnded, OnBattleEnded));
             subscriber.Add(Messager.Instance.Subscribe<BattleMessageTopic, GoldFlyMessage>(BattleMessageTopic.GoldFlyRequested, OnGoldFlyRequested));
+            subscriber.Add(Messager.Instance.Subscribe<BattleMessageTopic, ItemFlyMessage>(BattleMessageTopic.ItemFlyRequested, OnItemFlyRequested));
         }
 
         private void UnregisterEvents()
@@ -376,6 +377,55 @@ namespace Game
             StartCoroutine(PlayGoldFlyAsync(root, startLocalPosition, endLocalPosition, message.Count));
         }
 
+        private void OnItemFlyRequested(ItemFlyMessage message)
+        {
+            if (message == null || message.ItemId <= 0 || message.Count <= 0)
+            {
+                return;
+            }
+
+            if (message.ItemId == ItemIds.Gold)
+            {
+                OnGoldFlyRequested(new GoldFlyMessage
+                {
+                    WorldPosition = message.WorldPosition,
+                    Count = message.Count
+                });
+                return;
+            }
+
+            RectTransform root = transform as RectTransform;
+            RectTransform target = GetItemFlyTarget(message.ItemId);
+            if (root == null || target == null)
+            {
+                return;
+            }
+
+            Canvas canvas = GetComponentInParent<Canvas>();
+            Camera uiCamera = GetCanvasCamera(canvas);
+            Camera worldCamera = Camera.main;
+            if (worldCamera == null)
+            {
+                return;
+            }
+
+            Vector2 startScreenPosition = worldCamera.WorldToScreenPoint(message.WorldPosition);
+            Vector2 endScreenPosition = RectTransformUtility.WorldToScreenPoint(uiCamera, target.position);
+
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(root, startScreenPosition, uiCamera, out Vector2 startLocalPosition))
+            {
+                return;
+            }
+
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(root, endScreenPosition, uiCamera, out Vector2 endLocalPosition))
+            {
+                return;
+            }
+
+            Sprite icon = GetItemIconSprite(message.ItemId);
+            StartCoroutine(PlayItemFlyAsync(root, startLocalPosition, endLocalPosition, message.Count, icon, target));
+        }
+
         private IEnumerator PlayGoldFlyAsync(RectTransform root, Vector2 startPosition, Vector2 endPosition, int count)
         {
             GameObject iconObject = CreateRectObject("GoldFlyIcon", root);
@@ -428,9 +478,87 @@ namespace Game
             StartCoroutine(PunchGoldAnchorAsync());
         }
 
+        private IEnumerator PlayItemFlyAsync(RectTransform root, Vector2 startPosition, Vector2 endPosition, int count, Sprite icon, RectTransform target)
+        {
+            GameObject iconObject = CreateRectObject("ItemFlyIcon", root);
+            RectTransform iconRect = iconObject.transform as RectTransform;
+            iconRect.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRect.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRect.pivot = new Vector2(0.5f, 0.5f);
+            iconRect.sizeDelta = new Vector2(34f, 34f);
+            iconRect.anchoredPosition = startPosition;
+
+            Image iconImage = iconObject.AddComponent<Image>();
+            iconImage.raycastTarget = false;
+            iconImage.sprite = icon;
+            iconImage.color = icon == null ? new Color(0.72f, 0.92f, 1f, 1f) : Color.white;
+
+            TMP_Text countText = null;
+            if (count > 1)
+            {
+                countText = CreateText("Count", iconObject.transform, 18, FontStyles.Bold, TextAlignmentOptions.Center);
+                countText.text = $"+{count}";
+                countText.raycastTarget = false;
+                countText.color = new Color(0.85f, 0.96f, 1f, 1f);
+                SetRect(countText.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, -15f), new Vector2(80f, 24f));
+            }
+
+            Vector2 controlPosition = (startPosition + endPosition) * 0.5f + new Vector2(0f, 95f);
+            float duration = 0.62f;
+            float elapsed = 0f;
+
+            while (elapsed < duration && iconRect != null)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float eased = 1f - Mathf.Pow(1f - t, 3f);
+                iconRect.anchoredPosition = EvaluateQuadraticBezier(startPosition, controlPosition, endPosition, eased);
+                iconRect.localScale = Vector3.one * Mathf.Lerp(1.15f, 0.72f, eased);
+
+                Color color = iconImage.color;
+                color.a = Mathf.Lerp(1f, 0.15f, Mathf.Clamp01((t - 0.72f) / 0.28f));
+                iconImage.color = color;
+                if (countText != null)
+                {
+                    countText.alpha = color.a;
+                }
+
+                yield return null;
+            }
+
+            Destroy(iconObject);
+            StartCoroutine(PunchRectAsync(target));
+        }
+
         private IEnumerator PunchGoldAnchorAsync()
         {
             RectTransform target = statusPanel != null ? statusPanel.GoldAnchor : null;
+            if (target == null)
+            {
+                yield break;
+            }
+
+            Vector3 originalScale = target.localScale;
+            float duration = 0.16f;
+            float elapsed = 0f;
+
+            while (elapsed < duration && target != null)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float scale = 1f + Mathf.Sin(t * Mathf.PI) * 0.18f;
+                target.localScale = originalScale * scale;
+                yield return null;
+            }
+
+            if (target != null)
+            {
+                target.localScale = originalScale;
+            }
+        }
+
+        private IEnumerator PunchRectAsync(RectTransform target)
+        {
             if (target == null)
             {
                 yield break;
@@ -480,6 +608,36 @@ namespace Game
 
             goldIconSprite = ResourceManager.Instance.LoadAsset<Sprite>(GoldIconAssetPath);
             return goldIconSprite;
+        }
+
+        private RectTransform GetItemFlyTarget(int itemId)
+        {
+            if (skillPanel != null && skillPanel.TryGetTargetForItem(itemId, out RectTransform skillTarget))
+            {
+                return skillTarget;
+            }
+
+            if (itemPanel != null && itemPanel.TryGetSlotTransform(itemId, out RectTransform itemTarget))
+            {
+                return itemTarget;
+            }
+
+            return null;
+        }
+
+        private Sprite GetItemIconSprite(int itemId)
+        {
+            if (DataManager.Instance.Item == null || !DataManager.Instance.Item.TryGet(itemId, out ItemConfig config) || config == null)
+            {
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(config.IconLocation) || !config.IconLocation.StartsWith("Assets/", StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            return ResourceManager.Instance.LoadAsset<Sprite>(config.IconLocation);
         }
 
         private void ShowBattleResultDialog(BattleEndedMessage message)

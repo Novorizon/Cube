@@ -1,0 +1,61 @@
+# Non-PBR diffuse palette for Cube TD prototype.
+# No specular: Ks 0, low Ns, illum 1.
+newmtl stone_dark
+Kd 0.18 0.18 0.16
+Ks 0 0 0
+Ns 4
+illum 1
+
+newmtl stone_edge
+Kd 0.25 0.25 0.22
+Ks 0 0 0
+Ns 4
+illum 1
+
+newmtl dirt_warm
+Kd 0.56 0.29 0.11
+Ks 0 0 0
+Ns 4
+illum 1
+
+newmtl grass_main
+Kd 0.48 0.72 0.10
+Ks 0 0 0
+Ns 4
+illum 1
+
+newmtl grass_shadow
+Kd 0.34 0.58 0.08
+Ks 0 0 0
+Ns 4
+illum 1
+
+newmtl grass_light
+Kd 0.66 0.82 0.18
+Ks 0 0 0
+Ns 4
+illum 1
+
+newmtl pebble_tan
+Kd 0.52 0.48 0.32
+Ks 0 0 0
+Ns 4
+illum 1
+
+newmtl rock_dark
+Kd 0.34 0.33 0.30
+Ks 0 0 0
+Ns 4
+illum 1
+
+newmtl rock_mid
+Kd 0.48 0.46 0.41
+Ks 0 0 0
+Ns 4
+illum 1
+
+newmtl rock_light
+Kd 0.61 0.58 0.52
+Ks 0 0 0
+Ns 4
+illum 1

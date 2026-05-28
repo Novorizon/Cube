@@ -71,6 +71,19 @@ namespace Game
             }
         }
 
+        public bool TryGetSlotTransform(int itemId, out RectTransform target)
+        {
+            target = null;
+
+            if (!slots.TryGetValue(itemId, out ItemSlotView slot) || slot == null)
+            {
+                return false;
+            }
+
+            target = slot.transform as RectTransform;
+            return target != null;
+        }
+
         private void OnItemChanged(int itemId, int count)
         {
             SetItemCount(itemId, count);

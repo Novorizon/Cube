@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <module name="">
   <include name="npc.xml" />
+  <include name="npc_drop.xml" />
   <include name="tower.xml" />
   <include name="tower_level.xml" />
   <include name="item.xml" />
