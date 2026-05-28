@@ -190,7 +190,7 @@ namespace Game
 
             if (maxWave > 0)
             {
-                waveText.text = $" {currentWave}/{maxWave}";
+                waveText.text = $"{currentWave}/{maxWave}";
             }
             else
             {
@@ -207,7 +207,7 @@ namespace Game
 
             if (total > 0)
             {
-                enemyText.text = $" {alive}/{total}";
+                enemyText.text = $"{alive}/{total}";
             }
             else
             {

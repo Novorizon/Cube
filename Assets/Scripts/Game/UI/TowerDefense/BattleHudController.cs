@@ -37,6 +37,30 @@ namespace Game
         [SerializeField]
         private MiniMapPanel miniMapPanel;
 
+        [SerializeField]
+        private GameObject settingsDialog;
+
+        [SerializeField]
+        private Button settingsLanguageButton;
+
+        [SerializeField]
+        private Button settingsSoundButton;
+
+        [SerializeField]
+        private Button settingsRestartButton;
+
+        [SerializeField]
+        private Button settingsMainMenuButton;
+
+        [SerializeField]
+        private Button settingsCloseButton;
+
+        [SerializeField]
+        private Button settingsBlockerButton;
+
+        [SerializeField]
+        private TMP_Text settingsSoundText;
+
         private Subscriber subscriber;
         private GameObject battleResultDialog;
         private TMP_Text battleResultTitleText;
@@ -46,6 +70,7 @@ namespace Game
         private Button battleResultNextButton;
         private Button battleResultRestartButton;
         private Button battleResultMenuButton;
+        private bool soundMuted;
 
         public event Action<int> TowerBuildClicked;
         public event Action<int> SkillClicked;
@@ -75,6 +100,8 @@ namespace Game
             {
                 targetInfoPanel = GetComponentInChildren<InfoPanel>(true);
             }
+
+            ResolveSettingsDialogReferences();
         }
 
         protected override void OnDestroyed()
@@ -108,6 +135,136 @@ namespace Game
             {
                 targetInfoPanel.Initialize();
             }
+
+            HideSettingsDialog();
+        }
+
+        private void ResolveSettingsDialogReferences()
+        {
+            if (settingsDialog == null)
+            {
+                Transform dialog = FindChildByName(transform, "SettingsDialog");
+                if (dialog != null)
+                {
+                    settingsDialog = dialog.gameObject;
+                }
+            }
+
+            if (settingsDialog == null)
+            {
+                return;
+            }
+
+            Transform root = settingsDialog.transform;
+
+            if (settingsLanguageButton == null)
+            {
+                settingsLanguageButton = FindButton(root, "LanguageButton");
+            }
+
+            if (settingsSoundButton == null)
+            {
+                settingsSoundButton = FindButton(root, "SoundButton");
+            }
+
+            if (settingsRestartButton == null)
+            {
+                settingsRestartButton = FindButton(root, "RestartButton");
+            }
+
+            if (settingsRestartButton == null)
+            {
+                settingsRestartButton = FindButton(root, "EndBattleButton");
+            }
+
+            if (settingsMainMenuButton == null)
+            {
+                settingsMainMenuButton = FindButton(root, "MainMenuButton");
+            }
+
+            if (settingsCloseButton == null)
+            {
+                settingsCloseButton = FindButton(root, "CloseButton");
+            }
+
+            if (settingsBlockerButton == null)
+            {
+                settingsBlockerButton = settingsDialog.GetComponent<Button>();
+            }
+
+            if (settingsSoundText == null && settingsSoundButton != null)
+            {
+                settingsSoundText = settingsSoundButton.GetComponentInChildren<TMP_Text>(true);
+            }
+        }
+
+        private void RegisterSettingsEvents()
+        {
+            ResolveSettingsDialogReferences();
+            UnregisterSettingsEvents();
+
+            if (settingsLanguageButton != null)
+            {
+                settingsLanguageButton.onClick.AddListener(OnSettingsLanguageClicked);
+            }
+
+            if (settingsSoundButton != null)
+            {
+                settingsSoundButton.onClick.AddListener(OnSettingsSoundClicked);
+            }
+
+            if (settingsRestartButton != null)
+            {
+                settingsRestartButton.onClick.AddListener(OnSettingsRestartClicked);
+            }
+
+            if (settingsMainMenuButton != null)
+            {
+                settingsMainMenuButton.onClick.AddListener(OnSettingsMainMenuClicked);
+            }
+
+            if (settingsCloseButton != null)
+            {
+                settingsCloseButton.onClick.AddListener(HideSettingsDialog);
+            }
+
+            if (settingsBlockerButton != null)
+            {
+                settingsBlockerButton.onClick.AddListener(HideSettingsDialog);
+            }
+        }
+
+        private void UnregisterSettingsEvents()
+        {
+            if (settingsLanguageButton != null)
+            {
+                settingsLanguageButton.onClick.RemoveListener(OnSettingsLanguageClicked);
+            }
+
+            if (settingsSoundButton != null)
+            {
+                settingsSoundButton.onClick.RemoveListener(OnSettingsSoundClicked);
+            }
+
+            if (settingsRestartButton != null)
+            {
+                settingsRestartButton.onClick.RemoveListener(OnSettingsRestartClicked);
+            }
+
+            if (settingsMainMenuButton != null)
+            {
+                settingsMainMenuButton.onClick.RemoveListener(OnSettingsMainMenuClicked);
+            }
+
+            if (settingsCloseButton != null)
+            {
+                settingsCloseButton.onClick.RemoveListener(HideSettingsDialog);
+            }
+
+            if (settingsBlockerButton != null)
+            {
+                settingsBlockerButton.onClick.RemoveListener(HideSettingsDialog);
+            }
         }
 
         private void RegisterEvents()
@@ -134,12 +291,15 @@ namespace Game
             {
                 battleControlPanel.SpeedChanged += OnSpeedChanged;
                 battleControlPanel.AutoNextWaveChanged += OnAutoNextWaveChanged;
+                battleControlPanel.SettingClicked += OnSettingClicked;
             }
 
             if (itemPanel != null)
             {
                 itemPanel.ItemClicked += OnItemClicked;
             }
+
+            RegisterSettingsEvents();
 
             subscriber?.Clear();
             subscriber = new Subscriber();
@@ -175,12 +335,15 @@ namespace Game
             {
                 battleControlPanel.SpeedChanged -= OnSpeedChanged;
                 battleControlPanel.AutoNextWaveChanged -= OnAutoNextWaveChanged;
+                battleControlPanel.SettingClicked -= OnSettingClicked;
             }
 
             if (itemPanel != null)
             {
                 itemPanel.ItemClicked -= OnItemClicked;
             }
+
+            UnregisterSettingsEvents();
 
             if (subscriber != null)
             {
@@ -302,6 +465,11 @@ namespace Game
         private void OnAutoNextWaveChanged(bool value)
         {
             AutoNextWaveChanged?.Invoke(value);
+        }
+
+        private void OnSettingClicked()
+        {
+            ShowSettingsDialog();
         }
 
         private void OnItemClicked(int itemId)
@@ -780,6 +948,65 @@ namespace Game
         {
             MapManager.Instance.ReturnToMainMenu();
         }
+
+        private void ShowSettingsDialog()
+        {
+            ResolveSettingsDialogReferences();
+            if (settingsDialog != null)
+            {
+                RefreshSettingsSoundText();
+                settingsDialog.transform.SetAsLastSibling();
+                settingsDialog.SetActive(true);
+            }
+        }
+
+        private void HideSettingsDialog()
+        {
+            if (settingsDialog != null)
+            {
+                settingsDialog.SetActive(false);
+            }
+        }
+
+        private void OnSettingsLanguageClicked()
+        {
+            Toast.Info("语言设置暂未开放");
+        }
+
+        private void OnSettingsSoundClicked()
+        {
+            soundMuted = !soundMuted;
+            AudioListener.volume = soundMuted ? 0f : 1f;
+            RefreshSettingsSoundText();
+        }
+
+        private void RefreshSettingsSoundText()
+        {
+            soundMuted = AudioListener.volume <= 0.01f;
+            if (settingsSoundText != null)
+            {
+                settingsSoundText.text = soundMuted ? "声音：关" : "声音：开";
+            }
+        }
+
+        private void OnSettingsRestartClicked()
+        {
+            HideSettingsDialog();
+            if (MapManager.IsCreated)
+            {
+                MapManager.Instance.RestartCurrentMap();
+            }
+        }
+
+        private void OnSettingsMainMenuClicked()
+        {
+            HideSettingsDialog();
+            if (MapManager.IsCreated)
+            {
+                MapManager.Instance.ReturnToMainMenu();
+            }
+        }
+
         private void HideBattleResultDialog()
         {
             if (battleResultDialog != null)
@@ -793,6 +1020,36 @@ namespace Game
             GameObject instance = new GameObject(name, typeof(RectTransform));
             instance.transform.SetParent(parent, false);
             return instance;
+        }
+
+        private static Button FindButton(Transform root, string name)
+        {
+            Transform child = FindChildByName(root, name);
+            return child != null ? child.GetComponent<Button>() : null;
+        }
+
+        private static Transform FindChildByName(Transform root, string name)
+        {
+            if (root == null)
+            {
+                return null;
+            }
+
+            if (root.name == name)
+            {
+                return root;
+            }
+
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform match = FindChildByName(root.GetChild(i), name);
+                if (match != null)
+                {
+                    return match;
+                }
+            }
+
+            return null;
         }
 
         private static TMP_Text CreateText(string name, Transform parent, float fontSize, FontStyles style, TextAlignmentOptions alignment)

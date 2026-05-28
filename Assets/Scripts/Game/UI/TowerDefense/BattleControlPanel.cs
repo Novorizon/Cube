@@ -16,6 +16,7 @@ namespace Game
 
         public event Action<float> SpeedChanged;
         public event Action<bool> AutoNextWaveChanged;
+        public event Action SettingClicked;
 
         private float lastSpeed = 1f;
         private bool paused;
@@ -87,7 +88,7 @@ namespace Game
 
         public void OpenSetting()
         {
-            // Settings popup is intentionally left as a UI binding point.
+            SettingClicked?.Invoke();
         }
 
     }
