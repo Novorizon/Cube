@@ -96,9 +96,34 @@ namespace Game
                 statusPanel = GetComponentInChildren<StatusPanel>(true);
             }
 
+            if (buildTowerPanel == null)
+            {
+                buildTowerPanel = GetComponentInChildren<BuildTowerPanel>(true);
+            }
+
+            if (itemPanel == null)
+            {
+                itemPanel = GetComponentInChildren<ItemPanel>(true);
+            }
+
             if (targetInfoPanel == null)
             {
                 targetInfoPanel = GetComponentInChildren<InfoPanel>(true);
+            }
+
+            if (skillPanel == null)
+            {
+                skillPanel = GetComponentInChildren<SkillPanel>(true);
+            }
+
+            if (battleControlPanel == null)
+            {
+                battleControlPanel = GetComponentInChildren<BattleControlPanel>(true);
+            }
+
+            if (miniMapPanel == null)
+            {
+                miniMapPanel = GetComponentInChildren<MiniMapPanel>(true);
             }
 
             ResolveSettingsDialogReferences();
@@ -123,12 +148,12 @@ namespace Game
 
             if (skillPanel != null)
             {
-                skillPanel.Build();
+                skillPanel.Initialize();
             }
 
             if (itemPanel != null)
             {
-                itemPanel.Build();
+                itemPanel.Initialize();
             }
 
             if (targetInfoPanel != null)

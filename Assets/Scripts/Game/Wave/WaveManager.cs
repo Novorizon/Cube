@@ -100,7 +100,7 @@ namespace Game
             initialized = true;
             running = false;
             allWavesFinished = false;
-            waitAllEnemiesKilledBeforeNextWave = true;
+            waitAllEnemiesKilledBeforeNextWave = false;
             waveConfigs.Clear();
             ResetRuntimeState();
 

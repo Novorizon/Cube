@@ -8,14 +8,19 @@ namespace Game
 {
     public sealed class ItemPanel : UIPanel
     {
+        private const string ItemContentPrefabPath = "Assets/Arts/UI/TowerDefense/Prefabs/Item.prefab";
+
         [SerializeField]
         private RectTransform contentRoot;
 
         [SerializeField]
-        private ItemSlotView slotPrefab;
+        private CommonSlotView slotPrefab;
 
-        private readonly Dictionary<int, ItemSlotView> slots = new Dictionary<int, ItemSlotView>();
+        private readonly Dictionary<int, CommonSlotView> slots = new Dictionary<int, CommonSlotView>();
+        private readonly List<CommonSlotView> slotPool = new List<CommonSlotView>();
         private readonly HashSet<string> missingIconWarnings = new HashSet<string>();
+        private GameObject itemContentPrefab;
+        private int usedSlotCount;
 
         public event Action<int> ItemClicked;
 
@@ -26,7 +31,7 @@ namespace Game
                 ItemManager.Instance.OnItemChanged += OnItemChanged;
             }
 
-            Build();
+            Initialize();
         }
 
         protected override void OnDestroyed()
@@ -40,7 +45,7 @@ namespace Game
             ItemClicked = null;
         }
 
-        public void Build()
+        public void Initialize()
         {
             Clear();
 
@@ -59,7 +64,7 @@ namespace Game
 
         public void SetItemCount(int itemId, int count)
         {
-            if (slots.TryGetValue(itemId, out ItemSlotView slot))
+            if (slots.TryGetValue(itemId, out CommonSlotView slot))
             {
                 slot.SetCount(count);
                 return;
@@ -75,7 +80,7 @@ namespace Game
         {
             target = null;
 
-            if (!slots.TryGetValue(itemId, out ItemSlotView slot) || slot == null)
+            if (!slots.TryGetValue(itemId, out CommonSlotView slot) || slot == null)
             {
                 return false;
             }
@@ -103,14 +108,20 @@ namespace Game
                 return;
             }
 
-            if (slots.TryGetValue(itemId, out ItemSlotView existingSlot))
+            if (slots.TryGetValue(itemId, out CommonSlotView existingSlot))
             {
                 existingSlot.SetCount(count);
                 return;
             }
 
-            ItemSlotView slot = Instantiate(slotPrefab, contentRoot);
-            slot.Init(config, count, LoadIcon(config.IconLocation), OnItemClicked);
+            GameObject contentPrefab = GetItemContentPrefab();
+            if (contentPrefab == null)
+            {
+                return;
+            }
+
+            CommonSlotView slot = AcquireSlot();
+            slot.Init(config.Id, config.Name, count, LoadIcon(config.IconLocation), contentPrefab, OnItemClicked);
             slots[itemId] = slot;
         }
 
@@ -121,15 +132,70 @@ namespace Game
 
         private void Clear()
         {
-            foreach (ItemSlotView slot in slots.Values)
+            RefreshSlotPool();
+
+            foreach (CommonSlotView slot in slotPool)
             {
                 if (slot != null)
                 {
-                    Destroy(slot.gameObject);
+                    slot.gameObject.SetActive(true);
+                    slot.ClearContent();
                 }
             }
 
             slots.Clear();
+            usedSlotCount = 0;
+        }
+
+        private CommonSlotView AcquireSlot()
+        {
+            RefreshSlotPool();
+
+            if (usedSlotCount < slotPool.Count)
+            {
+                CommonSlotView slot = slotPool[usedSlotCount];
+                usedSlotCount++;
+                slot.gameObject.SetActive(true);
+                return slot;
+            }
+
+            CommonSlotView instance = Instantiate(slotPrefab, contentRoot);
+            slotPool.Add(instance);
+            usedSlotCount++;
+            return instance;
+        }
+
+        private void RefreshSlotPool()
+        {
+            if (contentRoot == null)
+            {
+                slotPool.Clear();
+                return;
+            }
+
+            slotPool.Clear();
+            contentRoot.GetComponentsInChildren(true, slotPool);
+            slotPool.Sort(CompareSlotOrder);
+        }
+
+        private static int CompareSlotOrder(CommonSlotView left, CommonSlotView right)
+        {
+            if (left == right)
+            {
+                return 0;
+            }
+
+            if (left == null)
+            {
+                return 1;
+            }
+
+            if (right == null)
+            {
+                return -1;
+            }
+
+            return left.transform.GetSiblingIndex().CompareTo(right.transform.GetSiblingIndex());
         }
 
         private Sprite LoadIcon(string location)
@@ -156,6 +222,22 @@ namespace Game
             }
 
             return sprite;
+        }
+
+        private GameObject GetItemContentPrefab()
+        {
+            if (itemContentPrefab != null)
+            {
+                return itemContentPrefab;
+            }
+
+            itemContentPrefab = ResourceManager.Instance.LoadGameObject(ItemContentPrefabPath);
+            if (itemContentPrefab == null)
+            {
+                Debug.LogWarning($"Item content prefab load failed. location: {ItemContentPrefabPath}");
+            }
+
+            return itemContentPrefab;
         }
     }
 }

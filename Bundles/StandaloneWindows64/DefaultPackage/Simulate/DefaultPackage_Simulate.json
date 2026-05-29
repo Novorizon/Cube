@@ -10,7 +10,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/28 18:25:15",
+    "PackageNote": "2026/5/29 15:42:09",
     "AssetList": [
         {
             "Address": "",
@@ -3182,6 +3182,14 @@
         },
         {
             "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Icons/Stats/8c931f70-f1c8-44b2-ac4d-d70b7a96d525.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 23,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Arts/UI/TowerDefense/Icons/Stats/ui_td_stat_attack_icon.png",
             "AssetGUID": "",
             "AssetTags": [],
@@ -3542,6 +3550,22 @@
         },
         {
             "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/CommonSlot.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 32,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/Icon.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 32,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/InfoSlot.prefab",
             "AssetGUID": "",
             "AssetTags": [],
@@ -3550,7 +3574,15 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/ItemSlot.prefab",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/Inner.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 32,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/Item.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 32,
@@ -3574,7 +3606,7 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/SkillSlot.prefab",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/Skill.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 32,
@@ -3599,6 +3631,14 @@
         {
             "Address": "",
             "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/TowerCard.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 32,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Prefabs/TowerCardSkill.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 32,
@@ -4015,7 +4055,7 @@
             "UnityCRC": 0,
             "FileHash": "c5e69e9839c4187209527e2dbfb819a6",
             "FileCRC": 0,
-            "FileSize": 5247824,
+            "FileSize": 3679795,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -4025,7 +4065,7 @@
             "UnityCRC": 0,
             "FileHash": "560fb92c673fa8d4486c39c973d71683",
             "FileCRC": 0,
-            "FileSize": 6561975,
+            "FileSize": 8136507,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -4085,7 +4125,7 @@
             "UnityCRC": 0,
             "FileHash": "8a0fb1a41242119acba2ead22832aff7",
             "FileCRC": 0,
-            "FileSize": 5730811,
+            "FileSize": 5577868,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -4115,7 +4155,7 @@
             "UnityCRC": 0,
             "FileHash": "1fe0c3a4e402e970085ee6cbf947124e",
             "FileCRC": 0,
-            "FileSize": 511372,
+            "FileSize": 547846,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

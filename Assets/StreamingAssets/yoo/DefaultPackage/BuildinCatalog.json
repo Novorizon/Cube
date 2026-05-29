@@ -1,11 +1,211 @@
 {
     "FileVersion": "1.0.0",
     "PackageName": "DefaultPackage",
-    "PackageVersion": "2026-05-07-1125",
+    "PackageVersion": "2026-05-29-782",
     "Wrappers": [
         {
-            "BundleGUID": "3560f2e13df734dc0f65c05dc115afcf",
+            "BundleGUID": "16106dea9c1fb18093720eda982f972e",
+            "FileName": "assets_arts_base.bundle"
+        },
+        {
+            "BundleGUID": "989189fb5071bdc8b563e6a267d46663",
+            "FileName": "assets_arts_character.bundle"
+        },
+        {
+            "BundleGUID": "2be66097cfcaea9b06134758a36b174f",
+            "FileName": "assets_arts_character_pirate.bundle"
+        },
+        {
+            "BundleGUID": "af18f03b32b2e698da2911e39596c2ba",
+            "FileName": "assets_arts_character_pirate_animators.bundle"
+        },
+        {
+            "BundleGUID": "f3df1bd5fda31d90cb434e698dd0558a",
+            "FileName": "assets_arts_effects.bundle"
+        },
+        {
+            "BundleGUID": "743f031ba4d02ccba2265791bc3e5112",
+            "FileName": "assets_arts_effects_materials.bundle"
+        },
+        {
+            "BundleGUID": "a9f857615ebf72db9e2de8f9ee4bc3fb",
+            "FileName": "assets_arts_tower.bundle"
+        },
+        {
+            "BundleGUID": "e410d85f0b8f744314368e1b3d7ddf8f",
+            "FileName": "assets_arts_tower_kenney_tower-defense-kit.bundle"
+        },
+        {
+            "BundleGUID": "73d135d0994ef598253e4909b894c348",
+            "FileName": "assets_arts_tower_kenney_tower-defense-kit_models_fbx_format.bundle"
+        },
+        {
+            "BundleGUID": "3acd1d8be51ad68492ee1797bcac7654",
+            "FileName": "assets_arts_tower_kenney_tower-defense-kit_models_fbx_format_textures.bundle"
+        },
+        {
+            "BundleGUID": "bd40dc85058bf05012f8ebc7f0b54ecf",
+            "FileName": "assets_arts_tower_kenney_tower-defense-kit_models_textures.bundle"
+        },
+        {
+            "BundleGUID": "ba6dcc8fc9eeaa4e4510ef645ce6fdc3",
+            "FileName": "assets_arts_tower_kenney_tower-defense-kit_previews.bundle"
+        },
+        {
+            "BundleGUID": "863c3280f6a0b56b8377aaa9025e326b",
+            "FileName": "assets_arts_ui_atlas.bundle"
+        },
+        {
+            "BundleGUID": "9b06c013644d780f3bcdb8f65677b1ec",
+            "FileName": "assets_arts_ui_pages.bundle"
+        },
+        {
+            "BundleGUID": "275ef037fa622ee8702954a69d2c950d",
+            "FileName": "assets_arts_ui_toasts.bundle"
+        },
+        {
+            "BundleGUID": "73c1d6c5c663967cff29520f501f4919",
+            "FileName": "assets_arts_ui_towerdefense_common_badges.bundle"
+        },
+        {
+            "BundleGUID": "640c4373d7ab740e670af20b0c167c4b",
+            "FileName": "assets_arts_ui_towerdefense_common_bars.bundle"
+        },
+        {
+            "BundleGUID": "4f5ca75f2f09e0e18f2bfeb46cf480d7",
+            "FileName": "assets_arts_ui_towerdefense_common_buttons.bundle"
+        },
+        {
+            "BundleGUID": "f3e98aa1b1556c5af527596fd6923c3b",
+            "FileName": "assets_arts_ui_towerdefense_common_dividers.bundle"
+        },
+        {
+            "BundleGUID": "77bbdd33137eeb779f4e9fb2880bcbfc",
+            "FileName": "assets_arts_ui_towerdefense_common_frames.bundle"
+        },
+        {
+            "BundleGUID": "d0f7fda8efa69eecdb8c9fa6ab7cd8a8",
+            "FileName": "assets_arts_ui_towerdefense_common_panels.bundle"
+        },
+        {
+            "BundleGUID": "0f290d2dbf12ebac1a4cd34cdc1a6c40",
+            "FileName": "assets_arts_ui_towerdefense_common_states.bundle"
+        },
+        {
+            "BundleGUID": "9642f6849fe5ade7521005db2b7c68e6",
+            "FileName": "assets_arts_ui_towerdefense_icons_skills.bundle"
+        },
+        {
+            "BundleGUID": "5f79e85dada080dd2b5bfc68f3054501",
+            "FileName": "assets_arts_ui_towerdefense_icons_stats.bundle"
+        },
+        {
+            "BundleGUID": "8ce9c95e378b8186d87e146bc8045f6b",
+            "FileName": "assets_arts_ui_towerdefense_icons_system.bundle"
+        },
+        {
+            "BundleGUID": "23c65f98dfbaca6f5c757c3b53ba547f",
+            "FileName": "assets_arts_ui_towerdefense_icons_towers.bundle"
+        },
+        {
+            "BundleGUID": "e8b1f66fa96011a6d2ac810e29820853",
+            "FileName": "assets_arts_ui_towerdefense_modules_battlecontrol.bundle"
+        },
+        {
+            "BundleGUID": "498191d6f63d84e2bd6b95a297339e04",
+            "FileName": "assets_arts_ui_towerdefense_modules_buildpanel.bundle"
+        },
+        {
+            "BundleGUID": "00264d92794006c08217c3b454278537",
+            "FileName": "assets_arts_ui_towerdefense_modules_minimap.bundle"
+        },
+        {
+            "BundleGUID": "f4718ea0813273162c5ce9da48898f3d",
+            "FileName": "assets_arts_ui_towerdefense_modules_skillpanel.bundle"
+        },
+        {
+            "BundleGUID": "0e96cafd55b7a5fabb3cccef7fbfa104",
+            "FileName": "assets_arts_ui_towerdefense_modules_topstatusbar.bundle"
+        },
+        {
+            "BundleGUID": "d3c5aa2a6be828880fc36b70b3fa3f0e",
+            "FileName": "assets_arts_ui_towerdefense_modules_towerinfo.bundle"
+        },
+        {
+            "BundleGUID": "aa3b08f00123cb527af06927402b794b",
+            "FileName": "assets_arts_ui_towerdefense_prefabs.bundle"
+        },
+        {
+            "BundleGUID": "4db97a87a8729b52e648453a9ca65c11",
+            "FileName": "assets_data_bin.bundle"
+        },
+        {
+            "BundleGUID": "79825a384b69bec158f58fab1b8562f0",
+            "FileName": "assets_data_bin_wave.bundle"
+        },
+        {
+            "BundleGUID": "ff29c82352bb7329ddd28bb1a06ca852",
+            "FileName": "assets_data_cube_configs.bundle"
+        },
+        {
+            "BundleGUID": "1d105376f76d94eaecf629f8b2ea68ff",
             "FileName": "mapdata.bundle"
+        },
+        {
+            "BundleGUID": "b00ade5ea98c41d0c39cc8b670395993",
+            "FileName": "share_assets_arts_fbx_characterfbx.bundle"
+        },
+        {
+            "BundleGUID": "77b3a94aee4c957f5b620843e25a09e8",
+            "FileName": "share_assets_arts_fbx_structurefbx.bundle"
+        },
+        {
+            "BundleGUID": "282f79589208bd9e490110ee94a5a71a",
+            "FileName": "share_assets_arts_font.bundle"
+        },
+        {
+            "BundleGUID": "cd975f423b1ab1e510874c5db36d19a3",
+            "FileName": "share_assets_arts_font_sourcefont.bundle"
+        },
+        {
+            "BundleGUID": "8c079c5d7b8973552f32f5b79c6944df",
+            "FileName": "share_assets_arts_map_tiles.bundle"
+        },
+        {
+            "BundleGUID": "e37737d3b0cccd1f6ffae85fb9054e51",
+            "FileName": "share_assets_arts_map_tiles_materials.bundle"
+        },
+        {
+            "BundleGUID": "376609c490f0085348aa1b4ec7caae36",
+            "FileName": "share_assets_arts_map_tiles_textures.bundle"
+        },
+        {
+            "BundleGUID": "4e59d1159723bc312e7900d9515ae457",
+            "FileName": "share_assets_arts_tile.bundle"
+        },
+        {
+            "BundleGUID": "106cc80829cc0b74418930057694e356",
+            "FileName": "share_assets_arts_tile_modularprototype.bundle"
+        },
+        {
+            "BundleGUID": "e86606ec728a3959fb06c6cd975e3634",
+            "FileName": "share_assets_arts_ui.bundle"
+        },
+        {
+            "BundleGUID": "a82a5f0de75f50a9e8d525967d237a15",
+            "FileName": "share_assets_arts_ui_separated_icons_transparent_rgba.bundle"
+        },
+        {
+            "BundleGUID": "17e0a807a44b9b19d0232d3794ea3fdc",
+            "FileName": "share_assets_arts_ui_ui_yellow_background_panels_rgba.bundle"
+        },
+        {
+            "BundleGUID": "aec43eeec04f8136e54ff3f661b3e83f",
+            "FileName": "share_packages_com_unity_render-pipelines_universal_runtime_materials.bundle"
+        },
+        {
+            "BundleGUID": "c132ea5c6627c606c53a5f5776dc5420",
+            "FileName": "unityshaders.bundle"
         }
     ]
 }

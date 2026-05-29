@@ -8,15 +8,20 @@ namespace Game
 {
     public sealed class SkillPanel : UIPanel
     {
+        private const string SkillContentPrefabPath = "Assets/Arts/UI/TowerDefense/Prefabs/Skill.prefab";
+
         [SerializeField]
         private RectTransform contentRoot;
 
         [SerializeField]
-        private SkillSlotView slotPrefab;
+        private CommonSlotView slotPrefab;
 
-        private readonly Dictionary<int, SkillSlotView> slots = new Dictionary<int, SkillSlotView>();
+        private readonly Dictionary<int, CommonSlotView> slots = new Dictionary<int, CommonSlotView>();
         private readonly Dictionary<int, SkillConfig> slotConfigs = new Dictionary<int, SkillConfig>();
+        private readonly List<CommonSlotView> slotPool = new List<CommonSlotView>();
         private readonly HashSet<string> missingIconWarnings = new HashSet<string>();
+        private GameObject skillContentPrefab;
+        private int usedSlotCount;
 
         public event Action<int> SkillClicked;
 
@@ -39,7 +44,7 @@ namespace Game
             SkillClicked = null;
         }
 
-        public void Build()
+        public void Initialize()
         {
             Clear();
 
@@ -56,8 +61,14 @@ namespace Game
                     continue;
                 }
 
-                SkillSlotView slot = Instantiate(slotPrefab, contentRoot);
-                slot.Init(config, LoadIcon(config.IconLocation), GetAvailableCastCount(config), OnSkillClicked);
+                GameObject contentPrefab = GetSkillContentPrefab();
+                if (contentPrefab == null)
+                {
+                    return;
+                }
+
+                CommonSlotView slot = AcquireSlot();
+                slot.Init(config.Id, config.Name, GetAvailableCastCount(config), LoadIcon(config.IconLocation), contentPrefab, OnSkillClicked);
                 slots[config.Id] = slot;
                 slotConfigs[config.Id] = config;
             }
@@ -65,7 +76,7 @@ namespace Game
 
         public void SetSkillCount(int skillId, int count)
         {
-            if (slots.TryGetValue(skillId, out SkillSlotView slot))
+            if (slots.TryGetValue(skillId, out CommonSlotView slot))
             {
                 slot.SetCount(count);
             }
@@ -83,7 +94,7 @@ namespace Game
                     continue;
                 }
 
-                if (!slots.TryGetValue(pair.Key, out SkillSlotView slot) || slot == null)
+                if (!slots.TryGetValue(pair.Key, out CommonSlotView slot) || slot == null)
                 {
                     continue;
                 }
@@ -119,7 +130,7 @@ namespace Game
             foreach (KeyValuePair<int, SkillConfig> pair in slotConfigs)
             {
                 SkillConfig config = pair.Value;
-                if (config != null && config.CostResourceId == itemId && slots.TryGetValue(pair.Key, out SkillSlotView slot))
+                if (config != null && config.CostResourceId == itemId && slots.TryGetValue(pair.Key, out CommonSlotView slot))
                 {
                     slot.SetCount(GetAvailableCastCount(config));
                 }
@@ -179,16 +190,87 @@ namespace Game
 
         private void Clear()
         {
-            foreach (SkillSlotView slot in slots.Values)
+            RefreshSlotPool();
+
+            foreach (CommonSlotView slot in slotPool)
             {
                 if (slot != null)
                 {
-                    Destroy(slot.gameObject);
+                    slot.gameObject.SetActive(true);
+                    slot.ClearContent();
                 }
             }
 
             slots.Clear();
             slotConfigs.Clear();
+            usedSlotCount = 0;
+        }
+
+        private CommonSlotView AcquireSlot()
+        {
+            RefreshSlotPool();
+
+            if (usedSlotCount < slotPool.Count)
+            {
+                CommonSlotView slot = slotPool[usedSlotCount];
+                usedSlotCount++;
+                slot.gameObject.SetActive(true);
+                return slot;
+            }
+
+            CommonSlotView instance = Instantiate(slotPrefab, contentRoot);
+            slotPool.Add(instance);
+            usedSlotCount++;
+            return instance;
+        }
+
+        private void RefreshSlotPool()
+        {
+            if (contentRoot == null)
+            {
+                slotPool.Clear();
+                return;
+            }
+
+            slotPool.Clear();
+            contentRoot.GetComponentsInChildren(true, slotPool);
+            slotPool.Sort(CompareSlotOrder);
+        }
+
+        private static int CompareSlotOrder(CommonSlotView left, CommonSlotView right)
+        {
+            if (left == right)
+            {
+                return 0;
+            }
+
+            if (left == null)
+            {
+                return 1;
+            }
+
+            if (right == null)
+            {
+                return -1;
+            }
+
+            return left.transform.GetSiblingIndex().CompareTo(right.transform.GetSiblingIndex());
+        }
+
+        private GameObject GetSkillContentPrefab()
+        {
+            if (skillContentPrefab != null)
+            {
+                return skillContentPrefab;
+            }
+
+            skillContentPrefab = ResourceManager.Instance.LoadGameObject(SkillContentPrefabPath);
+            if (skillContentPrefab == null)
+            {
+                Debug.LogWarning($"Skill content prefab load failed. location: {SkillContentPrefabPath}");
+            }
+
+            return skillContentPrefab;
         }
     }
 }
