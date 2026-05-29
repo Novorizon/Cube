@@ -253,7 +253,7 @@ namespace Game
             ShowBattleHudAsync().Forget();
             BattleFlowManager.Instance.BeginBattle(mapConfig);
 
-            if (!BaseManager.Instance.LoadBase(mapConfig.BaseLife))
+            if (!BaseManager.Instance.LoadBase(mapConfig.BaseId))
             {
                 BattleFlowManager.Instance.CompleteDefeat("Base load failed.");
                 return;

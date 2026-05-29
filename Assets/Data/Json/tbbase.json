@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "标准基地",
+    "description": "默认基地，沿用测试关卡1生命值",
+    "hp": 2000,
+    "defense": 0,
+    "prefabLocation": "Assets/Arts/Base/Base.prefab",
+    "iconLocation": "",
+    "hitEffect": "",
+    "deadEffect": "Assets/Arts/Effects/BaseDestroyedEffect.prefab",
+    "enable": true
+  },
+  {
+    "id": 2,
+    "name": "脆弱基地",
+    "description": "测试关卡2基地，低生命值",
+    "hp": 20,
+    "defense": 0,
+    "prefabLocation": "Assets/Arts/Base/Base.prefab",
+    "iconLocation": "",
+    "hitEffect": "",
+    "deadEffect": "Assets/Arts/Effects/BaseDestroyedEffect.prefab",
+    "enable": true
+  },
+  {
+    "id": 3,
+    "name": "小型基地",
+    "description": "测试关卡3基地，低生命值",
+    "hp": 30,
+    "defense": 0,
+    "prefabLocation": "Assets/Arts/Base/Base.prefab",
+    "iconLocation": "",
+    "hitEffect": "",
+    "deadEffect": "Assets/Arts/Effects/BaseDestroyedEffect.prefab",
+    "enable": true
+  }
+]

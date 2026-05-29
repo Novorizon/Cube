@@ -5,7 +5,7 @@
     "description": "第一张测试地图，基础金币较宽松",
     "mapId": 1,
     "initialGold": 300,
-    "baseLife": 2000,
+    "baseId": 1,
     "waveEasy": "Assets/Data/Bin/Wave/wave1.bytes",
     "waveNormal": "Assets/Data/Bin/Wave/wave1.bytes",
     "waveHard": "Assets/Data/Bin/Wave/wave1.bytes"
@@ -16,7 +16,7 @@
     "description": "复用地图1，但初始金币更少，难度更高",
     "mapId": 1,
     "initialGold": 200,
-    "baseLife": 20,
+    "baseId": 2,
     "waveEasy": "Assets/Data/Bin/Wave/wave2.bytes",
     "waveNormal": "Assets/Data/Bin/Wave/wave2.bytes",
     "waveHard": "Assets/Data/Bin/Wave/wave2.bytes"
@@ -27,7 +27,7 @@
     "description": "使用地图2，给更多初始金币和更高基地生命",
     "mapId": 2,
     "initialGold": 500,
-    "baseLife": 30,
+    "baseId": 3,
     "waveEasy": "Assets/Data/Bin/Wave/wave3.bytes",
     "waveNormal": "Assets/Data/Bin/Wave/wave3.bytes",
     "waveHard": "Assets/Data/Bin/Wave/wave3.bytes"

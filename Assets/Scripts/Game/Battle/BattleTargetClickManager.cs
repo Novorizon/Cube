@@ -8,8 +8,6 @@ namespace Game
 {
     public sealed class BattleTargetClickManager : Singleton<BattleTargetClickManager>
     {
-        private const string BasePreviewPrefabLocation = "Assets/Arts/Base/Base.prefab";
-
         private Camera targetCamera;
         private LayerMask targetLayerMask = ~0;
         private float rayDistance = 1000f;
@@ -339,18 +337,26 @@ namespace Game
 
         private TdTargetRuntimeInfo BuildBaseInfo()
         {
+            BaseConfig config = BaseManager.Instance.Config;
             TdTargetRuntimeInfo info = new TdTargetRuntimeInfo
             {
                 Type = TdTargetInfoType.Base,
-                TargetId = 1,
+                TargetId = config != null ? config.Id : 0,
                 Name = "基地",
                 Description = "保护基地，生命归零则战斗失败。",
-                PreviewPrefabLocation = BasePreviewPrefabLocation,
+                Icon = config != null ? LoadIconSprite(config.IconLocation) : null,
+                PreviewPrefabLocation = config != null ? config.PrefabLocation : string.Empty,
                 CurrentHp = BaseManager.Instance.CurrentLife,
                 MaxHp = BaseManager.Instance.MaxLife,
                 CanUpgrade = false,
                 CanSell = false
             };
+
+            if (config != null)
+            {
+                info.Name = config.Name;
+                info.Description = config.Description;
+            }
 
             info.InfoSlots = new List<TdInfoSlotData>
             {

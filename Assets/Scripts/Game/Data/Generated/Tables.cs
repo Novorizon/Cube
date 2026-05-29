@@ -20,6 +20,7 @@ public partial class Tables
     public TbAbilityProjectileConfig TbAbilityProjectileConfig {get; }
     public TbAbilitySpecialValueConfig TbAbilitySpecialValueConfig {get; }
     public TbAbilitySystemEnumConfig TbAbilitySystemEnumConfig {get; }
+    public TbBase TbBase {get; }
     public TbItem TbItem {get; }
     public TbMap TbMap {get; }
     public TbNpc TbNpc {get; }
@@ -41,6 +42,7 @@ public partial class Tables
         TbAbilityProjectileConfig = new TbAbilityProjectileConfig(loader("tbabilityprojectileconfig"));
         TbAbilitySpecialValueConfig = new TbAbilitySpecialValueConfig(loader("tbabilityspecialvalueconfig"));
         TbAbilitySystemEnumConfig = new TbAbilitySystemEnumConfig(loader("tbabilitysystemenumconfig"));
+        TbBase = new TbBase(loader("tbbase"));
         TbItem = new TbItem(loader("tbitem"));
         TbMap = new TbMap(loader("tbmap"));
         TbNpc = new TbNpc(loader("tbnpc"));
@@ -64,6 +66,7 @@ public partial class Tables
         TbAbilityProjectileConfig.ResolveRef(this);
         TbAbilitySpecialValueConfig.ResolveRef(this);
         TbAbilitySystemEnumConfig.ResolveRef(this);
+        TbBase.ResolveRef(this);
         TbItem.ResolveRef(this);
         TbMap.ResolveRef(this);
         TbNpc.ResolveRef(this);

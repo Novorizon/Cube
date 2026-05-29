@@ -12,24 +12,25 @@ using Luban;
 
 namespace Game
 {
-public sealed partial class MapConfig : Luban.BeanBase
+public sealed partial class BaseConfig : Luban.BeanBase
 {
-    public MapConfig(ByteBuf _buf) 
+    public BaseConfig(ByteBuf _buf) 
     {
         Id = _buf.ReadInt();
         Name = _buf.ReadString();
         Description = _buf.ReadString();
-        MapId = _buf.ReadInt();
-        InitialGold = _buf.ReadInt();
-        BaseId = _buf.ReadInt();
-        WaveEasy = _buf.ReadString();
-        WaveNormal = _buf.ReadString();
-        WaveHard = _buf.ReadString();
+        Hp = _buf.ReadInt();
+        Defense = _buf.ReadInt();
+        PrefabLocation = _buf.ReadString();
+        IconLocation = _buf.ReadString();
+        HitEffect = _buf.ReadString();
+        DeadEffect = _buf.ReadString();
+        Enable = _buf.ReadBool();
     }
 
-    public static MapConfig DeserializeMapConfig(ByteBuf _buf)
+    public static BaseConfig DeserializeBaseConfig(ByteBuf _buf)
     {
-        return new MapConfig(_buf);
+        return new BaseConfig(_buf);
     }
 
     /// <summary>
@@ -47,29 +48,33 @@ public sealed partial class MapConfig : Luban.BeanBase
     /// <summary>
     /// client
     /// </summary>
-    public readonly int MapId;
+    public readonly int Hp;
     /// <summary>
     /// client
     /// </summary>
-    public readonly int InitialGold;
+    public readonly int Defense;
     /// <summary>
     /// client
     /// </summary>
-    public readonly int BaseId;
+    public readonly string PrefabLocation;
     /// <summary>
     /// client
     /// </summary>
-    public readonly string WaveEasy;
+    public readonly string IconLocation;
     /// <summary>
     /// client
     /// </summary>
-    public readonly string WaveNormal;
+    public readonly string HitEffect;
     /// <summary>
     /// client
     /// </summary>
-    public readonly string WaveHard;
+    public readonly string DeadEffect;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly bool Enable;
    
-    public const int __ID__ = -1840922722;
+    public const int __ID__ = 712913299;
     public override int GetTypeId() => __ID__;
 
     public  void ResolveRef(Tables tables)
@@ -82,12 +87,13 @@ public sealed partial class MapConfig : Luban.BeanBase
         + "id:" + Id + ","
         + "name:" + Name + ","
         + "description:" + Description + ","
-        + "mapId:" + MapId + ","
-        + "initialGold:" + InitialGold + ","
-        + "baseId:" + BaseId + ","
-        + "waveEasy:" + WaveEasy + ","
-        + "waveNormal:" + WaveNormal + ","
-        + "waveHard:" + WaveHard + ","
+        + "hp:" + Hp + ","
+        + "defense:" + Defense + ","
+        + "prefabLocation:" + PrefabLocation + ","
+        + "iconLocation:" + IconLocation + ","
+        + "hitEffect:" + HitEffect + ","
+        + "deadEffect:" + DeadEffect + ","
+        + "enable:" + Enable + ","
         + "}";
     }
 }

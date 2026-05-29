@@ -6,7 +6,7 @@
     <var name="description" type="string" comment="client" />
     <var name="mapId" type="int" comment="client" />
     <var name="initialGold" type="int" comment="client" />
-    <var name="baseLife" type="int" comment="client" />
+    <var name="baseId" type="int" comment="client" />
     <var name="waveEasy" type="string" comment="client" />
     <var name="waveNormal" type="string" comment="client" />
     <var name="waveHard" type="string" comment="client" />

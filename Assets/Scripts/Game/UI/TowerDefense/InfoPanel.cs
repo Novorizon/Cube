@@ -92,7 +92,7 @@ namespace Game
 
         private void Start()
         {
-            Initialize();
+            //Initialize();
         }
 
         protected override void OnDestroyed()
@@ -156,7 +156,10 @@ namespace Game
 
         public void Show(TdTargetRuntimeInfo info)
         {
-            Initialize();
+            if (!initialized)
+            {
+                Initialize();
+            }
 
             selectedTargetType = info.Type;
             selectedTargetId = info.TargetId;

@@ -17,6 +17,7 @@ namespace Game
         public ConfigTableReader<TowerConfig> Tower { get; private set; }
         public ConfigTableReader<TowerLevelConfig> TowerLevel { get; private set; }
         public ConfigTableReader<ItemConfig> Item { get; private set; }
+        public ConfigTableReader<BaseConfig> Base { get; private set; }
         public ConfigTableReader<MapConfig> Map { get; private set; }
         public ConfigTableReader<SkillConfig> Skill { get; private set; }
         public ConfigTableReader<SkillActionConfig> SkillAction { get; private set; }
@@ -51,6 +52,7 @@ namespace Game
             Tower = new ConfigTableReader<TowerConfig>("TbTower", tables.TbTower.DataMap);
             TowerLevel = new ConfigTableReader<TowerLevelConfig>("TbTowerLevel", tables.TbTowerLevel.DataMap);
             Item = new ConfigTableReader<ItemConfig>("TbItem", tables.TbItem.DataMap);
+            Base = new ConfigTableReader<BaseConfig>("TbBase", tables.TbBase.DataMap);
             Map = new ConfigTableReader<MapConfig>("TbMap", tables.TbMap.DataMap);
             Skill = new ConfigTableReader<SkillConfig>("TbSkill", tables.TbSkill.DataMap);
             SkillAction = new ConfigTableReader<SkillActionConfig>("TbSkillAction", tables.TbSkillAction.DataMap);

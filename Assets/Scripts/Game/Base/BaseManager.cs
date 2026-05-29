@@ -5,16 +5,22 @@ namespace Game
 {
     public sealed class BaseManager : Singleton<BaseManager>
     {
-        private const string BasePrefabLocation = "Assets/Arts/Base/Base.prefab";
-
         private GameObject baseObject;
+        private BaseConfig config;
         private int maxLife;
         private int currentLife;
+        private int defense;
         private bool initialized;
 
         public int MaxLife => maxLife;
 
         public int CurrentLife => currentLife;
+
+        public int Defense => defense;
+
+        public BaseConfig Config => config;
+
+        public string PreviewPrefabLocation => config != null ? config.PrefabLocation : string.Empty;
 
         public bool IsDead => initialized && currentLife <= 0;
 
@@ -38,9 +44,25 @@ namespace Game
             initialized = true;
         }
 
-        public bool LoadBase(int life)
+        public bool LoadBase(int baseId)
         {
             ClearBaseObject();
+            config = null;
+            maxLife = 0;
+            currentLife = 0;
+            defense = 0;
+
+            if (DataManager.Instance.Base == null || !DataManager.Instance.Base.TryGet(baseId, out BaseConfig baseConfig) || baseConfig == null || !baseConfig.Enable)
+            {
+                Debug.LogWarning($"Load base failed. Missing base config. baseId: {baseId}");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(baseConfig.PrefabLocation))
+            {
+                Debug.LogWarning($"Load base failed. Missing prefab location. baseId: {baseId}");
+                return false;
+            }
 
             if (!MapManager.Instance.TryGetGoalPoint(out Vector3Int goalPoint))
             {
@@ -48,11 +70,11 @@ namespace Game
                 return false;
             }
 
-            GameObject prefab = ResourceManager.Instance.LoadGameObject(BasePrefabLocation);
+            GameObject prefab = ResourceManager.Instance.LoadGameObject(baseConfig.PrefabLocation);
 
             if (prefab == null)
             {
-                Debug.LogWarning($"Load base failed. Missing prefab: {BasePrefabLocation}");
+                Debug.LogWarning($"Load base failed. Missing prefab: {baseConfig.PrefabLocation}");
                 return false;
             }
 
@@ -61,11 +83,12 @@ namespace Game
             baseObject.name = "PlayerBase";
             EnsureBaseView(baseObject);
 
-            Debug.Log($"Load base success. GoalPoint: {goalPoint}, Position: {position}");
-
-            maxLife = Mathf.Max(1, life);
+            config = baseConfig;
+            maxLife = Mathf.Max(1, config.Hp);
             currentLife = maxLife;
-            Debug.Log($"Base initialized. Life: {currentLife}/{maxLife}");
+            defense = Mathf.Max(0, config.Defense);
+
+            Debug.Log($"Base initialized. Id: {config.Id}, Name: {config.Name}, Life: {currentLife}/{maxLife}, Defense: {defense}, GoalPoint: {goalPoint}, Position: {position}");
             NotifyBaseLifeChanged();
 
             return true;
@@ -80,6 +103,7 @@ namespace Game
 
             GameObject.Destroy(baseObject);
             baseObject = null;
+            config = null;
         }
 
         public void TakeDamage(int damage)
@@ -94,7 +118,8 @@ namespace Game
                 return;
             }
 
-            currentLife -= damage;
+            int finalDamage = Mathf.Max(1, damage - defense);
+            currentLife -= finalDamage;
 
             if (currentLife < 0)
             {
@@ -103,7 +128,7 @@ namespace Game
 
             NotifyBaseLifeChanged();
 
-            Debug.Log($"Base damaged. Damage: {damage}, Life: {currentLife}/{maxLife}");
+            Debug.Log($"Base damaged. Damage: {damage}, FinalDamage: {finalDamage}, Defense: {defense}, Life: {currentLife}/{maxLife}");
 
             if (currentLife <= 0)
             {

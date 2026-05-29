@@ -10,7 +10,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/29 15:42:09",
+    "PackageNote": "2026/5/29 16:24:59",
     "AssetList": [
         {
             "Address": "",
@@ -3710,6 +3710,14 @@
         },
         {
             "Address": "",
+            "AssetPath": "Assets/Data/Bin/tbbase.bytes",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 33,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Data/Bin/tbitem.bytes",
             "AssetGUID": "",
             "AssetTags": [],
@@ -4165,7 +4173,7 @@
             "UnityCRC": 0,
             "FileHash": "8502b3caa13ac1a33f913c862a6bdd2a",
             "FileCRC": 0,
-            "FileSize": 9542,
+            "FileSize": 9942,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
