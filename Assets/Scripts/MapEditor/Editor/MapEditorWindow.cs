@@ -75,15 +75,125 @@ namespace Game.Editor
         [TabGroup("Map"), LabelText("Preview Root"), ReadOnly, SerializeField]
         private Transform previewRoot;
 
-        [TabGroup("Paint"), InfoBox("Paint 页面说明：\n- 开关笔刷：开启后可在 Scene 里点击/拖动刷地块。\n- 填充选中高度层：把当前选中 Y 层铺成 Type Brush 选择的基础地块。\n- 清除笔刷区域覆盖层：删除选中区域内 Road/Bridge/Stair/Ramp，保留基础地块。\n- 笔刷区域升高/降低一层：以当前选中格为中心，对 Brush Size 范围内的地块整体升降一层。")]
-        [TabGroup("Paint"), LabelText("Type Brush"), EnumToggleButtons, SerializeField]
+        [HideInInspector, SerializeField]
         private TypeBrush brushTileType = TypeBrush.Grass;
 
-        [TabGroup("Paint"), LabelText("Overlay Brush"), EnumToggleButtons, SerializeField]
+        [HideInInspector, SerializeField]
         private MapTileOverlay brushOverlay = MapTileOverlay.Road;
 
         [TabGroup("Paint"), LabelText("Direction"), EnumToggleButtons, SerializeField]
         private MapDirection brushDirection = MapDirection.North;
+
+        [TabGroup("Paint"), OnInspectorGUI]
+        private void DrawPaintBrushPreviews()
+        {
+            EditorGUILayout.HelpBox("Paint 页面说明：\n- 开关笔刷：开启后可在 Scene 里点击/拖动刷地块。\n- Brush Mode = Type 时，使用基础地块预览刷 Grass/Hill/Snow/Water。\n- Brush Mode = Overlay 时，使用覆盖层预览刷 None/Road/Bridge/Stair/Ramp。\n- 填充选中高度层使用当前 Type Brush。", MessageType.Info);
+
+            DrawTypeBrushPreviewSelector();
+            GUILayout.Space(6f);
+            DrawOverlayBrushPreviewSelector();
+        }
+
+        private void DrawTypeBrushPreviewSelector()
+        {
+            EditorGUILayout.LabelField("Type Brush / 基础地块", EditorStyles.boldLabel);
+            EditorGUILayout.BeginHorizontal();
+            DrawTypeBrushPreviewButton(TypeBrush.Grass);
+            DrawTypeBrushPreviewButton(TypeBrush.Hill);
+            DrawTypeBrushPreviewButton(TypeBrush.Snow);
+            DrawTypeBrushPreviewButton(TypeBrush.Water);
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void DrawTypeBrushPreviewButton(TypeBrush type)
+        {
+            MapTileType mapTileType = ToMapTileType(type);
+            if (DrawBrushPreviewButton(type.ToString(), GetPrefab(mapTileType), brushTileType == type, GetFallbackColor(mapTileType)))
+            {
+                brushTileType = type;
+                if (brushMode != BrushMode.Type) brushMode = BrushMode.Type;
+            }
+        }
+
+        private void DrawOverlayBrushPreviewSelector()
+        {
+            EditorGUILayout.LabelField("Overlay Brush / 覆盖层", EditorStyles.boldLabel);
+            EditorGUILayout.BeginHorizontal();
+            DrawOverlayBrushPreviewButton(MapTileOverlay.None);
+            DrawOverlayBrushPreviewButton(MapTileOverlay.Road);
+            DrawOverlayBrushPreviewButton(MapTileOverlay.Bridge);
+            DrawOverlayBrushPreviewButton(MapTileOverlay.Stair);
+            DrawOverlayBrushPreviewButton(MapTileOverlay.Ramp);
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void DrawOverlayBrushPreviewButton(MapTileOverlay overlay)
+        {
+            if (DrawBrushPreviewButton(overlay.ToString(), GetOverlayPreviewPrefab(overlay), brushOverlay == overlay, GetOverlayFallbackColor(overlay)))
+            {
+                brushOverlay = overlay;
+                if (brushMode != BrushMode.Overlay) brushMode = BrushMode.Overlay;
+            }
+        }
+
+        private bool DrawBrushPreviewButton(string label, GameObject prefab, bool selected, Color fallbackColor)
+        {
+            Color oldBackgroundColor = GUI.backgroundColor;
+            if (selected) GUI.backgroundColor = new Color(0.55f, 0.85f, 1f);
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(104f));
+            Texture2D preview = GetPrefabPreview(prefab);
+            GUIContent previewContent = preview != null ? new GUIContent(preview) : new GUIContent(label);
+            bool clicked = GUILayout.Button(previewContent, GUILayout.Width(92f), GUILayout.Height(72f));
+
+            GUIStyle labelStyle = selected ? EditorStyles.boldLabel : EditorStyles.centeredGreyMiniLabel;
+            Rect colorRect = GUILayoutUtility.GetRect(92f, 8f, GUILayout.Width(92f));
+            EditorGUI.DrawRect(colorRect, fallbackColor);
+            EditorGUILayout.LabelField(label, labelStyle, GUILayout.Width(92f));
+            EditorGUILayout.EndVertical();
+
+            GUI.backgroundColor = oldBackgroundColor;
+            return clicked;
+        }
+
+        private GameObject GetOverlayPreviewPrefab(MapTileOverlay overlay)
+        {
+            switch (overlay)
+            {
+                case MapTileOverlay.Road:
+                    return GetPrefab(MapTileType.Road);
+
+                case MapTileOverlay.Bridge:
+                    return GetPrefab(MapTileType.Bridge);
+
+                default:
+                    return null;
+            }
+        }
+
+        private Color GetOverlayFallbackColor(MapTileOverlay overlay)
+        {
+            switch (overlay)
+            {
+                case MapTileOverlay.None:
+                    return new Color(0.25f, 0.25f, 0.25f);
+
+                case MapTileOverlay.Road:
+                    return GetFallbackColor(MapTileType.Road);
+
+                case MapTileOverlay.Bridge:
+                    return GetFallbackColor(MapTileType.Bridge);
+
+                case MapTileOverlay.Stair:
+                    return new Color(0.75f, 0.62f, 0.42f);
+
+                case MapTileOverlay.Ramp:
+                    return new Color(0.65f, 0.55f, 0.35f);
+
+                default:
+                    return Color.magenta;
+            }
+        }
 
         [TabGroup("Paint"), LabelText("Brush Enabled"), SerializeField]
         private bool brushEnabled;
@@ -112,14 +222,64 @@ namespace Game.Editor
         [TabGroup("Selection"), ShowInInspector, ReadOnly, LabelText("Current Direction")]
         private MapDirection SelectedCurrentDirection => selectedTile != null ? selectedTile.Direction : MapDirection.None;
 
-        [TabGroup("Selection"), LabelText("New Type"), EnumToggleButtons, SerializeField]
+        [HideInInspector, SerializeField]
         private TypeBrush selectedNewType = TypeBrush.Grass;
 
-        [TabGroup("Selection"), LabelText("New Overlay"), EnumToggleButtons, SerializeField]
+        [HideInInspector, SerializeField]
         private MapTileOverlay selectedNewOverlay = MapTileOverlay.None;
 
         [TabGroup("Selection"), LabelText("New Direction"), EnumToggleButtons, SerializeField]
         private MapDirection selectedNewDirection = MapDirection.North;
+
+        [TabGroup("Selection"), OnInspectorGUI]
+        private void DrawSelectionPreviewSelectors()
+        {
+            EditorGUILayout.HelpBox("Selection 页面说明：\n- 点击预览卡片选择要应用到当前地块的 Type 或 Overlay。\n- 点击 Apply Type To Selected / Apply Overlay To Selected 后才会修改当前地块。", MessageType.Info);
+
+            DrawSelectionTypePreviewSelector();
+            GUILayout.Space(6f);
+            DrawSelectionOverlayPreviewSelector();
+        }
+
+        private void DrawSelectionTypePreviewSelector()
+        {
+            EditorGUILayout.LabelField("New Type / 新基础地块", EditorStyles.boldLabel);
+            EditorGUILayout.BeginHorizontal();
+            DrawSelectionTypePreviewButton(TypeBrush.Grass);
+            DrawSelectionTypePreviewButton(TypeBrush.Hill);
+            DrawSelectionTypePreviewButton(TypeBrush.Snow);
+            DrawSelectionTypePreviewButton(TypeBrush.Water);
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void DrawSelectionTypePreviewButton(TypeBrush type)
+        {
+            MapTileType mapTileType = ToMapTileType(type);
+            if (DrawBrushPreviewButton(type.ToString(), GetPrefab(mapTileType), selectedNewType == type, GetFallbackColor(mapTileType)))
+            {
+                selectedNewType = type;
+            }
+        }
+
+        private void DrawSelectionOverlayPreviewSelector()
+        {
+            EditorGUILayout.LabelField("New Overlay / 新覆盖层", EditorStyles.boldLabel);
+            EditorGUILayout.BeginHorizontal();
+            DrawSelectionOverlayPreviewButton(MapTileOverlay.None);
+            DrawSelectionOverlayPreviewButton(MapTileOverlay.Road);
+            DrawSelectionOverlayPreviewButton(MapTileOverlay.Bridge);
+            DrawSelectionOverlayPreviewButton(MapTileOverlay.Stair);
+            DrawSelectionOverlayPreviewButton(MapTileOverlay.Ramp);
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void DrawSelectionOverlayPreviewButton(MapTileOverlay overlay)
+        {
+            if (DrawBrushPreviewButton(overlay.ToString(), GetOverlayPreviewPrefab(overlay), selectedNewOverlay == overlay, GetOverlayFallbackColor(overlay)))
+            {
+                selectedNewOverlay = overlay;
+            }
+        }
 
         [TabGroup("Selection"), ShowInInspector, EnableIf("HasSelection")]
         private bool Walkable
@@ -253,16 +413,22 @@ namespace Game.Editor
             TryLoadDecorationConfig();
             EditorGUILayout.HelpBox("Decoration 页面说明：\n- 装饰物原始资源在 MapDecorationPrefabConfig.asset 的 Inspector 里维护，使用 Odin List。\n- 地图 JSON 只保存 DecorationId，不保存 prefab 路径。\n- 在这里选择装饰物并放到当前选中地块。\n- 删除当前格装饰只删除该地块上的装饰物，不影响 Type/Overlay。", MessageType.Info);
 
-            EditorGUILayout.BeginHorizontal();
-            DrawDecorationPlacementPanel();
-            GUILayout.Space(10f);
-            DrawDecorationSourcePreviewPanel();
+            float contentWidth = Mathf.Max(980f, position.width - 24f);
+            float leftWidth = Mathf.Clamp(contentWidth * 0.46f, 620f, 760f);
+            float rightWidth = Mathf.Max(340f, contentWidth - leftWidth - 12f);
+
+            EditorGUILayout.BeginHorizontal(GUILayout.Width(contentWidth));
+            DrawDecorationPlacementPanel(leftWidth);
+            GUILayout.Space(12f);
+            DrawDecorationSourcePreviewPanel(rightWidth);
             EditorGUILayout.EndHorizontal();
         }
 
-        private void DrawDecorationPlacementPanel()
+        private void DrawDecorationPlacementPanel(float panelWidth)
         {
-            EditorGUILayout.BeginVertical(GUILayout.Width(560f));
+            EditorGUILayout.BeginVertical(GUILayout.Width(panelWidth), GUILayout.MinWidth(panelWidth), GUILayout.MaxWidth(panelWidth));
+            float oldLabelWidth = EditorGUIUtility.labelWidth;
+            EditorGUIUtility.labelWidth = 155f;
 
             EditorGUI.BeginChangeCheck();
             decorationConfigInDecorationTab = (MapDecorationPrefabConfig)EditorGUILayout.ObjectField("Decoration Config", decorationConfigInDecorationTab, typeof(MapDecorationPrefabConfig), false);
@@ -294,12 +460,13 @@ namespace Game.Editor
             if (GUILayout.Button("使用选中项默认变换 / Use Selected Defaults")) UseSelectedDecorationDefaults();
             if (GUILayout.Button("清空全部装饰 / Clear All Decorations")) ClearAllDecorations();
 
+            EditorGUIUtility.labelWidth = oldLabelWidth;
             EditorGUILayout.EndVertical();
         }
 
-        private void DrawDecorationSourcePreviewPanel()
+        private void DrawDecorationSourcePreviewPanel(float panelWidth)
         {
-            EditorGUILayout.BeginVertical();
+            EditorGUILayout.BeginVertical(GUILayout.Width(panelWidth), GUILayout.MinWidth(panelWidth));
             EditorGUILayout.LabelField("装饰物资源库预览 / Source Preview", EditorStyles.boldLabel);
 
             if (decorationConfig == null)
@@ -323,7 +490,7 @@ namespace Game.Editor
                 MapDecorationPrefabConfig.DecorationPrefabItem item = decorationConfig.Items[i];
                 if (item == null) continue;
 
-                EditorGUILayout.BeginHorizontal(EditorStyles.helpBox, GUILayout.MinHeight(96f));
+                Rect rowRect = EditorGUILayout.BeginHorizontal(EditorStyles.helpBox, GUILayout.MinHeight(96f));
                 string itemName = string.IsNullOrEmpty(item.Name) ? "Unnamed" : item.Name;
                 bool isSelected = item.Id == selectedDecorationId;
 
@@ -357,26 +524,43 @@ namespace Game.Editor
                 }
 
                 EditorGUILayout.EndHorizontal();
+                HandleDecorationPreviewRowClick(rowRect, item);
             }
 
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndVertical();
         }
 
+        private void HandleDecorationPreviewRowClick(Rect rowRect, MapDecorationPrefabConfig.DecorationPrefabItem item)
+        {
+            Event current = Event.current;
+            if (current == null || current.type != EventType.MouseDown || current.button != 0)
+            {
+                return;
+            }
+
+            if (!rowRect.Contains(current.mousePosition))
+            {
+                return;
+            }
+
+            selectedDecorationId = item.Id;
+            UseSelectedDecorationDefaults();
+            current.Use();
+            Repaint();
+        }
+
         private Texture2D GetDecorationPreview(GameObject prefab)
         {
-            if (prefab == null)
-            {
-                return null;
-            }
+            return GetPrefabPreview(prefab);
+        }
+
+        private Texture2D GetPrefabPreview(GameObject prefab)
+        {
+            if (prefab == null) return null;
 
             Texture2D preview = AssetPreview.GetAssetPreview(prefab);
-            if (preview != null)
-            {
-                return preview;
-            }
-
-            return AssetPreview.GetMiniThumbnail(prefab);
+            return preview != null ? preview : AssetPreview.GetMiniThumbnail(prefab);
         }
 
         private void DrawDecorationSelector()
