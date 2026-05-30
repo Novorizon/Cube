@@ -73,6 +73,22 @@ namespace Game
             }
         }
 
+        public MapTileOverlay Overlay
+        {
+            get
+            {
+                return mapTileData.Overlay;
+            }
+        }
+
+        public MapDirection Direction
+        {
+            get
+            {
+                return mapTileData.Direction;
+            }
+        }
+
         public bool Buildable
         {
             get

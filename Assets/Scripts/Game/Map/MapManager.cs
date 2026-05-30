@@ -18,10 +18,12 @@ namespace Game
     public class MapManager : Singleton<MapManager>
     {
         private const string PrefabConfigPath = "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset";
+        private const string DecorationConfigPath = "Assets/Data/Cube/Configs/MapDecorationPrefabConfig.asset";
         private const string BattleHudPrefabPath = "Assets/Arts/UI/TowerDefense/Prefabs/BattleHud.prefab";
         private const string MainMenuPagePath = "Assets/Arts/UI/Pages/MainMenuPage.prefab";
 
         private MapTilePrefabConfig mapTilePrefabConfig;
+        private MapDecorationPrefabConfig decorationPrefabConfig;
         private MapData currentMap;
         private int currentMapConfigId;
 
@@ -108,12 +110,18 @@ namespace Game
         public bool Initialize()
         {
             mapTilePrefabConfig = ResourceManager.Instance.LoadAsset<MapTilePrefabConfig>(PrefabConfigPath);
+            decorationPrefabConfig = ResourceManager.Instance.LoadAsset<MapDecorationPrefabConfig>(DecorationConfigPath);
 
             if (mapTilePrefabConfig == null)
             {
                 Debug.LogError($"MapManager initialize failed. Missing prefab config: {PrefabConfigPath}");
                 initialized = false;
                 return false;
+            }
+
+            if (decorationPrefabConfig != null)
+            {
+                decorationPrefabConfig.RebuildCache();
             }
 
             initialized = true;
@@ -211,6 +219,7 @@ namespace Game
                 CreateTileView(tileData);
             }
 
+            CreateDecorationViews();
             Debug.Log($"Create map success. Count: {tileViews.Count}");
         }
 
@@ -229,7 +238,8 @@ namespace Game
             Vector3 position = GetWorldPosition(tileData.X, tileData.Y, tileData.Z);
 
             GameObject instance = GameObject.Instantiate(prefab, position, Quaternion.identity, mapRoot);
-            instance.name = $"{tileData.Type}_{tileData.X}_{tileData.Y}_{tileData.Z}";
+            instance.name = $"{tileData.Type}_{tileData.Overlay}_{tileData.X}_{tileData.Y}_{tileData.Z}";
+            CreateOverlayView(tileData, instance.transform);
 
             TileView tileView = instance.GetComponent<TileView>();
 
@@ -241,6 +251,105 @@ namespace Game
             tileView.Initialize(tileData);
 
             tileViews[key] = tileView;
+        }
+
+        private void CreateOverlayView(TileData tileData, Transform parent)
+        {
+            GameObject overlayPrefab = GetOverlayPrefab(tileData.Overlay);
+
+            if (overlayPrefab == null)
+            {
+                return;
+            }
+
+            GameObject overlay = GameObject.Instantiate(overlayPrefab, parent);
+            overlay.name = $"Overlay_{tileData.Overlay}_{tileData.Direction}";
+            overlay.transform.localPosition = Vector3.zero;
+            overlay.transform.localRotation = GetDirectionRotation(tileData.Direction);
+        }
+
+        private GameObject GetOverlayPrefab(MapTileOverlay overlay)
+        {
+            switch (overlay)
+            {
+                case MapTileOverlay.Road:
+                    return GetPrefab(MapTileType.Road);
+
+                case MapTileOverlay.Bridge:
+                    return GetPrefab(MapTileType.Bridge);
+
+                default:
+                    return null;
+            }
+        }
+
+        private Quaternion GetDirectionRotation(MapDirection direction)
+        {
+            switch (direction)
+            {
+                case MapDirection.East:
+                    return Quaternion.Euler(0f, 90f, 0f);
+
+                case MapDirection.South:
+                    return Quaternion.Euler(0f, 180f, 0f);
+
+                case MapDirection.West:
+                    return Quaternion.Euler(0f, 270f, 0f);
+
+                default:
+                    return Quaternion.identity;
+            }
+        }
+
+        private void CreateDecorationViews()
+        {
+            if (currentMap == null || currentMap.Decorations == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < currentMap.Decorations.Count; i++)
+            {
+                CreateDecorationView(currentMap.Decorations[i], i);
+            }
+        }
+
+        private void CreateDecorationView(MapDecorationData decoration, int index)
+        {
+            if (decoration == null || decoration.DecorationId <= 0)
+            {
+                return;
+            }
+
+            if (!tileViews.TryGetValue(decoration.Coord, out TileView tileView) || tileView == null)
+            {
+                Debug.LogWarning($"Decoration skipped. Tile not found. Id: {decoration.DecorationId}, Coord: {decoration.Coord}");
+                return;
+            }
+
+            GameObject prefab = GetDecorationPrefab(decoration);
+            if (prefab == null)
+            {
+                Debug.LogWarning($"Missing decoration prefab. Id: {decoration.DecorationId}");
+                return;
+            }
+
+            GameObject instance = GameObject.Instantiate(prefab, tileView.transform);
+            instance.name = $"Decoration_{index}_{prefab.name}";
+            instance.transform.localPosition = decoration.LocalPosition;
+            instance.transform.localRotation = Quaternion.Euler(decoration.LocalEuler);
+            instance.transform.localScale = decoration.LocalScale;
+        }
+
+        private GameObject GetDecorationPrefab(MapDecorationData decoration)
+        {
+            if (decorationPrefabConfig != null && decoration.DecorationId > 0)
+            {
+                GameObject prefab = decorationPrefabConfig.GetPrefab(decoration.DecorationId);
+                if (prefab != null) return prefab;
+            }
+
+            return null;
         }
 
         private void AfterMapCreated(MapConfig mapConfig)
@@ -477,7 +586,7 @@ namespace Game
                     continue;
                 }
 
-                mapTileData.ApplyDefaultLogicByType(mapTileData.Type);
+                mapTileData.ApplyDefaultLogic();
 
                 Vector3Int key = new Vector3Int(mapTileData.X, mapTileData.Y, mapTileData.Z);
 

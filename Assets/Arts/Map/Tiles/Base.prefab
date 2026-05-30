@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3432981561848632242}
+  - component: {fileID: 4679425496207883847}
   m_Layer: 0
   m_Name: Base
   m_TagString: Untagged
@@ -25,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 165504458915698446}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.00053173304, y: 10.05, z: -0.00048542023}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -33,6 +34,25 @@ Transform:
   - {fileID: 1170135540928160705}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4679425496207883847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 165504458915698446}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a41d1551a77d565409556d8ec72ce8c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  boundsColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  drawWhenNotSelected: 1
+  includeInactive: 1
+  showSizeLabel: 1
+  labelOffset: {x: 0, y: 0.15, z: 0}
+  boundsSize: {x: 1.0481251, y: 0.70000005, z: 1.0481365}
+  boundsCenter: {x: 0.00053173304, y: 0.35, z: -0.00048547983}
 --- !u!1001 &4090178394891644088
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -49,7 +69,7 @@ PrefabInstance:
     - target: {fileID: 2953819878280875897, guid: 3af8adfee5b685244bca13455493accd,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 20
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 2953819878280875897, guid: 3af8adfee5b685244bca13455493accd,
         type: 3}
@@ -111,6 +131,41 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: ed54ab81eaa92a54db26caa5d91934ee, type: 2}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: boundsSize.x
+      value: 1.0481251
+      objectReference: {fileID: 0}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: boundsSize.y
+      value: 0.50000006
+      objectReference: {fileID: 0}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: boundsSize.z
+      value: 1.0481365
+      objectReference: {fileID: 0}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: labelOffset.y
+      value: -0.39
+      objectReference: {fileID: 0}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: boundsCenter.x
+      value: 0.00053174794
+      objectReference: {fileID: 0}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: boundsCenter.y
+      value: 0.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: boundsCenter.z
+      value: -0.00048546147
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -138,7 +193,7 @@ PrefabInstance:
     - target: {fileID: 2953819878280875897, guid: 3af8adfee5b685244bca13455493accd,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 20
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 2953819878280875897, guid: 3af8adfee5b685244bca13455493accd,
         type: 3}
@@ -148,12 +203,12 @@ PrefabInstance:
     - target: {fileID: 2953819878280875897, guid: 3af8adfee5b685244bca13455493accd,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.175
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 2953819878280875897, guid: 3af8adfee5b685244bca13455493accd,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 2953819878280875897, guid: 3af8adfee5b685244bca13455493accd,
         type: 3}
@@ -200,6 +255,41 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 3d8cb998a79aa11448fda68223362d65, type: 2}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: boundsSize.x
+      value: 1.0481251
+      objectReference: {fileID: 0}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: boundsSize.y
+      value: 0.30000007
+      objectReference: {fileID: 0}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: boundsSize.z
+      value: 1.0481365
+      objectReference: {fileID: 0}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: labelOffset.y
+      value: -0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: boundsCenter.x
+      value: 0.00053174794
+      objectReference: {fileID: 0}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: boundsCenter.y
+      value: 0.65
+      objectReference: {fileID: 0}
+    - target: {fileID: 7221218878189745714, guid: 3af8adfee5b685244bca13455493accd,
+        type: 3}
+      propertyPath: boundsCenter.z
+      value: -0.0004854539
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

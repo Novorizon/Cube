@@ -22,6 +22,7 @@ namespace Game
         public int Depth;
 
         public List<MapTileData> Tiles = new List<MapTileData>();
+        public List<MapDecorationData> Decorations = new List<MapDecorationData>();
 
         /// <summary>
         /// 敌对 NPC 出生点。
@@ -54,6 +55,7 @@ namespace Game
             Depth = depth;
 
             Tiles = new List<MapTileData>();
+            Decorations = new List<MapDecorationData>();
             SpawnPoints = new List<Vector3Int>();
             HasGoalPoint = false;
             GoalPoint = default;
@@ -69,6 +71,11 @@ namespace Game
             if (SpawnPoints == null)
             {
                 SpawnPoints = new List<Vector3Int>();
+            }
+
+            if (Decorations == null)
+            {
+                Decorations = new List<MapDecorationData>();
             }
         }
 

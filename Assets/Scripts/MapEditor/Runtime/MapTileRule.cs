@@ -1,18 +1,7 @@
-using UnityEngine;
+锘縰sing UnityEngine;
 
 namespace Game
 {
-    /// <summary>
-    /// 地图地块规则。
-    /// 
-    /// 负责：
-    /// 1. 编辑器放置规则
-    /// 2. 默认逻辑属性
-    /// 3. 地块堆叠合法性
-    /// 4. 出生点 / 基地点位合法性
-    /// 
-    /// 不负责运行时塔占用，也不负责寻路算法本身。
-    /// </summary>
     public static class MapTileRule
     {
         public static bool IsBaseTile(MapTileType type)
@@ -26,6 +15,23 @@ namespace Game
         }
 
         public static bool IsSurfaceTile(MapTileType type)
+        {
+            switch (type)
+            {
+                case MapTileType.Grass:
+                case MapTileType.Hill:
+                case MapTileType.Snow:
+                case MapTileType.Water:
+                case MapTileType.Road:
+                case MapTileType.Bridge:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        public static bool IsEditableBaseTile(MapTileType type)
         {
             switch (type)
             {
@@ -47,6 +53,8 @@ namespace Game
                 case MapTileType.Grass:
                 case MapTileType.Hill:
                 case MapTileType.Snow:
+                case MapTileType.Road:
+                case MapTileType.Bridge:
                     return true;
 
                 default:
@@ -66,10 +74,39 @@ namespace Game
             }
         }
 
+        public static bool IsWalkable(MapTileType type, MapTileOverlay overlay)
+        {
+            switch (overlay)
+            {
+                case MapTileOverlay.Road:
+                case MapTileOverlay.Bridge:
+                case MapTileOverlay.Stair:
+                case MapTileOverlay.Ramp:
+                    return true;
+
+                default:
+                    return IsWalkableTileType(type);
+            }
+        }
+
+        public static bool IsBuildable(MapTileType type, MapTileOverlay overlay)
+        {
+            if (overlay != MapTileOverlay.None)
+            {
+                return false;
+            }
+
+            return IsBuildableTileType(type);
+        }
+
         public static int GetDefaultMoveCost(MapTileType type)
         {
             switch (type)
             {
+                case MapTileType.Road:
+                case MapTileType.Bridge:
+                    return 8;
+
                 case MapTileType.Grass:
                     return 10;
 
@@ -81,6 +118,21 @@ namespace Game
 
                 default:
                     return 0;
+            }
+        }
+
+        public static int GetDefaultMoveCost(MapTileType type, MapTileOverlay overlay)
+        {
+            switch (overlay)
+            {
+                case MapTileOverlay.Road:
+                case MapTileOverlay.Bridge:
+                case MapTileOverlay.Stair:
+                case MapTileOverlay.Ramp:
+                    return 8;
+
+                default:
+                    return GetDefaultMoveCost(type);
             }
         }
 
@@ -110,7 +162,12 @@ namespace Game
 
             if (placeType == MapTileType.Soil)
             {
-                return y == -1;
+                return false;
+            }
+
+            if (y == 0)
+            {
+                return true;
             }
 
             MapTileData belowTile = mapData.GetTile(x, y - 1, z);
@@ -123,9 +180,6 @@ namespace Game
             return CanPlaceOn(placeType, belowTile.Type);
         }
 
-        /// <summary>
-        /// placeType 是否允许放在 belowType 上方。
-        /// </summary>
         public static bool CanPlaceOn(MapTileType placeType, MapTileType belowType)
         {
             switch (placeType)
@@ -147,6 +201,12 @@ namespace Game
 
                 case MapTileType.Water:
                     return belowType == MapTileType.Soil;
+
+                case MapTileType.Road:
+                    return IsSurfaceTile(belowType);
+
+                case MapTileType.Bridge:
+                    return IsSurfaceTile(belowType);
 
                 default:
                     return false;
@@ -194,9 +254,6 @@ namespace Game
             return mapData.GetTile(x, y + 1, z) == null;
         }
 
-        /// <summary>
-        /// 出生点 / 基地 必须放在暴露的、可走的逻辑地块上。
-        /// </summary>
         public static bool IsValidMapPoint(Vector3Int coord, MapData mapData, out string reason)
         {
             reason = string.Empty;
@@ -223,9 +280,9 @@ namespace Game
                 return false;
             }
 
-            if (!IsWalkableTileType(tile.Type))
+            if (!IsWalkable(tile.Type, tile.Overlay))
             {
-                reason = $"target tile is not walkable: {tile.Type}";
+                reason = $"target tile is not walkable: {tile.Type}, overlay: {tile.Overlay}";
                 return false;
             }
 
@@ -258,7 +315,7 @@ namespace Game
 
             if (placeType == MapTileType.Soil)
             {
-                return y == -1;
+                return false;
             }
 
             if (y < 0)

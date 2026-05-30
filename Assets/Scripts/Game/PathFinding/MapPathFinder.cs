@@ -97,14 +97,84 @@ namespace Game
             }
 
             Vector3Int toCoord = tileData.Coord;
-            int heightDiff = Mathf.Abs(toCoord.y - fromCoord.y);
 
-            if (heightDiff > MaxStepHeight || !MapManager.Instance.IsWalkable(toCoord))
+            if (!CanConnect(fromCoord, toCoord) || !MapManager.Instance.IsWalkable(toCoord))
             {
                 return;
             }
 
             results.Add(toCoord);
+        }
+
+        private bool CanConnect(Vector3Int fromCoord, Vector3Int toCoord)
+        {
+            int heightDelta = toCoord.y - fromCoord.y;
+
+            if (heightDelta == 0)
+            {
+                return true;
+            }
+
+            if (Mathf.Abs(heightDelta) > MaxStepHeight)
+            {
+                return false;
+            }
+
+            if (!MapManager.Instance.TryGetTileData(fromCoord, out TileData fromTile) ||
+                !MapManager.Instance.TryGetTileData(toCoord, out TileData toTile))
+            {
+                return false;
+            }
+
+            Vector3Int horizontalDirection = new Vector3Int(
+                Mathf.Clamp(toCoord.x - fromCoord.x, -1, 1),
+                0,
+                Mathf.Clamp(toCoord.z - fromCoord.z, -1, 1));
+
+            if (heightDelta > 0)
+            {
+                return AllowsHeightConnection(fromTile, horizontalDirection) ||
+                       AllowsHeightConnection(toTile, horizontalDirection);
+            }
+
+            return AllowsHeightConnection(fromTile, -horizontalDirection) ||
+                   AllowsHeightConnection(toTile, -horizontalDirection);
+        }
+
+        private bool AllowsHeightConnection(TileData tile, Vector3Int upDirection)
+        {
+            if (tile == null)
+            {
+                return false;
+            }
+
+            if (tile.Overlay != MapTileOverlay.Stair && tile.Overlay != MapTileOverlay.Ramp)
+            {
+                return false;
+            }
+
+            return GetDirectionVector(tile.Direction) == upDirection;
+        }
+
+        private Vector3Int GetDirectionVector(MapDirection direction)
+        {
+            switch (direction)
+            {
+                case MapDirection.North:
+                    return Vector3Int.forward;
+
+                case MapDirection.East:
+                    return Vector3Int.right;
+
+                case MapDirection.South:
+                    return Vector3Int.back;
+
+                case MapDirection.West:
+                    return Vector3Int.left;
+
+                default:
+                    return Vector3Int.zero;
+            }
         }
 
         private int GetMoveCost(Vector3Int from, Vector3Int to)

@@ -4,21 +4,21 @@ using UnityEngine;
 namespace Game
 {
     /// <summary>
-    /// »ùÓÚ MapData µÄ A* Ñ°Â·¡£
+    /// åŸºäº MapData çš„ A* å¯»è·¯ã€‚
     /// 
-    /// ÓÃÍ¾£º
-    /// 1. ±à¼­Æ÷ÖĞ¼ì²é SpawnPoint µ½ GoalPoint ÊÇ·ñÓĞÂ·¡£
-    /// 2. ºóĞøÒ²¿ÉÒÔ¸øÔËĞĞÊ±×ö»ù´¡Â·¾¶²âÊÔ¡£
+    /// ç”¨é€”ï¼š
+    /// 1. ç¼–è¾‘å™¨ä¸­æ£€æŸ¥ SpawnPoint åˆ° GoalPoint æ˜¯å¦æœ‰è·¯ã€‚
+    /// 2. åç»­ä¹Ÿå¯ä»¥ç»™è¿è¡Œæ—¶åšåŸºç¡€è·¯å¾„æµ‹è¯•ã€‚
     /// 
-    /// µ±Ç°Ñ°Â·¹æÔò£º
-    /// 1. Soil ²»²ÎÓëÑ°Â·¡£
-    /// 2. Water ²»¿É×ß¡£
-    /// 3. Grass / Snow / Hill ¿É×ß¡£
-    /// 4. ±»ÉÏ²ãµØ¿é¸²¸ÇµÄµØ¿é²»¿É×ß¡£
-    /// 5. Ç°ºó×óÓÒÒÆ¶¯¡£
-    /// 6. ÏàÁÚÁĞÈ¡¶¥²ãÂß¼­µØ¿é×÷ÎªºòÑ¡½Úµã¡£
-    /// 7. ¸ß¶È²î³¬¹ı MaxStepHeight Ê±²»¿É×ß¡£
-    /// 8. Â·¾¶°üº¬ÆğµãºÍÖÕµã¡£
+    /// å½“å‰å¯»è·¯è§„åˆ™ï¼š
+    /// 1. Soil ä¸å‚ä¸å¯»è·¯ã€‚
+    /// 2. Water ä¸å¯èµ°ã€‚
+    /// 3. Grass / Snow / Hill å¯èµ°ã€‚
+    /// 4. è¢«ä¸Šå±‚åœ°å—è¦†ç›–çš„åœ°å—ä¸å¯èµ°ã€‚
+    /// 5. å‰åå·¦å³ç§»åŠ¨ã€‚
+    /// 6. ç›¸é‚»åˆ—å–é¡¶å±‚é€»è¾‘åœ°å—ä½œä¸ºå€™é€‰èŠ‚ç‚¹ã€‚
+    /// 7. é«˜åº¦å·®è¶…è¿‡ MaxStepHeight æ—¶ä¸å¯èµ°ã€‚
+    /// 8. è·¯å¾„åŒ…å«èµ·ç‚¹å’Œç»ˆç‚¹ã€‚
     /// </summary>
     public sealed class MapDataAStarPathFinder
     {
@@ -150,7 +150,7 @@ namespace Game
                     continue;
                 }
 
-                tile.ApplyDefaultLogicByType(tile.Type);
+                tile.ApplyDefaultLogic();
 
                 Vector3Int coord = new Vector3Int(tile.X, tile.Y, tile.Z);
                 tileMap[coord] = tile;
@@ -169,7 +169,7 @@ namespace Game
                 return false;
             }
 
-            if (!MapTileRule.IsWalkableTileType(tile.Type))
+            if (!MapTileRule.IsWalkable(tile.Type, tile.Overlay))
             {
                 return false;
             }
@@ -227,9 +227,7 @@ namespace Game
                 return;
             }
 
-            int heightDelta = Mathf.Abs(targetCoord.y - fromCoord.y);
-
-            if (heightDelta > MaxStepHeight)
+            if (!CanConnect(fromCoord, targetCoord))
             {
                 return;
             }
@@ -237,6 +235,76 @@ namespace Game
             results.Add(targetCoord);
         }
 
+        private bool CanConnect(Vector3Int fromCoord, Vector3Int targetCoord)
+        {
+            int heightDelta = targetCoord.y - fromCoord.y;
+
+            if (heightDelta == 0)
+            {
+                return true;
+            }
+
+            if (Mathf.Abs(heightDelta) > MaxStepHeight)
+            {
+                return false;
+            }
+
+            if (!tileMap.TryGetValue(fromCoord, out MapTileData fromTile) ||
+                !tileMap.TryGetValue(targetCoord, out MapTileData targetTile))
+            {
+                return false;
+            }
+
+            Vector3Int horizontalDirection = new Vector3Int(
+                Mathf.Clamp(targetCoord.x - fromCoord.x, -1, 1),
+                0,
+                Mathf.Clamp(targetCoord.z - fromCoord.z, -1, 1));
+
+            if (heightDelta > 0)
+            {
+                return AllowsHeightConnection(fromTile, horizontalDirection) ||
+                       AllowsHeightConnection(targetTile, horizontalDirection);
+            }
+
+            return AllowsHeightConnection(fromTile, -horizontalDirection) ||
+                   AllowsHeightConnection(targetTile, -horizontalDirection);
+        }
+
+        private bool AllowsHeightConnection(MapTileData tile, Vector3Int upDirection)
+        {
+            if (tile == null)
+            {
+                return false;
+            }
+
+            if (tile.Overlay != MapTileOverlay.Stair && tile.Overlay != MapTileOverlay.Ramp)
+            {
+                return false;
+            }
+
+            return GetDirectionVector(tile.Direction) == upDirection;
+        }
+
+        private Vector3Int GetDirectionVector(MapDirection direction)
+        {
+            switch (direction)
+            {
+                case MapDirection.North:
+                    return Vector3Int.forward;
+
+                case MapDirection.East:
+                    return Vector3Int.right;
+
+                case MapDirection.South:
+                    return Vector3Int.back;
+
+                case MapDirection.West:
+                    return Vector3Int.left;
+
+                default:
+                    return Vector3Int.zero;
+            }
+        }
         private bool TryGetTopLogicTile(int x, int z, out MapTileData tile)
         {
             tile = null;
@@ -369,3 +437,5 @@ namespace Game
         }
     }
 }
+
+

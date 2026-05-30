@@ -14,6 +14,8 @@ namespace Game
         public int Z;
 
         public MapTileType Type;
+        public MapTileOverlay Overlay;
+        public MapDirection Direction;
 
         public bool Walkable;
         public bool Buildable;
@@ -30,16 +32,23 @@ namespace Game
             Y = y;
             Z = z;
             Type = type;
+            Overlay = MapTileOverlay.None;
+            Direction = MapDirection.None;
 
-            ApplyDefaultLogicByType(type);
+            ApplyDefaultLogic();
         }
 
         public void ApplyDefaultLogicByType(MapTileType type)
         {
             Type = type;
-            Walkable = MapTileRule.IsWalkableTileType(type);
-            Buildable = MapTileRule.IsBuildableTileType(type);
-            MoveCost = MapTileRule.GetDefaultMoveCost(type);
+            ApplyDefaultLogic();
+        }
+
+        public void ApplyDefaultLogic()
+        {
+            Walkable = MapTileRule.IsWalkable(Type, Overlay);
+            Buildable = MapTileRule.IsBuildable(Type, Overlay);
+            MoveCost = MapTileRule.GetDefaultMoveCost(Type, Overlay);
         }
     }
 }
