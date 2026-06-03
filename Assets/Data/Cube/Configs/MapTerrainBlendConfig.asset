@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98feb9e538d7a8a4bbd0b6a76627557d, type: 3}
+  m_Name: MapTerrainBlendConfig
+  m_EditorClassIdentifier: 
+  BlendMaterial: {fileID: 2100000, guid: 55218f4743b7fb04e95662aa237ab6b7, type: 2}
+  BlendNoise: {fileID: 2800000, guid: 6b4770e87a8b86b4e825694c305c2978, type: 3}
+  EdgeBlendWidth: 0.1
+  NoiseStrength: 0.03
+  NeighborBlendStrength: 0.45
+  NoiseScale: 1
+  UseNormalMaps: 0
+  NormalStrength: 1
+  Ambient: 0.55
+  LightStrength: 0.42
+  LightWrap: 0.35
+  MaxBrightness: 1.08
+  ShadowStrength: 0.35
+  Saturation: 1
+  Textures:
+  - Type: 1
+    TopTexture: {fileID: 2800000, guid: 4fd1aef52105cfb47b7008f157c22f94, type: 3}
+    NormalTexture: {fileID: 2800000, guid: 96302f96274c8de40aae985c1bff39dd, type: 3}
+  - Type: 2
+    TopTexture: {fileID: 2800000, guid: debe36a4c4534db4f98b7ea6af3fccc8, type: 3}
+    NormalTexture: {fileID: 2800000, guid: 49b409bb6862f124faaa16e328569e90, type: 3}
+  - Type: 3
+    TopTexture: {fileID: 2800000, guid: 24faaa9ce127bbc498a4e0235ba28fa3, type: 3}
+    NormalTexture: {fileID: 2800000, guid: c88efba5fbe18bb44ab8382bbc977cb9, type: 3}
+  - Type: 4
+    TopTexture: {fileID: 2800000, guid: 4176dffff795c914a9a02b211a30605b, type: 3}
+    NormalTexture: {fileID: 2800000, guid: 993742c9e51894f498f71ed58256c91c, type: 3}
+  TransitionTextures:
+  - FromType: 1
+    ToType: 4
+    EdgeTexture: {fileID: 2800000, guid: b622c7ebdd692824eb2df85473bc5d88, type: 3}
+  - FromType: 1
+    ToType: 3
+    EdgeTexture: {fileID: 2800000, guid: 11f075aa01ce7f444a21f180bb830a9c, type: 3}
+  - FromType: 1
+    ToType: 2
+    EdgeTexture: {fileID: 2800000, guid: 11bb1403ad722cb409cf0629c45716ad, type: 3}

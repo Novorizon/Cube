@@ -12,4 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8e78e7b5eab8384db59b621e177ed1c, type: 3}
   m_Name: MapDecorationPrefabConfig
   m_EditorClassIdentifier: 
-  Items: []
+  Items:
+  - Id: 1
+    Name: 1
+    Category: 
+    Prefab: {fileID: 919132149155446097, guid: 6fd721de296e16741a551918db0b87d9, type: 3}
+    DefaultLocalPosition: {x: 0, y: 0, z: 0}
+    DefaultLocalEuler: {x: 0, y: 0, z: 0}
+    DefaultLocalScale: {x: 1, y: 1, z: 1}
+    BlocksBuild: 0
+    BlocksMove: 0
+  - Id: 3
+    Name: Meshy_AI_Golden_Staircase_0530101420_texture
+    Category: 
+    Prefab: {fileID: 6649770567533069592, guid: f75400690cb5b9a4abd2a2f862a44a5d,
+      type: 3}
+    DefaultLocalPosition: {x: 0, y: 0, z: 0}
+    DefaultLocalEuler: {x: 0, y: 0, z: 0}
+    DefaultLocalScale: {x: 1, y: 1, z: 1}
+    BlocksBuild: 0
+    BlocksMove: 0

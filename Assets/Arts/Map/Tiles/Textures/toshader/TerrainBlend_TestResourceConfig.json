@@ -1,0 +1,56 @@
+{
+  "texturePurpose": "Unity terrain top textures for shader sampling and neighbor-edge blending.",
+  "terrainId": {
+    "Grass": 0,
+    "Hill": 1,
+    "Snow": 2,
+    "Water": 3
+  },
+  "edgeInvasionPriority": [
+    "Water",
+    "Snow",
+    "Hill",
+    "Grass"
+  ],
+  "edgeInvasionWeight": {
+    "Grass": 0.2,
+    "Hill": 0.45,
+    "Snow": 0.7,
+    "Water": 1.0
+  },
+  "baseColor": {
+    "Grass": "#7ECF25",
+    "Hill": "#C9943C",
+    "Snow": "#EEF5F8",
+    "Water": "#20B7E6"
+  },
+  "roughness": {
+    "Grass": 0.65,
+    "Hill": 0.75,
+    "Snow": 0.85,
+    "Water": 0.2
+  },
+  "recommendedShaderParams": {
+    "blendNoiseScale": 1.0,
+    "edgeBlendWidth": 0.18,
+    "noiseStrength": 0.1,
+    "normalStrength": {
+      "Grass": 0.45,
+      "Hill": 0.6,
+      "Snow": 0.25,
+      "Water": 0.5
+    }
+  },
+  "generatedFiles": {
+    "BlendNoise": "BlendNoise_procedural_seamless_512.png",
+    "Grass_Normal": "Grass_Normal_procedural_seamless_1024.png",
+    "Hill_Normal": "Hill_Normal_procedural_seamless_1024.png",
+    "Snow_Normal": "Snow_Normal_procedural_seamless_1024.png",
+    "Water_Normal": "Water_Normal_procedural_seamless_1024.png"
+  },
+  "notes": [
+    "These are procedural test resources for Codex shader validation, not final art.",
+    "All generated normal maps use periodic gradients to reduce seam risk.",
+    "BlendNoise is a grayscale organic tileable texture for irregular terrain-edge blending."
+  ]
+}

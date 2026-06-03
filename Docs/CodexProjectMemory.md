@@ -64,6 +64,130 @@
   - Newer ability core: `Assets/Scripts/Ability`
   - Older skill system: `Assets/Scripts/Skill`
   - Ability design doc: `Docs/AbilitySystem.md`
+- Script/module layout plan:
+  - Architecture document: `Docs/ScriptModuleLayout.md`
+  - `Assets/Arts` should not be moved during script/module cleanup.
+  - Current safe approach is to define the target structure first, then migrate scripts in batches while moving `.cs` and `.cs.meta` together so Unity GUID references remain stable.
+  - Recommended future top-level script folders: `Bootstrap`, `Framework`, `Game`, `MapEditor`, `Ability`, `Skill`, `Tools`, `Sandbox`.
+  - On 2026-06-01, the target script-folder skeleton was created with `.gitkeep` placeholder files only. No existing scripts were moved.
+  - On 2026-06-01, placeholder C# files were added for planned but not-yet-implemented systems: `BootFlowManager`, `GameMode`, `GameModeManager`, `GameClock`, `GameSession`, `BuildManager`, `BuildValidator`, `BuildPreview`, `BuildCommand`, `BuildCost`, `BuildInputController`, `SaveManager`, `SaveData`, `SaveVersion`, `StoryManager`, `QuestManager`, `DialogManager`, and `EventTriggerSystem`. These are compile-safe empty skeletons, not completed systems.
+  - On 2026-06-01, existing scripts were reorganized into the planned module folders while moving `.cs` and `.meta` together. Class names and namespaces were intentionally left unchanged.
+  - `GameEntry.cs` now lives in `Assets/Scripts/Bootstrap`.
+  - Shared map data/config/rendering/pathfinding now lives under `Assets/Scripts/Game/Map/{Data,Config,Runtime,Rendering,Pathfinding}`.
+  - Tower defense runtime now lives under `Assets/Scripts/Game/TowerDefense/{Battle,Wave,Tower,Enemy,Base,AbilityAdapters,Effects,Messages}`.
+  - Item/drop scripts now live under `Assets/Scripts/Game/Items`; entity/actor scripts now live under `Assets/Scripts/Game/Characters`; `CameraManager` now lives under `Assets/Scripts/Game/Camera`.
+  - `LubanTool.cs` now lives under `Assets/Scripts/Tools/Editor`; map editor Odin demo scripts and the old GameEntry patch example now live under `Assets/Scripts/Sandbox/Samples`.
+  - `dotnet build Cube.sln` passed after the reorganization with 0 warnings and 0 errors. `Assembly-CSharp.csproj` and `Assembly-CSharp-Editor.csproj` were updated to reflect moved paths for local build verification; Unity may regenerate them.
+  - `MapEditor` should now stay focused on editor windows/tools; shared runtime map code should remain under `Game/Map`.
+  - Island management systems should be added under `Game/Island` and shared construction rules under `Game/Build`.
+- Blender asset generation:
+  - Blender 5.1 is available at `C:\Program Files\Blender Foundation\Blender 5.1\blender.exe` and can be invoked in background mode from scripts.
+  - On 2026-06-01, a first procedural commercial-style grass tile prototype was generated through `Tools/Art/Blender/create_commercial_grass_tile.py`.
+  - Outputs: `Assets/Arts/Map/Tiles/Generated/CommercialGrassTilePrototype.blend`, `CommercialGrassTilePrototype.fbx`, and `CommercialGrassTilePrototype_preview.png`.
+  - Superseded historical exploration: earlier prototypes tried `TopicTop`, shader blend top planes, and model-sliced top patches. Do not continue those for the current production path.
+    - `Tools/Art/Blender/create_top_slice_concept.py` and `Tools/Art/Blender/create_project_tile_slice_render.py` are concept references only.
+  - Current tile-art direction: do not use `TopSurface`, `TopicTop`, shader blending, 5-slice, or 9-slice as the first production path. Use complete base tile prefabs that look good directly adjacent, plus automatic decoration prefabs for non-repeating detail.
+  - Top details such as flowers, stones, grass clumps, and paint spots should not be baked into the base tile model. They should be separate decoration prefabs placed automatically by tile/decoration rules. `ReferenceStyleGrassTile` was regenerated as a clean base tile without baked top details.
+  - Current tile-art production plan is documented in `Docs/TileArtProductionPlan.md`.
+  - Current direction: do not prioritize shader terrain blending or top slicing. First make high-quality base tile prefabs that look good when directly adjacent, then add automatic decoration prefabs by tile type, then only add edge/corner transition resources if needed.
+  - First practical target: import `ReferenceStyleGrassTile.fbx` into Unity, make a Grass test prefab/material, hook it into the map prefab config, generate a small Grass test map, and evaluate in Unity with auto decorations.
+  - On 2026-06-02, the first "base tile + automatic top decorations" prototype was wired into Unity:
+    - Runtime component: `Assets/Scripts/Game/Map/Rendering/TileAutoDecoration.cs`.
+    - Editor tool: `Assets/Scripts/MapEditor/Editor/MapArtPrototypeCreator.cs`.
+    - One-shot editor auto-run helper: `Assets/Scripts/MapEditor/Editor/MapArtPrototypeAutoRunner.cs`, gated by `Temp/RunMapArtPrototype.flag`.
+    - Test tile prefab: `Assets/Arts/Map/Tiles/Generated/ReferenceStyleGrassTile_Test.prefab`.
+    - On 2026-06-02 this Grass prototype was corrected to remove the stale `TopSurface` object from `Tools/Art/Blender/create_reference_grass_tile.py`; the tile top is now a single `Topic/TopBody` mesh, matching the current "complete tile prefab, no slicing/blending" direction.
+    - On 2026-06-02, a first Grass top texture set was generated with the `imagegen` skill and locally processed for Unity testing:
+      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_Albedo_AI_1024.png` keeps the clean AI-generated top texture.
+      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_Albedo_Tileable_1024.png` is the edge-blended tileable test version.
+      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_Height_1024.png` is a subtle derived height map.
+      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_Normal_1024.png` is a subtle derived normal map.
+      - Processing script: `Tools/Art/Texture/BuildGrassTopTextures.ps1`.
+      - Principle: `TopBody` needs a strong base albedo/normal texture so it still looks good when all auto decorations are hidden. Decoration prefabs are only for sparse raised details, not for the base surface quality.
+    - The Grass top texture set now has a matching Unity shader/material:
+      - Shader: `Assets/Arts/Map/Tiles/Shaders/GrassTopSoftLit.shader` (`CubeTD/Map/GrassTopSoftLit`), a soft URP top-surface shader with BaseMap and NormalMap support.
+      - Material: `Assets/Arts/Map/Tiles/Materials/GrassTop_Stylized.mat`.
+      - Editor tool: `Assets/Scripts/MapEditor/Editor/GrassTopMaterialCreator.cs`.
+      - One-shot auto-run helper: `Assets/Scripts/MapEditor/Editor/GrassTopMaterialAutoRunner.cs`, gated by `Temp/RunGrassTopMaterial.flag`.
+      - `ReferenceStyleGrassTile_Test.prefab` has `GrassTop_Stylized.mat` assigned to its `TopBody` renderer.
+    - Grass top v2 optimization:
+      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_V2_Albedo_AI_1024.png`
+      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_V2_Albedo_Tileable_1024.png`
+      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_V2_Height_1024.png`
+      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_V2_Normal_1024.png`
+      - `GrassTop_Stylized.mat` now uses the v2 albedo/normal. The v2 color is more olive/moss green and less neon yellow than v1.
+      - `GrassTopSoftLit.shader` now has subtle UV edge darkening/highlight controls to make the top feel more like a soft rounded tile surface without adding any slice/transition system.
+    - Snow/Road top material pass on 2026-06-02:
+      - Added generic shader `Assets/Arts/Map/Tiles/Shaders/TileTopSoftLit.shader` (`CubeTD/Map/TileTopSoftLit`) for non-water tile tops. It is the shared production-style top shader for Grass/Snow/Road/Hill, with albedo, normal, soft lighting, and subtle UV edge dark/highlight controls.
+      - Added `Assets/Scripts/MapEditor/Editor/TileTopMaterialCreator.cs` and `TileTopMaterialAutoRunner.cs` to create top materials from generated texture sets.
+      - Generated Snow top textures:
+        - `Assets/Arts/Map/Tiles/Textures/Generated/Snow_Top_V1_Albedo_AI_1024.png`
+        - `Assets/Arts/Map/Tiles/Textures/Generated/Snow_Top_V1_Albedo_Tileable_1024.png`
+        - `Assets/Arts/Map/Tiles/Textures/Generated/Snow_Top_V1_Height_1024.png`
+        - `Assets/Arts/Map/Tiles/Textures/Generated/Snow_Top_V1_Normal_1024.png`
+      - Generated Road/Sand top textures:
+        - `Assets/Arts/Map/Tiles/Textures/Generated/Road_Top_V1_Albedo_AI_1024.png`
+        - `Assets/Arts/Map/Tiles/Textures/Generated/Road_Top_V1_Albedo_Tileable_1024.png`
+        - `Assets/Arts/Map/Tiles/Textures/Generated/Road_Top_V1_Height_1024.png`
+        - `Assets/Arts/Map/Tiles/Textures/Generated/Road_Top_V1_Normal_1024.png`
+      - Generated materials:
+        - `Assets/Arts/Map/Tiles/Materials/SnowTop_Stylized.mat`
+        - `Assets/Arts/Map/Tiles/Materials/RoadTop_Stylized.mat`
+      - `GrassTop_Stylized.mat` was also moved to the generic `TileTopSoftLit` shader.
+    - Material tuning and preview pass:
+      - `TileTopMaterialCreator.cs` now includes per-material color/lighting tuning:
+        - Grass: slightly brighter and warmer highlights.
+        - Snow: lower max brightness, more blue-gray tint, lower normal strength so detail is visible without washing out.
+        - Road/Sand: stronger normal and contrast, warmer base tint.
+      - Added `Assets/Scripts/MapEditor/Editor/TileTopMaterialPreviewCreator.cs` and `TileTopPreviewAutoRunner.cs`.
+      - Unity menu: `Tools/Map Art/Tile Top/Create Material Preview Grid`.
+      - The preview tool creates a 3x3 scene root named `TileTopMaterialPreview`, using `ReferenceStyleGrassTile_Test.prefab` with Grass/Snow/Road top materials assigned to `TopBody` for same-lighting comparison.
+    - DetailMap and low-density decoration preview pass:
+      - Added detail extraction script: `Tools/Art/Texture/BuildTileTopDetailOverlay.ps1`.
+      - Generated detail overlays:
+        - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_V2_DetailOverlay_1024.png`
+        - `Assets/Arts/Map/Tiles/Textures/Generated/Snow_Top_V1_DetailOverlay_1024.png`
+        - `Assets/Arts/Map/Tiles/Textures/Generated/Road_Top_V1_DetailOverlay_1024.png`
+      - `TileTopSoftLit.shader` now supports `_DetailMap`, `_DetailStrength`, and `_DetailScale`.
+      - `GrassTop_Stylized.mat`, `SnowTop_Stylized.mat`, and `RoadTop_Stylized.mat` all reference their detail overlays.
+      - Added low-density decoration preview tools:
+        - `Assets/Scripts/MapEditor/Editor/TileTopDecorationPreviewCreator.cs`
+        - `Assets/Scripts/MapEditor/Editor/TileTopDecorationPreviewAutoRunner.cs`
+      - Unity menu: `Tools/Map Art/Tile Top/Create Decoration Preview Grid`.
+      - The preview tool creates `TileTopDecorationPreview`: Grass uses generated grass clump/flower/pebble prefabs, Snow tests scaled `Snow1` plus sparse grass, and Road tests pebbles/grass plus scaled `Stone1`.
+    - Editor tool cleanup on 2026-06-02:
+      - User reported too many temporary Editor scripts and that decoration preview scatter was too large; decoration preview is paused.
+      - Removed one-shot auto-runners and obsolete/deprecated menu tools after backing them up to `Backups/EditorToolsCleanup_20260602_232540`.
+      - Removed from active Editor scripts: `GrassTopMaterialAutoRunner`, `GrassTopMaterialCreator`, `MapArtPrototypeAutoRunner`, `MapTerrainBlendConfigCreator`, `TileArtLandingUtility`, `TileTopicTopPlaneGenerator`, `TileTopicUvChecker`, `TileTopDecorationPreviewAutoRunner`, `TileTopDecorationPreviewCreator`, `TileTopMaterialAutoRunner`, and `TileTopPreviewAutoRunner`.
+      - Active MapEditor editor scripts now focus on: `MapEditorWindow`, `MapArtPrototypeCreator`, `TileTopMaterialCreator`, `TileTopMaterialPreviewCreator`, and `TileBoundsGizmoEditor`.
+      - `Tools/Map Art/Tile Top/Create Decoration Preview Grid` is no longer available until decoration scaling/rules are redesigned.
+    - Tile top optimization pass on 2026-06-03:
+      - `Tools/Art/Blender/create_reference_grass_tile.py` now exposes clear model proportions for the reference tile. Current values keep the tile at `1 x 1 x 1`, use `Rock` height `0.26`, `Soil` height `0.40`, and `TopBody` height `0.36`; `TopBody` is slightly oversized at `1.04 x 1.04` with a softer bevel `0.068` and 8 bevel segments.
+      - Blender was run successfully and regenerated `Assets/Arts/Map/Tiles/Generated/ReferenceStyleGrassTile.blend`, `.fbx`, and `_preview.png`.
+      - `MapArtPrototypeCreator.CreatePrototypeAssets()` now calls `TileTopMaterialCreator.CreateGrass()` and explicitly assigns `GrassTop_Stylized.mat` to the generated prefab's `TopBody`, so future prototype regeneration should not lose the stylized top material.
+      - `TileTopMaterialCreator.cs` and the three existing material assets were tuned: Grass is less neon and slightly more detailed, Snow is less washed out with stronger blue-gray detail, and Road is warmer with stronger texture/edge definition.
+      - `TileTopMaterialPreviewCreator.cs` now also has menu `Tools/Map Art/Tile Top/Create Standard Art Preview`; it creates the Grass/Snow/Road material preview grid with a fixed orthographic preview camera, warm directional key light, cool fill light, and neutral ambient/background.
+      - Unity batchmode regeneration could not run during this pass because the project was already open in another Unity instance. The script and asset files are updated; Unity will import the regenerated FBX when the editor refreshes, and the standard preview menu can be run from the open editor.
+    - Water top pass on 2026-06-03:
+      - Generated a new stylized water albedo source through the built-in image generation tool and copied it into `Assets/Arts/Map/Tiles/Textures/Generated/Water_Top_V1_Albedo_Source_1024.png`.
+      - Processed the source through the existing tile texture scripts to produce:
+        - `Water_Top_V1_Albedo_AI_1024.png`
+        - `Water_Top_V1_Albedo_Tileable_1024.png`
+        - `Water_Top_V1_Height_1024.png`
+        - `Water_Top_V1_Normal_1024.png`
+        - `Water_Top_V1_DetailOverlay_1024.png`
+      - Added `Assets/Arts/Map/Tiles/Shaders/WaterTopSoftLit.shader` with shader name `CubeTD/Map/WaterTopSoftLit`. It is based on the earlier soft water shader behavior but lives in the formal Map/Tiles shader directory and includes subtle flow/ripple plus edge dark/highlight controls.
+      - Added `Assets/Arts/Map/Tiles/Materials/WaterTop_Stylized.mat`.
+      - `TileTopMaterialCreator.CreateAll()` now also creates Water through `CreateWater()`, and `TileTopMaterialPreviewCreator` now includes Water as a fourth preview row.
+      - `Assets/Arts/Map/Tiles/Water.prefab` was intentionally not replaced yet because it still uses the older `TopicTop` structure. First evaluate `WaterTop_Stylized` in the material preview; replace or rebuild the formal Water prefab only after the visual direction is accepted.
+    - Existing map decoration assets:
+      - Directory: `Assets/Arts/Map/Decoration`.
+      - Current folders include `Bridge`, `Snow1`, `Stair`, `Stone1`, and `Tree`.
+      - These are mostly larger map decorations, not all suitable for dense automatic top scatter. `Stone1` and `Snow1` can be tested as scaled-down sparse tile decorations; `Tree`, `Bridge`, and `Stair` should stay as intentional placed/overlay assets.
+      - Grass small details are still better handled by the generated small prefabs for now: `GrassClump_A`, `SmallFlower_A`, `Pebble_A`.
+    - Test decoration prefabs: `Assets/Arts/Map/Tiles/Generated/Decorations/GrassClump_A.prefab`, `SmallFlower_A.prefab`, `Pebble_A.prefab`.
+    - `Assets/Data/Cube/Configs/MapTilePrefabConfig.asset` currently points `Grass` to `ReferenceStyleGrassTile_Test.prefab`; restore through Unity menu `Tools/Map Art/Reference Grass/Restore Original Grass`.
+    - `MapArtPrototypeCreator.FullSetupAndPreview()` creates a scene preview root named `ReferenceGrassTilePreviewGrid`.
 
 ## Tower Defense Flow
 
@@ -137,6 +261,7 @@
   - Added `MapTileData.Overlay` (`None`, `Road`, `Bridge`, `Stair`, `Ramp`) and `MapTileData.Direction` (`None`, `North`, `East`, `South`, `West`).
   - Map editor brush modes now separate `Type`, `Overlay`, `Raise`, and `Lower`.
   - Base type buttons only expose `Grass`, `Hill`, `Snow`, `Water`; overlay buttons expose route/bridge/stair/ramp semantics.
+  - Paint and Selection tabs use clickable prefab preview cards for Type/Overlay choices. Map/Paint/Selection/Points/IO actions are compact fixed-width IMGUI buttons, not full-width Odin buttons. When brush is enabled, SceneView shows a translucent brush ghost over the hovered tile area, using the actual tile visual renderer bounds for alignment.
   - Editor preview and runtime map loading instantiate base terrain first and overlay visuals second, so `Water + Bridge` preserves water while adding bridge logic/visuals.
   - Runtime pathfinding now requires `Stair` or `Ramp` with matching `Direction` to traverse a height difference of 1; same-height movement remains normal.
 - Added map decoration data and editor support:
@@ -146,3 +271,24 @@
   - `MapDecorationPrefabConfig` itself uses Odin (`TableList`, preview/required fields, `NormalizeIds`) to manage the source decoration resource list in the asset Inspector.
   - `MapDecorationPrefabConfig` uses Odin ordinary `ListDrawerSettings`, not `TableList`, because the Inspector is narrow and table columns make prefab fields unusable. Empty prefabs should not show a hard `Required` error while authoring.
   - The Map Editor `Decoration` tab is for placement: left column is config/selection/local transform/actions; right column is a read-only source preview with Select buttons. Source-list add/delete stays only in the config asset Inspector.
+- Superseded terrain blending attempt:
+  - A shader/transition-texture pipeline was tested earlier, but it is not the current direction because the project now prioritizes complete, directly adjacent tile prefabs.
+  - Do not use `TopicTop`, `TopSurface`, neighbor shader blending, or transition texture rules for the first production tile-art pass unless the user explicitly reopens that direction.
+- On 2026-06-02, `ReferenceStyleGrassTile.fbx` was landed as the first Grass art test prefab.
+  - Added `Assets/Scripts/MapEditor/Editor/TileArtLandingUtility.cs` with menu `Tools/Map/Tile Art/Build Grass Reference Test` and shortcut `Ctrl+Shift+G`.
+  - The utility imports `Assets/Arts/Map/Tiles/Generated/ReferenceStyleGrassTile.fbx`, assigns existing Grass/Soil/Rock materials by renderer name, normalizes renderer bounds to approximately `1x1x1`, saves `Assets/Arts/Map/Tiles/Grass_ReferenceStyle_Test.prefab`, updates `Assets/Data/Cube/Configs/MapTilePrefabConfig.asset` so `Grass` points at that prefab, writes `Assets/Data/Map/GrassReferenceStyle_6x6.json`, and creates a 6x6 preview root named `GrassReferenceStyle_6x6_TestMap` in the active Unity scene.
+  - Unity confirmed the generated prefab bounds as approximately `1.0 x 1.0 x 1.0`; `dotnet build Cube.sln` passed with 0 warnings and 0 errors after the landing.
+  - After checking the 6x6 preview, earlier versions exposed confusing internal seams from stale top-layer experiments. Current correction: `Tools/Art/Blender/create_reference_grass_tile.py` now generates `Topic/TopBody` only, with no `TopSurface` and no top splitting.
+  - The preview then showed the FBX orientation was wrong: the Blender vertical stack was imported along Unity Z, causing the tile to lie on its side when repeated. `TileArtLandingUtility` now applies `Quaternion.Euler(-90, 0, 0)` to the imported FBX instance before bounds normalization; `Grass_ReferenceStyle_Test.prefab` was updated with that X-axis correction while keeping bounds near `1 x 1 x 1`.
+  - User clarified the main issue was orientation, not the fixed side detail itself. The production route remains: no wavy tile outlines or neighbor-dependent transition in the first phase; keep square-aligned complete tile prefabs, make each base tile visually strong, and use fixed tile-side styling plus later automatic top decorations. `create_reference_grass_tile.py` now restores `GrassSideScallop` as vertical fixed side fringe on all four sides while keeping the tile outline square. `Grass_ReferenceStyle_Test.prefab` keeps the FBX instance rotated X `-90` so grass is on top and the dirt/rock stack points downward.
+- On 2026-06-03, added a reference-style map layout pass:
+  - Added `Assets/Scripts/MapEditor/Editor/ReferenceStyleDemoMapCreator.cs` with menu `Tools/Map Art/Reference Layout/Create Reference Style Demo Map`.
+  - The tool writes `Assets/Data/Map/ReferenceStyleDemo.json` and creates a scene preview root named `ReferenceStyleDemoMap`.
+  - The layout uses only existing resources: grass/water/road/snow tile prefabs with robust fallback paths, plus existing tree/stone/bridge/stair decoration prefabs under `Assets/Arts/Map/Decoration`.
+  - The JSON is a 16x11x2 TD-style reference map with grass base, road overlays, water pools, snow patch, a small elevated plateau, bridge overlay, stair overlay, spawn points, and a goal point.
+  - Unity batch could not instantiate the scene preview because the project was already open in another Unity instance. Use the menu inside the open Unity editor to create the preview scene root. `dotnet build Cube.sln` passed with 0 warnings and 0 errors.
+- Added scene-to-map export support:
+  - `Assets/Scripts/MapEditor/Editor/SceneMapDataExporter.cs` adds menus `Tools/Map/Scene Export/Export Selected Root To Map JSON` and `Tools/Map/Scene Export/Export Whole Scene To Map JSON`.
+  - It scans placed scene tile prefabs, rounds world positions to map coords, normalizes the minimum coord to `(0,0,0)`, and exports a `MapData` JSON.
+  - Base tile prefabs become `MapTileData.Type`; Road/Bridge/Stair visuals become `MapTileData.Overlay` with direction inferred from Y rotation. A road overlay without a detected base tile exports as `Grass + Road` so runtime map rules remain valid.
+  - This exporter currently handles tiles/route overlays, not decoration JSON entries. Decoration reverse-export can be added later through `MapDecorationPrefabConfig` ids.

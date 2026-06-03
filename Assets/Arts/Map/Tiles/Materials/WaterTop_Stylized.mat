@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: WaterTop_Stylized
+  m_Shader: {fileID: 4800000, guid: 5ab6a705b9124c79b7789560f04cb9ab, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: 8a85724f6fa74fb8976092f8195c2705, type: 3}
+        m_Scale: {x: 1.65, y: 1.65}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMap:
+        m_Texture: {fileID: 2800000, guid: 87f1d1995f4e492aad9f269151b6d3a5, type: 3}
+        m_Scale: {x: 1.65, y: 1.65}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Ambient: 0.6
+    - _DetailStrength: 0.15
+    - _EdgeDarkWidth: 0.065
+    - _EdgeDarkness: 0.06
+    - _EdgeHighlight: 0.08
+    - _EdgeHighlightWidth: 0.12
+    - _FlowStrength: 0.38
+    - _LightStrength: 0.34
+    - _LightWrap: 0.48
+    - _MaxBrightness: 1.02
+    - _RippleScale: 14
+    - _RippleSpeed: 0.55
+    - _RippleStrength: 0.024
+    - _Saturation: 0.92
+    - _ShadowStrength: 0.16
+    - _WaterBrightness: 0.94
+    m_Colors:
+    - _BaseColor: {r: 0.72, g: 0.94, b: 1.02, a: 1}
+    - _FlowSpeed: {r: 0.018, g: 0.008, b: -0.012, a: 0.01}
+  m_BuildTextureStacks: []

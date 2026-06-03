@@ -32,6 +32,7 @@ namespace Game.Editor
 
         private const string PrefabConfigPath = "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset";
         private const string DecorationConfigPath = "Assets/Data/Cube/Configs/MapDecorationPrefabConfig.asset";
+        private const string TerrainBlendConfigPath = "Assets/Data/Cube/Configs/MapTerrainBlendConfig.asset";
         private const string RootName = "MapRoot";
 
         private readonly Dictionary<Vector3Int, MapTileData> tileMap = new Dictionary<Vector3Int, MapTileData>();
@@ -72,6 +73,9 @@ namespace Game.Editor
         [TabGroup("Map"), LabelText("Decoration Config"), SerializeField]
         private MapDecorationPrefabConfig decorationConfig;
 
+        [TabGroup("Map"), LabelText("Terrain Blend Config"), SerializeField]
+        private MapTerrainBlendConfig terrainBlendConfig;
+
         [TabGroup("Map"), LabelText("Preview Root"), ReadOnly, SerializeField]
         private Transform previewRoot;
 
@@ -92,6 +96,8 @@ namespace Game.Editor
             DrawTypeBrushPreviewSelector();
             GUILayout.Space(6f);
             DrawOverlayBrushPreviewSelector();
+            GUILayout.Space(8f);
+            DrawPaintToolButtons();
         }
 
         private void DrawTypeBrushPreviewSelector()
@@ -195,6 +201,35 @@ namespace Game.Editor
             }
         }
 
+        private void DrawPaintToolButtons()
+        {
+            EditorGUILayout.LabelField("Paint Tools / 笔刷工具", EditorStyles.boldLabel);
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button(brushEnabled ? "关闭笔刷\nToggle Off" : "开启笔刷\nToggle On", GUILayout.Width(118f), GUILayout.Height(44f))) ToggleBrush();
+            if (GUILayout.Button("填充当前高度层\nFill Y Layer", GUILayout.Width(138f), GUILayout.Height(44f))) FillSelectedLayer();
+            if (GUILayout.Button("清除覆盖层\nClear Overlay", GUILayout.Width(118f), GUILayout.Height(44f))) ClearOverlayBrushArea();
+            if (DrawPaintModeButton("升高笔刷\nRaise", BrushMode.Raise, 96f)) SetPaintBrushMode(BrushMode.Raise);
+            if (DrawPaintModeButton("降低笔刷\nLower", BrushMode.Lower, 96f)) SetPaintBrushMode(BrushMode.Lower);
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private bool DrawPaintModeButton(string label, BrushMode mode, float width)
+        {
+            Color oldBackgroundColor = GUI.backgroundColor;
+            if (brushEnabled && brushMode == mode) GUI.backgroundColor = new Color(0.55f, 0.85f, 1f);
+            bool clicked = GUILayout.Button(label, GUILayout.Width(width), GUILayout.Height(44f));
+            GUI.backgroundColor = oldBackgroundColor;
+            return clicked;
+        }
+
+        private void SetPaintBrushMode(BrushMode mode)
+        {
+            brushMode = mode;
+            brushEnabled = true;
+            paintedThisDrag.Clear();
+            SceneView.RepaintAll();
+        }
+
         [TabGroup("Paint"), LabelText("Brush Enabled"), SerializeField]
         private bool brushEnabled;
 
@@ -239,6 +274,22 @@ namespace Game.Editor
             DrawSelectionTypePreviewSelector();
             GUILayout.Space(6f);
             DrawSelectionOverlayPreviewSelector();
+            GUILayout.Space(8f);
+            DrawSelectionToolButtons();
+        }
+
+        private void DrawSelectionToolButtons()
+        {
+            using (new EditorGUI.DisabledScope(!HasSelection))
+            {
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("应用 Type\nApply Type", GUILayout.Width(112f), GUILayout.Height(44f))) ApplyTypeToSelected();
+                if (GUILayout.Button("应用 Overlay\nApply Overlay", GUILayout.Width(128f), GUILayout.Height(44f))) ApplyOverlayToSelected();
+                if (GUILayout.Button("重置逻辑\nReset Logic", GUILayout.Width(112f), GUILayout.Height(44f))) ResetSelectedLogic();
+                if (GUILayout.Button("上方加地块\nAdd Above", GUILayout.Width(116f), GUILayout.Height(44f))) AddTileAboveSelected();
+                if (GUILayout.Button("删除地块\nRemove", GUILayout.Width(104f), GUILayout.Height(44f))) RemoveSelectedTile();
+                EditorGUILayout.EndHorizontal();
+            }
         }
 
         private void DrawSelectionTypePreviewSelector()
@@ -361,7 +412,17 @@ namespace Game.Editor
             SceneView.duringSceneGui -= OnSceneGUI;
             paintedThisDrag.Clear();
         }
-        [TabGroup("Map"), Button("Create Grid Map", ButtonSizes.Large), GUIColor(0.35f, 0.85f, 0.45f)]
+
+        [TabGroup("Map"), OnInspectorGUI]
+        private void DrawMapToolButtons()
+        {
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("创建地图\nCreate Grid", GUILayout.Width(128f), GUILayout.Height(44f))) CreateGridMap();
+            if (GUILayout.Button("重建预览\nRebuild", GUILayout.Width(118f), GUILayout.Height(44f))) RebuildPreview();
+            if (GUILayout.Button("清空地图\nClear", GUILayout.Width(108f), GUILayout.Height(44f))) ClearMap();
+            EditorGUILayout.EndHorizontal();
+        }
+
         private void CreateGridMap()
         {
             currentMap = new MapData(mapId, mapName, width, height, depth);
@@ -388,7 +449,6 @@ namespace Game.Editor
             Debug.Log($"Map created from origin (0,0,0), positive X/Y/Z. Size: {width}x{height}x{depth}");
         }
 
-        [TabGroup("Map"), Button("Rebuild Preview"), GUIColor(0.45f, 0.7f, 1f)]
         private void RebuildPreview()
         {
             if (!EnsureMap()) return;
@@ -396,7 +456,6 @@ namespace Game.Editor
             CreatePreviewObjects();
         }
 
-        [TabGroup("Map"), Button("Clear Map"), GUIColor(1f, 0.55f, 0.35f)]
         private void ClearMap()
         {
             currentMap = null;
@@ -663,7 +722,6 @@ namespace Game.Editor
             RefreshDecorations();
         }
 
-        [TabGroup("Paint"), Button("开关笔刷 / Toggle Brush"), GUIColor(0.45f, 0.75f, 1f)]
         private void ToggleBrush()
         {
             brushEnabled = !brushEnabled;
@@ -671,7 +729,6 @@ namespace Game.Editor
             SceneView.RepaintAll();
         }
 
-        [TabGroup("Paint"), Button("填充选中高度层 / Fill Selected Y Layer"), GUIColor(0.55f, 0.8f, 1f)]
         private void FillSelectedLayer()
         {
             if (!EnsureMap()) return;
@@ -686,7 +743,6 @@ namespace Game.Editor
             }
         }
 
-        [TabGroup("Paint"), Button("清除笔刷区域覆盖层 / Clear Overlay Brush Area"), GUIColor(0.7f, 0.7f, 0.7f)]
         private void ClearOverlayBrushArea()
         {
             if (!HasSelection) return;
@@ -696,48 +752,41 @@ namespace Game.Editor
             brushOverlay = oldOverlay;
         }
 
-        [TabGroup("Paint"), Button("笔刷区域升高一层 / Raise Brush Area Once"), GUIColor(0.6f, 0.9f, 0.55f)]
         private void RaiseBrushAreaOnce()
         {
             if (!HasSelection) return;
             RaiseBrushAt(selectedCoord);
         }
 
-        [TabGroup("Paint"), Button("笔刷区域降低一层 / Lower Brush Area Once"), GUIColor(1f, 0.65f, 0.45f)]
         private void LowerBrushAreaOnce()
         {
             if (!HasSelection) return;
             LowerBrushAt(selectedCoord);
         }
 
-        [TabGroup("Selection"), Button("Apply Type To Selected"), EnableIf("HasSelection"), GUIColor(0.35f, 0.85f, 1f)]
         private void ApplyTypeToSelected()
         {
             PaintTile(selectedCoord, ToMapTileType(selectedNewType), true);
             SelectTile(selectedCoord);
         }
 
-        [TabGroup("Selection"), Button("Apply Overlay To Selected"), EnableIf("HasSelection"), GUIColor(0.75f, 0.85f, 1f)]
         private void ApplyOverlayToSelected()
         {
             PaintOverlay(selectedCoord, selectedNewOverlay, selectedNewDirection, true);
             SelectTile(selectedCoord);
         }
 
-        [TabGroup("Selection"), Button("Reset Selected Logic"), EnableIf("HasSelection")]
         private void ResetSelectedLogic()
         {
             if (selectedTile != null) selectedTile.ApplyDefaultLogic();
         }
 
-        [TabGroup("Selection"), Button("Add Tile Above Selected"), EnableIf("HasSelection"), GUIColor(0.6f, 0.9f, 0.55f)]
         private void AddTileAboveSelected()
         {
             Vector3Int above = new Vector3Int(selectedCoord.x, selectedCoord.y + 1, selectedCoord.z);
             if (TryAddTile(above, ToMapTileType(selectedNewType), true)) SelectTile(above);
         }
 
-        [TabGroup("Selection"), Button("Remove Selected Tile"), EnableIf("HasSelection"), GUIColor(1f, 0.65f, 0.45f)]
         private void RemoveSelectedTile()
         {
             Vector3Int oldCoord = selectedCoord;
@@ -754,7 +803,21 @@ namespace Game.Editor
             }
         }
 
-        [TabGroup("Points"), Button("Add Selected As Spawn"), EnableIf("HasSelection"), GUIColor(1f, 0.55f, 0.45f)]
+        [TabGroup("Points"), OnInspectorGUI]
+        private void DrawPointsToolButtons()
+        {
+            EditorGUILayout.BeginHorizontal();
+            using (new EditorGUI.DisabledScope(!HasSelection))
+            {
+                if (GUILayout.Button("设为出生点\nAdd Spawn", GUILayout.Width(116f), GUILayout.Height(44f))) AddSelectedAsSpawn();
+                if (GUILayout.Button("设为终点\nSet Goal", GUILayout.Width(108f), GUILayout.Height(44f))) SetSelectedAsGoal();
+            }
+
+            if (GUILayout.Button("应用点位\nApply Points", GUILayout.Width(112f), GUILayout.Height(44f))) ApplyPointsToMap();
+            if (GUILayout.Button("清空点位\nClear Points", GUILayout.Width(112f), GUILayout.Height(44f))) ClearPoints();
+            EditorGUILayout.EndHorizontal();
+        }
+
         private void AddSelectedAsSpawn()
         {
             if (!MapTileRule.IsValidMapPoint(selectedCoord, currentMap, out string reason))
@@ -767,7 +830,6 @@ namespace Game.Editor
             ApplyPointsToMap();
         }
 
-        [TabGroup("Points"), Button("Set Selected As Goal"), EnableIf("HasSelection"), GUIColor(0.45f, 1f, 0.55f)]
         private void SetSelectedAsGoal()
         {
             if (!MapTileRule.IsValidMapPoint(selectedCoord, currentMap, out string reason))
@@ -781,7 +843,6 @@ namespace Game.Editor
             ApplyPointsToMap();
         }
 
-        [TabGroup("Points"), Button("Apply Points"), GUIColor(0.55f, 0.9f, 0.65f)]
         private void ApplyPointsToMap()
         {
             if (!EnsureMap()) return;
@@ -808,7 +869,6 @@ namespace Game.Editor
             RefreshMarkers();
         }
 
-        [TabGroup("Points"), Button("Clear Points"), GUIColor(1f, 0.7f, 0.45f)]
         private void ClearPoints()
         {
             spawnPoints.Clear();
@@ -824,7 +884,16 @@ namespace Game.Editor
 
             RefreshMarkers();
         }
-        [TabGroup("IO"), Button("Import Json", ButtonSizes.Large), GUIColor(0.45f, 0.7f, 1f)]
+        [TabGroup("IO"), OnInspectorGUI]
+        private void DrawIOToolButtons()
+        {
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("导入 Json\nImport", GUILayout.Width(112f), GUILayout.Height(44f))) ImportJson();
+            if (GUILayout.Button("导出 Json\nExport", GUILayout.Width(112f), GUILayout.Height(44f))) ExportJson();
+            if (GUILayout.Button("校验地图\nValidate", GUILayout.Width(112f), GUILayout.Height(44f))) ValidateCurrentMap();
+            EditorGUILayout.EndHorizontal();
+        }
+
         private void ImportJson()
         {
             string path = EditorUtility.OpenFilePanel("Import Map Json", Application.dataPath, "json");
@@ -845,7 +914,6 @@ namespace Game.Editor
             Debug.Log($"Map imported: {path}");
         }
 
-        [TabGroup("IO"), Button("Export Json", ButtonSizes.Large), GUIColor(0.35f, 0.6f, 1f)]
         private void ExportJson()
         {
             if (!EnsureMap()) return;
@@ -866,7 +934,6 @@ namespace Game.Editor
             Debug.Log($"Map exported: {path}");
         }
 
-        [TabGroup("IO"), Button("Validate Map"), GUIColor(0.7f, 0.7f, 1f)]
         private void ValidateCurrentMap()
         {
             if (!EnsureMap()) return;
@@ -900,6 +967,13 @@ namespace Game.Editor
                 return;
             }
 
+            DrawBrushGhost(e.mousePosition);
+
+            if (brushEnabled && e.type == EventType.MouseMove)
+            {
+                sceneView.Repaint();
+            }
+
             if (e.button != 0 || (e.type != EventType.MouseDown && e.type != EventType.MouseDrag)) return;
             if (!TryPickTile(e.mousePosition, out Vector3Int coord)) return;
 
@@ -921,13 +995,148 @@ namespace Game.Editor
         {
             coord = default;
             Ray ray = HandleUtility.GUIPointToWorldRay(mousePosition);
-            if (!Physics.Raycast(ray, out RaycastHit hit, 1000f)) return false;
 
-            TileView tileView = hit.collider.GetComponentInParent<TileView>();
-            if (tileView == null) return false;
+            float nearestDistance = float.MaxValue;
+            bool hasHit = false;
 
-            coord = tileView.Coord;
-            return true;
+            foreach (Vector3Int tileCoord in tileMap.Keys)
+            {
+                Bounds bounds = GetGridTileBounds(tileCoord);
+                if (!bounds.IntersectRay(ray, out float distance))
+                {
+                    continue;
+                }
+
+                if (distance < 0f || distance >= nearestDistance)
+                {
+                    continue;
+                }
+
+                nearestDistance = distance;
+                coord = tileCoord;
+                hasHit = true;
+            }
+
+            return hasHit;
+        }
+
+        private void DrawBrushGhost(Vector2 mousePosition)
+        {
+            if (!brushEnabled) return;
+            if (!TryPickTile(mousePosition, out Vector3Int center)) return;
+
+            int radius = Mathf.Max(0, brushSize / 2);
+            Color fillColor = GetBrushGhostColor();
+            Color outlineColor = new Color(fillColor.r, fillColor.g, fillColor.b, 0.95f);
+            fillColor.a = 0.24f;
+
+            for (int z = center.z - radius; z <= center.z + radius; z++)
+            {
+                for (int x = center.x - radius; x <= center.x + radius; x++)
+                {
+                    Vector3Int coord = new Vector3Int(x, center.y, z);
+                    if (!tileMap.ContainsKey(coord)) continue;
+                    DrawTileGhost(coord, fillColor, outlineColor);
+                }
+            }
+
+            Handles.Label(GetGhostLabelPosition(center), GetBrushGhostLabel());
+        }
+
+        private void DrawTileGhost(Vector3Int coord, Color fillColor, Color outlineColor)
+        {
+            Bounds bounds = GetTileGhostBounds(coord);
+            float y = bounds.max.y + 0.015f;
+            float halfX = bounds.size.x * 0.5f;
+            float halfZ = bounds.size.z * 0.5f;
+            Vector3 center = new Vector3(bounds.center.x, y, bounds.center.z);
+
+            Vector3[] corners =
+            {
+                center + new Vector3(-halfX, 0f, -halfZ),
+                center + new Vector3(-halfX, 0f, halfZ),
+                center + new Vector3(halfX, 0f, halfZ),
+                center + new Vector3(halfX, 0f, -halfZ)
+            };
+
+            Handles.DrawSolidRectangleWithOutline(corners, fillColor, outlineColor);
+        }
+
+        private Bounds GetTileGhostBounds(Vector3Int coord)
+        {
+            return GetGridTileBounds(coord);
+        }
+
+        private Bounds GetGridTileBounds(Vector3Int coord)
+        {
+            return new Bounds(GetWorldPosition(coord) + Vector3.up * (tileSize * 0.5f), new Vector3(tileSize, tileSize, tileSize));
+        }
+
+        private bool TryGetRendererBounds(Transform root, out Bounds bounds)
+        {
+            Renderer[] renderers = root.GetComponentsInChildren<Renderer>();
+            bounds = default;
+            bool hasBounds = false;
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Renderer renderer = renderers[i];
+                if (renderer == null) continue;
+
+                if (!hasBounds)
+                {
+                    bounds = renderer.bounds;
+                    hasBounds = true;
+                }
+                else
+                {
+                    bounds.Encapsulate(renderer.bounds);
+                }
+            }
+
+            return hasBounds;
+        }
+
+        private Vector3 GetGhostLabelPosition(Vector3Int coord)
+        {
+            Bounds bounds = GetTileGhostBounds(coord);
+            return new Vector3(bounds.center.x, bounds.max.y + 0.08f, bounds.center.z);
+        }
+
+        private Color GetBrushGhostColor()
+        {
+            switch (brushMode)
+            {
+                case BrushMode.Overlay:
+                    return GetOverlayFallbackColor(brushOverlay);
+
+                case BrushMode.Raise:
+                    return new Color(0.35f, 0.9f, 0.35f);
+
+                case BrushMode.Lower:
+                    return new Color(1f, 0.55f, 0.25f);
+
+                default:
+                    return GetFallbackColor(ToMapTileType(brushTileType));
+            }
+        }
+
+        private string GetBrushGhostLabel()
+        {
+            switch (brushMode)
+            {
+                case BrushMode.Overlay:
+                    return $"Overlay: {brushOverlay}";
+
+                case BrushMode.Raise:
+                    return "Raise +1";
+
+                case BrushMode.Lower:
+                    return "Lower -1";
+
+                default:
+                    return $"Type: {brushTileType}";
+            }
         }
 
         private void SelectTile(Vector3Int coord)
@@ -1298,6 +1507,7 @@ namespace Game.Editor
             tileView.Initialize(new TileData(tile));
             EnsurePickingCollider(instance);
             tileObjects[coord] = instance;
+            RefreshTerrainBlend(coord);
         }
 
         private GameObject CreateTileInstance(MapTileType type)
@@ -1390,8 +1600,8 @@ namespace Game.Editor
 
             if (collider is BoxCollider boxCollider)
             {
-                boxCollider.center = Vector3.zero;
-                boxCollider.size = new Vector3(tileSize, Mathf.Max(0.2f, tileSize * 0.25f), tileSize);
+                boxCollider.center = Vector3.up * (tileSize * 0.5f);
+                boxCollider.size = new Vector3(tileSize, tileSize, tileSize);
             }
 
             collider.enabled = true;
@@ -1427,7 +1637,11 @@ namespace Game.Editor
         private void RefreshAllVisuals()
         {
             List<Vector3Int> coords = new List<Vector3Int>(tileObjects.Keys);
-            for (int i = 0; i < coords.Count; i++) RefreshFlatTileVisual(coords[i]);
+            for (int i = 0; i < coords.Count; i++)
+            {
+                RefreshFlatTileVisual(coords[i]);
+                RefreshTerrainBlend(coords[i]);
+            }
         }
 
         private void RefreshVisualAround(Vector3Int coord)
@@ -1437,6 +1651,11 @@ namespace Game.Editor
             RefreshFlatTileVisual(coord + Vector3Int.back);
             RefreshFlatTileVisual(coord + Vector3Int.left);
             RefreshFlatTileVisual(coord + Vector3Int.right);
+            RefreshTerrainBlend(coord);
+            RefreshTerrainBlend(coord + Vector3Int.forward);
+            RefreshTerrainBlend(coord + Vector3Int.back);
+            RefreshTerrainBlend(coord + Vector3Int.left);
+            RefreshTerrainBlend(coord + Vector3Int.right);
         }
 
         private void RefreshFlatTileVisual(Vector3Int coord)
@@ -1460,6 +1679,30 @@ namespace Game.Editor
                 GetTileTypeOrNone(coord + Vector3Int.back),
                 GetTileTypeOrNone(coord + Vector3Int.left)
             });
+        }
+
+        private void RefreshTerrainBlend(Vector3Int coord)
+        {
+            TryLoadTerrainBlendConfig();
+
+            if (terrainBlendConfig == null)
+            {
+                return;
+            }
+
+            if (!tileObjects.TryGetValue(coord, out GameObject tileObject) || tileObject == null)
+            {
+                return;
+            }
+
+            MapTerrainBlendUtility.Apply(
+                tileObject,
+                terrainBlendConfig,
+                GetTileTypeOrNone(coord),
+                GetTileTypeOrNone(coord + Vector3Int.forward),
+                GetTileTypeOrNone(coord + Vector3Int.right),
+                GetTileTypeOrNone(coord + Vector3Int.back),
+                GetTileTypeOrNone(coord + Vector3Int.left));
         }
 
         private MapTileType GetTileTypeOrNone(Vector3Int coord)
@@ -1602,7 +1845,14 @@ namespace Game.Editor
         {
             if (prefabConfig == null) prefabConfig = AssetDatabase.LoadAssetAtPath<MapTilePrefabConfig>(PrefabConfigPath);
             if (prefabConfig != null) prefabConfig.RebuildCache();
+            TryLoadTerrainBlendConfig();
             TryLoadDecorationConfig();
+        }
+
+        private void TryLoadTerrainBlendConfig()
+        {
+            if (terrainBlendConfig == null) terrainBlendConfig = AssetDatabase.LoadAssetAtPath<MapTerrainBlendConfig>(TerrainBlendConfigPath);
+            if (terrainBlendConfig != null) terrainBlendConfig.RebuildCache();
         }
 
         private void TryLoadDecorationConfig()
