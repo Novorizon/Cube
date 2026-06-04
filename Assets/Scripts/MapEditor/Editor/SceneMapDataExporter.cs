@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -61,7 +61,7 @@ namespace Game.Editor
 
             SaveMapJson(mapData, path);
             AssetDatabase.Refresh();
-            Debug.Log($"Exported map json: {path}, tiles: {mapData.Tiles.Count}, size: {mapData.Width}x{mapData.Height}x{mapData.Depth}");
+            Debug.Log($"Exported map json: {path}, tiles: {mapData.Cells.Count}, size: {mapData.Width}x{mapData.Height}x{mapData.Depth}");
         }
 
         private static List<ScannedTile> ScanTiles(GameObject[] roots)
@@ -217,19 +217,21 @@ namespace Game.Editor
                     state = new TileBuildState
                     {
                         Type = MapTileType.Grass,
+                        TypeDirection = MapDirection.North,
                         Overlay = MapTileOverlay.None,
-                        Direction = MapDirection.None
+                        OverlayDirection = MapDirection.None
                     };
                 }
 
                 if (scanned.Classification.IsOverlay)
                 {
                     state.Overlay = scanned.Classification.Overlay;
-                    state.Direction = GetDirection(scanned.RotationY);
+                    state.OverlayDirection = GetDirection(scanned.RotationY);
                 }
                 else
                 {
                     state.Type = scanned.Classification.Type;
+                    state.TypeDirection = GetDirection(scanned.RotationY);
                 }
 
                 states[coord] = state;
@@ -247,13 +249,13 @@ namespace Game.Editor
             {
                 Vector3Int coord = coords[i];
                 TileBuildState state = states[coord];
-                MapTileData tile = new MapTileData(coord.x, coord.y, coord.z, state.Type)
+                MapCellData tile = new MapCellData(coord.x, coord.y, coord.z, state.Type)
                 {
-                    Overlay = state.Overlay,
-                    Direction = state.Direction
+                    TypeDirection = state.TypeDirection,
+                    Overlay = new MapOverlayLayerData(state.Overlay, state.OverlayDirection)
                 };
                 tile.ApplyDefaultLogic();
-                mapData.Tiles.Add(tile);
+                mapData.Cells.Add(tile);
             }
 
             return mapData;
@@ -380,8 +382,9 @@ namespace Game.Editor
         private struct TileBuildState
         {
             public MapTileType Type;
+            public MapDirection TypeDirection;
             public MapTileOverlay Overlay;
-            public MapDirection Direction;
+            public MapDirection OverlayDirection;
         }
     }
 }

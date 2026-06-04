@@ -3,123 +3,40 @@ using UnityEngine;
 namespace Game
 {
     /// <summary>
-    /// 地块运行时数据。
-    /// 每次加载地图时，根据 MapTileData 创建。
+    /// Runtime tile data created from a serialized map cell.
     /// </summary>
     public sealed class TileData
     {
-        private readonly MapTileData mapTileData;
-
+        private readonly MapCellData mapCellData;
         private Tower tower;
 
-        public TileData(MapTileData mapTileData)
+        public TileData(MapCellData mapCellData)
         {
-            this.mapTileData = mapTileData;
+            this.mapCellData = mapCellData;
+            this.mapCellData?.EnsureLayers();
         }
 
-        public MapTileData MapTileData
+        public MapCellData MapCellData
         {
             get
             {
-                return mapTileData;
+                return mapCellData;
             }
         }
 
-        public int X
-        {
-            get
-            {
-                return mapTileData.X;
-            }
-        }
-
-        public int Y
-        {
-            get
-            {
-                return mapTileData.Y;
-            }
-        }
-
-        public int Z
-        {
-            get
-            {
-                return mapTileData.Z;
-            }
-        }
-
-        public Vector3Int Coord
-        {
-            get
-            {
-                return new Vector3Int(X, Y, Z);
-            }
-        }
-
-        public MapTileType Type
-        {
-            get
-            {
-                return mapTileData.Type;
-            }
-        }
-
-        public bool Walkable
-        {
-            get
-            {
-                return mapTileData.Walkable;
-            }
-        }
-
-        public MapTileOverlay Overlay
-        {
-            get
-            {
-                return mapTileData.Overlay;
-            }
-        }
-
-        public MapDirection Direction
-        {
-            get
-            {
-                return mapTileData.Direction;
-            }
-        }
-
-        public bool Buildable
-        {
-            get
-            {
-                return mapTileData.Buildable;
-            }
-        }
-
-        public int MoveCost
-        {
-            get
-            {
-                return mapTileData.MoveCost;
-            }
-        }
-
-        public bool HasTower
-        {
-            get
-            {
-                return tower != null;
-            }
-        }
-
-        public Tower Tower
-        {
-            get
-            {
-                return tower;
-            }
-        }
+        public int X => mapCellData.X;
+        public int Y => mapCellData.Y;
+        public int Z => mapCellData.Z;
+        public Vector3Int Coord => new Vector3Int(X, Y, Z);
+        public MapTileType Type => mapCellData.Tile.Type;
+        public MapDirection TypeDirection => mapCellData.Tile.Direction;
+        public bool Walkable => mapCellData.Walkable;
+        public MapTileOverlay Overlay => mapCellData.Overlay.Type;
+        public MapDirection OverlayDirection => mapCellData.Overlay.Direction;
+        public bool Buildable => mapCellData.Buildable;
+        public int MoveCost => mapCellData.MoveCost;
+        public bool HasTower => tower != null;
+        public Tower Tower => tower;
 
         public bool IsRuntimeWalkable
         {

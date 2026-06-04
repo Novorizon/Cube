@@ -10,7 +10,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/5/29 16:24:59",
+    "PackageNote": "2026/6/4 17:13:52",
     "AssetList": [
         {
             "Address": "",
@@ -3118,6 +3118,22 @@
         },
         {
             "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Icons/Skills/ice_snowflake_transparent.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 22,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/TowerDefense/Icons/Skills/lightning.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 22,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Arts/UI/TowerDefense/Icons/Skills/skill_count_badge.png",
             "AssetGUID": "",
             "AssetTags": [],
@@ -3159,22 +3175,6 @@
         {
             "Address": "",
             "AssetPath": "Assets/Arts/UI/TowerDefense/Icons/Skills/ui_td_skill_fireball_icon.png",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 22,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/TowerDefense/Icons/Skills/ui_td_skill_freeze_icon.png",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 22,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/TowerDefense/Icons/Skills/ui_td_skill_lightning_icon.png",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 22,
@@ -3814,6 +3814,22 @@
         },
         {
             "Address": "",
+            "AssetPath": "Assets/Data/Cube/Configs/MapDecorationPrefabConfig.asset",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 35,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Cube/Configs/MapTerrainBlendConfig.asset",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 35,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset",
             "AssetGUID": "",
             "AssetTags": [],
@@ -3830,7 +3846,23 @@
         },
         {
             "Address": "",
+            "AssetPath": "Assets/Data/Map/GrassReferenceStyle_6x6.json",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 36,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Data/Map/NewMap.json",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 36,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Data/Map/ReferenceStyleDemo.json",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 36,
@@ -4063,7 +4095,7 @@
             "UnityCRC": 0,
             "FileHash": "c5e69e9839c4187209527e2dbfb819a6",
             "FileCRC": 0,
-            "FileSize": 3679795,
+            "FileSize": 4914008,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -4193,7 +4225,7 @@
             "UnityCRC": 0,
             "FileHash": "4679f4c61b2786dc47891b8f79f758a3",
             "FileCRC": 0,
-            "FileSize": 951,
+            "FileSize": 4142,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -4203,7 +4235,7 @@
             "UnityCRC": 0,
             "FileHash": "efa124fae6e570ca16ff15ad11e50b58",
             "FileCRC": 0,
-            "FileSize": 317281,
+            "FileSize": 182306,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

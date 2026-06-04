@@ -1463,11 +1463,11 @@
       "Y": 0,
       "Z": 7,
       "Type": 4,
-      "Overlay": 0,
+      "Overlay": 2,
       "Direction": 0,
-      "Walkable": false,
+      "Walkable": true,
       "Buildable": false,
-      "MoveCost": 0
+      "MoveCost": 8
     },
     {
       "X": 7,

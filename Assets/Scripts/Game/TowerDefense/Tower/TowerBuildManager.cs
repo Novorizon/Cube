@@ -1,4 +1,4 @@
-using Game.Framework;
+﻿using Game.Framework;
 using UI;
 using UnityEngine;
 
@@ -197,7 +197,7 @@ namespace Game
 
             if (!TowerManager.Instance.HasGold(selectedTowerConfigId))
             {
-                Toast.Warning("金币不足");
+                Toast.Warning("閲戝竵涓嶈冻");
                 return false;
             }
 
@@ -233,7 +233,7 @@ namespace Game
             int costItemId = GetCostItemId(levelConfig.CostItemId);
             if (!ItemManager.Instance.TryConsume(costItemId, levelConfig.BuildCost))
             {
-                Toast.Warning("金币不足");
+                Toast.Warning("閲戝竵涓嶈冻");
                 return false;
             }
 
@@ -291,13 +291,13 @@ namespace Game
             int costItemId = GetCostItemId(nextLevelConfig.UpgradeCostItemId);
             if (!ItemManager.Instance.TryConsume(costItemId, nextLevelConfig.UpgradeCost))
             {
-                Toast.Warning("金币不足");
+                Toast.Warning("閲戝竵涓嶈冻");
                 return false;
             }
 
             if (ApplyTowerLevel(tower, nextLevelConfig))
             {
-                Toast.Info($"升级成功 Lv {nextLevelConfig.Level}");
+                Toast.Info($"鍗囩骇鎴愬姛 Lv {nextLevelConfig.Level}");
                 return true;
             }
 
@@ -318,7 +318,7 @@ namespace Game
             TowerLevelConfig currentLevelConfig = DataManager.Instance.GetTowerLevel(tower.ConfigId, tower.Level);
             if (currentLevelConfig == null)
             {
-                Toast.Warning("出售失败：塔等级配置缺失");
+                Toast.Warning("鍑哄敭澶辫触锛氬绛夌骇閰嶇疆缂哄け");
                 return false;
             }
 

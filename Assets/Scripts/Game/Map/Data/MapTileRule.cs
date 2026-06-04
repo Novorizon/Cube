@@ -156,7 +156,7 @@ namespace Game
                 return false;
             }
 
-            if (mapData.GetTile(x, y, z) != null)
+            if (mapData.GetCell(x, y, z) != null)
             {
                 return false;
             }
@@ -171,7 +171,7 @@ namespace Game
                 return true;
             }
 
-            MapTileData belowTile = mapData.GetTile(x, y - 1, z);
+            MapCellData belowTile = mapData.GetCell(x, y - 1, z);
 
             if (belowTile == null)
             {
@@ -217,14 +217,14 @@ namespace Game
 
             mapData.EnsureRuntimeCollections();
 
-            MapTileData tile = mapData.GetTile(x, y, z);
+            MapCellData tile = mapData.GetCell(x, y, z);
 
             if (tile == null)
             {
                 return false;
             }
 
-            MapTileData aboveTile = mapData.GetTile(x, y + 1, z);
+            MapCellData aboveTile = mapData.GetCell(x, y + 1, z);
 
             if (aboveTile != null)
             {
@@ -241,7 +241,7 @@ namespace Game
                 return false;
             }
 
-            return mapData.GetTile(x, y + 1, z) == null;
+            return mapData.GetCell(x, y + 1, z) == null;
         }
 
         public static bool IsValidMapPoint(Vector3Int coord, MapData mapData, out string reason)
@@ -256,7 +256,7 @@ namespace Game
 
             mapData.EnsureRuntimeCollections();
 
-            MapTileData tile = mapData.GetTile(coord);
+            MapCellData tile = mapData.GetCell(coord);
 
             if (tile == null)
             {
@@ -270,9 +270,9 @@ namespace Game
                 return false;
             }
 
-            if (!IsWalkable(tile.Type, tile.Overlay))
+            if (!IsWalkable(tile.Type, tile.Overlay.Type))
             {
-                reason = $"target tile is not walkable: {tile.Type}, overlay: {tile.Overlay}";
+                reason = $"target tile is not walkable: {tile.Type}, overlay: {tile.Overlay.Type}";
                 return false;
             }
 

@@ -21,8 +21,8 @@ namespace Game
         public int Height;
         public int Depth;
 
-        public List<MapTileData> Tiles = new List<MapTileData>();
-        public List<MapDecorationData> Decorations = new List<MapDecorationData>();
+        public List<MapCellData> Cells = new List<MapCellData>();
+        public List<MapObjectData> Objects = new List<MapObjectData>();
 
         /// <summary>
         /// 敌对 NPC 出生点。
@@ -54,8 +54,8 @@ namespace Game
             Height = height;
             Depth = depth;
 
-            Tiles = new List<MapTileData>();
-            Decorations = new List<MapDecorationData>();
+            Cells = new List<MapCellData>();
+            Objects = new List<MapObjectData>();
             SpawnPoints = new List<Vector3Int>();
             HasGoalPoint = false;
             GoalPoint = default;
@@ -63,9 +63,9 @@ namespace Game
 
         public void EnsureRuntimeCollections()
         {
-            if (Tiles == null)
+            if (Cells == null)
             {
-                Tiles = new List<MapTileData>();
+                Cells = new List<MapCellData>();
             }
 
             if (SpawnPoints == null)
@@ -73,40 +73,62 @@ namespace Game
                 SpawnPoints = new List<Vector3Int>();
             }
 
-            if (Decorations == null)
+            if (Objects == null)
             {
-                Decorations = new List<MapDecorationData>();
+                Objects = new List<MapObjectData>();
             }
         }
 
-        public MapTileData GetTile(int x, int y, int z)
+        public MapCellData GetCell(int x, int y, int z)
         {
-            if (Tiles == null)
+            if (Cells == null)
             {
                 return null;
             }
 
-            for (int i = 0; i < Tiles.Count; i++)
+            for (int i = 0; i < Cells.Count; i++)
             {
-                MapTileData tile = Tiles[i];
+                MapCellData cell = Cells[i];
 
-                if (tile == null)
+                if (cell == null)
                 {
                     continue;
                 }
 
-                if (tile.X == x && tile.Y == y && tile.Z == z)
+                if (cell.X == x && cell.Y == y && cell.Z == z)
                 {
-                    return tile;
+                    return cell;
                 }
             }
 
             return null;
         }
 
-        public MapTileData GetTile(Vector3Int coord)
+        public MapCellData GetCell(Vector3Int coord)
         {
-            return GetTile(coord.x, coord.y, coord.z);
+            return GetCell(coord.x, coord.y, coord.z);
+        }
+
+        public List<MapObjectData> GetObjectsAt(Vector3Int coord, List<MapObjectData> results = null)
+        {
+            results ??= new List<MapObjectData>();
+            results.Clear();
+
+            if (Objects == null)
+            {
+                return results;
+            }
+
+            for (int i = 0; i < Objects.Count; i++)
+            {
+                MapObjectData mapObject = Objects[i];
+                if (mapObject != null && mapObject.Coord == coord)
+                {
+                    results.Add(mapObject);
+                }
+            }
+
+            return results;
         }
 
         public bool HasSpawnPoint(Vector3Int coord)

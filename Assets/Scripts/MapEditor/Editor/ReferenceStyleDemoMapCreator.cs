@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+﻿#if UNITY_EDITOR
 
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -93,32 +93,32 @@ namespace Game.Editor
                         type = MapTileType.Snow;
                     }
 
-                    MapTileData tile = CreateTile(coord, type);
+                    MapCellData tile = CreateTile(coord, type);
                     if (bridge.Contains(coord))
                     {
-                        tile.Overlay = MapTileOverlay.Bridge;
-                        tile.Direction = MapDirection.East;
+                        tile.Overlay.Type = MapTileOverlay.Bridge;
+                        tile.OverlayDirection = MapDirection.East;
                         tile.ApplyDefaultLogic();
                     }
                     else if (stair.Contains(coord))
                     {
-                        tile.Overlay = MapTileOverlay.Stair;
-                        tile.Direction = MapDirection.West;
+                        tile.Overlay.Type = MapTileOverlay.Stair;
+                        tile.OverlayDirection = MapDirection.West;
                         tile.ApplyDefaultLogic();
                     }
-                    mapData.Tiles.Add(tile);
+                    mapData.Cells.Add(tile);
                 }
             }
 
             foreach (Vector3Int baseCoord in plateau)
             {
-                MapTileData upperTile = CreateTile(new Vector3Int(baseCoord.x, 1, baseCoord.z), MapTileType.Grass);
+                MapCellData upperTile = CreateTile(new Vector3Int(baseCoord.x, 1, baseCoord.z), MapTileType.Grass);
                 if (baseCoord.x == 5 && baseCoord.z == 8)
                 {
                     upperTile = CreateTile(new Vector3Int(baseCoord.x, 1, baseCoord.z), MapTileType.Road);
                 }
 
-                mapData.Tiles.Add(upperTile);
+                mapData.Cells.Add(upperTile);
             }
 
             mapData.SpawnPoints.Add(new Vector3Int(1, 0, 3));
@@ -129,9 +129,9 @@ namespace Game.Editor
             return mapData;
         }
 
-        private static MapTileData CreateTile(Vector3Int coord, MapTileType type)
+        private static MapCellData CreateTile(Vector3Int coord, MapTileType type)
         {
-            MapTileData tile = new MapTileData(coord.x, coord.y, coord.z, type);
+            MapCellData tile = new MapCellData(coord.x, coord.y, coord.z, type);
             tile.ApplyDefaultLogic();
             return tile;
         }
@@ -171,9 +171,9 @@ namespace Game.Editor
             GameObject root = new GameObject(RootName);
             Dictionary<MapTileType, GameObject> tilePrefabs = LoadTilePrefabs();
 
-            for (int i = 0; i < mapData.Tiles.Count; i++)
+            for (int i = 0; i < mapData.Cells.Count; i++)
             {
-                MapTileData tile = mapData.Tiles[i];
+                MapCellData tile = mapData.Cells[i];
                 GameObject tileRoot = InstantiateTileVisual(tile.Type, tilePrefabs);
                 if (tileRoot == null)
                 {
@@ -181,7 +181,7 @@ namespace Game.Editor
                     continue;
                 }
 
-                tileRoot.name = $"{tile.Type}_{tile.Overlay}_{tile.X}_{tile.Y}_{tile.Z}";
+                tileRoot.name = $"{tile.Type}_{tile.Overlay.Type}_{tile.X}_{tile.Y}_{tile.Z}";
                 tileRoot.transform.SetParent(root.transform, false);
                 tileRoot.transform.position = GetWorldPosition(tile);
 
@@ -196,12 +196,15 @@ namespace Game.Editor
                     Debug.LogWarning($"Tile prefab root should contain a Collider for picking: {tile.Type}, Instance: {tileRoot.name}");
                 }
 
-                GameObject overlayVisual = InstantiateOverlayVisual(tile.Overlay, tile.Direction, tilePrefabs);
+                tileRoot.transform.localRotation = GetDirectionRotation(tile.TypeDirection);
+
+                GameObject overlayVisual = InstantiateOverlayVisual(tile.Overlay.Type, tile.OverlayDirection, tilePrefabs);
                 if (overlayVisual != null)
                 {
-                    overlayVisual.name = $"Overlay_{tile.Overlay}";
+                    overlayVisual.name = $"Overlay_{tile.Overlay.Type}";
                     overlayVisual.transform.SetParent(tileRoot.transform, false);
-                    overlayVisual.transform.localPosition = GetOverlayLocalPosition(tile.Overlay);
+                    overlayVisual.transform.localPosition = GetOverlayLocalPosition(tile.Overlay.Type);
+                    overlayVisual.transform.localRotation = Quaternion.Inverse(tileRoot.transform.localRotation) * GetDirectionRotation(tile.OverlayDirection);
                 }
             }
 
@@ -298,10 +301,10 @@ namespace Game.Editor
             switch (overlay)
             {
                 case MapTileOverlay.Bridge:
-                    return Vector3.up * 0.62f;
+                    return Vector3.up * TileSize;
 
                 case MapTileOverlay.Stair:
-                    return Vector3.up * 0.5f;
+                    return Vector3.up * (TileSize * 0.5f);
 
                 default:
                     return Vector3.up * 0.02f;
@@ -415,7 +418,7 @@ namespace Game.Editor
             }
         }
 
-        private static Vector3 GetWorldPosition(MapTileData tile)
+        private static Vector3 GetWorldPosition(MapCellData tile)
         {
             return new Vector3(tile.X * TileSize, tile.Y * TileSize, tile.Z * TileSize);
         }

@@ -1,30 +1,18 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game
 {
     /// <summary>
-    /// 基于 MapData 的 A* 寻路。
-    /// 
-    /// 用途：
-    /// 1. 编辑器中检查 SpawnPoint 到 GoalPoint 是否有路。
-    /// 2. 后续也可以给运行时做基础路径测试。
-    /// 
-    /// 当前寻路规则：
-    /// 1. Soil 不参与寻路。
-    /// 2. Water 不可走。
-    /// 3. Grass / Snow / Hill 可走。
-    /// 4. 被上层地块覆盖的地块不可走。
-    /// 5. 前后左右移动。
-    /// 6. 相邻列取顶层逻辑地块作为候选节点。
-    /// 7. 高度差超过 MaxStepHeight 时不可走。
-    /// 8. 路径包含起点和终点。
-    /// </summary>
+    /// 鍩轰簬 MapData 鐨?A* 瀵昏矾銆?    /// 
+    /// 鐢ㄩ€旓細
+    /// 1. 缂栬緫鍣ㄤ腑妫€鏌?SpawnPoint 鍒?GoalPoint 鏄惁鏈夎矾銆?    /// 2. 鍚庣画涔熷彲浠ョ粰杩愯鏃跺仛鍩虹璺緞娴嬭瘯銆?    /// 
+    /// 褰撳墠瀵昏矾瑙勫垯锛?    /// 1. Soil 涓嶅弬涓庡璺€?    /// 2. Water 涓嶅彲璧般€?    /// 3. Grass / Snow / Hill 鍙蛋銆?    /// 4. 琚笂灞傚湴鍧楄鐩栫殑鍦板潡涓嶅彲璧般€?    /// 5. 鍓嶅悗宸﹀彸绉诲姩銆?    /// 6. 鐩搁偦鍒楀彇椤跺眰閫昏緫鍦板潡浣滀负鍊欓€夎妭鐐广€?    /// 7. 楂樺害宸秴杩?MaxStepHeight 鏃朵笉鍙蛋銆?    /// 8. 璺緞鍖呭惈璧风偣鍜岀粓鐐广€?    /// </summary>
     public sealed class MapDataAStarPathFinder
     {
         private const int MaxStepHeight = 1;
 
-        private readonly Dictionary<Vector3Int, MapTileData> tileMap = new Dictionary<Vector3Int, MapTileData>();
+        private readonly Dictionary<Vector3Int, MapCellData> tileMap = new Dictionary<Vector3Int, MapCellData>();
         private readonly List<Vector3Int> neighborBuffer = new List<Vector3Int>();
 
         public bool TryFindPath(MapData mapData, Vector3Int start, Vector3Int goal, List<Vector3Int> result)
@@ -136,14 +124,14 @@ namespace Game
         {
             tileMap.Clear();
 
-            if (mapData == null || mapData.Tiles == null)
+            if (mapData == null || mapData.Cells == null)
             {
                 return;
             }
 
-            for (int i = 0; i < mapData.Tiles.Count; i++)
+            for (int i = 0; i < mapData.Cells.Count; i++)
             {
-                MapTileData tile = mapData.Tiles[i];
+                MapCellData tile = mapData.Cells[i];
 
                 if (tile == null)
                 {
@@ -159,7 +147,7 @@ namespace Game
 
         private bool IsWalkable(Vector3Int coord)
         {
-            if (!tileMap.TryGetValue(coord, out MapTileData tile))
+            if (!tileMap.TryGetValue(coord, out MapCellData tile))
             {
                 return false;
             }
@@ -169,7 +157,7 @@ namespace Game
                 return false;
             }
 
-            if (!MapTileRule.IsWalkable(tile.Type, tile.Overlay))
+            if (!MapTileRule.IsWalkable(tile.Type, tile.Overlay.Type))
             {
                 return false;
             }
@@ -190,7 +178,7 @@ namespace Game
 
         private int GetMoveCost(Vector3Int coord)
         {
-            if (!tileMap.TryGetValue(coord, out MapTileData tile))
+            if (!tileMap.TryGetValue(coord, out MapCellData tile))
             {
                 return int.MaxValue;
             }
@@ -215,7 +203,7 @@ namespace Game
 
         private void TryAddWalkableNeighborByColumn(List<Vector3Int> results, Vector3Int fromCoord, int targetX, int targetZ)
         {
-            if (!TryGetTopLogicTile(targetX, targetZ, out MapTileData targetTile))
+            if (!TryGetTopLogicTile(targetX, targetZ, out MapCellData targetTile))
             {
                 return;
             }
@@ -249,8 +237,8 @@ namespace Game
                 return false;
             }
 
-            if (!tileMap.TryGetValue(fromCoord, out MapTileData fromTile) ||
-                !tileMap.TryGetValue(targetCoord, out MapTileData targetTile))
+            if (!tileMap.TryGetValue(fromCoord, out MapCellData fromTile) ||
+                !tileMap.TryGetValue(targetCoord, out MapCellData targetTile))
             {
                 return false;
             }
@@ -270,19 +258,19 @@ namespace Game
                    AllowsHeightConnection(targetTile, -horizontalDirection);
         }
 
-        private bool AllowsHeightConnection(MapTileData tile, Vector3Int upDirection)
+        private bool AllowsHeightConnection(MapCellData tile, Vector3Int upDirection)
         {
             if (tile == null)
             {
                 return false;
             }
 
-            if (tile.Overlay != MapTileOverlay.Stair && tile.Overlay != MapTileOverlay.Ramp)
+            if (tile.Overlay.Type != MapTileOverlay.Stair && tile.Overlay.Type != MapTileOverlay.Ramp)
             {
                 return false;
             }
 
-            return GetDirectionVector(tile.Direction) == upDirection;
+            return GetDirectionVector(tile.OverlayDirection) == upDirection;
         }
 
         private Vector3Int GetDirectionVector(MapDirection direction)
@@ -305,16 +293,16 @@ namespace Game
                     return Vector3Int.zero;
             }
         }
-        private bool TryGetTopLogicTile(int x, int z, out MapTileData tile)
+        private bool TryGetTopLogicTile(int x, int z, out MapCellData tile)
         {
             tile = null;
 
             int topY = int.MinValue;
 
-            foreach (KeyValuePair<Vector3Int, MapTileData> pair in tileMap)
+            foreach (KeyValuePair<Vector3Int, MapCellData> pair in tileMap)
             {
                 Vector3Int coord = pair.Key;
-                MapTileData currentTile = pair.Value;
+                MapCellData currentTile = pair.Value;
 
                 if (coord.x != x || coord.z != z)
                 {
@@ -437,5 +425,3 @@ namespace Game
         }
     }
 }
-
-

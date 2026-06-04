@@ -4,21 +4,18 @@ using UnityEngine;
 namespace Game
 {
     [Serializable]
-    public class MapDecorationData
+    [Obsolete("Use MapObjectData instead.")]
+    public class MapDecorationData : MapObjectData
     {
-        public int DecorationId;
-        public int X;
-        public int Y;
-        public int Z;
-        public Vector3 LocalPosition;
-        public Vector3 LocalEuler;
-        public Vector3 LocalScale = Vector3.one;
-
-        public Vector3Int Coord
+        public int DecorationId
         {
             get
             {
-                return new Vector3Int(X, Y, Z);
+                return ConfigId;
+            }
+            set
+            {
+                ConfigId = value;
             }
         }
 
@@ -27,14 +24,8 @@ namespace Game
         }
 
         public MapDecorationData(int decorationId, Vector3Int coord, Vector3 localPosition, Vector3 localEuler, Vector3 localScale)
+            : base(decorationId, MapObjectType.Decoration, decorationId, coord, localPosition, localEuler, localScale)
         {
-            DecorationId = decorationId;
-            X = coord.x;
-            Y = coord.y;
-            Z = coord.z;
-            LocalPosition = localPosition;
-            LocalEuler = localEuler;
-            LocalScale = localScale;
         }
     }
 }

@@ -1,9 +1,8 @@
-///------------------------------------
-/// Author锛歡uanjinbiao
-/// Mail锛歯ovogooglor@gmail.com
-/// Date锛?025-12-10
-/// Description锛氬湴鍥剧鐞嗗櫒
-///------------------------------------
+﻿///------------------------------------
+/// Author閿涙uanjinbiao
+/// Mail閿涙ovogooglor@gmail.com
+/// Date閿?025-12-10
+/// Description閿涙艾婀撮崶鍓ь吀閻炲棗娅?///------------------------------------
 
 using Game.Framework;
 using Google.Protobuf.WellKnownTypes;
@@ -32,9 +31,10 @@ namespace Game
         private MapData currentMap;
         private int currentMapConfigId;
 
-        private readonly Dictionary<Vector3Int, MapTileData> tileMap = new Dictionary<Vector3Int, MapTileData>();
+        private readonly Dictionary<Vector3Int, MapCellData> tileMap = new Dictionary<Vector3Int, MapCellData>();
         private readonly Dictionary<Vector3Int, TileData> tileDataMap = new Dictionary<Vector3Int, TileData>();
         private readonly Dictionary<Vector3Int, TileView> tileViews = new Dictionary<Vector3Int, TileView>();
+        private readonly Dictionary<Vector3Int, List<MapObjectData>> objectsByCoord = new Dictionary<Vector3Int, List<MapObjectData>>();
 
         private Transform mapRoot;
         private float tileSize = 1f;
@@ -224,6 +224,7 @@ namespace Game
 
             currentMap = data;
             RebuildTileIndex();
+            RebuildObjectIndex();
 
             return true;
         }
@@ -241,22 +242,22 @@ namespace Game
 
             tileViews.Clear();
 
-            if (currentMap.Tiles == null)
+            if (currentMap.Cells == null)
             {
                 Debug.LogWarning("CreateMap failed. Current map tiles is null.");
                 return;
             }
 
-            for (int i = 0; i < currentMap.Tiles.Count; i++)
+            for (int i = 0; i < currentMap.Cells.Count; i++)
             {
-                MapTileData mapTileData = currentMap.Tiles[i];
+                MapCellData MapCellData = currentMap.Cells[i];
 
-                if (mapTileData == null)
+                if (MapCellData == null)
                 {
                     continue;
                 }
 
-                Vector3Int coord = new Vector3Int(mapTileData.X, mapTileData.Y, mapTileData.Z);
+                Vector3Int coord = new Vector3Int(MapCellData.X, MapCellData.Y, MapCellData.Z);
 
                 if (!tileDataMap.TryGetValue(coord, out TileData tileData))
                 {
@@ -287,6 +288,7 @@ namespace Game
 
             GameObject instance = GameObject.Instantiate(prefab, position, Quaternion.identity, mapRoot);
             instance.name = $"{tileData.Type}_{tileData.Overlay}_{tileData.X}_{tileData.Y}_{tileData.Z}";
+            instance.transform.localRotation = GetDirectionRotation(tileData.TypeDirection);
             CreateOverlayView(tileData, instance.transform);
 
             TileView tileView = TileView.InitializeHierarchy(instance, tileData);
@@ -314,9 +316,9 @@ namespace Game
             }
 
             GameObject overlay = GameObject.Instantiate(overlayPrefab, parent);
-            overlay.name = $"Overlay_{tileData.Overlay}_{tileData.Direction}";
-            overlay.transform.localPosition = Vector3.zero;
-            overlay.transform.localRotation = GetDirectionRotation(tileData.Direction);
+            overlay.name = $"Overlay_{tileData.Overlay}_{tileData.OverlayDirection}";
+            overlay.transform.localPosition = GetOverlayLocalPosition(tileData.Overlay);
+            overlay.transform.localRotation = Quaternion.Inverse(parent.localRotation) * GetDirectionRotation(tileData.OverlayDirection);
         }
 
         private GameObject GetOverlayPrefab(MapTileOverlay overlay)
@@ -352,16 +354,32 @@ namespace Game
             }
         }
 
+        private Vector3 GetOverlayLocalPosition(MapTileOverlay overlay)
+        {
+            switch (overlay)
+            {
+                case MapTileOverlay.Bridge:
+                    return Vector3.up * tileSize;
+
+                case MapTileOverlay.Stair:
+                case MapTileOverlay.Ramp:
+                    return Vector3.up * (tileSize * 0.5f);
+
+                default:
+                    return Vector3.zero;
+            }
+        }
+
         private void CreateDecorationViews()
         {
-            if (currentMap == null || currentMap.Decorations == null)
+            if (currentMap == null || currentMap.Objects == null)
             {
                 return;
             }
 
-            for (int i = 0; i < currentMap.Decorations.Count; i++)
+            for (int i = 0; i < currentMap.Objects.Count; i++)
             {
-                CreateDecorationView(currentMap.Decorations[i], i);
+                CreateDecorationView(currentMap.Objects[i], i);
             }
         }
 
@@ -423,23 +441,23 @@ namespace Game
             terrainBlendConfig = LoadTerrainBlendConfig();
         }
 
-        private void CreateDecorationView(MapDecorationData decoration, int index)
+        private void CreateDecorationView(MapObjectData decoration, int index)
         {
-            if (decoration == null || decoration.DecorationId <= 0)
+            if (decoration == null || decoration.ConfigId <= 0)
             {
                 return;
             }
 
             if (!tileViews.TryGetValue(decoration.Coord, out TileView tileView) || tileView == null)
             {
-                Debug.LogWarning($"Decoration skipped. Tile not found. Id: {decoration.DecorationId}, Coord: {decoration.Coord}");
+                Debug.LogWarning($"Decoration skipped. Tile not found. Id: {decoration.ConfigId}, Coord: {decoration.Coord}");
                 return;
             }
 
             GameObject prefab = GetDecorationPrefab(decoration);
             if (prefab == null)
             {
-                Debug.LogWarning($"Missing decoration prefab. Id: {decoration.DecorationId}");
+                Debug.LogWarning($"Missing decoration prefab. Id: {decoration.ConfigId}");
                 return;
             }
 
@@ -450,11 +468,11 @@ namespace Game
             instance.transform.localScale = decoration.LocalScale;
         }
 
-        private GameObject GetDecorationPrefab(MapDecorationData decoration)
+        private GameObject GetDecorationPrefab(MapObjectData decoration)
         {
-            if (decorationPrefabConfig != null && decoration.DecorationId > 0)
+            if (decorationPrefabConfig != null && decoration.ConfigId > 0)
             {
-                GameObject prefab = decorationPrefabConfig.GetPrefab(decoration.DecorationId);
+                GameObject prefab = decorationPrefabConfig.GetPrefab(decoration.ConfigId);
                 if (prefab != null) return prefab;
             }
 
@@ -541,7 +559,7 @@ namespace Game
 
             if (!TryGetTower(info.Coord, out Tower tower) || tower == null)
             {
-                Toast.Warning("未找到要出售的塔");
+                Toast.Warning("鏈壘鍒拌鍑哄敭鐨勫");
                 return;
             }
 
@@ -551,7 +569,7 @@ namespace Game
             }
 
             BattleTargetClickManager.Instance.ClearSelection();
-            Toast.Info($"出售成功 +{sellCount}");
+            Toast.Info($"鍑哄敭鎴愬姛 +{sellCount}");
         }
 
         private void OnBattleHudTowerUpgradeClicked(TdTargetRuntimeInfo info)
@@ -563,7 +581,7 @@ namespace Game
 
             if (!TryGetTower(info.Coord, out Tower tower) || tower == null)
             {
-                Toast.Warning("未找到要升级的塔");
+                Toast.Warning("鏈壘鍒拌鍗囩骇鐨勫");
                 return;
             }
 
@@ -575,7 +593,7 @@ namespace Game
 
         private void OnBattleHudItemClicked(int itemId)
         {
-            Toast.Warning($"道具 {itemId} 的使用逻辑尚未配置");
+            Toast.Warning($"閬撳叿 {itemId} 鐨勪娇鐢ㄩ€昏緫灏氭湭閰嶇疆");
         }
 
         public void RestartCurrentMap()
@@ -604,7 +622,7 @@ namespace Game
         {
             if (!TryGetNextMapId(mapId, out int nextMapId))
             {
-                Toast.Info("已是最后一关");
+                Toast.Info("已经是最后一关");
                 return false;
             }
 
@@ -681,27 +699,59 @@ namespace Game
             tileMap.Clear();
             tileDataMap.Clear();
 
-            if (currentMap == null || currentMap.Tiles == null)
+            if (currentMap == null || currentMap.Cells == null)
             {
                 return;
             }
 
-            for (int i = 0; i < currentMap.Tiles.Count; i++)
+            for (int i = 0; i < currentMap.Cells.Count; i++)
             {
-                MapTileData mapTileData = currentMap.Tiles[i];
+                MapCellData MapCellData = currentMap.Cells[i];
 
-                if (mapTileData == null)
+                if (MapCellData == null)
                 {
                     continue;
                 }
 
-                mapTileData.ApplyDefaultLogic();
+                MapCellData.ApplyDefaultLogic();
 
-                Vector3Int key = new Vector3Int(mapTileData.X, mapTileData.Y, mapTileData.Z);
+                Vector3Int key = new Vector3Int(MapCellData.X, MapCellData.Y, MapCellData.Z);
 
-                tileMap[key] = mapTileData;
-                tileDataMap[key] = new TileData(mapTileData);
+                tileMap[key] = MapCellData;
+                tileDataMap[key] = new TileData(MapCellData);
             }
+        }
+
+        private void RebuildObjectIndex()
+        {
+            objectsByCoord.Clear();
+
+            if (currentMap == null || currentMap.Objects == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < currentMap.Objects.Count; i++)
+            {
+                AddObjectToIndex(currentMap.Objects[i]);
+            }
+        }
+
+        private void AddObjectToIndex(MapObjectData mapObject)
+        {
+            if (mapObject == null)
+            {
+                return;
+            }
+
+            Vector3Int coord = mapObject.Coord;
+            if (!objectsByCoord.TryGetValue(coord, out List<MapObjectData> objects))
+            {
+                objects = new List<MapObjectData>();
+                objectsByCoord[coord] = objects;
+            }
+
+            objects.Add(mapObject);
         }
 
         private void EnsureMapRoot()
@@ -724,6 +774,7 @@ namespace Game
             currentMap = null;
             tileMap.Clear();
             tileDataMap.Clear();
+            objectsByCoord.Clear();
             ClearMapObjects();
         }
 
@@ -783,15 +834,32 @@ namespace Game
             return prefab;
         }
 
-        public bool TryGetMapTileData(Vector3Int coord, out MapTileData mapTileData)
+        public bool TryGetMapCellData(Vector3Int coord, out MapCellData MapCellData)
         {
-            return tileMap.TryGetValue(coord, out mapTileData);
+            return tileMap.TryGetValue(coord, out MapCellData);
         }
 
-        public bool TryGetMapTileData(int x, int y, int z, out MapTileData mapTileData)
+        public bool TryGetMapCellData(int x, int y, int z, out MapCellData MapCellData)
         {
             Vector3Int coord = new Vector3Int(x, y, z);
-            return TryGetMapTileData(coord, out mapTileData);
+            return TryGetMapCellData(coord, out MapCellData);
+        }
+
+        public bool TryGetMapObjectsAt(Vector3Int coord, out IReadOnlyList<MapObjectData> objects)
+        {
+            if (objectsByCoord.TryGetValue(coord, out List<MapObjectData> result) && result.Count > 0)
+            {
+                objects = result;
+                return true;
+            }
+
+            objects = null;
+            return false;
+        }
+
+        public bool TryGetMapObjectsAt(int x, int y, int z, out IReadOnlyList<MapObjectData> objects)
+        {
+            return TryGetMapObjectsAt(new Vector3Int(x, y, z), out objects);
         }
 
         public bool TryGetTileData(Vector3Int coord, out TileData tileData)
@@ -841,14 +909,14 @@ namespace Game
             return GetWorldPosition(coord.x, coord.y, coord.z);
         }
 
-        public Vector3 GetTileWorldPosition(MapTileData mapTileData)
+        public Vector3 GetTileWorldPosition(MapCellData MapCellData)
         {
-            if (mapTileData == null)
+            if (MapCellData == null)
             {
                 return Vector3.zero;
             }
 
-            return GetWorldPosition(mapTileData.X, mapTileData.Y, mapTileData.Z);
+            return GetWorldPosition(MapCellData.X, MapCellData.Y, MapCellData.Z);
         }
 
         public Vector3 GetTileWorldPosition(TileData tileData)
@@ -1079,9 +1147,9 @@ namespace Game
             tileDataMap.Remove(coord);
             tileMap.Remove(coord);
 
-            if (currentMap != null && currentMap.Tiles != null)
+            if (currentMap != null && currentMap.Cells != null)
             {
-                currentMap.Tiles.Remove(tileData.MapTileData);
+                currentMap.Cells.Remove(tileData.MapCellData);
             }
 
             if (tileViews.TryGetValue(coord, out TileView tileView))
@@ -1100,7 +1168,7 @@ namespace Game
 
         private MapTileType GetTileTypeOrNone(Vector3Int coord)
         {
-            return tileMap.TryGetValue(coord, out MapTileData tile) ? tile.Type : MapTileType.None;
+            return tileMap.TryGetValue(coord, out MapCellData tile) ? tile.Type : MapTileType.None;
         }
 
         public bool TryDestroyHill(Vector3Int coord)

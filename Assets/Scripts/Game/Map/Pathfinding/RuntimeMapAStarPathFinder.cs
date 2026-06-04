@@ -168,7 +168,7 @@ namespace Game
                 return false;
             }
 
-            return GetDirectionVector(tile.Direction) == upDirection;
+            return GetDirectionVector(tile.OverlayDirection) == upDirection;
         }
 
         private Vector3Int GetDirectionVector(MapDirection direction)

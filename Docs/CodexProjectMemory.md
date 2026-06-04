@@ -265,7 +265,7 @@
   - Editor preview and runtime map loading instantiate base terrain first and overlay visuals second, so `Water + Bridge` preserves water while adding bridge logic/visuals.
   - Runtime pathfinding now requires `Stair` or `Ramp` with matching `Direction` to traverse a height difference of 1; same-height movement remains normal.
 - Added map decoration data and editor support:
-  - `MapData.Decorations` stores `MapDecorationData` entries in exported map JSON.
+  - Historical note: this originally used `MapData.Decorations` with `MapDecorationData`, but the current data model now uses `MapData.Objects` with `MapObjectData`.
   - `MapEditorWindow` has a `Decoration` tab for choosing a prefab, setting local position/euler/scale, adding it to the selected tile, removing decorations on the selected tile, and clearing all decorations.
   - Decoration source resources use `MapDecorationPrefabConfig.asset` (`MapDecorationPrefabConfig`) as the authoritative list. Map JSON decoration entries store only `DecorationId`; runtime resolves prefabs through the config.
   - `MapDecorationPrefabConfig` itself uses Odin (`TableList`, preview/required fields, `NormalizeIds`) to manage the source decoration resource list in the asset Inspector.
@@ -307,3 +307,17 @@
   - Map editor/runtime instantiate the tile prefab itself as the map tile root and rename it like `Grass_None_0_0_0`; they no longer create an extra wrapper such as `Grass_None_0_0_0/Type_Grass`.
   - `TileView.InitializeHierarchy` no longer adds missing `TileView`; it only initializes existing root/child `TileView` components with the generated `TileData`.
   - Missing root `TileView` or root `Collider` now logs warnings instead of silently adding components.
+- Tile rotation data was unified:
+  - `MapTileData.Direction` was removed/replaced by `TypeDirection` and `OverlayDirection`.
+  - `TypeDirection` rotates the tile prefab root. `OverlayDirection` rotates overlay visuals such as Bridge/Stair/Ramp and is also used by height-connection pathfinding.
+  - Decorations already store free rotation through `MapDecorationData.LocalEuler`; keep decoration rotation as Euler instead of `MapDirection`.
+  - Old map JSON can be discarded/regenerated; this is the new clean data shape.
+- On 2026-06-04, map JSON/data was moved to the cleaner layered model:
+  - `MapData.Cells` is the authoritative grid/cell list; each `MapCellData` stores coordinate, `Tile`, `Overlay`, and cell logic fields (`Walkable`, `Buildable`, `MoveCost`).
+  - `MapTileLayerData` stores tile `Type`, `Direction`, and `VariantId`.
+  - `MapOverlayLayerData` stores overlay `Type`, `Direction`, and `VariantId`.
+  - `MapData.Objects` is the authoritative global object list. `MapObjectData` stores object/config id, object type, coord, local position/euler/scale, and block flags. Decorations are currently represented as `MapObjectType.Decoration` with `ConfigId` resolved through `MapDecorationPrefabConfig`; `DecorationId` exists only on the obsolete `MapDecorationData` compatibility wrapper.
+  - Cells do not store object ids. Runtime `MapManager` and editor `MapEditorWindow` build transient `objectsByCoord` indexes so clicking/querying a cell can quickly find the objects on that coordinate.
+  - `TileData` now wraps `MapCellData` and reads runtime type/direction/overlay from `cell.Tile` and `cell.Overlay`.
+  - Old `MapTileData` and `MapDecorationData` remain only as obsolete compatibility wrappers while active editor/runtime code uses `MapCellData` and `MapObjectData`.
+  - `SceneMapDataExporter`, `ReferenceStyleDemoMapCreator`, `MapEditorWindow`, runtime `MapManager`, and map A* pathfinding were updated to the new structure. `dotnet build Cube.sln` passed with 0 errors; remaining warnings are unrelated existing nullable/sample/async/member-hiding warnings.

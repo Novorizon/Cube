@@ -36,8 +36,9 @@ namespace Game.Editor
         private const string TerrainBlendConfigPath = "Assets/Data/Cube/Configs/MapTerrainBlendConfig.asset";
         private const string RootName = "MapRoot";
 
-        private readonly Dictionary<Vector3Int, MapTileData> tileMap = new Dictionary<Vector3Int, MapTileData>();
+        private readonly Dictionary<Vector3Int, MapCellData> tileMap = new Dictionary<Vector3Int, MapCellData>();
         private readonly Dictionary<Vector3Int, GameObject> tileObjects = new Dictionary<Vector3Int, GameObject>();
+        private readonly Dictionary<Vector3Int, List<MapObjectData>> objectsByCoord = new Dictionary<Vector3Int, List<MapObjectData>>();
         private readonly HashSet<Vector3Int> paintedThisDrag = new HashSet<Vector3Int>();
         private readonly List<GameObject> markers = new List<GameObject>();
         private readonly List<GameObject> decorationObjects = new List<GameObject>();
@@ -89,8 +90,11 @@ namespace Game.Editor
         [HideInInspector, SerializeField]
         private MapTileOverlay brushOverlay = MapTileOverlay.None;
 
-        [TabGroup("Paint"), LabelText("Direction"), EnumToggleButtons, SerializeField]
-        private MapDirection brushDirection = MapDirection.North;
+        [TabGroup("Paint"), LabelText("Type Direction"), EnumToggleButtons, SerializeField]
+        private MapDirection brushTypeDirection = MapDirection.North;
+
+        [TabGroup("Paint"), LabelText("Overlay Direction"), EnumToggleButtons, SerializeField]
+        private MapDirection brushOverlayDirection = MapDirection.North;
 
         [TabGroup("Paint"), OnInspectorGUI]
         private void DrawPaintBrushPreviews()
@@ -202,13 +206,27 @@ namespace Game.Editor
         private void DrawPaintToolButtons()
         {
             EditorGUILayout.LabelField("Paint Tools / 笔刷工具", EditorStyles.boldLabel);
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button(brushEnabled ? "关闭笔刷\nToggle Off" : "开启笔刷\nToggle On", GUILayout.Width(118f), GUILayout.Height(44f))) ToggleBrush();
-            if (GUILayout.Button("填充当前高度层\nFill Y Layer", GUILayout.Width(138f), GUILayout.Height(44f))) FillSelectedLayer();
-            if (GUILayout.Button("清除覆盖层\nClear Overlay", GUILayout.Width(118f), GUILayout.Height(44f))) ClearOverlayBrushArea();
-            if (DrawPaintModeButton("升高笔刷\nRaise", BrushMode.Raise, 96f)) SetPaintBrushMode(BrushMode.Raise);
-            if (DrawPaintModeButton("降低笔刷\nLower", BrushMode.Lower, 96f)) SetPaintBrushMode(BrushMode.Lower);
-            EditorGUILayout.EndHorizontal();
+
+            bool toggleBrush;
+            bool fillLayer;
+            bool clearOverlay;
+            bool raise;
+            bool lower;
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                toggleBrush = GUILayout.Button(brushEnabled ? "关闭笔刷\nToggle Off" : "开启笔刷\nToggle On", GUILayout.Width(118f), GUILayout.Height(44f));
+                fillLayer = GUILayout.Button("填充当前高度层\nFill Y Layer", GUILayout.Width(138f), GUILayout.Height(44f));
+                clearOverlay = GUILayout.Button("清除覆盖层\nClear Overlay", GUILayout.Width(118f), GUILayout.Height(44f));
+                raise = DrawPaintModeButton("升高笔刷\nRaise", BrushMode.Raise, 96f);
+                lower = DrawPaintModeButton("降低笔刷\nLower", BrushMode.Lower, 96f);
+            }
+
+            if (toggleBrush) ToggleBrush();
+            if (fillLayer) FillSelectedLayer();
+            if (clearOverlay) ClearOverlayBrushArea();
+            if (raise) SetPaintBrushMode(BrushMode.Raise);
+            if (lower) SetPaintBrushMode(BrushMode.Lower);
         }
 
         private bool DrawPaintModeButton(string label, BrushMode mode, float width)
@@ -250,10 +268,13 @@ namespace Game.Editor
         private MapTileType SelectedCurrentType => selectedTile != null ? selectedTile.Type : MapTileType.None;
 
         [TabGroup("Selection"), ShowInInspector, ReadOnly, LabelText("Current Overlay")]
-        private MapTileOverlay SelectedCurrentOverlay => selectedTile != null ? selectedTile.Overlay : MapTileOverlay.None;
+        private MapTileOverlay SelectedCurrentOverlay => selectedTile != null ? selectedTile.Overlay.Type : MapTileOverlay.None;
 
-        [TabGroup("Selection"), ShowInInspector, ReadOnly, LabelText("Current Direction")]
-        private MapDirection SelectedCurrentDirection => selectedTile != null ? selectedTile.Direction : MapDirection.None;
+        [TabGroup("Selection"), ShowInInspector, ReadOnly, LabelText("Current Type Direction")]
+        private MapDirection SelectedCurrentTypeDirection => selectedTile != null ? selectedTile.TypeDirection : MapDirection.None;
+
+        [TabGroup("Selection"), ShowInInspector, ReadOnly, LabelText("Current Overlay Direction")]
+        private MapDirection SelectedCurrentOverlayDirection => selectedTile != null ? selectedTile.OverlayDirection : MapDirection.None;
 
         [HideInInspector, SerializeField]
         private TypeBrush selectedNewType = TypeBrush.Grass;
@@ -261,8 +282,11 @@ namespace Game.Editor
         [HideInInspector, SerializeField]
         private MapTileOverlay selectedNewOverlay = MapTileOverlay.None;
 
-        [TabGroup("Selection"), LabelText("New Direction"), EnumToggleButtons, SerializeField]
-        private MapDirection selectedNewDirection = MapDirection.North;
+        [TabGroup("Selection"), LabelText("New Type Direction"), EnumToggleButtons, SerializeField]
+        private MapDirection selectedNewTypeDirection = MapDirection.North;
+
+        [TabGroup("Selection"), LabelText("New Overlay Direction"), EnumToggleButtons, SerializeField]
+        private MapDirection selectedNewOverlayDirection = MapDirection.North;
 
         [TabGroup("Selection"), OnInspectorGUI]
         private void DrawSelectionPreviewSelectors()
@@ -278,16 +302,29 @@ namespace Game.Editor
 
         private void DrawSelectionToolButtons()
         {
+            bool applyType = false;
+            bool applyOverlay = false;
+            bool resetLogic = false;
+            bool addAbove = false;
+            bool remove = false;
+
             using (new EditorGUI.DisabledScope(!HasSelection))
             {
-                EditorGUILayout.BeginHorizontal();
-                if (GUILayout.Button("应用 Type\nApply Type", GUILayout.Width(112f), GUILayout.Height(44f))) ApplyTypeToSelected();
-                if (GUILayout.Button("应用 Overlay\nApply Overlay", GUILayout.Width(128f), GUILayout.Height(44f))) ApplyOverlayToSelected();
-                if (GUILayout.Button("重置逻辑\nReset Logic", GUILayout.Width(112f), GUILayout.Height(44f))) ResetSelectedLogic();
-                if (GUILayout.Button("上方加地块\nAdd Above", GUILayout.Width(116f), GUILayout.Height(44f))) AddTileAboveSelected();
-                if (GUILayout.Button("删除地块\nRemove", GUILayout.Width(104f), GUILayout.Height(44f))) RemoveSelectedTile();
-                EditorGUILayout.EndHorizontal();
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    applyType = GUILayout.Button("应用 Type\nApply Type", GUILayout.Width(112f), GUILayout.Height(44f));
+                    applyOverlay = GUILayout.Button("应用 Overlay\nApply Overlay", GUILayout.Width(128f), GUILayout.Height(44f));
+                    resetLogic = GUILayout.Button("重置逻辑\nReset Logic", GUILayout.Width(112f), GUILayout.Height(44f));
+                    addAbove = GUILayout.Button("上方加地块\nAdd Above", GUILayout.Width(116f), GUILayout.Height(44f));
+                    remove = GUILayout.Button("删除地块\nRemove", GUILayout.Width(104f), GUILayout.Height(44f));
+                }
             }
+
+            if (applyType) ApplyTypeToSelected();
+            if (applyOverlay) ApplyOverlayToSelected();
+            if (resetLogic) ResetSelectedLogic();
+            if (addAbove) AddTileAboveSelected();
+            if (remove) RemoveSelectedTile();
         }
 
         private void DrawSelectionTypePreviewSelector()
@@ -368,7 +405,7 @@ namespace Game.Editor
         [HideInInspector, SerializeField]
         private Vector3 decorationLocalScale = Vector3.one;
 
-        private int DecorationCount => currentMap != null && currentMap.Decorations != null ? currentMap.Decorations.Count : 0;
+        private int DecorationCount => currentMap != null && currentMap.Objects != null ? currentMap.Objects.Count : 0;
         private Vector2 decorationPreviewScroll;
 
         [TabGroup("Points"), LabelText("Spawn Points"), SerializeField]
@@ -381,12 +418,12 @@ namespace Game.Editor
         private Vector3Int goalPoint;
 
         [TabGroup("IO"), ShowInInspector, ReadOnly, LabelText("Tile Count")]
-        private int TileCount => currentMap != null && currentMap.Tiles != null ? currentMap.Tiles.Count : 0;
+        private int TileCount => currentMap != null && currentMap.Cells != null ? currentMap.Cells.Count : 0;
 
         [TabGroup("IO"), ShowInInspector, ReadOnly, LabelText("Current Map")]
         private MapData currentMap;
 
-        private MapTileData selectedTile;
+        private MapCellData selectedTile;
         private Vector3Int selectedCoord;
 
         [MenuItem("Tools/Map/Map Editor")]
@@ -435,8 +472,9 @@ namespace Game.Editor
             currentMap = new MapData(mapId, mapName, width, height, depth);
             currentMap.Description = description;
             tileMap.Clear();
+            objectsByCoord.Clear();
             spawnPoints.Clear();
-            currentMap.Decorations.Clear();
+            currentMap.Objects.Clear();
             hasGoalPoint = false;
             goalPoint = default;
             selectedTile = null;
@@ -468,6 +506,7 @@ namespace Game.Editor
             currentMap = null;
             selectedTile = null;
             tileMap.Clear();
+            objectsByCoord.Clear();
             spawnPoints.Clear();
             hasGoalPoint = false;
             ClearPreviewObjects();
@@ -477,22 +516,31 @@ namespace Game.Editor
         private void DrawDecorationTab()
         {
             TryLoadDecorationConfig();
-            EditorGUILayout.HelpBox("Decoration 页面说明：\n- 装饰物原始资源在 MapDecorationPrefabConfig.asset 的 Inspector 里维护，使用 Odin List。\n- 地图 JSON 只保存 DecorationId，不保存 prefab 路径。\n- 在这里选择装饰物并放到当前选中地块。\n- 删除当前格装饰只删除该地块上的装饰物，不影响 Type/Overlay。", MessageType.Info);
+            EditorGUILayout.HelpBox("Decoration 页面说明：\n- 装饰物原始资源在 MapDecorationPrefabConfig.asset 的 Inspector 里维护，使用 Odin List。\n- 地图 JSON 在 Objects 里保存 ConfigId，不保存 prefab 路径。\n- 在这里选择装饰物并放到当前选中地块。\n- 删除当前格装饰只删除该地块上的装饰物，不影响 Type/Overlay。", MessageType.Info);
 
             float contentWidth = Mathf.Max(980f, position.width - 24f);
             float leftWidth = Mathf.Clamp(contentWidth * 0.46f, 620f, 760f);
             float rightWidth = Mathf.Max(340f, contentWidth - leftWidth - 12f);
 
-            EditorGUILayout.BeginHorizontal(GUILayout.Width(contentWidth));
-            DrawDecorationPlacementPanel(leftWidth);
-            GUILayout.Space(12f);
-            DrawDecorationSourcePreviewPanel(rightWidth);
-            EditorGUILayout.EndHorizontal();
+            using (new EditorGUILayout.HorizontalScope(GUILayout.Width(contentWidth)))
+            {
+                DrawDecorationPlacementPanel(leftWidth);
+                GUILayout.Space(12f);
+                DrawDecorationSourcePreviewPanel(rightWidth);
+            }
         }
 
         private void DrawDecorationPlacementPanel(float panelWidth)
         {
-            EditorGUILayout.BeginVertical(GUILayout.Width(panelWidth), GUILayout.MinWidth(panelWidth), GUILayout.MaxWidth(panelWidth));
+            bool addDecoration = false;
+            bool removeDecorations = false;
+            bool createConfig;
+            bool selectConfig = false;
+            bool useDefaults;
+            bool clearAll;
+
+            using (new EditorGUILayout.VerticalScope(GUILayout.Width(panelWidth), GUILayout.MinWidth(panelWidth), GUILayout.MaxWidth(panelWidth)))
+            {
             float oldLabelWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = 155f;
 
@@ -513,21 +561,28 @@ namespace Game.Editor
 
             using (new EditorGUI.DisabledScope(!HasSelection))
             {
-                if (GUILayout.Button("添加装饰到选中地块 / Add Decoration To Selected")) AddDecorationToSelected();
-                if (GUILayout.Button("删除当前格装饰 / Remove Decorations At Selected")) RemoveDecorationsAtSelected();
+                    addDecoration = GUILayout.Button("添加装饰到选中地块 / Add Decoration To Selected");
+                    removeDecorations = GUILayout.Button("删除当前格装饰 / Remove Decorations At Selected");
             }
 
-            if (GUILayout.Button("创建装饰配置 / Create Decoration Config")) CreateDecorationConfig();
+                createConfig = GUILayout.Button("创建装饰配置 / Create Decoration Config");
             using (new EditorGUI.DisabledScope(decorationConfig == null))
             {
-                if (GUILayout.Button("选中装饰配置资源 / Select Decoration Config Asset")) Selection.activeObject = decorationConfig;
+                    selectConfig = GUILayout.Button("选中装饰配置资源 / Select Decoration Config Asset");
             }
 
-            if (GUILayout.Button("使用选中项默认变换 / Use Selected Defaults")) UseSelectedDecorationDefaults();
-            if (GUILayout.Button("清空全部装饰 / Clear All Decorations")) ClearAllDecorations();
+                useDefaults = GUILayout.Button("使用选中项默认变换 / Use Selected Defaults");
+                clearAll = GUILayout.Button("清空全部装饰 / Clear All Decorations");
 
             EditorGUIUtility.labelWidth = oldLabelWidth;
-            EditorGUILayout.EndVertical();
+            }
+
+            if (addDecoration) AddDecorationToSelected();
+            if (removeDecorations) RemoveDecorationsAtSelected();
+            if (createConfig) CreateDecorationConfig();
+            if (selectConfig) Selection.activeObject = decorationConfig;
+            if (useDefaults) UseSelectedDecorationDefaults();
+            if (clearAll) ClearAllDecorations();
         }
 
         private void DrawDecorationSourcePreviewPanel(float panelWidth)
@@ -680,7 +735,8 @@ namespace Game.Editor
                 return;
             }
 
-            currentMap.Decorations.Add(new MapDecorationData(item.Id, selectedCoord, decorationLocalPosition, decorationLocalEuler, decorationLocalScale));
+            currentMap.Objects.Add(new MapObjectData(item.Id, selectedCoord, decorationLocalPosition, decorationLocalEuler, decorationLocalScale));
+            RebuildObjectIndex();
             RefreshDecorations();
         }
 
@@ -717,7 +773,8 @@ namespace Game.Editor
         private void RemoveDecorationsAtSelected()
         {
             if (!EnsureMap()) return;
-            currentMap.Decorations.RemoveAll(decoration => decoration != null && decoration.Coord == selectedCoord);
+            currentMap.Objects.RemoveAll(decoration => decoration != null && decoration.Coord == selectedCoord);
+            RebuildObjectIndex();
             RefreshDecorations();
         }
 
@@ -725,7 +782,8 @@ namespace Game.Editor
         {
             if (!EnsureMap()) return;
             if (!EditorUtility.DisplayDialog("Clear Decorations", "Clear all decorations in current map?", "Clear", "Cancel")) return;
-            currentMap.Decorations.Clear();
+            currentMap.Objects.Clear();
+            RebuildObjectIndex();
             RefreshDecorations();
         }
 
@@ -745,7 +803,7 @@ namespace Game.Editor
             {
                 for (int x = 0; x < width; x++)
                 {
-                    PaintTile(new Vector3Int(x, y, z), ToMapTileType(brushTileType), false);
+                    PaintTile(new Vector3Int(x, y, z), ToMapTileType(brushTileType), brushTypeDirection, false);
                 }
             }
         }
@@ -773,13 +831,13 @@ namespace Game.Editor
 
         private void ApplyTypeToSelected()
         {
-            PaintTile(selectedCoord, ToMapTileType(selectedNewType), true);
+            PaintTile(selectedCoord, ToMapTileType(selectedNewType), selectedNewTypeDirection, true);
             SelectTile(selectedCoord);
         }
 
         private void ApplyOverlayToSelected()
         {
-            PaintOverlay(selectedCoord, selectedNewOverlay, selectedNewDirection, true);
+            PaintOverlay(selectedCoord, selectedNewOverlay, selectedNewOverlayDirection, true);
             SelectTile(selectedCoord);
         }
 
@@ -791,7 +849,7 @@ namespace Game.Editor
         private void AddTileAboveSelected()
         {
             Vector3Int above = new Vector3Int(selectedCoord.x, selectedCoord.y + 1, selectedCoord.z);
-            if (TryAddTile(above, ToMapTileType(selectedNewType), true)) SelectTile(above);
+            if (TryAddTile(above, ToMapTileType(selectedNewType), selectedNewTypeDirection, true)) SelectTile(above);
         }
 
         private void RemoveSelectedTile()
@@ -799,7 +857,7 @@ namespace Game.Editor
             Vector3Int oldCoord = selectedCoord;
             if (!TryRemoveTile(oldCoord, true)) return;
 
-            if (TryGetTopTile(oldCoord.x, oldCoord.z, out MapTileData topTile))
+            if (TryGetTopTile(oldCoord.x, oldCoord.z, out MapCellData topTile))
             {
                 SelectTile(new Vector3Int(topTile.X, topTile.Y, topTile.Z));
             }
@@ -813,16 +871,27 @@ namespace Game.Editor
         [TabGroup("Points"), OnInspectorGUI]
         private void DrawPointsToolButtons()
         {
-            EditorGUILayout.BeginHorizontal();
-            using (new EditorGUI.DisabledScope(!HasSelection))
+            bool addSpawn = false;
+            bool setGoal = false;
+            bool applyPoints;
+            bool clearPoints;
+
+            using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("设为出生点\nAdd Spawn", GUILayout.Width(116f), GUILayout.Height(44f))) AddSelectedAsSpawn();
-                if (GUILayout.Button("设为终点\nSet Goal", GUILayout.Width(108f), GUILayout.Height(44f))) SetSelectedAsGoal();
+                using (new EditorGUI.DisabledScope(!HasSelection))
+                {
+                    addSpawn = GUILayout.Button("设为出生点\nAdd Spawn", GUILayout.Width(116f), GUILayout.Height(44f));
+                    setGoal = GUILayout.Button("设为终点\nSet Goal", GUILayout.Width(108f), GUILayout.Height(44f));
+                }
+
+                applyPoints = GUILayout.Button("应用点位\nApply Points", GUILayout.Width(112f), GUILayout.Height(44f));
+                clearPoints = GUILayout.Button("清空点位\nClear Points", GUILayout.Width(112f), GUILayout.Height(44f));
             }
 
-            if (GUILayout.Button("应用点位\nApply Points", GUILayout.Width(112f), GUILayout.Height(44f))) ApplyPointsToMap();
-            if (GUILayout.Button("清空点位\nClear Points", GUILayout.Width(112f), GUILayout.Height(44f))) ClearPoints();
-            EditorGUILayout.EndHorizontal();
+            if (addSpawn) AddSelectedAsSpawn();
+            if (setGoal) SetSelectedAsGoal();
+            if (applyPoints) ApplyPointsToMap();
+            if (clearPoints) ClearPoints();
         }
 
         private void AddSelectedAsSpawn()
@@ -1271,8 +1340,9 @@ namespace Game.Editor
 
             selectedCoord = coord;
             selectedNewType = ToTypeBrush(selectedTile.Type);
-            selectedNewOverlay = selectedTile.Overlay;
-            selectedNewDirection = selectedTile.Direction == MapDirection.None ? MapDirection.North : selectedTile.Direction;
+            selectedNewTypeDirection = selectedTile.TypeDirection == MapDirection.None ? MapDirection.North : selectedTile.TypeDirection;
+            selectedNewOverlay = selectedTile.Overlay.Type;
+            selectedNewOverlayDirection = selectedTile.OverlayDirection == MapDirection.None ? MapDirection.North : selectedTile.OverlayDirection;
         }
 
         private void ApplyBrushAt(Vector3Int center)
@@ -1307,7 +1377,7 @@ namespace Game.Editor
                 {
                     Vector3Int coord = new Vector3Int(x, center.y, z);
                     if (paintedThisDrag.Contains(coord)) continue;
-                    if (PaintTile(coord, ToMapTileType(brushTileType), false)) paintedThisDrag.Add(coord);
+                    if (PaintTile(coord, ToMapTileType(brushTileType), brushTypeDirection, false)) paintedThisDrag.Add(coord);
                 }
             }
         }
@@ -1322,7 +1392,7 @@ namespace Game.Editor
                 {
                     Vector3Int coord = new Vector3Int(x, center.y, z);
                     if (paintedThisDrag.Contains(coord)) continue;
-                    if (PaintOverlay(coord, brushOverlay, brushDirection, false)) paintedThisDrag.Add(coord);
+                    if (PaintOverlay(coord, brushOverlay, brushOverlayDirection, false)) paintedThisDrag.Add(coord);
                 }
             }
         }
@@ -1338,10 +1408,10 @@ namespace Game.Editor
                     Vector3Int column = new Vector3Int(x, 0, z);
                     if (paintedThisDrag.Contains(column)) continue;
 
-                    if (!TryGetTopTile(x, z, out MapTileData topTile)) continue;
+                    if (!TryGetTopTile(x, z, out MapCellData topTile)) continue;
 
                     Vector3Int above = new Vector3Int(x, topTile.Y + 1, z);
-                    if (TryAddTile(above, ToMapTileType(brushTileType), false)) paintedThisDrag.Add(column);
+                    if (TryAddTile(above, ToMapTileType(brushTileType), brushTypeDirection, false)) paintedThisDrag.Add(column);
                 }
             }
         }
@@ -1357,7 +1427,7 @@ namespace Game.Editor
                     Vector3Int column = new Vector3Int(x, 0, z);
                     if (paintedThisDrag.Contains(column)) continue;
 
-                    if (!TryGetTopTile(x, z, out MapTileData topTile)) continue;
+                    if (!TryGetTopTile(x, z, out MapCellData topTile)) continue;
                     if (topTile.Y <= 0) continue;
 
                     Vector3Int coord = new Vector3Int(topTile.X, topTile.Y, topTile.Z);
@@ -1366,7 +1436,7 @@ namespace Game.Editor
             }
         }
 
-        private bool PaintTile(Vector3Int coord, MapTileType type, bool showDialog)
+        private bool PaintTile(Vector3Int coord, MapTileType type, MapDirection typeDirection, bool showDialog)
         {
             if (!MapTileRule.IsEditableBaseTile(type))
             {
@@ -1374,25 +1444,38 @@ namespace Game.Editor
                 return false;
             }
 
-            if (!tileMap.TryGetValue(coord, out MapTileData tile)) return false;
+            if (!tileMap.TryGetValue(coord, out MapCellData tile)) return false;
             if (skipPointTiles && currentMap.HasAnyPoint(coord)) return false;
-            if (tile.Type == type) return false;
+            MapDirection nextTypeDirection = typeDirection == MapDirection.None ? MapDirection.North : typeDirection;
+            if (tile.Type == type && tile.TypeDirection == nextTypeDirection) return false;
 
             tile.ApplyDefaultLogicByType(type);
+            tile.TypeDirection = nextTypeDirection;
             RecreatePreviewObject(coord);
             RefreshVisualAround(coord);
             RefreshMarkers();
-            if (selectedTile == tile) selectedNewType = ToTypeBrush(type);
+            if (selectedTile == tile)
+            {
+                selectedNewType = ToTypeBrush(type);
+                selectedNewTypeDirection = nextTypeDirection;
+            }
             return true;
         }
+
         private void AddTileNoCheck(MapTileType type, int x, int y, int z)
         {
-            MapTileData tile = new MapTileData(x, y, z, type);
-            currentMap.Tiles.Add(tile);
+            AddTileNoCheck(type, MapDirection.North, x, y, z);
+        }
+
+        private void AddTileNoCheck(MapTileType type, MapDirection typeDirection, int x, int y, int z)
+        {
+            MapCellData tile = new MapCellData(x, y, z, type);
+            tile.TypeDirection = typeDirection == MapDirection.None ? MapDirection.North : typeDirection;
+            currentMap.Cells.Add(tile);
             tileMap[new Vector3Int(x, y, z)] = tile;
         }
 
-        private bool TryAddTile(Vector3Int coord, MapTileType type, bool showDialog)
+        private bool TryAddTile(Vector3Int coord, MapTileType type, MapDirection typeDirection, bool showDialog)
         {
             if (!MapTileRule.IsEditableBaseTile(type))
             {
@@ -1415,7 +1498,7 @@ namespace Game.Editor
             if (coord.y > 0)
             {
                 Vector3Int belowCoord = new Vector3Int(coord.x, coord.y - 1, coord.z);
-                if (!tileMap.TryGetValue(belowCoord, out MapTileData belowTile))
+                if (!tileMap.TryGetValue(belowCoord, out MapCellData belowTile))
                 {
                     if (showDialog) EditorUtility.DisplayDialog("Add Tile Failed", $"Missing tile below: {belowCoord}", "OK");
                     return false;
@@ -1428,7 +1511,7 @@ namespace Game.Editor
                 }
             }
 
-            AddTileNoCheck(type, coord.x, coord.y, coord.z);
+            AddTileNoCheck(type, typeDirection, coord.x, coord.y, coord.z);
             height = Mathf.Max(height, coord.y + 1);
             currentMap.Height = Mathf.Max(currentMap.Height, height);
             CreatePreviewObject(tileMap[coord]);
@@ -1437,9 +1520,9 @@ namespace Game.Editor
             return true;
         }
 
-        private bool PaintOverlay(Vector3Int coord, MapTileOverlay overlay, MapDirection direction, bool showDialog)
+        private bool PaintOverlay(Vector3Int coord, MapTileOverlay overlay, MapDirection overlayDirection, bool showDialog)
         {
-            if (!tileMap.TryGetValue(coord, out MapTileData tile))
+            if (!tileMap.TryGetValue(coord, out MapCellData tile))
             {
                 return false;
             }
@@ -1449,15 +1532,17 @@ namespace Game.Editor
                 return false;
             }
 
-            MapDirection nextDirection = RequiresDirection(overlay) ? direction : MapDirection.None;
+            MapDirection nextDirection = overlay == MapTileOverlay.None
+                ? MapDirection.None
+                : (overlayDirection == MapDirection.None ? MapDirection.North : overlayDirection);
 
-            if (tile.Overlay == overlay && tile.Direction == nextDirection)
+            if (tile.Overlay.Type == overlay && tile.OverlayDirection == nextDirection)
             {
                 return false;
             }
 
-            tile.Overlay = overlay;
-            tile.Direction = nextDirection;
+            tile.Overlay.Type = overlay;
+            tile.OverlayDirection = nextDirection;
             tile.ApplyDefaultLogic();
 
             RecreatePreviewObject(coord);
@@ -1465,14 +1550,9 @@ namespace Game.Editor
             return true;
         }
 
-        private bool RequiresDirection(MapTileOverlay overlay)
-        {
-            return overlay == MapTileOverlay.Stair || overlay == MapTileOverlay.Ramp;
-        }
-
         private bool TryRemoveTile(Vector3Int coord, bool showDialog)
         {
-            if (!tileMap.TryGetValue(coord, out MapTileData tile))
+            if (!tileMap.TryGetValue(coord, out MapCellData tile))
             {
                 return false;
             }
@@ -1496,7 +1576,7 @@ namespace Game.Editor
                 return false;
             }
 
-            currentMap.Tiles.Remove(tile);
+            currentMap.Cells.Remove(tile);
             tileMap.Remove(coord);
 
             if (tileObjects.TryGetValue(coord, out GameObject oldObject))
@@ -1511,12 +1591,12 @@ namespace Game.Editor
             return true;
         }
 
-        private bool TryGetTopTile(int x, int z, out MapTileData topTile)
+        private bool TryGetTopTile(int x, int z, out MapCellData topTile)
         {
             topTile = null;
             int topY = int.MinValue;
 
-            foreach (KeyValuePair<Vector3Int, MapTileData> pair in tileMap)
+            foreach (KeyValuePair<Vector3Int, MapCellData> pair in tileMap)
             {
                 Vector3Int coord = pair.Key;
                 if (coord.x != x || coord.z != z) continue;
@@ -1562,15 +1642,62 @@ namespace Game.Editor
         private void RebuildTileIndex()
         {
             tileMap.Clear();
+            objectsByCoord.Clear();
             if (currentMap == null) return;
             currentMap.EnsureRuntimeCollections();
 
-            for (int i = 0; i < currentMap.Tiles.Count; i++)
+            for (int i = 0; i < currentMap.Cells.Count; i++)
             {
-                MapTileData tile = currentMap.Tiles[i];
+                MapCellData tile = currentMap.Cells[i];
                 if (tile == null) continue;
                 tileMap[new Vector3Int(tile.X, tile.Y, tile.Z)] = tile;
             }
+
+            RebuildObjectIndex();
+        }
+
+        private void RebuildObjectIndex()
+        {
+            objectsByCoord.Clear();
+
+            if (currentMap == null || currentMap.Objects == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < currentMap.Objects.Count; i++)
+            {
+                AddObjectToIndex(currentMap.Objects[i]);
+            }
+        }
+
+        private void AddObjectToIndex(MapObjectData mapObject)
+        {
+            if (mapObject == null)
+            {
+                return;
+            }
+
+            Vector3Int coord = mapObject.Coord;
+            if (!objectsByCoord.TryGetValue(coord, out List<MapObjectData> objects))
+            {
+                objects = new List<MapObjectData>();
+                objectsByCoord[coord] = objects;
+            }
+
+            objects.Add(mapObject);
+        }
+
+        private bool TryGetObjectsAt(Vector3Int coord, out IReadOnlyList<MapObjectData> objects)
+        {
+            if (objectsByCoord.TryGetValue(coord, out List<MapObjectData> result) && result.Count > 0)
+            {
+                objects = result;
+                return true;
+            }
+
+            objects = null;
+            return false;
         }
 
         private void CreatePreviewObjects()
@@ -1578,7 +1705,7 @@ namespace Game.Editor
             ClearPreviewObjects();
             EnsurePreviewRoot();
 
-            foreach (KeyValuePair<Vector3Int, MapTileData> pair in tileMap)
+            foreach (KeyValuePair<Vector3Int, MapCellData> pair in tileMap)
             {
                 CreatePreviewObject(pair.Value);
             }
@@ -1598,7 +1725,7 @@ namespace Game.Editor
             previewRoot = root.transform;
         }
 
-        private void CreatePreviewObject(MapTileData tile)
+        private void CreatePreviewObject(MapCellData tile)
         {
             Vector3Int coord = new Vector3Int(tile.X, tile.Y, tile.Z);
             GameObject instance = CreateTileInstance(tile.Type);
@@ -1608,17 +1735,18 @@ namespace Game.Editor
                 return;
             }
 
-            instance.name = $"{tile.Type}_{tile.Overlay}_{tile.X}_{tile.Y}_{tile.Z}";
+            instance.name = $"{tile.Type}_{tile.Overlay.Type}_{tile.X}_{tile.Y}_{tile.Z}";
             instance.transform.SetParent(previewRoot, false);
             instance.transform.position = GetWorldPosition(coord);
+            instance.transform.localRotation = GetDirectionRotation(tile.TypeDirection);
 
-            GameObject overlayVisual = CreateOverlayInstance(tile.Overlay, tile.Direction);
+            GameObject overlayVisual = CreateOverlayInstance(tile.Overlay.Type, tile.OverlayDirection);
             if (overlayVisual != null)
             {
-                overlayVisual.name = $"Overlay_{tile.Overlay}_{tile.Direction}";
+                overlayVisual.name = $"Overlay_{tile.Overlay.Type}_{tile.OverlayDirection}";
                 overlayVisual.transform.SetParent(instance.transform, false);
-                overlayVisual.transform.localPosition = Vector3.zero;
-                overlayVisual.transform.localRotation = GetDirectionRotation(tile.Direction);
+                overlayVisual.transform.localPosition = GetOverlayLocalPosition(tile.Overlay.Type);
+                overlayVisual.transform.localRotation = Quaternion.Inverse(instance.transform.localRotation) * GetDirectionRotation(tile.OverlayDirection);
             }
 
             TileView tileView = TileView.InitializeHierarchy(instance, new TileData(tile));
@@ -1674,7 +1802,7 @@ namespace Game.Editor
             GameObject fallback = GameObject.CreatePrimitive(PrimitiveType.Cube);
             fallback.name = name;
             fallback.transform.localScale = new Vector3(tileSize * 0.85f, 0.08f, tileSize * 0.85f);
-            fallback.transform.localPosition = Vector3.up * 0.54f;
+            fallback.transform.localPosition = Vector3.zero;
 
             Renderer renderer = fallback.GetComponent<Renderer>();
 
@@ -1686,6 +1814,22 @@ namespace Game.Editor
             }
 
             return fallback;
+        }
+
+        private Vector3 GetOverlayLocalPosition(MapTileOverlay overlay)
+        {
+            switch (overlay)
+            {
+                case MapTileOverlay.Bridge:
+                    return Vector3.up * tileSize;
+
+                case MapTileOverlay.Stair:
+                case MapTileOverlay.Ramp:
+                    return Vector3.up * (tileSize * 0.5f);
+
+                default:
+                    return Vector3.zero;
+            }
         }
 
         private Quaternion GetDirectionRotation(MapDirection direction)
@@ -1729,7 +1873,7 @@ namespace Game.Editor
                 tileObjects.Remove(coord);
             }
 
-            if (tileMap.TryGetValue(coord, out MapTileData tile)) CreatePreviewObject(tile);
+            if (tileMap.TryGetValue(coord, out MapCellData tile)) CreatePreviewObject(tile);
         }
 
         private void RefreshAllVisuals()
@@ -1805,34 +1949,36 @@ namespace Game.Editor
 
         private MapTileType GetTileTypeOrNone(Vector3Int coord)
         {
-            return tileMap.TryGetValue(coord, out MapTileData tile) ? tile.Type : MapTileType.None;
+            return tileMap.TryGetValue(coord, out MapCellData tile) ? tile.Type : MapTileType.None;
         }
 
         private void RefreshDecorations()
         {
+            RebuildObjectIndex();
+
             for (int i = decorationObjects.Count - 1; i >= 0; i--)
             {
                 if (decorationObjects[i] != null) DestroyImmediate(decorationObjects[i]);
             }
 
             decorationObjects.Clear();
-            if (currentMap == null || currentMap.Decorations == null || previewRoot == null) return;
+            if (currentMap == null || currentMap.Objects == null || previewRoot == null) return;
 
-            for (int i = 0; i < currentMap.Decorations.Count; i++)
+            for (int i = 0; i < currentMap.Objects.Count; i++)
             {
-                CreateDecorationObject(currentMap.Decorations[i], i);
+                CreateDecorationObject(currentMap.Objects[i], i);
             }
         }
 
-        private void CreateDecorationObject(MapDecorationData decoration, int index)
+        private void CreateDecorationObject(MapObjectData decoration, int index)
         {
-            if (decoration == null || decoration.DecorationId <= 0) return;
+            if (decoration == null || decoration.ConfigId <= 0) return;
             if (!tileObjects.TryGetValue(decoration.Coord, out GameObject tileObject) || tileObject == null) return;
 
             GameObject prefab = GetDecorationPrefab(decoration);
             if (prefab == null)
             {
-                Debug.LogWarning($"Missing decoration prefab. Id: {decoration.DecorationId}");
+                Debug.LogWarning($"Missing decoration prefab. Id: {decoration.ConfigId}");
                 return;
             }
 
@@ -1971,13 +2117,13 @@ namespace Game.Editor
             return decorationConfig != null ? decorationConfig.GetItem(selectedDecorationId) : null;
         }
 
-        private GameObject GetDecorationPrefab(MapDecorationData decoration)
+        private GameObject GetDecorationPrefab(MapObjectData decoration)
         {
             TryLoadDecorationConfig();
 
-            if (decorationConfig != null && decoration.DecorationId > 0)
+            if (decorationConfig != null && decoration.ConfigId > 0)
             {
-                GameObject prefab = decorationConfig.GetPrefab(decoration.DecorationId);
+                GameObject prefab = decorationConfig.GetPrefab(decoration.ConfigId);
                 if (prefab != null) return prefab;
             }
 
@@ -2006,11 +2152,11 @@ namespace Game.Editor
             }
 
             mapData.EnsureRuntimeCollections();
-            Dictionary<Vector3Int, MapTileData> temp = new Dictionary<Vector3Int, MapTileData>();
+            Dictionary<Vector3Int, MapCellData> temp = new Dictionary<Vector3Int, MapCellData>();
 
-            for (int i = 0; i < mapData.Tiles.Count; i++)
+            for (int i = 0; i < mapData.Cells.Count; i++)
             {
-                MapTileData tile = mapData.Tiles[i];
+                MapCellData tile = mapData.Cells[i];
                 if (tile == null)
                 {
                     errors.Add($"Tile index {i} is null.");
@@ -2035,15 +2181,15 @@ namespace Game.Editor
                 if (tile.Type != MapTileType.Soil && tile.Y < 0) errors.Add($"Non-soil tile must be y>=0: {coord}");
             }
 
-            for (int i = 0; i < mapData.Tiles.Count; i++)
+            for (int i = 0; i < mapData.Cells.Count; i++)
             {
-                MapTileData tile = mapData.Tiles[i];
+                MapCellData tile = mapData.Cells[i];
                 if (tile == null || tile.Type == MapTileType.Soil) continue;
 
                 if (tile.Y == 0) continue;
 
                 Vector3Int below = new Vector3Int(tile.X, tile.Y - 1, tile.Z);
-                if (!temp.TryGetValue(below, out MapTileData belowTile))
+                if (!temp.TryGetValue(below, out MapCellData belowTile))
                 {
                     errors.Add($"Tile missing support below: ({tile.X}, {tile.Y}, {tile.Z})");
                     continue;
