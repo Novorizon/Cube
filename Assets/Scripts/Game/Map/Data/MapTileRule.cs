@@ -39,6 +39,7 @@ namespace Game
                 case MapTileType.Hill:
                 case MapTileType.Snow:
                 case MapTileType.Water:
+                case MapTileType.Road:
                     return true;
 
                 default:

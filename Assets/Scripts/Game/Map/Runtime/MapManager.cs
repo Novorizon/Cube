@@ -289,14 +289,17 @@ namespace Game
             instance.name = $"{tileData.Type}_{tileData.Overlay}_{tileData.X}_{tileData.Y}_{tileData.Z}";
             CreateOverlayView(tileData, instance.transform);
 
-            TileView tileView = instance.GetComponent<TileView>();
-
+            TileView tileView = TileView.InitializeHierarchy(instance, tileData);
             if (tileView == null)
             {
-                tileView = instance.AddComponent<TileView>();
+                Debug.LogWarning($"Tile prefab root must contain TileView. Type: {tileData.Type}, Coord: {key}, Instance: {instance.name}");
+                return;
             }
 
-            tileView.Initialize(tileData);
+            if (instance.GetComponent<Collider>() == null)
+            {
+                Debug.LogWarning($"Tile prefab root should contain a Collider for picking. Type: {tileData.Type}, Coord: {key}, Instance: {instance.name}");
+            }
 
             tileViews[key] = tileView;
         }
@@ -830,14 +833,7 @@ namespace Game
                 return false;
             }
 
-            tileView = hit.collider.GetComponentInParent<TileView>();
-
-            if (tileView == null)
-            {
-                return false;
-            }
-
-            return true;
+            return TileView.TryGetValidFrom(hit.collider.transform, out tileView);
         }
 
         public Vector3 GetTileWorldPosition(Vector3Int coord)

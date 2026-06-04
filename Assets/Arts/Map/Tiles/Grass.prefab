@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 965812116598297146}
   - component: {fileID: 8261187418241723917}
+  - component: {fileID: -3715971232901921800}
+  - component: {fileID: 8656773265151133746}
   m_Layer: 0
   m_Name: Grass
   m_TagString: Untagged
@@ -50,9 +52,42 @@ MonoBehaviour:
   drawWhenNotSelected: 1
   includeInactive: 1
   showSizeLabel: 1
-  labelOffset: {x: 0, y: 0.15, z: 0}
+  labelOffset: {x: 0, y: 0, z: 0}
   boundsSize: {x: 0.9931999, y: 1.0000002, z: 0.99320006}
-  boundsCenter: {x: 0, y: 0.50000006, z: -1.0700002}
+  boundsCenter: {x: 0, y: 0.50000006, z: -0.0060001016}
+--- !u!65 &-3715971232901921800
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7177051174491417525}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0.5, z: 0}
+--- !u!114 &8656773265151133746
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7177051174491417525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b7955b60cdd01a4cb971750aa0d6ea9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &4007710876251780088
 PrefabInstance:
   m_ObjectHideFlags: 0

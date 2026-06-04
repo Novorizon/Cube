@@ -14,7 +14,6 @@ namespace Game.Editor
     {
         private const string DefaultDirectory = "Assets/Data/Map";
         private const float TileSize = 1f;
-        private const float RoadOverlayYOffset = 0.02f;
         private const float BridgeOverlayYOffset = 0.62f;
         private const float StairOverlayYOffset = 0.5f;
 
@@ -126,7 +125,7 @@ namespace Game.Editor
 
             if (normalizedName == "road" || ContainsAny(key, "/road.prefab", "road_"))
             {
-                classification = TileClassification.OverlayTile(MapTileOverlay.Road, RoadOverlayYOffset);
+                classification = TileClassification.Base(MapTileType.Road);
                 return true;
             }
 

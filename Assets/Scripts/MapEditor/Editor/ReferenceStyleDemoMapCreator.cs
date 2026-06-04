@@ -72,7 +72,19 @@ namespace Game.Editor
                     Vector3Int coord = new Vector3Int(x, 0, z);
                     MapTileType type = MapTileType.Grass;
 
-                    if (water.Contains(coord))
+                    if (bridge.Contains(coord))
+                    {
+                        type = MapTileType.Water;
+                    }
+                    else if (stair.Contains(coord))
+                    {
+                        type = MapTileType.Grass;
+                    }
+                    else if (road.Contains(coord))
+                    {
+                        type = MapTileType.Road;
+                    }
+                    else if (water.Contains(coord))
                     {
                         type = MapTileType.Water;
                     }
@@ -94,12 +106,6 @@ namespace Game.Editor
                         tile.Direction = MapDirection.West;
                         tile.ApplyDefaultLogic();
                     }
-                    else if (road.Contains(coord) && type != MapTileType.Water)
-                    {
-                        tile.Overlay = MapTileOverlay.Road;
-                        tile.ApplyDefaultLogic();
-                    }
-
                     mapData.Tiles.Add(tile);
                 }
             }
@@ -109,8 +115,7 @@ namespace Game.Editor
                 MapTileData upperTile = CreateTile(new Vector3Int(baseCoord.x, 1, baseCoord.z), MapTileType.Grass);
                 if (baseCoord.x == 5 && baseCoord.z == 8)
                 {
-                    upperTile.Overlay = MapTileOverlay.Road;
-                    upperTile.ApplyDefaultLogic();
+                    upperTile = CreateTile(new Vector3Int(baseCoord.x, 1, baseCoord.z), MapTileType.Road);
                 }
 
                 mapData.Tiles.Add(upperTile);
@@ -169,17 +174,26 @@ namespace Game.Editor
             for (int i = 0; i < mapData.Tiles.Count; i++)
             {
                 MapTileData tile = mapData.Tiles[i];
-                GameObject tileRoot = new GameObject($"{tile.Type}_{tile.Overlay}_{tile.X}_{tile.Y}_{tile.Z}");
+                GameObject tileRoot = InstantiateTileVisual(tile.Type, tilePrefabs);
+                if (tileRoot == null)
+                {
+                    Debug.LogWarning($"Missing tile visual for {tile.Type}, coord: {tile.X},{tile.Y},{tile.Z}");
+                    continue;
+                }
+
+                tileRoot.name = $"{tile.Type}_{tile.Overlay}_{tile.X}_{tile.Y}_{tile.Z}";
                 tileRoot.transform.SetParent(root.transform, false);
                 tileRoot.transform.position = GetWorldPosition(tile);
 
-                MapTileType visualType = tile.Overlay == MapTileOverlay.Road ? MapTileType.Road : tile.Type;
-                GameObject typeVisual = InstantiateTileVisual(visualType, tilePrefabs);
-                if (typeVisual != null)
+                TileView tileView = TileView.InitializeHierarchy(tileRoot, new TileData(tile));
+                if (tileView == null)
                 {
-                    typeVisual.name = $"Type_{visualType}";
-                    typeVisual.transform.SetParent(tileRoot.transform, false);
-                    typeVisual.transform.localPosition = Vector3.zero;
+                    Debug.LogWarning($"Tile prefab root must contain TileView: {tile.Type}, Instance: {tileRoot.name}");
+                }
+
+                if (tileRoot.GetComponent<Collider>() == null)
+                {
+                    Debug.LogWarning($"Tile prefab root should contain a Collider for picking: {tile.Type}, Instance: {tileRoot.name}");
                 }
 
                 GameObject overlayVisual = InstantiateOverlayVisual(tile.Overlay, tile.Direction, tilePrefabs);
@@ -268,9 +282,6 @@ namespace Game.Editor
         {
             switch (overlay)
             {
-                case MapTileOverlay.Road:
-                    return null;
-
                 case MapTileOverlay.Bridge:
                     return InstantiateDecoration("Assets/Arts/Map/Decoration/Bridge/Meshy_AI_Wooden_Plank_Bridge_0528100753_texture.prefab", direction);
 

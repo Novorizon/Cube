@@ -292,3 +292,18 @@
   - It scans placed scene tile prefabs, rounds world positions to map coords, normalizes the minimum coord to `(0,0,0)`, and exports a `MapData` JSON.
   - Base tile prefabs become `MapTileData.Type`; Road/Bridge/Stair visuals become `MapTileData.Overlay` with direction inferred from Y rotation. A road overlay without a detected base tile exports as `Grass + Road` so runtime map rules remain valid.
   - This exporter currently handles tiles/route overlays, not decoration JSON entries. Decoration reverse-export can be added later through `MapDecorationPrefabConfig` ids.
+- Road model changed back to a real tile type:
+  - `Road` is edited/exported as `MapTileData.Type = MapTileType.Road`, not as `MapTileData.Overlay = Road`.
+  - Map editor Type selectors now include Road; Overlay selectors expose `None`, `Bridge`, `Stair`, and `Ramp`.
+  - `SceneMapDataExporter` exports placed Road prefabs as `Type=Road`.
+  - Old `Overlay=Road` runtime/editor branches remain only for backward compatibility with older JSON.
+- Tile picking was unified around `TileView + TileData`:
+  - `TileView` now has `HasData()` and `TryGetValidFrom(Transform, out TileView)`.
+  - Runtime `MapManager.TryPickTile` and editor `MapEditorWindow.TryPickTile` both use collider raycast plus `TileView.TryGetValidFrom`.
+  - The map editor no longer uses virtual grid Bounds or position inference for click picking. `GetGridTileBounds` remains only for brush ghost/visual drawing.
+  - Prefab child colliders, such as a collider on `Topic`, work as long as a parent object in the instantiated tile hierarchy has an initialized `TileView`.
+- Tile instance hierarchy was simplified:
+  - Tile prefabs are now expected to have `TileView` and `Collider` on the prefab root.
+  - Map editor/runtime instantiate the tile prefab itself as the map tile root and rename it like `Grass_None_0_0_0`; they no longer create an extra wrapper such as `Grass_None_0_0_0/Type_Grass`.
+  - `TileView.InitializeHierarchy` no longer adds missing `TileView`; it only initializes existing root/child `TileView` components with the generated `TileData`.
+  - Missing root `TileView` or root `Collider` now logs warnings instead of silently adding components.

@@ -28,6 +28,7 @@ namespace Game.Editor
             Hill = MapTileType.Hill,
             Snow = MapTileType.Snow,
             Water = MapTileType.Water,
+            Road = MapTileType.Road,
         }
 
         private const string PrefabConfigPath = "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset";
@@ -79,11 +80,14 @@ namespace Game.Editor
         [TabGroup("Map"), LabelText("Preview Root"), ReadOnly, SerializeField]
         private Transform previewRoot;
 
+        [TabGroup("Map"), LabelText("Debug Tile Picking"), SerializeField]
+        private bool debugTilePicking;
+
         [HideInInspector, SerializeField]
         private TypeBrush brushTileType = TypeBrush.Grass;
 
         [HideInInspector, SerializeField]
-        private MapTileOverlay brushOverlay = MapTileOverlay.Road;
+        private MapTileOverlay brushOverlay = MapTileOverlay.None;
 
         [TabGroup("Paint"), LabelText("Direction"), EnumToggleButtons, SerializeField]
         private MapDirection brushDirection = MapDirection.North;
@@ -91,7 +95,7 @@ namespace Game.Editor
         [TabGroup("Paint"), OnInspectorGUI]
         private void DrawPaintBrushPreviews()
         {
-            EditorGUILayout.HelpBox("Paint 页面说明：\n- 开关笔刷：开启后可在 Scene 里点击/拖动刷地块。\n- Brush Mode = Type 时，使用基础地块预览刷 Grass/Hill/Snow/Water。\n- Brush Mode = Overlay 时，使用覆盖层预览刷 None/Road/Bridge/Stair/Ramp。\n- 填充选中高度层使用当前 Type Brush。", MessageType.Info);
+            EditorGUILayout.HelpBox("Paint 页面说明：\n- 开关笔刷：开启后可在 Scene 里点击/拖动刷地块。\n- Brush Mode = Type 时，使用地块预览刷 Grass/Hill/Snow/Water/Road。\n- Brush Mode = Overlay 时，使用覆盖层预览刷 None/Bridge/Stair/Ramp。\n- Road 是地块 Type，不再作为 Overlay 使用。\n- 填充选中高度层使用当前 Type Brush。", MessageType.Info);
 
             DrawTypeBrushPreviewSelector();
             GUILayout.Space(6f);
@@ -108,6 +112,7 @@ namespace Game.Editor
             DrawTypeBrushPreviewButton(TypeBrush.Hill);
             DrawTypeBrushPreviewButton(TypeBrush.Snow);
             DrawTypeBrushPreviewButton(TypeBrush.Water);
+            DrawTypeBrushPreviewButton(TypeBrush.Road);
             EditorGUILayout.EndHorizontal();
         }
 
@@ -126,7 +131,6 @@ namespace Game.Editor
             EditorGUILayout.LabelField("Overlay Brush / 覆盖层", EditorStyles.boldLabel);
             EditorGUILayout.BeginHorizontal();
             DrawOverlayBrushPreviewButton(MapTileOverlay.None);
-            DrawOverlayBrushPreviewButton(MapTileOverlay.Road);
             DrawOverlayBrushPreviewButton(MapTileOverlay.Bridge);
             DrawOverlayBrushPreviewButton(MapTileOverlay.Stair);
             DrawOverlayBrushPreviewButton(MapTileOverlay.Ramp);
@@ -166,9 +170,6 @@ namespace Game.Editor
         {
             switch (overlay)
             {
-                case MapTileOverlay.Road:
-                    return GetPrefab(MapTileType.Road);
-
                 case MapTileOverlay.Bridge:
                     return GetPrefab(MapTileType.Bridge);
 
@@ -183,9 +184,6 @@ namespace Game.Editor
             {
                 case MapTileOverlay.None:
                     return new Color(0.25f, 0.25f, 0.25f);
-
-                case MapTileOverlay.Road:
-                    return GetFallbackColor(MapTileType.Road);
 
                 case MapTileOverlay.Bridge:
                     return GetFallbackColor(MapTileType.Bridge);
@@ -300,6 +298,7 @@ namespace Game.Editor
             DrawSelectionTypePreviewButton(TypeBrush.Hill);
             DrawSelectionTypePreviewButton(TypeBrush.Snow);
             DrawSelectionTypePreviewButton(TypeBrush.Water);
+            DrawSelectionTypePreviewButton(TypeBrush.Road);
             EditorGUILayout.EndHorizontal();
         }
 
@@ -317,7 +316,6 @@ namespace Game.Editor
             EditorGUILayout.LabelField("New Overlay / 新覆盖层", EditorStyles.boldLabel);
             EditorGUILayout.BeginHorizontal();
             DrawSelectionOverlayPreviewButton(MapTileOverlay.None);
-            DrawSelectionOverlayPreviewButton(MapTileOverlay.Road);
             DrawSelectionOverlayPreviewButton(MapTileOverlay.Bridge);
             DrawSelectionOverlayPreviewButton(MapTileOverlay.Stair);
             DrawSelectionOverlayPreviewButton(MapTileOverlay.Ramp);
@@ -416,11 +414,20 @@ namespace Game.Editor
         [TabGroup("Map"), OnInspectorGUI]
         private void DrawMapToolButtons()
         {
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("创建地图\nCreate Grid", GUILayout.Width(128f), GUILayout.Height(44f))) CreateGridMap();
-            if (GUILayout.Button("重建预览\nRebuild", GUILayout.Width(118f), GUILayout.Height(44f))) RebuildPreview();
-            if (GUILayout.Button("清空地图\nClear", GUILayout.Width(108f), GUILayout.Height(44f))) ClearMap();
-            EditorGUILayout.EndHorizontal();
+            bool createGrid;
+            bool rebuild;
+            bool clear;
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                createGrid = GUILayout.Button("创建地图\nCreate Grid", GUILayout.Width(128f), GUILayout.Height(44f));
+                rebuild = GUILayout.Button("重建预览\nRebuild", GUILayout.Width(118f), GUILayout.Height(44f));
+                clear = GUILayout.Button("清空地图\nClear", GUILayout.Width(108f), GUILayout.Height(44f));
+            }
+
+            if (createGrid) CreateGridMap();
+            if (rebuild) RebuildPreview();
+            if (clear) ClearMap();
         }
 
         private void CreateGridMap()
@@ -887,11 +894,20 @@ namespace Game.Editor
         [TabGroup("IO"), OnInspectorGUI]
         private void DrawIOToolButtons()
         {
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("导入 Json\nImport", GUILayout.Width(112f), GUILayout.Height(44f))) ImportJson();
-            if (GUILayout.Button("导出 Json\nExport", GUILayout.Width(112f), GUILayout.Height(44f))) ExportJson();
-            if (GUILayout.Button("校验地图\nValidate", GUILayout.Width(112f), GUILayout.Height(44f))) ValidateCurrentMap();
-            EditorGUILayout.EndHorizontal();
+            bool import;
+            bool export;
+            bool validate;
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                import = GUILayout.Button("导入 Json\nImport", GUILayout.Width(112f), GUILayout.Height(44f));
+                export = GUILayout.Button("导出 Json\nExport", GUILayout.Width(112f), GUILayout.Height(44f));
+                validate = GUILayout.Button("校验地图\nValidate", GUILayout.Width(112f), GUILayout.Height(44f));
+            }
+
+            if (import) ImportJson();
+            if (export) ExportJson();
+            if (validate) ValidateCurrentMap();
         }
 
         private void ImportJson()
@@ -957,7 +973,11 @@ namespace Game.Editor
 
             if (e.type == EventType.Layout)
             {
-                HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+                if (brushEnabled)
+                {
+                    HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+                }
+
                 return;
             }
 
@@ -974,50 +994,151 @@ namespace Game.Editor
                 sceneView.Repaint();
             }
 
-            if (e.button != 0 || (e.type != EventType.MouseDown && e.type != EventType.MouseDrag)) return;
-            if (!TryPickTile(e.mousePosition, out Vector3Int coord)) return;
-
             if (brushEnabled)
             {
+                if (e.button != 0 || (e.type != EventType.MouseDown && e.type != EventType.MouseDrag)) return;
+                if (!TryPickTile(e.mousePosition, out Vector3Int coord, e.type == EventType.MouseDown)) return;
+
                 ApplyBrushAt(coord);
-            }
-            else if (e.type == EventType.MouseDown)
-            {
-                SelectTile(coord);
+                e.Use();
+                Repaint();
+                SceneView.RepaintAll();
+                return;
             }
 
-            e.Use();
+            if (e.button != 0 || e.type != EventType.MouseDown)
+            {
+                return;
+            }
+
+            if (!TryPickTile(e.mousePosition, out Vector3Int selectedCoord, true))
+            {
+                return;
+            }
+
+            SelectTile(selectedCoord);
             Repaint();
             SceneView.RepaintAll();
         }
 
-        private bool TryPickTile(Vector2 mousePosition, out Vector3Int coord)
+        private bool TryPickTile(Vector2 mousePosition, out Vector3Int coord, bool logFailure = false)
         {
             coord = default;
             Ray ray = HandleUtility.GUIPointToWorldRay(mousePosition);
 
-            float nearestDistance = float.MaxValue;
-            bool hasHit = false;
+            return TryPickTileByCollider(ray, out coord, logFailure);
+        }
 
-            foreach (Vector3Int tileCoord in tileMap.Keys)
+        private bool TryPickTileByCollider(Ray ray, out Vector3Int coord, bool logFailure)
+        {
+            coord = default;
+            RaycastHit[] hits = Physics.RaycastAll(ray, 10000f, ~0, QueryTriggerInteraction.Ignore);
+            if (hits == null || hits.Length == 0)
             {
-                Bounds bounds = GetGridTileBounds(tileCoord);
-                if (!bounds.IntersectRay(ray, out float distance))
-                {
-                    continue;
-                }
-
-                if (distance < 0f || distance >= nearestDistance)
-                {
-                    continue;
-                }
-
-                nearestDistance = distance;
-                coord = tileCoord;
-                hasHit = true;
+                if (logFailure) LogTilePickFailure("raycast hit nothing.");
+                return false;
             }
 
-            return hasHit;
+            float nearestDistance = float.MaxValue;
+            bool hasCoord = false;
+
+            for (int i = 0; i < hits.Length; i++)
+            {
+                RaycastHit hit = hits[i];
+                if (hit.collider == null || hit.distance >= nearestDistance)
+                {
+                    continue;
+                }
+
+                if (!TryGetTileViewCoord(hit.collider.transform, out Vector3Int hitCoord))
+                {
+                    continue;
+                }
+
+                nearestDistance = hit.distance;
+                coord = hitCoord;
+                hasCoord = true;
+            }
+
+            if (logFailure && !hasCoord)
+            {
+                LogTilePickFailure(BuildTilePickHitLog(hits));
+            }
+
+            return hasCoord;
+        }
+
+        private void LogTilePickFailure(string message)
+        {
+            if (!debugTilePicking)
+            {
+                return;
+            }
+
+            Debug.LogWarning($"[MapEditor] Tile pick failed: {message}");
+        }
+
+        private string BuildTilePickHitLog(RaycastHit[] hits)
+        {
+            System.Text.StringBuilder builder = new System.Text.StringBuilder();
+            builder.Append("hit colliders, but no valid TileView with TileData was found:");
+
+            int count = Mathf.Min(hits.Length, 8);
+            for (int i = 0; i < count; i++)
+            {
+                Collider collider = hits[i].collider;
+                if (collider == null)
+                {
+                    continue;
+                }
+
+                TileView.TryGetValidFrom(collider.transform, out TileView tileView);
+                builder.Append(" [");
+                builder.Append(collider.name);
+                builder.Append(", path=");
+                builder.Append(GetTransformPath(collider.transform));
+                builder.Append(", hasValidTileView=");
+                builder.Append(tileView != null);
+                builder.Append("]");
+            }
+
+            return builder.ToString();
+        }
+
+        private string GetTransformPath(Transform transform)
+        {
+            if (transform == null)
+            {
+                return string.Empty;
+            }
+
+            List<string> names = new List<string>();
+            for (Transform current = transform; current != null; current = current.parent)
+            {
+                names.Add(current.name);
+            }
+
+            names.Reverse();
+            return string.Join("/", names);
+        }
+
+        private bool TryGetTileViewCoord(Transform start, out Vector3Int coord)
+        {
+            coord = default;
+
+            if (!TileView.TryGetValidFrom(start, out TileView tileView))
+            {
+                return false;
+            }
+
+            Vector3Int tileCoord = tileView.Coord;
+            if (!tileMap.ContainsKey(tileCoord))
+            {
+                return false;
+            }
+
+            coord = tileCoord;
+            return true;
         }
 
         private void DrawBrushGhost(Vector2 mousePosition)
@@ -1249,7 +1370,7 @@ namespace Game.Editor
         {
             if (!MapTileRule.IsEditableBaseTile(type))
             {
-                if (showDialog) EditorUtility.DisplayDialog("Paint Failed", "Only Grass, Hill, Snow, and Water can be painted as Type.", "OK");
+                if (showDialog) EditorUtility.DisplayDialog("Paint Failed", "Only Grass, Hill, Snow, Water, and Road can be painted as Type.", "OK");
                 return false;
             }
 
@@ -1275,7 +1396,7 @@ namespace Game.Editor
         {
             if (!MapTileRule.IsEditableBaseTile(type))
             {
-                if (showDialog) EditorUtility.DisplayDialog("Add Tile Failed", "Only Grass, Hill, Snow, and Water can be added as Type.", "OK");
+                if (showDialog) EditorUtility.DisplayDialog("Add Tile Failed", "Only Grass, Hill, Snow, Water, and Road can be added as Type.", "OK");
                 return false;
             }
 
@@ -1480,18 +1601,16 @@ namespace Game.Editor
         private void CreatePreviewObject(MapTileData tile)
         {
             Vector3Int coord = new Vector3Int(tile.X, tile.Y, tile.Z);
-            GameObject instance = new GameObject($"{tile.Type}_{tile.Overlay}_{tile.X}_{tile.Y}_{tile.Z}");
+            GameObject instance = CreateTileInstance(tile.Type);
+            if (instance == null)
+            {
+                Debug.LogWarning($"[MapEditor] Missing tile prefab for {tile.Type}, Coord: {coord}");
+                return;
+            }
 
+            instance.name = $"{tile.Type}_{tile.Overlay}_{tile.X}_{tile.Y}_{tile.Z}";
             instance.transform.SetParent(previewRoot, false);
             instance.transform.position = GetWorldPosition(coord);
-
-            GameObject typeVisual = CreateTileInstance(tile.Type);
-            if (typeVisual != null)
-            {
-                typeVisual.name = $"Type_{tile.Type}";
-                typeVisual.transform.SetParent(instance.transform, false);
-                typeVisual.transform.localPosition = Vector3.zero;
-            }
 
             GameObject overlayVisual = CreateOverlayInstance(tile.Overlay, tile.Direction);
             if (overlayVisual != null)
@@ -1502,10 +1621,17 @@ namespace Game.Editor
                 overlayVisual.transform.localRotation = GetDirectionRotation(tile.Direction);
             }
 
-            TileView tileView = instance.GetComponent<TileView>();
-            if (tileView == null) tileView = instance.AddComponent<TileView>();
-            tileView.Initialize(new TileData(tile));
-            EnsurePickingCollider(instance);
+            TileView tileView = TileView.InitializeHierarchy(instance, new TileData(tile));
+            if (tileView == null)
+            {
+                Debug.LogWarning($"[MapEditor] Tile prefab root must contain TileView: {tile.Type}, Coord: {coord}, Instance: {instance.name}");
+            }
+
+            if (instance.GetComponent<Collider>() == null)
+            {
+                Debug.LogWarning($"[MapEditor] Tile prefab root should contain a Collider for picking: {tile.Type}, Coord: {coord}, Instance: {instance.name}");
+            }
+
             tileObjects[coord] = instance;
             RefreshTerrainBlend(coord);
         }
@@ -1519,18 +1645,7 @@ namespace Game.Editor
                 return prefabInstance != null ? prefabInstance : Instantiate(prefab);
             }
 
-            GameObject fallback = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            fallback.transform.localScale = new Vector3(tileSize, 0.18f, tileSize);
-            Renderer renderer = fallback.GetComponent<Renderer>();
-
-            if (renderer != null)
-            {
-                Material material = new Material(Shader.Find("Standard"));
-                material.color = GetFallbackColor(type);
-                renderer.sharedMaterial = material;
-            }
-
-            return fallback;
+            return null;
         }
 
         private GameObject CreateOverlayInstance(MapTileOverlay overlay, MapDirection direction)
@@ -1589,23 +1704,6 @@ namespace Game.Editor
                 default:
                     return Quaternion.identity;
             }
-        }
-
-        private void EnsurePickingCollider(GameObject instance)
-        {
-            if (instance == null) return;
-
-            Collider collider = instance.GetComponent<Collider>();
-            if (collider == null) collider = instance.AddComponent<BoxCollider>();
-
-            if (collider is BoxCollider boxCollider)
-            {
-                boxCollider.center = Vector3.up * (tileSize * 0.5f);
-                boxCollider.size = new Vector3(tileSize, tileSize, tileSize);
-            }
-
-            collider.enabled = true;
-            collider.isTrigger = false;
         }
 
         private Color GetFallbackColor(MapTileType type)
@@ -1829,6 +1927,9 @@ namespace Game.Editor
 
                 case MapTileType.Water:
                     return TypeBrush.Water;
+
+                case MapTileType.Road:
+                    return TypeBrush.Road;
 
                 default:
                     return TypeBrush.Grass;
