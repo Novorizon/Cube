@@ -158,15 +158,7 @@ Grass / Snow / Road 共用这个 shader；Water 后续单独做水面 shader。
 
 ## Unity 工具
 
-当前工具菜单：
-
-```text
-Tools/Map Art/Reference Grass/Full Setup And Preview
-Tools/Map Art/Reference Grass/Create Prototype Assets
-Tools/Map Art/Reference Grass/Use Prototype As Grass
-Tools/Map Art/Reference Grass/Restore Original Grass
-Tools/Map Art/Reference Grass/Create 6x6 Preview Grid
-```
+当前旧地图美术菜单工具已经从工程中移除，避免继续引导到过期的一键生成流程。
 
 `Full Setup And Preview` 会：
 
@@ -177,11 +169,7 @@ Tools/Map Art/Reference Grass/Create 6x6 Preview Grid
 4. 在当前场景创建 ReferenceGrassTilePreviewGrid 预览根节点
 ```
 
-还原方式：
-
-```text
-Tools/Map Art/Reference Grass/Restore Original Grass
-```
+如果需要恢复或重做 Grass 指向，直接检查 `Assets/Data/Cube/Configs/MapTilePrefabConfig.asset`。
 
 ## 为什么不做相邻过渡
 

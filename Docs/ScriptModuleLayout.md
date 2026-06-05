@@ -166,7 +166,7 @@ Game/Map
 - `MapTilePrefabConfig.cs`、`MapDecorationPrefabConfig.cs`、`MapTerrainBlendConfig.cs` -> `Game/Map/Config`
 - `MapManager.cs`、`TileView.cs` -> `Game/Map/Runtime`
 - `MapTerrainBlendUtility.cs`、`MapTerrainBlendDebugState.cs`、`FlatTileVisual.cs` -> `Game/Map/Rendering`
-- `MapDataAStarPathFinder.cs`、`MapPathFinder.cs`、`RuntimeMapAStarPathFinder.cs` -> `Game/Map/Pathfinding`
+- `MapDataAStarPathFinder.cs`、`MapPathFinder.cs`、`MapPathCellInfo.cs`、`MapOverlayConnectionRules.cs` -> `Game/Map/Pathfinding`
 
 说明：
 

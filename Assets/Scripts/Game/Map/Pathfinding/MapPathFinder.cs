@@ -5,7 +5,6 @@ namespace Game
 {
     public sealed class MapPathFinder
     {
-        private const int MaxStepHeight = 1;
         private const int StraightCost = 10;
         private const int UphillExtraCost = 5;
         private readonly List<Vector3Int> neighbors = new List<Vector3Int>();
@@ -108,73 +107,13 @@ namespace Game
 
         private bool CanConnect(Vector3Int fromCoord, Vector3Int toCoord)
         {
-            int heightDelta = toCoord.y - fromCoord.y;
-
-            if (heightDelta == 0)
-            {
-                return true;
-            }
-
-            if (Mathf.Abs(heightDelta) > MaxStepHeight)
-            {
-                return false;
-            }
-
             if (!MapManager.Instance.TryGetTileData(fromCoord, out TileData fromTile) ||
                 !MapManager.Instance.TryGetTileData(toCoord, out TileData toTile))
             {
                 return false;
             }
 
-            Vector3Int horizontalDirection = new Vector3Int(
-                Mathf.Clamp(toCoord.x - fromCoord.x, -1, 1),
-                0,
-                Mathf.Clamp(toCoord.z - fromCoord.z, -1, 1));
-
-            if (heightDelta > 0)
-            {
-                return AllowsHeightConnection(fromTile, horizontalDirection) ||
-                       AllowsHeightConnection(toTile, horizontalDirection);
-            }
-
-            return AllowsHeightConnection(fromTile, -horizontalDirection) ||
-                   AllowsHeightConnection(toTile, -horizontalDirection);
-        }
-
-        private bool AllowsHeightConnection(TileData tile, Vector3Int upDirection)
-        {
-            if (tile == null)
-            {
-                return false;
-            }
-
-            if (tile.Overlay != MapTileOverlay.Stair && tile.Overlay != MapTileOverlay.Ramp)
-            {
-                return false;
-            }
-
-            return GetDirectionVector(tile.OverlayDirection) == upDirection;
-        }
-
-        private Vector3Int GetDirectionVector(MapDirection direction)
-        {
-            switch (direction)
-            {
-                case MapDirection.North:
-                    return Vector3Int.forward;
-
-                case MapDirection.East:
-                    return Vector3Int.right;
-
-                case MapDirection.South:
-                    return Vector3Int.back;
-
-                case MapDirection.West:
-                    return Vector3Int.left;
-
-                default:
-                    return Vector3Int.zero;
-            }
+            return MapPathConnectionRules.CanConnect(fromTile, toTile);
         }
 
         private int GetMoveCost(Vector3Int from, Vector3Int to)

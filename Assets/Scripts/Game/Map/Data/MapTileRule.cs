@@ -79,7 +79,6 @@ namespace Game
         {
             switch (overlay)
             {
-                case MapTileOverlay.Road:
                 case MapTileOverlay.Bridge:
                 case MapTileOverlay.Stair:
                 case MapTileOverlay.Ramp:
@@ -126,7 +125,6 @@ namespace Game
         {
             switch (overlay)
             {
-                case MapTileOverlay.Road:
                 case MapTileOverlay.Bridge:
                 case MapTileOverlay.Stair:
                 case MapTileOverlay.Ramp:

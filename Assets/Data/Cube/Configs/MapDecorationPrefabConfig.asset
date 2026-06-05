@@ -14,18 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Items:
   - Id: 1
-    Name: 1
+    Name: Snow
     Category: 
-    Prefab: {fileID: 919132149155446097, guid: 6fd721de296e16741a551918db0b87d9, type: 3}
+    Prefab: {fileID: 7894883138281321129, guid: 518310f5f15f155479b1f24cc3e1fcd7,
+      type: 3}
     DefaultLocalPosition: {x: 0, y: 0, z: 0}
     DefaultLocalEuler: {x: 0, y: 0, z: 0}
     DefaultLocalScale: {x: 1, y: 1, z: 1}
     BlocksBuild: 0
     BlocksMove: 0
   - Id: 3
-    Name: Meshy_AI_Golden_Staircase_0530101420_texture
+    Name: Stair
     Category: 
-    Prefab: {fileID: 6649770567533069592, guid: f75400690cb5b9a4abd2a2f862a44a5d,
+    Prefab: {fileID: 3257871586634282556, guid: 508b9ed10cff01e48a43818e58535c59,
       type: 3}
     DefaultLocalPosition: {x: 0, y: 0, z: 0}
     DefaultLocalEuler: {x: 0, y: 0, z: 0}

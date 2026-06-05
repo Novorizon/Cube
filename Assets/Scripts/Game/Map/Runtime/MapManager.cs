@@ -325,9 +325,6 @@ namespace Game
         {
             switch (overlay)
             {
-                case MapTileOverlay.Road:
-                    return GetPrefab(MapTileType.Road);
-
                 case MapTileOverlay.Bridge:
                     return GetPrefab(MapTileType.Bridge);
 
@@ -1242,31 +1239,5 @@ namespace Game
             return tileData != null;
         }
 
-        public void GetWalkableNeighbors(Vector3Int coord, List<Vector3Int> results)
-        {
-            if (results == null)
-            {
-                return;
-            }
-
-            results.Clear();
-
-            TryAddWalkableNeighbor(results, coord.x + 1, coord.y, coord.z);
-            TryAddWalkableNeighbor(results, coord.x - 1, coord.y, coord.z);
-            TryAddWalkableNeighbor(results, coord.x, coord.y, coord.z + 1);
-            TryAddWalkableNeighbor(results, coord.x, coord.y, coord.z - 1);
-        }
-
-        private void TryAddWalkableNeighbor(List<Vector3Int> results, int x, int y, int z)
-        {
-            Vector3Int coord = new Vector3Int(x, y, z);
-
-            if (!IsWalkable(coord))
-            {
-                return;
-            }
-
-            results.Add(coord);
-        }
     }
 }

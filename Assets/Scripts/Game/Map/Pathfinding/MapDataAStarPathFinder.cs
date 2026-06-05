@@ -4,14 +4,11 @@ using UnityEngine;
 namespace Game
 {
     /// <summary>
-    /// 鍩轰簬 MapData 鐨?A* 瀵昏矾銆?    /// 
-    /// 鐢ㄩ€旓細
-    /// 1. 缂栬緫鍣ㄤ腑妫€鏌?SpawnPoint 鍒?GoalPoint 鏄惁鏈夎矾銆?    /// 2. 鍚庣画涔熷彲浠ョ粰杩愯鏃跺仛鍩虹璺緞娴嬭瘯銆?    /// 
-    /// 褰撳墠瀵昏矾瑙勫垯锛?    /// 1. Soil 涓嶅弬涓庡璺€?    /// 2. Water 涓嶅彲璧般€?    /// 3. Grass / Snow / Hill 鍙蛋銆?    /// 4. 琚笂灞傚湴鍧楄鐩栫殑鍦板潡涓嶅彲璧般€?    /// 5. 鍓嶅悗宸﹀彸绉诲姩銆?    /// 6. 鐩搁偦鍒楀彇椤跺眰閫昏緫鍦板潡浣滀负鍊欓€夎妭鐐广€?    /// 7. 楂樺害宸秴杩?MaxStepHeight 鏃朵笉鍙蛋銆?    /// 8. 璺緞鍖呭惈璧风偣鍜岀粓鐐广€?    /// </summary>
+    /// A* pathfinder based on serialized MapData.
+    /// It uses MapPathConnectionRules so editor validation and runtime pathfinding can share the same tile connection rules.
+    /// </summary>
     public sealed class MapDataAStarPathFinder
     {
-        private const int MaxStepHeight = 1;
-
         private readonly Dictionary<Vector3Int, MapCellData> tileMap = new Dictionary<Vector3Int, MapCellData>();
         private readonly List<Vector3Int> neighborBuffer = new List<Vector3Int>();
 
@@ -225,73 +222,13 @@ namespace Game
 
         private bool CanConnect(Vector3Int fromCoord, Vector3Int targetCoord)
         {
-            int heightDelta = targetCoord.y - fromCoord.y;
-
-            if (heightDelta == 0)
-            {
-                return true;
-            }
-
-            if (Mathf.Abs(heightDelta) > MaxStepHeight)
-            {
-                return false;
-            }
-
             if (!tileMap.TryGetValue(fromCoord, out MapCellData fromTile) ||
                 !tileMap.TryGetValue(targetCoord, out MapCellData targetTile))
             {
                 return false;
             }
 
-            Vector3Int horizontalDirection = new Vector3Int(
-                Mathf.Clamp(targetCoord.x - fromCoord.x, -1, 1),
-                0,
-                Mathf.Clamp(targetCoord.z - fromCoord.z, -1, 1));
-
-            if (heightDelta > 0)
-            {
-                return AllowsHeightConnection(fromTile, horizontalDirection) ||
-                       AllowsHeightConnection(targetTile, horizontalDirection);
-            }
-
-            return AllowsHeightConnection(fromTile, -horizontalDirection) ||
-                   AllowsHeightConnection(targetTile, -horizontalDirection);
-        }
-
-        private bool AllowsHeightConnection(MapCellData tile, Vector3Int upDirection)
-        {
-            if (tile == null)
-            {
-                return false;
-            }
-
-            if (tile.Overlay.Type != MapTileOverlay.Stair && tile.Overlay.Type != MapTileOverlay.Ramp)
-            {
-                return false;
-            }
-
-            return GetDirectionVector(tile.OverlayDirection) == upDirection;
-        }
-
-        private Vector3Int GetDirectionVector(MapDirection direction)
-        {
-            switch (direction)
-            {
-                case MapDirection.North:
-                    return Vector3Int.forward;
-
-                case MapDirection.East:
-                    return Vector3Int.right;
-
-                case MapDirection.South:
-                    return Vector3Int.back;
-
-                case MapDirection.West:
-                    return Vector3Int.left;
-
-                default:
-                    return Vector3Int.zero;
-            }
+            return MapPathConnectionRules.CanConnect(fromTile, targetTile);
         }
         private bool TryGetTopLogicTile(int x, int z, out MapCellData tile)
         {
