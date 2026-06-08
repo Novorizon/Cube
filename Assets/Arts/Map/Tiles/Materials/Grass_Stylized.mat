@@ -27,18 +27,24 @@ Material:
         m_Texture: {fileID: 2800000, guid: 2c9515f547dd4e5593364c3703d64e6e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _PatchMap:
+        m_Texture: {fileID: 2800000, guid: d15615b720b993347b9266f4ee060c25, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Ambient: 0.76
-    - _LightStrength: 0.22
-    - _LightWrap: 0.68
-    - _MaxBrightness: 1.12
-    - _Saturation: 1
-    - _ShadowStrength: 0.08
-    - _SlopeDarkness: 0.16
-    - _VariationScale: 1.35
-    - _VariationSoftness: 0.72
-    - _VariationStrength: 0.12
+    - _Ambient: 0.72
+    - _LightStrength: 0.28
+    - _LightWrap: 0.58
+    - _MaxBrightness: 1.16
+    - _PatchStrength: 1
+    - _PatchWorldScale: 0.82
+    - _Saturation: 1.04
+    - _ShadowStrength: 0.12
+    - _SlopeDarkness: 0.18
+    - _VariationScale: 1.15
+    - _VariationSoftness: 0.78
+    - _VariationStrength: 0.14
     m_Colors:
     - _BaseColor: {r: 0.43, g: 0.66, b: 0.09, a: 1}
     - _DarkGreen: {r: 0.34, g: 0.56, b: 0.055, a: 1}

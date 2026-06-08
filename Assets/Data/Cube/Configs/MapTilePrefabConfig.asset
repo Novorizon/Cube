@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Items:
   - Type: 1
-    Prefab: {fileID: 7177051174491417525, guid: 54f3156c2eac65b49b5b3b6377a811f7,
+    Prefab: {fileID: 2161277875141193212, guid: 4b3c47a5b63d9dd47b6a61e850329593,
       type: 3}
   - Type: 2
     Prefab: {fileID: 2954801402818608663, guid: 589d03971041c9245baf410174b746ba,

@@ -3,9 +3,12 @@ Shader "CubeTD/Map/GrassSoftClean"
     Properties
     {
         _BaseMap ("Base Map", 2D) = "white" {}
+        _PatchMap ("Patch Map", 2D) = "white" {}
         _BaseColor ("Base Green", Color) = (0.42, 0.66, 0.11, 1)
         _DarkGreen ("Dark Green", Color) = (0.30, 0.54, 0.05, 1)
         _LightGreen ("Light Green", Color) = (0.55, 0.76, 0.16, 1)
+        _PatchStrength ("Patch Strength", Range(0, 1)) = 0.16
+        _PatchWorldScale ("Patch World Scale", Range(0.05, 4)) = 0.42
         _VariationStrength ("Variation Strength", Range(0, 1)) = 0.18
         _VariationScale ("Variation Scale", Range(0.25, 8)) = 2.0
         _VariationSoftness ("Variation Softness", Range(0.01, 1)) = 0.42
@@ -41,12 +44,17 @@ Shader "CubeTD/Map/GrassSoftClean"
 
             TEXTURE2D(_BaseMap);
             SAMPLER(sampler_BaseMap);
+            TEXTURE2D(_PatchMap);
+            SAMPLER(sampler_PatchMap);
 
             CBUFFER_START(UnityPerMaterial)
                 float4 _BaseMap_ST;
+                float4 _PatchMap_ST;
                 half4 _BaseColor;
                 half4 _DarkGreen;
                 half4 _LightGreen;
+                half _PatchStrength;
+                half _PatchWorldScale;
                 half _VariationStrength;
                 half _VariationScale;
                 half _VariationSoftness;
@@ -72,6 +80,7 @@ Shader "CubeTD/Map/GrassSoftClean"
                 float4 positionHCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
                 float3 normalWS : TEXCOORD1;
+                float3 positionWS : TEXCOORD2;
             };
 
             Varyings vert(Attributes input)
@@ -83,6 +92,7 @@ Shader "CubeTD/Map/GrassSoftClean"
                 output.positionHCS = positionInputs.positionCS;
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
                 output.normalWS = normalInputs.normalWS;
+                output.positionWS = positionInputs.positionWS;
                 return output;
             }
 
@@ -116,6 +126,8 @@ Shader "CubeTD/Map/GrassSoftClean"
             half4 frag(Varyings input) : SV_Target
             {
                 half4 tex = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
+                float2 patchUv = input.positionWS.xz * max(0.001h, _PatchWorldScale);
+                half3 patch = SAMPLE_TEXTURE2D(_PatchMap, sampler_PatchMap, patchUv).rgb;
 
                 half broad = SmoothValueNoise(input.uv * _VariationScale);
                 half soft = smoothstep(0.5h - _VariationSoftness * 0.5h, 0.5h + _VariationSoftness * 0.5h, broad);
@@ -123,6 +135,12 @@ Shader "CubeTD/Map/GrassSoftClean"
                 half3 targetGreen = lerp(_DarkGreen.rgb, _LightGreen.rgb, soft);
                 half3 albedo = lerp(_BaseColor.rgb, targetGreen, abs(signedVariation) * _VariationStrength);
                 albedo *= tex.rgb;
+
+                half patchLuminance = dot(patch, half3(0.2126h, 0.7152h, 0.0722h));
+                half patchMask = saturate((1.0h - patchLuminance) * 5.4h);
+                half boostedPatchStrength = saturate(_PatchStrength * lerp(1.0h, 1.45h, _PatchStrength));
+                half3 patchColor = lerp(albedo * 0.72h, _DarkGreen.rgb * 0.9h, 0.55h);
+                albedo = lerp(albedo, patchColor, patchMask * boostedPatchStrength);
 
                 Light mainLight = GetMainLight();
                 half3 normalWS = normalize(input.normalWS);

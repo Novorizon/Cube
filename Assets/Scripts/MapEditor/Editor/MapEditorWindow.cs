@@ -23,6 +23,14 @@ namespace Game.Editor
             Lower,
         }
 
+        private enum MainTab
+        {
+            Map,
+            Paint,
+            Points,
+            Decoration,
+        }
+
         private enum TypeBrush
         {
             Grass = MapTileType.Grass,
@@ -30,6 +38,37 @@ namespace Game.Editor
             Snow = MapTileType.Snow,
             Water = MapTileType.Water,
             Road = MapTileType.Road,
+        }
+
+        private sealed class MapDataReadOnlyView
+        {
+            private readonly MapData mapData;
+
+            public MapDataReadOnlyView(MapData mapData)
+            {
+                this.mapData = mapData;
+            }
+
+            [ShowInInspector, ReadOnly, LabelText("Cells")]
+            public List<MapCellData> Cells => mapData.Cells;
+
+            [ShowInInspector, ReadOnly, LabelText("Objects")]
+            public List<MapObjectData> Objects => mapData.Objects;
+
+            [ShowInInspector, ReadOnly, LabelText("Tile Logic Defaults")]
+            public List<MapTileLogicDefaultData> TileLogicDefaults => mapData.TileLogicDefaults;
+
+            [ShowInInspector, ReadOnly, LabelText("Overlay Logic Defaults")]
+            public List<MapOverlayLogicDefaultData> OverlayLogicDefaults => mapData.OverlayLogicDefaults;
+
+            [ShowInInspector, ReadOnly, LabelText("Spawn Points")]
+            public List<Vector3Int> SpawnPoints => mapData.SpawnPoints;
+
+            [ShowInInspector, ReadOnly, LabelText("Has Goal Point")]
+            public bool HasGoalPoint => mapData.HasGoalPoint;
+
+            [ShowInInspector, ReadOnly, LabelText("Goal Point")]
+            public Vector3Int GoalPoint => mapData.GoalPoint;
         }
 
         [TabGroup("Tabs", "Map", false, 0), OnInspectorGUI, PropertyOrder(-1000)]
@@ -42,6 +81,7 @@ namespace Game.Editor
         private const string DecorationConfigPath = "Assets/Data/Cube/Configs/MapDecorationPrefabConfig.asset";
         private const string RootName = "MapRoot";
         private const float RightDockPanelWidth = 360f;
+        private const float MiddlePanelWidth = 430f;
         private const float DecorationSourcePreviewPanelWidth = 360f;
         private const float DecorationColumnGap = 12f;
 
@@ -57,6 +97,10 @@ namespace Game.Editor
         private bool showCurrentMapData;
         private PropertyTree currentMapPropertyTree;
         private MapData currentMapPropertyTreeTarget;
+        private MapDataReadOnlyView currentMapReadOnlyView;
+
+        [SerializeField, HideInInspector]
+        private MainTab activeMainTab = MainTab.Map;
 
         [HideInInspector, SerializeField]
         private int mapId = 1;
@@ -157,18 +201,22 @@ namespace Game.Editor
 
         private bool DrawBrushPreviewButton(string label, GameObject prefab, bool selected, Color fallbackColor)
         {
+            const float outerWidth = 78f;
+            const float previewWidth = 68f;
+            const float previewHeight = 58f;
+
             Color oldBackgroundColor = GUI.backgroundColor;
             if (selected) GUI.backgroundColor = new Color(0.55f, 0.85f, 1f);
 
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(104f));
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox, GUILayout.Width(outerWidth));
             Texture2D preview = GetPrefabPreview(prefab);
             GUIContent previewContent = preview != null ? new GUIContent(preview) : new GUIContent(label);
-            bool clicked = GUILayout.Button(previewContent, GUILayout.Width(92f), GUILayout.Height(72f));
+            bool clicked = GUILayout.Button(previewContent, GUILayout.Width(previewWidth), GUILayout.Height(previewHeight));
 
             GUIStyle labelStyle = selected ? EditorStyles.boldLabel : EditorStyles.centeredGreyMiniLabel;
-            Rect colorRect = GUILayoutUtility.GetRect(92f, 8f, GUILayout.Width(92f));
+            Rect colorRect = GUILayoutUtility.GetRect(previewWidth, 8f, GUILayout.Width(previewWidth));
             EditorGUI.DrawRect(colorRect, fallbackColor);
-            EditorGUILayout.LabelField(label, labelStyle, GUILayout.Width(92f));
+            EditorGUILayout.LabelField(label, labelStyle, GUILayout.Width(previewWidth));
             EditorGUILayout.EndVertical();
 
             GUI.backgroundColor = oldBackgroundColor;
@@ -223,6 +271,10 @@ namespace Game.Editor
                 toggleBrush = GUILayout.Button(brushEnabled ? "关闭笔刷\nToggle Off" : "开启笔刷\nToggle On", GUILayout.Width(118f), GUILayout.Height(44f));
                 fillLayer = GUILayout.Button("填充当前高度层\nFill Y Layer", GUILayout.Width(138f), GUILayout.Height(44f));
                 clearOverlay = GUILayout.Button("清除覆盖层\nClear Overlay", GUILayout.Width(118f), GUILayout.Height(44f));
+            }
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
                 raise = DrawPaintModeButton("升高笔刷\nRaise", BrushMode.Raise, 96f);
                 lower = DrawPaintModeButton("降低笔刷\nLower", BrushMode.Lower, 96f);
             }
@@ -232,6 +284,22 @@ namespace Game.Editor
             if (clearOverlay) ClearOverlayBrushArea();
             if (raise) SetPaintBrushMode(BrushMode.Raise);
             if (lower) SetPaintBrushMode(BrushMode.Lower);
+        }
+
+        private void DrawPaintControlPanel()
+        {
+            EditorGUILayout.LabelField("Type Direction", EditorStyles.boldLabel);
+            brushTypeDirection = DrawDirectionButtons(brushTypeDirection);
+
+            GUILayout.Space(4f);
+            EditorGUILayout.LabelField("Overlay Direction", EditorStyles.boldLabel);
+            brushOverlayDirection = DrawDirectionButtons(brushOverlayDirection);
+
+            GUILayout.Space(8f);
+            brushEnabled = EditorGUILayout.Toggle("Brush Enabled", brushEnabled);
+            brushMode = (BrushMode)EditorGUILayout.EnumPopup("Brush Mode", brushMode);
+            brushSize = Mathf.Clamp(EditorGUILayout.IntField("Brush Size", brushSize), 1, 9);
+            skipPointTiles = EditorGUILayout.Toggle("Skip Spawn/Goal", skipPointTiles);
         }
 
         private bool DrawPaintModeButton(string label, BrushMode mode, float width)
@@ -685,10 +753,92 @@ namespace Game.Editor
             {
                 using (new EditorGUILayout.VerticalScope(GUILayout.ExpandWidth(true)))
                 {
-                    base.OnGUI();
+                    DrawMainEditorColumns();
                 }
 
                 DrawRightDockPreviewPanel();
+            }
+        }
+
+        private void DrawMainTabToolbar()
+        {
+            string[] labels = { "Map", "Paint", "Points", "Decoration" };
+            activeMainTab = (MainTab)GUILayout.Toolbar((int)activeMainTab, labels, GUILayout.Height(20f));
+        }
+
+        private void DrawMainEditorColumns()
+        {
+            float contentWidth = Mathf.Max(720f, position.width - RightDockPanelWidth - 18f);
+            float middleWidth = GetMiddlePanelWidth(contentWidth);
+            float leftWidth = middleWidth > 0f
+                ? Mathf.Max(360f, contentWidth - middleWidth - DecorationColumnGap)
+                : contentWidth;
+
+            using (new EditorGUILayout.HorizontalScope(GUILayout.Width(contentWidth), GUILayout.ExpandHeight(true)))
+            {
+                using (new EditorGUILayout.VerticalScope(GUILayout.Width(leftWidth), GUILayout.MinWidth(360f), GUILayout.ExpandHeight(true)))
+                {
+                    DrawMainTabToolbar();
+                    DrawActiveLeftPanel(leftWidth);
+                }
+
+                if (middleWidth > 0f)
+                {
+                    GUILayout.Space(DecorationColumnGap);
+                    using (new EditorGUILayout.VerticalScope(GUILayout.Width(middleWidth), GUILayout.MinWidth(middleWidth), GUILayout.MaxWidth(middleWidth), GUILayout.ExpandHeight(true)))
+                    {
+                        DrawActiveMiddlePanel(middleWidth);
+                    }
+                }
+            }
+        }
+
+        private float GetMiddlePanelWidth(float contentWidth)
+        {
+            return Mathf.Min(MiddlePanelWidth, Mathf.Max(360f, contentWidth - 360f - DecorationColumnGap));
+        }
+
+        private void DrawActiveLeftPanel(float panelWidth)
+        {
+            switch (activeMainTab)
+            {
+                case MainTab.Map:
+                    DrawMapControlPanel();
+                    break;
+
+                case MainTab.Paint:
+                    DrawPaintControlPanel();
+                    break;
+
+                case MainTab.Points:
+                    DrawPointsPanel();
+                    break;
+
+                case MainTab.Decoration:
+                    DrawDecorationPlacementPanel(panelWidth);
+                    break;
+            }
+        }
+
+        private void DrawActiveMiddlePanel(float panelWidth)
+        {
+            switch (activeMainTab)
+            {
+                case MainTab.Map:
+                    DrawMapLogicDefaultsPanel(panelWidth);
+                    break;
+
+                case MainTab.Paint:
+                    DrawPaintBrushPreviews();
+                    break;
+
+                case MainTab.Points:
+                    DrawPointsPreviewPanel(panelWidth);
+                    break;
+
+                case MainTab.Decoration:
+                    DrawDecorationSourcePreviewPanel(panelWidth);
+                    break;
             }
         }
 
@@ -933,11 +1083,15 @@ namespace Game.Editor
 
             if (currentMapPropertyTree == null || currentMapPropertyTreeTarget != currentMap)
             {
-                currentMapPropertyTree = PropertyTree.Create(currentMap);
+                currentMapReadOnlyView = new MapDataReadOnlyView(currentMap);
+                currentMapPropertyTree = PropertyTree.Create(currentMapReadOnlyView);
                 currentMapPropertyTreeTarget = currentMap;
             }
 
-            currentMapPropertyTree.Draw(false);
+            using (new EditorGUI.DisabledScope(true))
+            {
+                currentMapPropertyTree.Draw(false);
+            }
         }
 
         private void CreateGridMap()
@@ -945,6 +1099,7 @@ namespace Game.Editor
             currentMap = new MapData(mapId, mapName, width, height, depth);
             currentMapPropertyTree = null;
             currentMapPropertyTreeTarget = null;
+            currentMapReadOnlyView = null;
             currentMap.Description = description;
             tileMap.Clear();
             objectsByCoord.Clear();
@@ -981,6 +1136,7 @@ namespace Game.Editor
             currentMap = null;
             currentMapPropertyTree = null;
             currentMapPropertyTreeTarget = null;
+            currentMapReadOnlyView = null;
             selectedTile = null;
             tileMap.Clear();
             objectsByCoord.Clear();
@@ -1442,6 +1598,78 @@ namespace Game.Editor
             if (clearPoints) ClearPoints();
         }
 
+        private void DrawPointsPanel()
+        {
+            EditorGUILayout.LabelField("Spawn Points", EditorStyles.boldLabel);
+
+            int removeIndex = -1;
+            for (int i = 0; i < spawnPoints.Count; i++)
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    spawnPoints[i] = EditorGUILayout.Vector3IntField($"#{i}", spawnPoints[i]);
+                    if (GUILayout.Button("-", GUILayout.Width(24f)))
+                    {
+                        removeIndex = i;
+                    }
+                }
+            }
+
+            if (removeIndex >= 0)
+            {
+                spawnPoints.RemoveAt(removeIndex);
+            }
+
+            if (GUILayout.Button("添加出生点\nAdd Spawn Entry", GUILayout.Width(132f), GUILayout.Height(38f)))
+            {
+                spawnPoints.Add(default);
+            }
+
+            GUILayout.Space(8f);
+            hasGoalPoint = EditorGUILayout.Toggle("Has Goal", hasGoalPoint);
+            using (new EditorGUI.DisabledScope(!hasGoalPoint))
+            {
+                goalPoint = EditorGUILayout.Vector3IntField("Goal Point", goalPoint);
+            }
+
+            GUILayout.Space(8f);
+            DrawPointsToolButtons();
+        }
+
+        private void DrawPointsPreviewPanel(float panelWidth)
+        {
+            EditorGUILayout.BeginVertical(GUILayout.Width(panelWidth), GUILayout.MinWidth(panelWidth), GUILayout.MaxWidth(panelWidth), GUILayout.ExpandHeight(true));
+            EditorGUILayout.LabelField("点位预览 / Point Preview", EditorStyles.boldLabel);
+
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUILayout.IntField("Spawn Count", spawnPoints.Count);
+                EditorGUILayout.Toggle("Has Goal", hasGoalPoint);
+                EditorGUILayout.Vector3IntField("Goal Point", goalPoint);
+            }
+
+            GUILayout.Space(6f);
+            EditorGUILayout.LabelField("Spawn Points", EditorStyles.miniBoldLabel);
+
+            if (spawnPoints.Count == 0)
+            {
+                EditorGUILayout.HelpBox("No spawn points.", MessageType.Info);
+                EditorGUILayout.EndVertical();
+                return;
+            }
+
+            using (new EditorGUI.DisabledScope(true))
+            {
+                for (int i = 0; i < spawnPoints.Count; i++)
+                {
+                    EditorGUILayout.Vector3IntField($"#{i}", spawnPoints[i]);
+                }
+            }
+
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndVertical();
+        }
+
         private void AddSelectedAsSpawn()
         {
             if (!MapTileRule.IsValidMapPoint(selectedCoord, currentMap, out string reason))
@@ -1702,6 +1930,7 @@ namespace Game.Editor
             currentMap = data;
             currentMapPropertyTree = null;
             currentMapPropertyTreeTarget = null;
+            currentMapReadOnlyView = null;
             PullSettingsFromMap();
             RebuildTileIndex();
             CreatePreviewObjects();
