@@ -262,13 +262,15 @@ namespace Game
                 return false;
             }
 
+            tile.EnsureLayers();
+
             if (!IsLogicTile(tile.Type))
             {
                 reason = $"target tile is not logic tile: {tile.Type}";
                 return false;
             }
 
-            if (!IsWalkable(tile.Type, tile.Overlay.Type))
+            if (!tile.Walkable)
             {
                 reason = $"target tile is not walkable: {tile.Type}, overlay: {tile.Overlay.Type}";
                 return false;

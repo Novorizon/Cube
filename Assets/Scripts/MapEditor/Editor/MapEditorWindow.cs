@@ -32,9 +32,14 @@ namespace Game.Editor
             Road = MapTileType.Road,
         }
 
+        [TabGroup("Tabs", "Map", false, 0), OnInspectorGUI, PropertyOrder(-1000)]
+        private void DrawMapTab()
+        {
+            DrawMapToolButtons();
+        }
+
         private const string PrefabConfigPath = "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset";
         private const string DecorationConfigPath = "Assets/Data/Cube/Configs/MapDecorationPrefabConfig.asset";
-        private const string TerrainBlendConfigPath = "Assets/Data/Cube/Configs/MapTerrainBlendConfig.asset";
         private const string RootName = "MapRoot";
         private const float RightDockPanelWidth = 360f;
         private const float DecorationSourcePreviewPanelWidth = 360f;
@@ -48,45 +53,43 @@ namespace Game.Editor
         private readonly List<GameObject> decorationObjects = new List<GameObject>();
         private readonly List<int> decorationIdOptions = new List<int>();
         private readonly List<string> decorationNameOptions = new List<string>();
+        private Vector2 logicDefaultsPreviewScroll;
+        private bool showCurrentMapData;
+        private PropertyTree currentMapPropertyTree;
+        private MapData currentMapPropertyTreeTarget;
 
-        [TabGroup("Map"), LabelText("Map Id"), SerializeField]
+        [HideInInspector, SerializeField]
         private int mapId = 1;
 
-        [TabGroup("Map"), LabelText("Map Name"), SerializeField]
+        [HideInInspector, SerializeField]
         private string mapName = "NewMap";
 
-        [TabGroup("Map"), LabelText("Description"), TextArea, SerializeField]
+        [HideInInspector, SerializeField]
         private string description = "Tower defense map";
 
-        [TabGroup("Map"), LabelText("Width X"), MinValue(1), SerializeField]
+        [HideInInspector, SerializeField]
         private int width = 12;
 
-        [TabGroup("Map"), LabelText("Height Y"), MinValue(1), SerializeField]
+        [HideInInspector, SerializeField]
         private int height = 1;
 
-        [TabGroup("Map"), LabelText("Depth Z"), MinValue(1), SerializeField]
+        [HideInInspector, SerializeField]
         private int depth = 12;
 
-        [TabGroup("Map"), LabelText("Tile Size"), MinValue(0.1f), SerializeField]
+        [HideInInspector, SerializeField]
         private float tileSize = 1f;
 
-        [TabGroup("Map"), LabelText("Default Type"), EnumToggleButtons, SerializeField]
+        [HideInInspector, SerializeField]
         private TypeBrush defaultTileType = TypeBrush.Grass;
 
-        [TabGroup("Map"), LabelText("Prefab Config"), SerializeField]
+        [HideInInspector, SerializeField]
         private MapTilePrefabConfig prefabConfig;
 
-        [TabGroup("Map"), LabelText("Decoration Config"), SerializeField]
+        [HideInInspector, SerializeField]
         private MapDecorationPrefabConfig decorationConfig;
 
-        [TabGroup("Map"), LabelText("Terrain Blend Config"), SerializeField]
-        private MapTerrainBlendConfig terrainBlendConfig;
-
-        [TabGroup("Map"), LabelText("Preview Root"), ReadOnly, SerializeField]
+        [HideInInspector, SerializeField]
         private Transform previewRoot;
-
-        [TabGroup("Map"), LabelText("Debug Tile Picking"), SerializeField]
-        private bool debugTilePicking;
 
         [HideInInspector, SerializeField]
         private TypeBrush brushTileType = TypeBrush.Grass;
@@ -94,13 +97,13 @@ namespace Game.Editor
         [HideInInspector, SerializeField]
         private MapTileOverlay brushOverlay = MapTileOverlay.None;
 
-        [TabGroup("Paint"), LabelText("Type Direction"), EnumToggleButtons, SerializeField]
+        [TabGroup("Tabs", "Paint", false, 1), LabelText("Type Direction"), EnumToggleButtons, SerializeField]
         private MapDirection brushTypeDirection = MapDirection.North;
 
-        [TabGroup("Paint"), LabelText("Overlay Direction"), EnumToggleButtons, SerializeField]
+        [TabGroup("Tabs", "Paint", false, 1), LabelText("Overlay Direction"), EnumToggleButtons, SerializeField]
         private MapDirection brushOverlayDirection = MapDirection.North;
 
-        [TabGroup("Paint"), OnInspectorGUI]
+        [TabGroup("Tabs", "Paint", false, 1), OnInspectorGUI]
         private void DrawPaintBrushPreviews()
         {
             DrawTypeBrushPreviewSelector();
@@ -248,16 +251,16 @@ namespace Game.Editor
             SceneView.RepaintAll();
         }
 
-        [TabGroup("Paint"), LabelText("Brush Enabled"), SerializeField]
+        [TabGroup("Tabs", "Paint", false, 1), LabelText("Brush Enabled"), SerializeField]
         private bool brushEnabled;
 
-        [TabGroup("Paint"), LabelText("Brush Mode"), EnumToggleButtons, SerializeField]
+        [TabGroup("Tabs", "Paint", false, 1), LabelText("Brush Mode"), EnumToggleButtons, SerializeField]
         private BrushMode brushMode = BrushMode.Type;
 
-        [TabGroup("Paint"), LabelText("Brush Size"), MinValue(1), MaxValue(9), SerializeField]
+        [TabGroup("Tabs", "Paint", false, 1), LabelText("Brush Size"), MinValue(1), MaxValue(9), SerializeField]
         private int brushSize = 1;
 
-        [TabGroup("Paint"), LabelText("Skip Spawn/Goal"), SerializeField]
+        [TabGroup("Tabs", "Paint", false, 1), LabelText("Skip Spawn/Goal"), SerializeField]
         private bool skipPointTiles = true;
 
         private bool HasSelection => selectedTile != null;
@@ -294,22 +297,19 @@ namespace Game.Editor
         private int DecorationCount => currentMap != null && currentMap.Objects != null ? currentMap.Objects.Count : 0;
         private Vector2 decorationPreviewScroll;
 
-        [TabGroup("Points"), LabelText("Spawn Points"), SerializeField]
+        [TabGroup("Tabs", "Points", false, 2), LabelText("Spawn Points"), SerializeField]
         private List<Vector3Int> spawnPoints = new List<Vector3Int>();
 
-        [TabGroup("Points"), LabelText("Has Goal"), SerializeField]
+        [TabGroup("Tabs", "Points", false, 2), LabelText("Has Goal"), SerializeField]
         private bool hasGoalPoint;
 
-        [TabGroup("Points"), LabelText("Goal Point"), SerializeField]
+        [TabGroup("Tabs", "Points", false, 2), LabelText("Goal Point"), SerializeField]
         private Vector3Int goalPoint;
 
-        [TabGroup("Map"), ShowInInspector, ReadOnly, LabelText("Tile Count / 地块数量"), PropertyOrder(100)]
         private int TileCount => currentMap != null && currentMap.Cells != null ? currentMap.Cells.Count : 0;
 
-        [TabGroup("Map"), ShowInInspector, ReadOnly, LabelText("Object Count / 对象数量"), PropertyOrder(101)]
         private int ObjectCount => currentMap != null && currentMap.Objects != null ? currentMap.Objects.Count : 0;
 
-        [TabGroup("Map"), ShowInInspector, ReadOnly, LabelText("Current Map / 当前地图数据"), PropertyOrder(102)]
         private MapData currentMap;
 
         private MapCellData selectedTile;
@@ -342,9 +342,60 @@ namespace Game.Editor
             }
 
             GUILayout.Space(8f);
+            DrawRightDockGrassVisualEditor();
+            GUILayout.Space(8f);
             DrawRightDockSelectionEditors();
             GUILayout.Space(8f);
             DrawRightDockSelectedCellObjectsPanel();
+        }
+
+        private void DrawRightDockGrassVisualEditor()
+        {
+            if (selectedTile.Type != MapTileType.Grass)
+            {
+                return;
+            }
+
+            EditorGUILayout.LabelField("Grass Visual / 草地表现", EditorStyles.boldLabel);
+
+            bool enabled = selectedTile.GrassVisual != null;
+            EditorGUI.BeginChangeCheck();
+            enabled = EditorGUILayout.Toggle("Override", enabled);
+            if (EditorGUI.EndChangeCheck())
+            {
+                selectedTile.GrassVisual = enabled ? MapGrassVisualData.CreateDefault() : null;
+                ApplyGrassVisualToPreview(selectedCoord);
+                Repaint();
+                SceneView.RepaintAll();
+            }
+
+            MapGrassVisualData visual = selectedTile.GrassVisual;
+            if (visual == null)
+            {
+                EditorGUILayout.HelpBox("Disabled: this cell uses the shared Grass material defaults.", MessageType.None);
+                return;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            Color baseGreen = EditorGUILayout.ColorField("Base Green", visual.BaseGreen);
+            Color darkGreen = EditorGUILayout.ColorField("Dark Green", visual.DarkGreen);
+            Color lightGreen = EditorGUILayout.ColorField("Light Green", visual.LightGreen);
+            float variationStrength = EditorGUILayout.Slider("Variation Strength", visual.VariationStrength, 0f, 1f);
+            float variationScale = EditorGUILayout.Slider("Variation Scale", visual.VariationScale, 0.25f, 8f);
+            float variationSoftness = EditorGUILayout.Slider("Variation Softness", visual.VariationSoftness, 0.01f, 1f);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                visual.BaseGreen = baseGreen;
+                visual.DarkGreen = darkGreen;
+                visual.LightGreen = lightGreen;
+                visual.VariationStrength = Mathf.Clamp01(variationStrength);
+                visual.VariationScale = Mathf.Clamp(variationScale, 0.25f, 8f);
+                visual.VariationSoftness = Mathf.Clamp(variationSoftness, 0.01f, 1f);
+                ApplyGrassVisualToPreview(selectedCoord);
+                Repaint();
+                SceneView.RepaintAll();
+            }
         }
 
         private void DrawRightDockSelectionEditors()
@@ -666,12 +717,37 @@ namespace Game.Editor
             paintedThisDrag.Clear();
         }
 
-        [TabGroup("Map"), OnInspectorGUI]
         private void DrawMapToolButtons()
         {
+            float contentWidth = Mathf.Max(760f, position.width - RightDockPanelWidth - 36f);
+            float rightWidth = Mathf.Min(430f, Mathf.Max(380f, contentWidth * 0.48f));
+            float leftWidth = Mathf.Max(360f, contentWidth - rightWidth - DecorationColumnGap);
+
+            using (new EditorGUILayout.HorizontalScope(GUILayout.Width(contentWidth)))
+            {
+                using (new EditorGUILayout.VerticalScope(GUILayout.Width(leftWidth), GUILayout.MinWidth(leftWidth), GUILayout.MaxWidth(leftWidth)))
+                {
+                    DrawMapControlPanel();
+                }
+
+                GUILayout.Space(DecorationColumnGap);
+                DrawMapLogicDefaultsPanel(rightWidth);
+            }
+        }
+
+        private void DrawMapControlPanel()
+        {
+            DrawMapSettingsFields();
+            GUILayout.Space(4f);
+            DrawMapReferenceFields();
+            GUILayout.Space(4f);
+
             bool createGrid;
             bool rebuild;
             bool clear;
+            bool import;
+            bool export;
+            bool validate;
 
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -680,17 +756,195 @@ namespace Game.Editor
                 clear = GUILayout.Button("清空地图\nClear", GUILayout.Width(108f), GUILayout.Height(44f));
             }
 
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                import = GUILayout.Button("导入 Json\nImport", GUILayout.Width(128f), GUILayout.Height(44f));
+                export = GUILayout.Button("导出 Json\nExport", GUILayout.Width(118f), GUILayout.Height(44f));
+                validate = GUILayout.Button("校验地图\nValidate", GUILayout.Width(108f), GUILayout.Height(44f));
+            }
+
             if (createGrid) CreateGridMap();
             if (rebuild) RebuildPreview();
             if (clear) ClearMap();
+            if (import) ImportJson();
+            if (export) ExportJson();
+            if (validate) ValidateCurrentMap();
 
             GUILayout.Space(8f);
-            DrawMapIOToolButtons();
+            DrawMapLogicApplyButtons();
+            GUILayout.Space(8f);
+            DrawMapStatusFields();
+        }
+
+        private void DrawMapSettingsFields()
+        {
+            DrawFixedIntField("Map Id", ref mapId, 1);
+            DrawFixedTextField("Map Name", ref mapName);
+            DrawFixedTextArea("Description", ref description);
+            DrawFixedIntField("Width X", ref width, 1);
+            DrawFixedIntField("Height Y", ref height, 1);
+            DrawFixedIntField("Depth Z", ref depth, 1);
+            DrawFixedFloatField("Tile Size", ref tileSize, 0.1f);
+            DrawFixedDefaultTypeField();
+        }
+
+        private void DrawFixedTextField(string label, ref string value)
+        {
+            const float labelWidth = 112f;
+            const float fieldWidth = 270f;
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField(label, GUILayout.Width(labelWidth));
+                value = EditorGUILayout.TextField(value, GUILayout.Width(fieldWidth));
+            }
+        }
+
+        private void DrawFixedTextArea(string label, ref string value)
+        {
+            const float labelWidth = 112f;
+            const float fieldWidth = 270f;
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField(label, GUILayout.Width(labelWidth));
+                value = EditorGUILayout.TextArea(value, GUILayout.Width(fieldWidth), GUILayout.Height(42f));
+            }
+        }
+
+        private void DrawFixedIntField(string label, ref int value, int minValue)
+        {
+            const float labelWidth = 112f;
+            const float fieldWidth = 270f;
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField(label, GUILayout.Width(labelWidth));
+                value = Mathf.Max(minValue, EditorGUILayout.IntField(value, GUILayout.Width(fieldWidth)));
+            }
+        }
+
+        private void DrawFixedFloatField(string label, ref float value, float minValue)
+        {
+            const float labelWidth = 112f;
+            const float fieldWidth = 270f;
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField(label, GUILayout.Width(labelWidth));
+                value = Mathf.Max(minValue, EditorGUILayout.FloatField(value, GUILayout.Width(fieldWidth)));
+            }
+        }
+
+        private void DrawFixedDefaultTypeField()
+        {
+            const float labelWidth = 112f;
+            const float buttonWidth = 54f;
+            TypeBrush[] options =
+            {
+                TypeBrush.Grass,
+                TypeBrush.Hill,
+                TypeBrush.Snow,
+                TypeBrush.Water,
+                TypeBrush.Road
+            };
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField("Default Type", GUILayout.Width(labelWidth));
+                for (int i = 0; i < options.Length; i++)
+                {
+                    TypeBrush option = options[i];
+                    Color oldBackgroundColor = GUI.backgroundColor;
+                    if (defaultTileType == option)
+                    {
+                        GUI.backgroundColor = new Color(0.55f, 0.85f, 1f);
+                    }
+
+                    if (GUILayout.Button(option.ToString(), GUILayout.Width(buttonWidth), GUILayout.Height(20f)))
+                    {
+                        defaultTileType = option;
+                    }
+
+                    GUI.backgroundColor = oldBackgroundColor;
+                }
+            }
+        }
+
+        private void DrawMapReferenceFields()
+        {
+            DrawFixedObjectField("Prefab Config", ref prefabConfig);
+            DrawFixedObjectField("Decoration Config", ref decorationConfig);
+
+            using (new EditorGUI.DisabledScope(true))
+            {
+                DrawFixedObjectField("Preview Root", ref previewRoot);
+            }
+        }
+
+        private void DrawFixedObjectField<T>(string label, ref T value) where T : Object
+        {
+            const float labelWidth = 112f;
+            const float fieldWidth = 270f;
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField(label, GUILayout.Width(labelWidth));
+                value = (T)EditorGUILayout.ObjectField(value, typeof(T), false, GUILayout.Width(fieldWidth));
+            }
+        }
+
+        private void DrawMapStatusFields()
+        {
+            using (new EditorGUI.DisabledScope(true))
+            {
+                DrawFixedReadOnlyTextField("Tile Count / 地块数量", TileCount.ToString());
+                DrawFixedReadOnlyTextField("Object Count / 对象数量", ObjectCount.ToString());
+            }
+
+            DrawCurrentMapDataFoldout();
+        }
+
+        private void DrawFixedReadOnlyTextField(string label, string value)
+        {
+            const float labelWidth = 156f;
+            const float fieldWidth = 270f;
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField(label, GUILayout.Width(labelWidth));
+                EditorGUILayout.TextField(value, GUILayout.Width(fieldWidth));
+            }
+        }
+
+        private void DrawCurrentMapDataFoldout()
+        {
+            showCurrentMapData = EditorGUILayout.Foldout(showCurrentMapData, "Current Map / 当前地图数据", true);
+            if (!showCurrentMapData)
+            {
+                return;
+            }
+
+            if (currentMap == null)
+            {
+                EditorGUILayout.HelpBox("Current map is null.", MessageType.Info);
+                return;
+            }
+
+            if (currentMapPropertyTree == null || currentMapPropertyTreeTarget != currentMap)
+            {
+                currentMapPropertyTree = PropertyTree.Create(currentMap);
+                currentMapPropertyTreeTarget = currentMap;
+            }
+
+            currentMapPropertyTree.Draw(false);
         }
 
         private void CreateGridMap()
         {
             currentMap = new MapData(mapId, mapName, width, height, depth);
+            currentMapPropertyTree = null;
+            currentMapPropertyTreeTarget = null;
             currentMap.Description = description;
             tileMap.Clear();
             objectsByCoord.Clear();
@@ -725,6 +979,8 @@ namespace Game.Editor
         private void ClearMap()
         {
             currentMap = null;
+            currentMapPropertyTree = null;
+            currentMapPropertyTreeTarget = null;
             selectedTile = null;
             tileMap.Clear();
             objectsByCoord.Clear();
@@ -733,7 +989,7 @@ namespace Game.Editor
             ClearPreviewObjects();
         }
 
-        [TabGroup("Decoration"), OnInspectorGUI]
+        [TabGroup("Tabs", "Decoration", false, 3), OnInspectorGUI]
         private void DrawDecorationTab()
         {
             TryLoadDecorationConfig();
@@ -1135,7 +1391,7 @@ namespace Game.Editor
 
         private void ResetSelectedLogic()
         {
-            if (selectedTile != null) selectedTile.ApplyDefaultLogic();
+            if (selectedTile != null) selectedTile.ApplyDefaultLogic(currentMap);
         }
 
         private void AddTileAboveSelected()
@@ -1160,7 +1416,7 @@ namespace Game.Editor
             }
         }
 
-        [TabGroup("Points"), OnInspectorGUI]
+        [TabGroup("Tabs", "Points", false, 2), OnInspectorGUI]
         private void DrawPointsToolButtons()
         {
             bool addSpawn = false;
@@ -1252,24 +1508,182 @@ namespace Game.Editor
 
             RefreshMarkers();
         }
-        private void DrawMapIOToolButtons()
+        private void DrawMapLogicDefaultsPanel(float panelWidth)
         {
-            EditorGUILayout.LabelField("Map IO / 地图文件", EditorStyles.boldLabel);
+            EditorGUILayout.BeginVertical(GUILayout.Width(panelWidth), GUILayout.MinWidth(panelWidth), GUILayout.MaxWidth(panelWidth), GUILayout.ExpandHeight(true));
+            EditorGUILayout.LabelField("默认逻辑资源库预览 / Source Preview", EditorStyles.boldLabel);
 
-            bool import;
-            bool export;
-            bool validate;
+            if (currentMap == null)
+            {
+                EditorGUILayout.HelpBox("Create or import a map first.", MessageType.Info);
+                EditorGUILayout.EndVertical();
+                return;
+            }
+
+            currentMap.EnsureRuntimeCollections();
+            float listWidth = panelWidth - 24f;
+            logicDefaultsPreviewScroll = EditorGUILayout.BeginScrollView(logicDefaultsPreviewScroll, false, true, GUILayout.Width(panelWidth), GUILayout.ExpandHeight(true));
+
+            EditorGUILayout.LabelField("Tile Type Defaults", EditorStyles.miniBoldLabel);
+            EditorGUI.BeginChangeCheck();
+
+            for (int i = 0; i < currentMap.TileLogicDefaults.Count; i++)
+            {
+                MapTileLogicDefaultData item = currentMap.TileLogicDefaults[i];
+                if (item == null) continue;
+                DrawTileLogicDefaultPreviewRow(item, listWidth);
+            }
+
+            GUILayout.Space(4f);
+            EditorGUILayout.LabelField("Overlay Defaults", EditorStyles.miniBoldLabel);
+
+            for (int i = 0; i < currentMap.OverlayLogicDefaults.Count; i++)
+            {
+                MapOverlayLogicDefaultData item = currentMap.OverlayLogicDefaults[i];
+                if (item == null) continue;
+                DrawOverlayLogicDefaultPreviewRow(item, listWidth);
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                Repaint();
+            }
+
+            EditorGUILayout.EndScrollView();
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawMapLogicApplyButtons()
+        {
+            EditorGUILayout.LabelField("Logic Defaults / 默认逻辑", EditorStyles.boldLabel);
+
+            if (currentMap == null)
+            {
+                EditorGUILayout.HelpBox("Create or import a map first.", MessageType.Info);
+                return;
+            }
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                import = GUILayout.Button("导入 Json\nImport", GUILayout.Width(112f), GUILayout.Height(44f));
-                export = GUILayout.Button("导出 Json\nExport", GUILayout.Width(112f), GUILayout.Height(44f));
-                validate = GUILayout.Button("校验地图\nValidate", GUILayout.Width(112f), GUILayout.Height(44f));
+                using (new EditorGUI.DisabledScope(!HasSelection))
+                {
+                    if (GUILayout.Button("应用到选中\nSelected", GUILayout.Width(104f), GUILayout.Height(38f))) ApplyDefaultLogicToSelected();
+                    if (GUILayout.Button("应用同地块\nSame Type", GUILayout.Width(104f), GUILayout.Height(38f))) ApplyDefaultLogicToSameType();
+                }
+
+                if (GUILayout.Button("应用全部\nAll Cells", GUILayout.Width(104f), GUILayout.Height(38f))) ApplyDefaultLogicToAllCells();
+            }
+        }
+
+        private void DrawTileLogicDefaultPreviewRow(MapTileLogicDefaultData item, float rowWidth)
+        {
+            DrawLogicDefaultPreviewRow(
+                item.Type.ToString(),
+                GetPrefab(item.Type),
+                GetFallbackColor(item.Type),
+                ref item.Walkable,
+                ref item.Buildable,
+                ref item.MoveCost,
+                rowWidth);
+        }
+
+        private void DrawOverlayLogicDefaultPreviewRow(MapOverlayLogicDefaultData item, float rowWidth)
+        {
+            DrawLogicDefaultPreviewRow(
+                item.Overlay.ToString(),
+                GetOverlayPreviewPrefab(item.Overlay),
+                GetOverlayFallbackColor(item.Overlay),
+                ref item.Walkable,
+                ref item.Buildable,
+                ref item.MoveCost,
+                rowWidth);
+        }
+
+        private void DrawLogicDefaultPreviewRow(string label, GameObject prefab, Color fallbackColor, ref bool walkable, ref bool buildable, ref int moveCost, float rowWidth)
+        {
+            const float rowHeight = 92f;
+            Rect rowRect = GUILayoutUtility.GetRect(rowWidth, rowHeight, GUILayout.Width(rowWidth), GUILayout.Height(rowHeight));
+            rowRect = new Rect(rowRect.x + 2f, rowRect.y + 2f, rowRect.width - 4f, rowRect.height - 4f);
+
+            EditorGUI.DrawRect(rowRect, new Color(0.24f, 0.24f, 0.24f, 1f));
+            GUI.Box(rowRect, GUIContent.none, EditorStyles.helpBox);
+
+            Rect previewRect = new Rect(rowRect.x + 8f, rowRect.y + 17f, 56f, 56f);
+            Rect colorRect = new Rect(previewRect.x, previewRect.yMax - 5f, previewRect.width, 5f);
+            Rect nameRect = new Rect(previewRect.xMax + 10f, rowRect.y + 14f, 110f, 18f);
+            Rect objectFieldRect = new Rect(nameRect.x, rowRect.y + 42f, 150f, 18f);
+            Rect walkRect = new Rect(objectFieldRect.xMax + 12f, rowRect.y + 14f, 62f, 18f);
+            Rect buildRect = new Rect(walkRect.x, rowRect.y + 36f, 62f, 18f);
+            Rect costLabelRect = new Rect(walkRect.x, rowRect.y + 60f, 34f, 18f);
+            Rect costRect = new Rect(costLabelRect.xMax + 4f, rowRect.y + 58f, 48f, 18f);
+
+            GUI.Box(previewRect, GUIContent.none);
+            Texture2D preview = GetPrefabPreview(prefab);
+            if (preview != null)
+            {
+                GUI.DrawTexture(new Rect(previewRect.x + 3f, previewRect.y + 3f, previewRect.width - 6f, previewRect.height - 6f), preview, ScaleMode.ScaleToFit);
+            }
+            else
+            {
+                GUI.Label(previewRect, "No\nPrefab", EditorStyles.centeredGreyMiniLabel);
             }
 
-            if (import) ImportJson();
-            if (export) ExportJson();
-            if (validate) ValidateCurrentMap();
+            EditorGUI.DrawRect(colorRect, fallbackColor);
+            GUI.Label(nameRect, label, EditorStyles.boldLabel);
+            EditorGUI.ObjectField(objectFieldRect, GUIContent.none, prefab, typeof(GameObject), false);
+            walkable = EditorGUI.ToggleLeft(walkRect, "Walk", walkable);
+            buildable = EditorGUI.ToggleLeft(buildRect, "Build", buildable);
+            GUI.Label(costLabelRect, "Cost");
+            moveCost = Mathf.Max(0, EditorGUI.IntField(costRect, moveCost));
+        }
+
+        private void ApplyDefaultLogicToSelected()
+        {
+            if (selectedTile == null || currentMap == null) return;
+            selectedTile.ApplyDefaultLogic(currentMap);
+            RefreshAfterLogicApply(1);
+        }
+
+        private void ApplyDefaultLogicToSameType()
+        {
+            if (selectedTile == null || currentMap == null || currentMap.Cells == null) return;
+
+            MapTileType type = selectedTile.Type;
+            int count = 0;
+            for (int i = 0; i < currentMap.Cells.Count; i++)
+            {
+                MapCellData tile = currentMap.Cells[i];
+                if (tile == null || tile.Type != type) continue;
+                tile.ApplyDefaultLogic(currentMap);
+                count++;
+            }
+
+            RefreshAfterLogicApply(count);
+        }
+
+        private void ApplyDefaultLogicToAllCells()
+        {
+            if (currentMap == null || currentMap.Cells == null) return;
+
+            int count = 0;
+            for (int i = 0; i < currentMap.Cells.Count; i++)
+            {
+                MapCellData tile = currentMap.Cells[i];
+                if (tile == null) continue;
+                tile.ApplyDefaultLogic(currentMap);
+                count++;
+            }
+
+            RefreshAfterLogicApply(count);
+        }
+
+        private void RefreshAfterLogicApply(int count)
+        {
+            RefreshMarkers();
+            Repaint();
+            SceneView.RepaintAll();
+            Debug.Log($"Applied map logic defaults to {count} cell(s).");
         }
 
         private void ImportJson()
@@ -1286,6 +1700,8 @@ namespace Game.Editor
 
             data.EnsureRuntimeCollections();
             currentMap = data;
+            currentMapPropertyTree = null;
+            currentMapPropertyTreeTarget = null;
             PullSettingsFromMap();
             RebuildTileIndex();
             CreatePreviewObjects();
@@ -1388,16 +1804,15 @@ namespace Game.Editor
             coord = default;
             Ray ray = HandleUtility.GUIPointToWorldRay(mousePosition);
 
-            return TryPickTileByCollider(ray, out coord, logFailure);
+            return TryPickTileByCollider(ray, out coord);
         }
 
-        private bool TryPickTileByCollider(Ray ray, out Vector3Int coord, bool logFailure)
+        private bool TryPickTileByCollider(Ray ray, out Vector3Int coord)
         {
             coord = default;
             RaycastHit[] hits = Physics.RaycastAll(ray, 10000f, ~0, QueryTriggerInteraction.Ignore);
             if (hits == null || hits.Length == 0)
             {
-                if (logFailure) LogTilePickFailure("raycast hit nothing.");
                 return false;
             }
 
@@ -1422,66 +1837,7 @@ namespace Game.Editor
                 hasCoord = true;
             }
 
-            if (logFailure && !hasCoord)
-            {
-                LogTilePickFailure(BuildTilePickHitLog(hits));
-            }
-
             return hasCoord;
-        }
-
-        private void LogTilePickFailure(string message)
-        {
-            if (!debugTilePicking)
-            {
-                return;
-            }
-
-            Debug.LogWarning($"[MapEditor] Tile pick failed: {message}");
-        }
-
-        private string BuildTilePickHitLog(RaycastHit[] hits)
-        {
-            System.Text.StringBuilder builder = new System.Text.StringBuilder();
-            builder.Append("hit colliders, but no valid TileView with TileData was found:");
-
-            int count = Mathf.Min(hits.Length, 8);
-            for (int i = 0; i < count; i++)
-            {
-                Collider collider = hits[i].collider;
-                if (collider == null)
-                {
-                    continue;
-                }
-
-                TileView.TryGetValidFrom(collider.transform, out TileView tileView);
-                builder.Append(" [");
-                builder.Append(collider.name);
-                builder.Append(", path=");
-                builder.Append(GetTransformPath(collider.transform));
-                builder.Append(", hasValidTileView=");
-                builder.Append(tileView != null);
-                builder.Append("]");
-            }
-
-            return builder.ToString();
-        }
-
-        private string GetTransformPath(Transform transform)
-        {
-            if (transform == null)
-            {
-                return string.Empty;
-            }
-
-            List<string> names = new List<string>();
-            for (Transform current = transform; current != null; current = current.parent)
-            {
-                names.Add(current.name);
-            }
-
-            names.Reverse();
-            return string.Join("/", names);
         }
 
         private bool TryGetTileViewCoord(Transform start, out Vector3Int coord)
@@ -1742,8 +2098,12 @@ namespace Game.Editor
             MapDirection nextTypeDirection = typeDirection == MapDirection.None ? MapDirection.North : typeDirection;
             if (tile.Type == type && tile.TypeDirection == nextTypeDirection) return false;
 
-            tile.ApplyDefaultLogicByType(type);
+            tile.ApplyDefaultLogicByType(type, currentMap);
             tile.TypeDirection = nextTypeDirection;
+            if (type != MapTileType.Grass)
+            {
+                tile.GrassVisual = null;
+            }
             RecreatePreviewObject(coord);
             RefreshVisualAround(coord);
             RefreshMarkers();
@@ -1764,6 +2124,7 @@ namespace Game.Editor
         {
             MapCellData tile = new MapCellData(x, y, z, type);
             tile.TypeDirection = typeDirection == MapDirection.None ? MapDirection.North : typeDirection;
+            tile.ApplyDefaultLogic(currentMap);
             currentMap.Cells.Add(tile);
             tileMap[new Vector3Int(x, y, z)] = tile;
         }
@@ -1836,7 +2197,7 @@ namespace Game.Editor
 
             tile.Overlay.Type = overlay;
             tile.OverlayDirection = nextDirection;
-            tile.ApplyDefaultLogic();
+            tile.ApplyDefaultLogic(currentMap);
 
             RecreatePreviewObject(coord);
             RefreshMarkers();
@@ -2053,8 +2414,40 @@ namespace Game.Editor
                 Debug.LogWarning($"[MapEditor] Tile prefab root should contain a Collider for picking: {tile.Type}, Coord: {coord}, Instance: {instance.name}");
             }
 
+            ApplyGrassVisualToPreviewObject(tile, instance);
             tileObjects[coord] = instance;
-            RefreshTerrainBlend(coord);
+        }
+
+        private void ApplyGrassVisualToPreview(Vector3Int coord)
+        {
+            if (!tileObjects.TryGetValue(coord, out GameObject tileObject) || tileObject == null)
+            {
+                return;
+            }
+
+            if (!tileMap.TryGetValue(coord, out MapCellData tile))
+            {
+                return;
+            }
+
+            ApplyGrassVisualToPreviewObject(tile, tileObject);
+        }
+
+        private void ApplyGrassVisualToPreviewObject(MapCellData tile, GameObject tileObject)
+        {
+            if (tile == null || tileObject == null)
+            {
+                return;
+            }
+
+            GrassTileMaterialOverride grassVisual = tileObject.GetComponent<GrassTileMaterialOverride>();
+            if (grassVisual == null)
+            {
+                return;
+            }
+
+            MapGrassVisualData visualData = tile.Type == MapTileType.Grass ? tile.GrassVisual : null;
+            grassVisual.ApplyVisualData(visualData);
         }
 
         private GameObject CreateTileInstance(MapTileType type)
@@ -2172,7 +2565,6 @@ namespace Game.Editor
             for (int i = 0; i < coords.Count; i++)
             {
                 RefreshFlatTileVisual(coords[i]);
-                RefreshTerrainBlend(coords[i]);
             }
         }
 
@@ -2183,11 +2575,6 @@ namespace Game.Editor
             RefreshFlatTileVisual(coord + Vector3Int.back);
             RefreshFlatTileVisual(coord + Vector3Int.left);
             RefreshFlatTileVisual(coord + Vector3Int.right);
-            RefreshTerrainBlend(coord);
-            RefreshTerrainBlend(coord + Vector3Int.forward);
-            RefreshTerrainBlend(coord + Vector3Int.back);
-            RefreshTerrainBlend(coord + Vector3Int.left);
-            RefreshTerrainBlend(coord + Vector3Int.right);
         }
 
         private void RefreshFlatTileVisual(Vector3Int coord)
@@ -2211,30 +2598,6 @@ namespace Game.Editor
                 GetTileTypeOrNone(coord + Vector3Int.back),
                 GetTileTypeOrNone(coord + Vector3Int.left)
             });
-        }
-
-        private void RefreshTerrainBlend(Vector3Int coord)
-        {
-            TryLoadTerrainBlendConfig();
-
-            if (terrainBlendConfig == null)
-            {
-                return;
-            }
-
-            if (!tileObjects.TryGetValue(coord, out GameObject tileObject) || tileObject == null)
-            {
-                return;
-            }
-
-            MapTerrainBlendUtility.Apply(
-                tileObject,
-                terrainBlendConfig,
-                GetTileTypeOrNone(coord),
-                GetTileTypeOrNone(coord + Vector3Int.forward),
-                GetTileTypeOrNone(coord + Vector3Int.right),
-                GetTileTypeOrNone(coord + Vector3Int.back),
-                GetTileTypeOrNone(coord + Vector3Int.left));
         }
 
         private MapTileType GetTileTypeOrNone(Vector3Int coord)
@@ -2382,14 +2745,7 @@ namespace Game.Editor
         {
             if (prefabConfig == null) prefabConfig = AssetDatabase.LoadAssetAtPath<MapTilePrefabConfig>(PrefabConfigPath);
             if (prefabConfig != null) prefabConfig.RebuildCache();
-            TryLoadTerrainBlendConfig();
             TryLoadDecorationConfig();
-        }
-
-        private void TryLoadTerrainBlendConfig()
-        {
-            if (terrainBlendConfig == null) terrainBlendConfig = AssetDatabase.LoadAssetAtPath<MapTerrainBlendConfig>(TerrainBlendConfigPath);
-            if (terrainBlendConfig != null) terrainBlendConfig.RebuildCache();
         }
 
         private void TryLoadDecorationConfig()
@@ -2469,6 +2825,7 @@ namespace Game.Editor
 
                 if (tile.Type == MapTileType.Soil) errors.Add($"Soil is not used by this editor: {coord}");
                 if (tile.Type != MapTileType.Soil && tile.Y < 0) errors.Add($"Non-soil tile must be y>=0: {coord}");
+                if (tile.MoveCost < 0) errors.Add($"MoveCost must be >= 0: {coord}");
             }
 
             for (int i = 0; i < mapData.Cells.Count; i++)
@@ -2491,11 +2848,50 @@ namespace Game.Editor
                 }
             }
 
-            if (mapData.SpawnPoints == null || mapData.SpawnPoints.Count == 0) errors.Add("Map should have at least one spawn point.");
-            if (!mapData.HasGoalPoint) errors.Add("Map should have one goal point.");
+            bool hasValidGoal = false;
+            if (mapData.SpawnPoints == null || mapData.SpawnPoints.Count == 0)
+            {
+                errors.Add("Map should have at least one spawn point.");
+            }
+
+            if (!mapData.HasGoalPoint)
+            {
+                errors.Add("Map should have one goal point.");
+            }
+            else if (!MapTileRule.IsValidMapPoint(mapData.GoalPoint, mapData, out string goalReason))
+            {
+                errors.Add($"Invalid goal point {mapData.GoalPoint}: {goalReason}");
+            }
+            else
+            {
+                hasValidGoal = true;
+            }
+
+            if (mapData.SpawnPoints != null)
+            {
+                MapDataAStarPathFinder pathFinder = hasValidGoal ? new MapDataAStarPathFinder() : null;
+                List<Vector3Int> path = hasValidGoal ? new List<Vector3Int>() : null;
+
+                for (int i = 0; i < mapData.SpawnPoints.Count; i++)
+                {
+                    Vector3Int spawn = mapData.SpawnPoints[i];
+                    if (!MapTileRule.IsValidMapPoint(spawn, mapData, out string spawnReason))
+                    {
+                        errors.Add($"Invalid spawn point {spawn}: {spawnReason}");
+                        continue;
+                    }
+
+                    if (hasValidGoal && !pathFinder.TryFindPath(mapData, spawn, mapData.GoalPoint, path))
+                    {
+                        errors.Add($"Spawn point cannot reach goal. Spawn: {spawn}, Goal: {mapData.GoalPoint}");
+                    }
+                }
+            }
+
             return errors;
         }
     }
 }
 
 #endif
+

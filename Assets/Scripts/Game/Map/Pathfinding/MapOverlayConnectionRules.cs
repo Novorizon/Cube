@@ -24,7 +24,6 @@ namespace Game
             OverlayRules.Clear();
             RegisterOverlayRule(new StairOverlayConnectionRule());
             RegisterOverlayRule(new RampOverlayConnectionRule());
-            RegisterOverlayRule(new BridgeOverlayConnectionRule());
         }
 
         public static void RegisterOverlayRule(IMapOverlayConnectionRule rule, bool replaceExisting = true)
@@ -224,19 +223,4 @@ namespace Game
         }
     }
 
-    internal sealed class BridgeOverlayConnectionRule : IMapOverlayConnectionRule
-    {
-        public MapTileOverlay Overlay
-        {
-            get
-            {
-                return MapTileOverlay.Bridge;
-            }
-        }
-
-        public bool CanConnect(MapPathCellInfo from, MapPathCellInfo to, MapPathCellInfo overlayCell)
-        {
-            return from.Coord.y == to.Coord.y;
-        }
-    }
 }

@@ -254,7 +254,7 @@ namespace Game.Editor
                     TypeDirection = state.TypeDirection,
                     Overlay = new MapOverlayLayerData(state.Overlay, state.OverlayDirection)
                 };
-                tile.ApplyDefaultLogic();
+                tile.ApplyDefaultLogic(mapData);
                 mapData.Cells.Add(tile);
             }
 

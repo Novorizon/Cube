@@ -10,6 +10,8 @@ namespace Game
     public sealed class MapDataAStarPathFinder
     {
         private readonly Dictionary<Vector3Int, MapCellData> tileMap = new Dictionary<Vector3Int, MapCellData>();
+        private readonly Dictionary<Vector3Int, List<MapObjectData>> objectsByCoord = new Dictionary<Vector3Int, List<MapObjectData>>();
+        private readonly Dictionary<Vector2Int, MapCellData> topLogicTileMap = new Dictionary<Vector2Int, MapCellData>();
         private readonly List<Vector3Int> neighborBuffer = new List<Vector3Int>();
 
         public bool TryFindPath(MapData mapData, Vector3Int start, Vector3Int goal, List<Vector3Int> result)
@@ -29,6 +31,7 @@ namespace Game
 
             mapData.EnsureRuntimeCollections();
             RebuildTileIndex(mapData);
+            RebuildObjectIndex(mapData);
 
             if (!IsWalkable(start))
             {
@@ -49,18 +52,18 @@ namespace Game
             }
 
             Dictionary<Vector3Int, PathNode> allNodes = new Dictionary<Vector3Int, PathNode>();
-            List<PathNode> openList = new List<PathNode>();
+            PathNodeHeap openHeap = new PathNodeHeap();
 
             PathNode startNode = GetOrCreateNode(start, allNodes);
             startNode.GCost = 0;
             startNode.HCost = GetHeuristicCost(start, goal);
             startNode.Opened = true;
 
-            openList.Add(startNode);
+            openHeap.Add(startNode);
 
-            while (openList.Count > 0)
+            while (openHeap.Count > 0)
             {
-                PathNode currentNode = GetBestOpenNode(openList);
+                PathNode currentNode = openHeap.RemoveFirst();
 
                 if (currentNode.Coord == goal)
                 {
@@ -68,7 +71,7 @@ namespace Game
                     return true;
                 }
 
-                openList.Remove(currentNode);
+                currentNode.Opened = false;
                 currentNode.Closed = true;
 
                 GetWalkableNeighbors(currentNode.Coord, neighborBuffer);
@@ -108,7 +111,11 @@ namespace Game
                         if (!neighborNode.Opened)
                         {
                             neighborNode.Opened = true;
-                            openList.Add(neighborNode);
+                            openHeap.Add(neighborNode);
+                        }
+                        else
+                        {
+                            openHeap.Update(neighborNode);
                         }
                     }
                 }
@@ -120,6 +127,7 @@ namespace Game
         private void RebuildTileIndex(MapData mapData)
         {
             tileMap.Clear();
+            topLogicTileMap.Clear();
 
             if (mapData == null || mapData.Cells == null)
             {
@@ -135,10 +143,49 @@ namespace Game
                     continue;
                 }
 
-                tile.ApplyDefaultLogic();
+                tile.EnsureLayers();
 
                 Vector3Int coord = new Vector3Int(tile.X, tile.Y, tile.Z);
                 tileMap[coord] = tile;
+
+                if (!MapTileRule.IsLogicTile(tile.Type))
+                {
+                    continue;
+                }
+
+                Vector2Int column = new Vector2Int(coord.x, coord.z);
+                if (!topLogicTileMap.TryGetValue(column, out MapCellData topTile) || coord.y > topTile.Y)
+                {
+                    topLogicTileMap[column] = tile;
+                }
+            }
+        }
+
+        private void RebuildObjectIndex(MapData mapData)
+        {
+            objectsByCoord.Clear();
+
+            if (mapData == null || mapData.Objects == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < mapData.Objects.Count; i++)
+            {
+                MapObjectData mapObject = mapData.Objects[i];
+                if (mapObject == null)
+                {
+                    continue;
+                }
+
+                Vector3Int coord = mapObject.Coord;
+                if (!objectsByCoord.TryGetValue(coord, out List<MapObjectData> objects))
+                {
+                    objects = new List<MapObjectData>();
+                    objectsByCoord[coord] = objects;
+                }
+
+                objects.Add(mapObject);
             }
         }
 
@@ -154,7 +201,7 @@ namespace Game
                 return false;
             }
 
-            if (!MapTileRule.IsWalkable(tile.Type, tile.Overlay.Type))
+            if (!tile.Walkable)
             {
                 return false;
             }
@@ -164,7 +211,31 @@ namespace Game
                 return false;
             }
 
+            if (HasMoveBlockingObject(coord))
+            {
+                return false;
+            }
+
             return true;
+        }
+
+        private bool HasMoveBlockingObject(Vector3Int coord)
+        {
+            if (!objectsByCoord.TryGetValue(coord, out List<MapObjectData> objects) || objects == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < objects.Count; i++)
+            {
+                MapObjectData mapObject = objects[i];
+                if (mapObject != null && mapObject.BlocksMove)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool IsExposed(Vector3Int coord)
@@ -232,33 +303,7 @@ namespace Game
         }
         private bool TryGetTopLogicTile(int x, int z, out MapCellData tile)
         {
-            tile = null;
-
-            int topY = int.MinValue;
-
-            foreach (KeyValuePair<Vector3Int, MapCellData> pair in tileMap)
-            {
-                Vector3Int coord = pair.Key;
-                MapCellData currentTile = pair.Value;
-
-                if (coord.x != x || coord.z != z)
-                {
-                    continue;
-                }
-
-                if (!MapTileRule.IsLogicTile(currentTile.Type))
-                {
-                    continue;
-                }
-
-                if (coord.y > topY)
-                {
-                    topY = coord.y;
-                    tile = currentTile;
-                }
-            }
-
-            return tile != null;
+            return topLogicTileMap.TryGetValue(new Vector2Int(x, z), out tile);
         }
 
         private PathNode GetOrCreateNode(Vector3Int coord, Dictionary<Vector3Int, PathNode> allNodes)
@@ -272,29 +317,6 @@ namespace Game
             allNodes.Add(coord, node);
 
             return node;
-        }
-
-        private PathNode GetBestOpenNode(List<PathNode> openList)
-        {
-            PathNode bestNode = openList[0];
-
-            for (int i = 1; i < openList.Count; i++)
-            {
-                PathNode node = openList[i];
-
-                if (node.FCost < bestNode.FCost)
-                {
-                    bestNode = node;
-                    continue;
-                }
-
-                if (node.FCost == bestNode.FCost && node.HCost < bestNode.HCost)
-                {
-                    bestNode = node;
-                }
-            }
-
-            return bestNode;
         }
 
         private void BuildPath(PathNode endNode, List<Vector3Int> result)
@@ -314,11 +336,7 @@ namespace Game
 
         private int GetHeuristicCost(Vector3Int from, Vector3Int to)
         {
-            int dx = Mathf.Abs(from.x - to.x);
-            int dy = Mathf.Abs(from.y - to.y);
-            int dz = Mathf.Abs(from.z - to.z);
-
-            return (dx + dy + dz) * 10;
+            return 0;
         }
 
         private int GetHeightExtraCost(Vector3Int from, Vector3Int to)
@@ -341,6 +359,7 @@ namespace Game
             public PathNode Parent;
             public bool Opened;
             public bool Closed;
+            public int HeapIndex;
 
             public int FCost
             {
@@ -358,6 +377,106 @@ namespace Game
                 Parent = null;
                 Opened = false;
                 Closed = false;
+                HeapIndex = -1;
+            }
+        }
+
+        private sealed class PathNodeHeap
+        {
+            private readonly List<PathNode> items = new List<PathNode>();
+
+            public int Count => items.Count;
+
+            public void Add(PathNode node)
+            {
+                node.HeapIndex = items.Count;
+                items.Add(node);
+                SortUp(node);
+            }
+
+            public PathNode RemoveFirst()
+            {
+                PathNode first = items[0];
+                int lastIndex = items.Count - 1;
+                PathNode last = items[lastIndex];
+                items.RemoveAt(lastIndex);
+
+                if (items.Count > 0)
+                {
+                    items[0] = last;
+                    last.HeapIndex = 0;
+                    SortDown(last);
+                }
+
+                first.HeapIndex = -1;
+                return first;
+            }
+
+            public void Update(PathNode node)
+            {
+                SortUp(node);
+            }
+
+            private void SortDown(PathNode node)
+            {
+                while (true)
+                {
+                    int leftChildIndex = node.HeapIndex * 2 + 1;
+                    int rightChildIndex = node.HeapIndex * 2 + 2;
+
+                    if (leftChildIndex >= items.Count)
+                    {
+                        return;
+                    }
+
+                    int bestChildIndex = leftChildIndex;
+                    if (rightChildIndex < items.Count && IsBetter(items[rightChildIndex], items[leftChildIndex]))
+                    {
+                        bestChildIndex = rightChildIndex;
+                    }
+
+                    if (!IsBetter(items[bestChildIndex], node))
+                    {
+                        return;
+                    }
+
+                    Swap(node, items[bestChildIndex]);
+                }
+            }
+
+            private void SortUp(PathNode node)
+            {
+                while (node.HeapIndex > 0)
+                {
+                    int parentIndex = (node.HeapIndex - 1) / 2;
+                    PathNode parent = items[parentIndex];
+
+                    if (!IsBetter(node, parent))
+                    {
+                        return;
+                    }
+
+                    Swap(node, parent);
+                }
+            }
+
+            private static bool IsBetter(PathNode left, PathNode right)
+            {
+                if (left.FCost != right.FCost)
+                {
+                    return left.FCost < right.FCost;
+                }
+
+                return left.HCost < right.HCost;
+            }
+
+            private void Swap(PathNode left, PathNode right)
+            {
+                items[left.HeapIndex] = right;
+                items[right.HeapIndex] = left;
+                int leftIndex = left.HeapIndex;
+                left.HeapIndex = right.HeapIndex;
+                right.HeapIndex = leftIndex;
             }
         }
     }

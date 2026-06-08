@@ -163,9 +163,9 @@ Game/Map
 
 - `MapData.cs`、`MapTileData.cs`、`MapDecorationData.cs` -> `Game/Map/Data`
 - `MapTileType.cs`、`MapTileOverlay.cs`、`MapDirection.cs`、`MapTileRule.cs` -> `Game/Map/Data`
-- `MapTilePrefabConfig.cs`、`MapDecorationPrefabConfig.cs`、`MapTerrainBlendConfig.cs` -> `Game/Map/Config`
+- `MapTilePrefabConfig.cs`、`MapDecorationPrefabConfig.cs` -> `Game/Map/Config`
 - `MapManager.cs`、`TileView.cs` -> `Game/Map/Runtime`
-- `MapTerrainBlendUtility.cs`、`MapTerrainBlendDebugState.cs`、`FlatTileVisual.cs` -> `Game/Map/Rendering`
+- `FlatTileVisual.cs` -> `Game/Map/Rendering`
 - `MapDataAStarPathFinder.cs`、`MapPathFinder.cs`、`MapPathCellInfo.cs`、`MapOverlayConnectionRules.cs` -> `Game/Map/Pathfinding`
 
 说明：
@@ -366,8 +366,6 @@ Assets/Scripts/MapEditor
 
 - `MapEditor/Editor/MapEditorWindow.cs`
 - `MapEditor/Editor/TileTopicUvChecker.cs`
-- `MapEditor/Editor/TileTopicTopPlaneGenerator.cs`
-- `MapEditor/Editor/MapTerrainBlendConfigCreator.cs`
 
 建议：
 

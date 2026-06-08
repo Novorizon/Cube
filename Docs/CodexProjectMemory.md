@@ -152,7 +152,7 @@
     - Editor tool cleanup on 2026-06-02:
       - User reported too many temporary Editor scripts and that decoration preview scatter was too large; decoration preview is paused.
       - Removed one-shot auto-runners and obsolete/deprecated menu tools after backing them up to `Backups/EditorToolsCleanup_20260602_232540`.
-      - Removed from active Editor scripts: `GrassTopMaterialAutoRunner`, `GrassTopMaterialCreator`, `MapArtPrototypeAutoRunner`, `MapTerrainBlendConfigCreator`, `TileArtLandingUtility`, `TileTopicTopPlaneGenerator`, `TileTopicUvChecker`, `TileTopDecorationPreviewAutoRunner`, `TileTopDecorationPreviewCreator`, `TileTopMaterialAutoRunner`, and `TileTopPreviewAutoRunner`.
+      - Removed obsolete one-shot art/material/preview editor scripts from active code.
       - Active MapEditor editor scripts now focus on the map editor, scene export, and bounds gizmo tools. Obsolete map art menu scripts were removed.
     - Tile top optimization pass on 2026-06-03:
       - `Tools/Art/Blender/create_reference_grass_tile.py` now exposes clear model proportions for the reference tile. Current values keep the tile at `1 x 1 x 1`, use `Rock` height `0.26`, `Soil` height `0.40`, and `TopBody` height `0.36`; `TopBody` is slightly oversized at `1.04 x 1.04` with a softer bevel `0.068` and 8 bevel segments.

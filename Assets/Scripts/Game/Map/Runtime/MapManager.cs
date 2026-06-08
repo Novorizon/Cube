@@ -11,9 +11,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UI;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace Game
 {
@@ -21,13 +18,11 @@ namespace Game
     {
         private const string PrefabConfigPath = "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset";
         private const string DecorationConfigPath = "Assets/Data/Cube/Configs/MapDecorationPrefabConfig.asset";
-        private const string TerrainBlendConfigPath = "Assets/Data/Cube/Configs/MapTerrainBlendConfig.asset";
         private const string BattleHudPrefabPath = "Assets/Arts/UI/TowerDefense/Prefabs/BattleHud.prefab";
         private const string MainMenuPagePath = "Assets/Arts/UI/Pages/MainMenuPage.prefab";
 
         private MapTilePrefabConfig mapTilePrefabConfig;
         private MapDecorationPrefabConfig decorationPrefabConfig;
-        private MapTerrainBlendConfig terrainBlendConfig;
         private MapData currentMap;
         private int currentMapConfigId;
 
@@ -35,6 +30,8 @@ namespace Game
         private readonly Dictionary<Vector3Int, TileData> tileDataMap = new Dictionary<Vector3Int, TileData>();
         private readonly Dictionary<Vector3Int, TileView> tileViews = new Dictionary<Vector3Int, TileView>();
         private readonly Dictionary<Vector3Int, List<MapObjectData>> objectsByCoord = new Dictionary<Vector3Int, List<MapObjectData>>();
+        private readonly Dictionary<Vector2Int, TileData> topTileDataMap = new Dictionary<Vector2Int, TileData>();
+        private readonly Dictionary<Vector2Int, TileData> topLogicTileDataMap = new Dictionary<Vector2Int, TileData>();
 
         private Transform mapRoot;
         private float tileSize = 1f;
@@ -116,8 +113,6 @@ namespace Game
         {
             mapTilePrefabConfig = ResourceManager.Instance.LoadAsset<MapTilePrefabConfig>(PrefabConfigPath);
             decorationPrefabConfig = ResourceManager.Instance.LoadAsset<MapDecorationPrefabConfig>(DecorationConfigPath);
-            terrainBlendConfig = LoadTerrainBlendConfig();
-
             if (mapTilePrefabConfig == null)
             {
                 Debug.LogError($"MapManager initialize failed. Missing prefab config: {PrefabConfigPath}");
@@ -130,48 +125,7 @@ namespace Game
                 decorationPrefabConfig.RebuildCache();
             }
 
-            if (terrainBlendConfig != null)
-            {
-                terrainBlendConfig.RebuildCache();
-            }
-
             initialized = true;
-            return true;
-        }
-
-        private MapTerrainBlendConfig LoadTerrainBlendConfig()
-        {
-#if UNITY_EDITOR
-            MapTerrainBlendConfig editorConfig = AssetDatabase.LoadAssetAtPath<MapTerrainBlendConfig>(TerrainBlendConfigPath);
-            if (IsTerrainBlendConfigUsable(editorConfig))
-            {
-                editorConfig.RebuildCache();
-                return editorConfig;
-            }
-#endif
-
-            MapTerrainBlendConfig config = ResourceManager.Instance.LoadAsset<MapTerrainBlendConfig>(TerrainBlendConfigPath);
-            if (!IsTerrainBlendConfigUsable(config))
-            {
-                Debug.LogWarning($"Map terrain blend config is missing or incomplete. Runtime terrain top blend is disabled: {TerrainBlendConfigPath}");
-                return null;
-            }
-
-            config.RebuildCache();
-            return config;
-        }
-
-        private bool IsTerrainBlendConfigUsable(MapTerrainBlendConfig config)
-        {
-            if (config == null || config.BlendMaterial == null)
-            {
-                return false;
-            }
-
-            if (config.GetTopTexture(MapTileType.Grass) == null) return false;
-            if (config.GetTopTexture(MapTileType.Hill) == null) return false;
-            if (config.GetTopTexture(MapTileType.Snow) == null) return false;
-            if (config.GetTopTexture(MapTileType.Water) == null) return false;
             return true;
         }
 
@@ -267,7 +221,6 @@ namespace Game
                 CreateTileView(tileData);
             }
 
-            RefreshAllTerrainBlendViews();
             CreateDecorationViews();
             Debug.Log($"Create map success. Count: {tileViews.Count}");
         }
@@ -303,34 +256,74 @@ namespace Game
                 Debug.LogWarning($"Tile prefab root should contain a Collider for picking. Type: {tileData.Type}, Coord: {key}, Instance: {instance.name}");
             }
 
+            ApplyTileVisual(tileData, tileView);
             tileViews[key] = tileView;
         }
 
-        private void CreateOverlayView(TileData tileData, Transform parent)
+        private void ApplyTileVisual(TileData tileData, TileView tileView)
         {
-            GameObject overlayPrefab = GetOverlayPrefab(tileData.Overlay);
-
-            if (overlayPrefab == null)
+            if (tileData == null || tileView == null)
             {
                 return;
             }
 
-            GameObject overlay = GameObject.Instantiate(overlayPrefab, parent);
+            GrassTileMaterialOverride grassVisual = tileView.GetComponent<GrassTileMaterialOverride>();
+            if (grassVisual == null)
+            {
+                return;
+            }
+
+            MapGrassVisualData visualData = tileData.Type == MapTileType.Grass
+                ? tileData.MapCellData?.GrassVisual
+                : null;
+            grassVisual.ApplyVisualData(visualData);
+        }
+
+        private void CreateOverlayView(TileData tileData, Transform parent)
+        {
+            GameObject overlay = CreateOverlayInstance(tileData.Overlay);
+            if (overlay == null) return;
+
+            overlay.transform.SetParent(parent, false);
             overlay.name = $"Overlay_{tileData.Overlay}_{tileData.OverlayDirection}";
             overlay.transform.localPosition = GetOverlayLocalPosition(tileData.Overlay);
             overlay.transform.localRotation = Quaternion.Inverse(parent.localRotation) * GetDirectionRotation(tileData.OverlayDirection);
         }
 
-        private GameObject GetOverlayPrefab(MapTileOverlay overlay)
+        private GameObject CreateOverlayInstance(MapTileOverlay overlay)
         {
             switch (overlay)
             {
                 case MapTileOverlay.Bridge:
-                    return GetPrefab(MapTileType.Bridge);
+                    GameObject bridgePrefab = GetPrefab(MapTileType.Bridge);
+                    return bridgePrefab != null ? GameObject.Instantiate(bridgePrefab) : null;
+
+                case MapTileOverlay.Stair:
+                    return CreateOverlayFallback("Stair", new Color(0.75f, 0.62f, 0.42f));
+
+                case MapTileOverlay.Ramp:
+                    return CreateOverlayFallback("Ramp", new Color(0.65f, 0.55f, 0.35f));
 
                 default:
                     return null;
             }
+        }
+
+        private GameObject CreateOverlayFallback(string name, Color color)
+        {
+            GameObject fallback = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            fallback.name = name;
+            fallback.transform.localScale = new Vector3(tileSize * 0.85f, 0.08f, tileSize * 0.85f);
+
+            Renderer renderer = fallback.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                Material material = new Material(Shader.Find("Standard"));
+                material.color = color;
+                renderer.sharedMaterial = material;
+            }
+
+            return fallback;
         }
 
         private Quaternion GetDirectionRotation(MapDirection direction)
@@ -378,64 +371,6 @@ namespace Game
             {
                 CreateDecorationView(currentMap.Objects[i], i);
             }
-        }
-
-        private void RefreshAllTerrainBlendViews()
-        {
-            EnsureTerrainBlendConfig();
-
-            if (terrainBlendConfig == null)
-            {
-                return;
-            }
-
-            foreach (KeyValuePair<Vector3Int, TileView> pair in tileViews)
-            {
-                RefreshTerrainBlendView(pair.Key);
-            }
-        }
-
-        private void RefreshTerrainBlendAround(Vector3Int coord)
-        {
-            RefreshTerrainBlendView(coord);
-            RefreshTerrainBlendView(coord + Vector3Int.forward);
-            RefreshTerrainBlendView(coord + Vector3Int.back);
-            RefreshTerrainBlendView(coord + Vector3Int.left);
-            RefreshTerrainBlendView(coord + Vector3Int.right);
-        }
-
-        private void RefreshTerrainBlendView(Vector3Int coord)
-        {
-            EnsureTerrainBlendConfig();
-
-            if (terrainBlendConfig == null)
-            {
-                return;
-            }
-
-            if (!tileViews.TryGetValue(coord, out TileView tileView) || tileView == null)
-            {
-                return;
-            }
-
-            MapTerrainBlendUtility.Apply(
-                tileView.gameObject,
-                terrainBlendConfig,
-                GetTileTypeOrNone(coord),
-                GetTileTypeOrNone(coord + Vector3Int.forward),
-                GetTileTypeOrNone(coord + Vector3Int.right),
-                GetTileTypeOrNone(coord + Vector3Int.back),
-                GetTileTypeOrNone(coord + Vector3Int.left));
-        }
-
-        private void EnsureTerrainBlendConfig()
-        {
-            if (IsTerrainBlendConfigUsable(terrainBlendConfig))
-            {
-                return;
-            }
-
-            terrainBlendConfig = LoadTerrainBlendConfig();
         }
 
         private void CreateDecorationView(MapObjectData decoration, int index)
@@ -695,6 +630,8 @@ namespace Game
         {
             tileMap.Clear();
             tileDataMap.Clear();
+            topTileDataMap.Clear();
+            topLogicTileDataMap.Clear();
 
             if (currentMap == null || currentMap.Cells == null)
             {
@@ -710,12 +647,42 @@ namespace Game
                     continue;
                 }
 
-                MapCellData.ApplyDefaultLogic();
+                MapCellData.EnsureLayers();
 
                 Vector3Int key = new Vector3Int(MapCellData.X, MapCellData.Y, MapCellData.Z);
 
                 tileMap[key] = MapCellData;
                 tileDataMap[key] = new TileData(MapCellData);
+            }
+
+            RebuildTopTileIndex();
+        }
+
+        private void RebuildTopTileIndex()
+        {
+            topTileDataMap.Clear();
+            topLogicTileDataMap.Clear();
+
+            foreach (KeyValuePair<Vector3Int, TileData> pair in tileDataMap)
+            {
+                Vector3Int coord = pair.Key;
+                TileData tileData = pair.Value;
+                Vector2Int column = new Vector2Int(coord.x, coord.z);
+
+                if (!topTileDataMap.TryGetValue(column, out TileData topTile) || coord.y > topTile.Y)
+                {
+                    topTileDataMap[column] = tileData;
+                }
+
+                if (!MapTileRule.IsLogicTile(tileData.Type))
+                {
+                    continue;
+                }
+
+                if (!topLogicTileDataMap.TryGetValue(column, out TileData topLogicTile) || coord.y > topLogicTile.Y)
+                {
+                    topLogicTileDataMap[column] = tileData;
+                }
             }
         }
 
@@ -771,6 +738,8 @@ namespace Game
             currentMap = null;
             tileMap.Clear();
             tileDataMap.Clear();
+            topTileDataMap.Clear();
+            topLogicTileDataMap.Clear();
             objectsByCoord.Clear();
             ClearMapObjects();
         }
@@ -1002,6 +971,11 @@ namespace Game
                 return false;
             }
 
+            if (HasBlockingObject(coord, blockMove: true))
+            {
+                return false;
+            }
+
             return tileData.IsRuntimeWalkable;
         }
 
@@ -1018,6 +992,11 @@ namespace Game
             }
 
             if (!IsExposed(coord))
+            {
+                return false;
+            }
+
+            if (HasBlockingObject(coord, blockMove: false))
             {
                 return false;
             }
@@ -1071,6 +1050,52 @@ namespace Game
         public bool CanPlaceTower(Vector3Int coord)
         {
             return IsBuildable(coord);
+        }
+
+        private bool HasBlockingObject(Vector3Int coord, bool blockMove)
+        {
+            if (!objectsByCoord.TryGetValue(coord, out List<MapObjectData> objects) || objects == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < objects.Count; i++)
+            {
+                MapObjectData mapObject = objects[i];
+                if (mapObject == null)
+                {
+                    continue;
+                }
+
+                if (blockMove ? ObjectBlocksMove(mapObject) : ObjectBlocksBuild(mapObject))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool ObjectBlocksMove(MapObjectData mapObject)
+        {
+            if (mapObject.BlocksMove)
+            {
+                return true;
+            }
+
+            MapDecorationPrefabConfig.DecorationPrefabItem item = decorationPrefabConfig != null ? decorationPrefabConfig.GetItem(mapObject.ConfigId) : null;
+            return item != null && item.BlocksMove;
+        }
+
+        private bool ObjectBlocksBuild(MapObjectData mapObject)
+        {
+            if (mapObject.BlocksBuild)
+            {
+                return true;
+            }
+
+            MapDecorationPrefabConfig.DecorationPrefabItem item = decorationPrefabConfig != null ? decorationPrefabConfig.GetItem(mapObject.ConfigId) : null;
+            return item != null && item.BlocksBuild;
         }
 
         public bool TryPlaceTower(Vector3Int coord, Tower tower)
@@ -1143,11 +1168,14 @@ namespace Game
 
             tileDataMap.Remove(coord);
             tileMap.Remove(coord);
+            RebuildTopTileIndex();
 
             if (currentMap != null && currentMap.Cells != null)
             {
                 currentMap.Cells.Remove(tileData.MapCellData);
             }
+
+            RemoveMapObjectsAt(coord);
 
             if (tileViews.TryGetValue(coord, out TileView tileView))
             {
@@ -1159,8 +1187,18 @@ namespace Game
                 tileViews.Remove(coord);
             }
 
-            RefreshTerrainBlendAround(coord);
             return true;
+        }
+
+        private void RemoveMapObjectsAt(Vector3Int coord)
+        {
+            if (currentMap == null || currentMap.Objects == null)
+            {
+                return;
+            }
+
+            currentMap.Objects.RemoveAll(mapObject => mapObject != null && mapObject.Coord == coord);
+            RebuildObjectIndex();
         }
 
         private MapTileType GetTileTypeOrNone(Vector3Int coord)
@@ -1185,58 +1223,12 @@ namespace Game
 
         public bool TryGetTopTile(int x, int z, out TileData tileData)
         {
-            tileData = null;
-
-            int topY = int.MinValue;
-
-            foreach (KeyValuePair<Vector3Int, TileData> pair in tileDataMap)
-            {
-                Vector3Int coord = pair.Key;
-
-                if (coord.x != x || coord.z != z)
-                {
-                    continue;
-                }
-
-                if (coord.y > topY)
-                {
-                    topY = coord.y;
-                    tileData = pair.Value;
-                }
-            }
-
-            return tileData != null;
+            return topTileDataMap.TryGetValue(new Vector2Int(x, z), out tileData);
         }
 
         public bool TryGetTopLogicTile(int x, int z, out TileData tileData)
         {
-            tileData = null;
-
-            int topY = int.MinValue;
-
-            foreach (KeyValuePair<Vector3Int, TileData> pair in tileDataMap)
-            {
-                Vector3Int coord = pair.Key;
-                TileData currentTileData = pair.Value;
-
-                if (coord.x != x || coord.z != z)
-                {
-                    continue;
-                }
-
-                if (!MapTileRule.IsLogicTile(currentTileData.Type))
-                {
-                    continue;
-                }
-
-                if (coord.y > topY)
-                {
-                    topY = coord.y;
-                    tileData = currentTileData;
-                }
-            }
-
-            return tileData != null;
+            return topLogicTileDataMap.TryGetValue(new Vector2Int(x, z), out tileData);
         }
 
     }

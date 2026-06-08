@@ -5,7 +5,6 @@ namespace Game
 {
     public sealed class MapPathFinder
     {
-        private const int StraightCost = 10;
         private const int UphillExtraCost = 5;
         private readonly List<Vector3Int> neighbors = new List<Vector3Int>();
 
@@ -20,17 +19,17 @@ namespace Game
             }
 
             Dictionary<Vector3Int, Node> allNodes = new Dictionary<Vector3Int, Node>();
-            List<Node> openList = new List<Node>();
-            HashSet<Vector3Int> closedSet = new HashSet<Vector3Int>();
+            NodeHeap openHeap = new NodeHeap();
 
             Node startNode = GetOrCreateNode(allNodes, start);
             startNode.G = 0;
             startNode.H = GetHeuristicCost(start, goal);
-            openList.Add(startNode);
+            startNode.Opened = true;
+            openHeap.Add(startNode);
 
-            while (openList.Count > 0)
+            while (openHeap.Count > 0)
             {
-                Node current = GetBestNode(openList);
+                Node current = openHeap.RemoveFirst();
 
                 if (current.Coord == goal)
                 {
@@ -38,18 +37,13 @@ namespace Game
                     return true;
                 }
 
-                openList.Remove(current);
-                closedSet.Add(current.Coord);
+                current.Opened = false;
+                current.Closed = true;
                 GetNeighbors(current.Coord, neighbors);
 
                 for (int i = 0; i < neighbors.Count; i++)
                 {
                     Vector3Int nextCoord = neighbors[i];
-
-                    if (closedSet.Contains(nextCoord))
-                    {
-                        continue;
-                    }
 
                     int moveCost = GetMoveCost(current.Coord, nextCoord);
 
@@ -61,17 +55,24 @@ namespace Game
                     int newG = current.G + moveCost;
                     Node nextNode = GetOrCreateNode(allNodes, nextCoord);
 
-                    if (!openList.Contains(nextNode))
+                    if (nextNode.Closed)
+                    {
+                        continue;
+                    }
+
+                    if (!nextNode.Opened)
                     {
                         nextNode.G = newG;
                         nextNode.H = GetHeuristicCost(nextCoord, goal);
                         nextNode.Parent = current;
-                        openList.Add(nextNode);
+                        nextNode.Opened = true;
+                        openHeap.Add(nextNode);
                     }
                     else if (newG < nextNode.G)
                     {
                         nextNode.G = newG;
                         nextNode.Parent = current;
+                        openHeap.Update(nextNode);
                     }
                 }
             }
@@ -125,11 +126,6 @@ namespace Game
                 return int.MaxValue;
             }
 
-            if (cost <= 0)
-            {
-                cost = StraightCost;
-            }
-
             if (to.y > from.y)
             {
                 cost += UphillExtraCost;
@@ -140,24 +136,7 @@ namespace Game
 
         private int GetHeuristicCost(Vector3Int from, Vector3Int to)
         {
-            return (Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y) + Mathf.Abs(from.z - to.z)) * StraightCost;
-        }
-
-        private Node GetBestNode(List<Node> nodes)
-        {
-            Node best = nodes[0];
-
-            for (int i = 1; i < nodes.Count; i++)
-            {
-                Node node = nodes[i];
-
-                if (node.F < best.F || node.F == best.F && node.H < best.H)
-                {
-                    best = node;
-                }
-            }
-
-            return best;
+            return 0;
         }
 
         private Node GetOrCreateNode(Dictionary<Vector3Int, Node> nodes, Vector3Int coord)
@@ -193,11 +172,114 @@ namespace Game
             public int G;
             public int H;
             public Node Parent;
+            public bool Opened;
+            public bool Closed;
+            public int HeapIndex;
             public int F => G + H;
 
             public Node(Vector3Int coord)
             {
                 Coord = coord;
+                HeapIndex = -1;
+            }
+        }
+
+        private sealed class NodeHeap
+        {
+            private readonly List<Node> items = new List<Node>();
+
+            public int Count => items.Count;
+
+            public void Add(Node node)
+            {
+                node.HeapIndex = items.Count;
+                items.Add(node);
+                SortUp(node);
+            }
+
+            public Node RemoveFirst()
+            {
+                Node first = items[0];
+                int lastIndex = items.Count - 1;
+                Node last = items[lastIndex];
+                items.RemoveAt(lastIndex);
+
+                if (items.Count > 0)
+                {
+                    items[0] = last;
+                    last.HeapIndex = 0;
+                    SortDown(last);
+                }
+
+                first.HeapIndex = -1;
+                return first;
+            }
+
+            public void Update(Node node)
+            {
+                SortUp(node);
+            }
+
+            private void SortDown(Node node)
+            {
+                while (true)
+                {
+                    int leftChildIndex = node.HeapIndex * 2 + 1;
+                    int rightChildIndex = node.HeapIndex * 2 + 2;
+
+                    if (leftChildIndex >= items.Count)
+                    {
+                        return;
+                    }
+
+                    int bestChildIndex = leftChildIndex;
+                    if (rightChildIndex < items.Count && IsBetter(items[rightChildIndex], items[leftChildIndex]))
+                    {
+                        bestChildIndex = rightChildIndex;
+                    }
+
+                    if (!IsBetter(items[bestChildIndex], node))
+                    {
+                        return;
+                    }
+
+                    Swap(node, items[bestChildIndex]);
+                }
+            }
+
+            private void SortUp(Node node)
+            {
+                while (node.HeapIndex > 0)
+                {
+                    int parentIndex = (node.HeapIndex - 1) / 2;
+                    Node parent = items[parentIndex];
+
+                    if (!IsBetter(node, parent))
+                    {
+                        return;
+                    }
+
+                    Swap(node, parent);
+                }
+            }
+
+            private static bool IsBetter(Node left, Node right)
+            {
+                if (left.F != right.F)
+                {
+                    return left.F < right.F;
+                }
+
+                return left.H < right.H;
+            }
+
+            private void Swap(Node left, Node right)
+            {
+                items[left.HeapIndex] = right;
+                items[right.HeapIndex] = left;
+                int leftIndex = left.HeapIndex;
+                left.HeapIndex = right.HeapIndex;
+                right.HeapIndex = leftIndex;
             }
         }
     }
