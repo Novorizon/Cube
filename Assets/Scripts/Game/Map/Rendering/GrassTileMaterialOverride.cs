@@ -12,12 +12,13 @@ namespace Game
         private static readonly int VariationStrengthId = Shader.PropertyToID("_VariationStrength");
         private static readonly int VariationScaleId = Shader.PropertyToID("_VariationScale");
         private static readonly int VariationSoftnessId = Shader.PropertyToID("_VariationSoftness");
+        private static readonly int PatchMapId = Shader.PropertyToID("_PatchMap");
 
         [SerializeField]
         private MeshRenderer targetRenderer;
 
         [SerializeField]
-        private bool overrideEnabled;
+        private bool overrideEnabled = true;
 
         [SerializeField]
         private Color baseGreen = new Color(0.43f, 0.66f, 0.09f, 1f);
@@ -141,13 +142,55 @@ namespace Game
 
             if (targetRenderer == null)
             {
-                targetRenderer = GetComponentInChildren<MeshRenderer>(true);
+                targetRenderer = FindGrassRenderer();
+            }
+        }
+
+        private MeshRenderer FindGrassRenderer()
+        {
+            MeshRenderer[] renderers = GetComponentsInChildren<MeshRenderer>(true);
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                MeshRenderer renderer = renderers[i];
+                Material[] materials = renderer.sharedMaterials;
+
+                for (int j = 0; j < materials.Length; j++)
+                {
+                    Material material = materials[j];
+
+                    if (material != null && material.HasProperty(PatchMapId))
+                    {
+                        return renderer;
+                    }
+                }
+            }
+
+            return renderers.Length > 0 ? renderers[0] : null;
+        }
+
+        private bool HasTargetRenderer()
+        {
+            if (targetRenderer != null)
+            {
+                return true;
+            }
+
+            FindTargetRenderer();
+            return targetRenderer != null;
+        }
+
+        private void EnsurePropertyBlock()
+        {
+            if (propertyBlock == null)
+            {
+                propertyBlock = new MaterialPropertyBlock();
             }
         }
 
         private void Apply()
         {
-            if (targetRenderer == null)
+            if (!HasTargetRenderer())
             {
                 return;
             }
@@ -158,10 +201,7 @@ namespace Game
                 return;
             }
 
-            if (propertyBlock == null)
-            {
-                propertyBlock = new MaterialPropertyBlock();
-            }
+            EnsurePropertyBlock();
 
             targetRenderer.GetPropertyBlock(propertyBlock);
             propertyBlock.SetColor(BaseColorId, baseGreen);
@@ -175,7 +215,7 @@ namespace Game
 
         private void Clear()
         {
-            if (targetRenderer == null)
+            if (!HasTargetRenderer())
             {
                 return;
             }

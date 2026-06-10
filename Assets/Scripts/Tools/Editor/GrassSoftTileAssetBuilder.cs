@@ -10,7 +10,7 @@ namespace Game.Editor.Art
     public sealed class GrassSoftTileAssetBuilder : EditorWindow
     {
         private const string MaterialPath = "Assets/Arts/Map/Tiles/Materials/Grass_Stylized.mat";
-        private const string PatchTexturePath = "Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_PatchMask_1024.png";
+        private const string PatchTexturePath = "Assets/Arts/Map/Tiles/Textures/Generated/Grass_Patch_V08.png";
 
         private static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
         private static readonly int PatchMapId = Shader.PropertyToID("_PatchMap");
@@ -19,6 +19,7 @@ namespace Game.Editor.Art
         private static readonly int LightGreenId = Shader.PropertyToID("_LightGreen");
         private static readonly int PatchStrengthId = Shader.PropertyToID("_PatchStrength");
         private static readonly int PatchWorldScaleId = Shader.PropertyToID("_PatchWorldScale");
+        private static readonly int PatchCellRandomnessId = Shader.PropertyToID("_PatchCellRandomness");
         private static readonly int VariationStrengthId = Shader.PropertyToID("_VariationStrength");
         private static readonly int VariationScaleId = Shader.PropertyToID("_VariationScale");
         private static readonly int VariationSoftnessId = Shader.PropertyToID("_VariationSoftness");
@@ -38,6 +39,7 @@ namespace Game.Editor.Art
         private Color lightGreen = new Color(0.56f, 0.76f, 0.15f, 1f);
         private float patchStrength = 0.32f;
         private float patchWorldScale = 0.82f;
+        private float patchCellRandomness = 1f;
         private float variationStrength = 0.12f;
         private float variationScale = 1.35f;
         private float variationSoftness = 0.72f;
@@ -106,6 +108,7 @@ namespace Game.Editor.Art
             EditorGUILayout.LabelField("Patch Texture", EditorStyles.boldLabel);
             patchStrength = EditorGUILayout.Slider("Patch Strength", patchStrength, 0f, 1f);
             patchWorldScale = EditorGUILayout.Slider("Patch World Scale", patchWorldScale, 0.05f, 4f);
+            patchCellRandomness = EditorGUILayout.Slider("Patch Cell Randomness", patchCellRandomness, 0f, 1f);
 
             EditorGUILayout.Space(8f);
             EditorGUILayout.LabelField("Soft Variation", EditorStyles.boldLabel);
@@ -243,6 +246,7 @@ namespace Game.Editor.Art
             material.SetColor(LightGreenId, new Color(0.56f, 0.76f, 0.15f, 1f));
             material.SetFloat(PatchStrengthId, 0.32f);
             material.SetFloat(PatchWorldScaleId, 0.82f);
+            material.SetFloat(PatchCellRandomnessId, 1f);
             material.SetFloat(VariationStrengthId, 0.14f);
             material.SetFloat(VariationScaleId, 1.15f);
             material.SetFloat(VariationSoftnessId, 0.78f);
@@ -270,6 +274,7 @@ namespace Game.Editor.Art
             grassMaterial.SetColor(LightGreenId, lightGreen);
             grassMaterial.SetFloat(PatchStrengthId, patchStrength);
             grassMaterial.SetFloat(PatchWorldScaleId, patchWorldScale);
+            grassMaterial.SetFloat(PatchCellRandomnessId, patchCellRandomness);
             grassMaterial.SetFloat(VariationStrengthId, variationStrength);
             grassMaterial.SetFloat(VariationScaleId, variationScale);
             grassMaterial.SetFloat(VariationSoftnessId, variationSoftness);
@@ -297,6 +302,7 @@ namespace Game.Editor.Art
             lightGreen = grassMaterial.GetColor(LightGreenId);
             patchStrength = grassMaterial.GetFloat(PatchStrengthId);
             patchWorldScale = grassMaterial.GetFloat(PatchWorldScaleId);
+            patchCellRandomness = grassMaterial.GetFloat(PatchCellRandomnessId);
             variationStrength = grassMaterial.GetFloat(VariationStrengthId);
             variationScale = grassMaterial.GetFloat(VariationScaleId);
             variationSoftness = grassMaterial.GetFloat(VariationSoftnessId);
@@ -316,6 +322,7 @@ namespace Game.Editor.Art
             lightGreen = new Color(0.56f, 0.76f, 0.15f, 1f);
             patchStrength = 0.32f;
             patchWorldScale = 0.82f;
+            patchCellRandomness = 1f;
             variationStrength = 0.14f;
             variationScale = 1.15f;
             variationSoftness = 0.78f;

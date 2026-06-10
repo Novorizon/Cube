@@ -37,6 +37,7 @@ Material:
     - _LightStrength: 0.28
     - _LightWrap: 0.58
     - _MaxBrightness: 1.16
+    - _PatchCellRandomness: 1
     - _PatchStrength: 1
     - _PatchWorldScale: 0.82
     - _Saturation: 1.04
