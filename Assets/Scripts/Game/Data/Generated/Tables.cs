@@ -32,6 +32,14 @@ public partial class Tables
     public TbTower TbTower {get; }
     public TbTowerLevel TbTowerLevel {get; }
     public TbWave TbWave {get; }
+    public TbWorldBuilding TbWorldBuilding {get; }
+    public TbWorldBuildingIncome TbWorldBuildingIncome {get; }
+    public TbWorldBuildingLevel TbWorldBuildingLevel {get; }
+    public TbWorldCost TbWorldCost {get; }
+    public TbWorldCrop TbWorldCrop {get; }
+    public TbWorldGather TbWorldGather {get; }
+    public TbWorldResource TbWorldResource {get; }
+    public TbWorldReward TbWorldReward {get; }
 
     public Tables(System.Func<string, ByteBuf> loader)
     {
@@ -54,6 +62,14 @@ public partial class Tables
         TbTower = new TbTower(loader("tbtower"));
         TbTowerLevel = new TbTowerLevel(loader("tbtowerlevel"));
         TbWave = new TbWave(loader("tbwave"));
+        TbWorldBuilding = new TbWorldBuilding(loader("tbworldbuilding"));
+        TbWorldBuildingIncome = new TbWorldBuildingIncome(loader("tbworldbuildingincome"));
+        TbWorldBuildingLevel = new TbWorldBuildingLevel(loader("tbworldbuildinglevel"));
+        TbWorldCost = new TbWorldCost(loader("tbworldcost"));
+        TbWorldCrop = new TbWorldCrop(loader("tbworldcrop"));
+        TbWorldGather = new TbWorldGather(loader("tbworldgather"));
+        TbWorldResource = new TbWorldResource(loader("tbworldresource"));
+        TbWorldReward = new TbWorldReward(loader("tbworldreward"));
         ResolveRef();
     }
     
@@ -78,6 +94,14 @@ public partial class Tables
         TbTower.ResolveRef(this);
         TbTowerLevel.ResolveRef(this);
         TbWave.ResolveRef(this);
+        TbWorldBuilding.ResolveRef(this);
+        TbWorldBuildingIncome.ResolveRef(this);
+        TbWorldBuildingLevel.ResolveRef(this);
+        TbWorldCost.ResolveRef(this);
+        TbWorldCrop.ResolveRef(this);
+        TbWorldGather.ResolveRef(this);
+        TbWorldResource.ResolveRef(this);
+        TbWorldReward.ResolveRef(this);
     }
 }
 

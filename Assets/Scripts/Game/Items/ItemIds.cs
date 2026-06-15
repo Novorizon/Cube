@@ -16,6 +16,15 @@ public static class ItemIds
     public const int SeedMax = 5999999;
 
     public const int Gold = 1;
+    public const int Wood = 2;
+    public const int Stone = 3;
+    public const int Food = 4;
+    public const int CopperOre = 5;
+    public const int IronOre = 6;
+    public const int Herb = 7;
+    public const int Wheat = 8;
+    public const int Tomato = 9;
+    public const int Flower = 10;
 
     public const int BombTree = 1000101;
     public const int BombBridge = 1000102;

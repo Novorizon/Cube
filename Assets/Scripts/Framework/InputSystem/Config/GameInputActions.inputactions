@@ -1,4 +1,4 @@
-{
+﻿{
     "version": 1,
     "name": "GameInputActions",
     "maps": [
@@ -102,7 +102,7 @@
             ]
         },
         {
-            "name": "Gameplay",
+            "name": "World",
             "id": "c8a0379d-4760-4acd-97e3-ec3b388e3b39",
             "actions": [
                 {

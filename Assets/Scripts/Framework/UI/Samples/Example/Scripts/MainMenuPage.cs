@@ -32,7 +32,7 @@ namespace Game.UI
         private void OnEnterMapClicked()
         {
 
-            MapManager.Instance.LoadMap(mapId);
+            MapManager.Instance.LoadWorldMap(mapId);
 
             // 当前先简单隐藏主菜单。
             gameObject.SetActive(false);

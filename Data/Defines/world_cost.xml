@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="WorldCostConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="groupId" type="int" comment="client" />
+    <var name="itemId" type="int" comment="client" />
+    <var name="count" type="int" comment="client" />
+  </bean>
+
+  <table name="TbWorldCost" value="WorldCostConfig" input="world_cost.xlsx" mode="map" index="id" />
+</module>

@@ -24,6 +24,7 @@ def add_rect_patch_uv(mesh):
     if len(mesh.uv_layers) == 0:
         mesh.uv_layers.new(name="UVMap")
 
+    base_uv = mesh.uv_layers[0]
     patch_uv = mesh.uv_layers.get("RoadPatchUV")
     if patch_uv is None:
         patch_uv = mesh.uv_layers.new(name="RoadPatchUV")
@@ -39,7 +40,9 @@ def add_rect_patch_uv(mesh):
     for polygon in mesh.polygons:
         for loop_index in polygon.loop_indices:
             vertex = vertices[mesh.loops[loop_index].vertex_index].co
-            patch_uv.data[loop_index].uv = ((vertex.x - min_x) * inv_x, (vertex.y - min_y) * inv_y)
+            rect_uv = ((vertex.x - min_x) * inv_x, (vertex.y - min_y) * inv_y)
+            base_uv.data[loop_index].uv = rect_uv
+            patch_uv.data[loop_index].uv = rect_uv
 
 
 def main():

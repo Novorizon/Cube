@@ -17,6 +17,14 @@ namespace Game
         public ConfigTableReader<TowerConfig> Tower { get; private set; }
         public ConfigTableReader<TowerLevelConfig> TowerLevel { get; private set; }
         public ConfigTableReader<ItemConfig> Item { get; private set; }
+        public ConfigTableReader<WorldCostConfig> WorldCost { get; private set; }
+        public ConfigTableReader<WorldGatherConfig> WorldGather { get; private set; }
+        public ConfigTableReader<WorldRewardConfig> WorldReward { get; private set; }
+        public ConfigTableReader<WorldBuildingConfig> WorldBuilding { get; private set; }
+        public ConfigTableReader<WorldBuildingLevelConfig> WorldBuildingLevel { get; private set; }
+        public ConfigTableReader<WorldBuildingIncomeConfig> WorldBuildingIncome { get; private set; }
+        public ConfigTableReader<WorldCropConfig> WorldCrop { get; private set; }
+        public ConfigTableReader<WorldResourceConfig> WorldResource { get; private set; }
         public ConfigTableReader<BaseConfig> Base { get; private set; }
         public ConfigTableReader<MapConfig> Map { get; private set; }
         public ConfigTableReader<SkillConfig> Skill { get; private set; }
@@ -52,6 +60,14 @@ namespace Game
             Tower = new ConfigTableReader<TowerConfig>("TbTower", tables.TbTower.DataMap);
             TowerLevel = new ConfigTableReader<TowerLevelConfig>("TbTowerLevel", tables.TbTowerLevel.DataMap);
             Item = new ConfigTableReader<ItemConfig>("TbItem", tables.TbItem.DataMap);
+            WorldCost = new ConfigTableReader<WorldCostConfig>("TbWorldCost", tables.TbWorldCost.DataMap);
+            WorldGather = new ConfigTableReader<WorldGatherConfig>("TbWorldGather", tables.TbWorldGather.DataMap);
+            WorldReward = new ConfigTableReader<WorldRewardConfig>("TbWorldReward", tables.TbWorldReward.DataMap);
+            WorldBuilding = new ConfigTableReader<WorldBuildingConfig>("TbWorldBuilding", tables.TbWorldBuilding.DataMap);
+            WorldBuildingLevel = new ConfigTableReader<WorldBuildingLevelConfig>("TbWorldBuildingLevel", tables.TbWorldBuildingLevel.DataMap);
+            WorldBuildingIncome = new ConfigTableReader<WorldBuildingIncomeConfig>("TbWorldBuildingIncome", tables.TbWorldBuildingIncome.DataMap);
+            WorldCrop = new ConfigTableReader<WorldCropConfig>("TbWorldCrop", tables.TbWorldCrop.DataMap);
+            WorldResource = new ConfigTableReader<WorldResourceConfig>("TbWorldResource", tables.TbWorldResource.DataMap);
             Base = new ConfigTableReader<BaseConfig>("TbBase", tables.TbBase.DataMap);
             Map = new ConfigTableReader<MapConfig>("TbMap", tables.TbMap.DataMap);
             Skill = new ConfigTableReader<SkillConfig>("TbSkill", tables.TbSkill.DataMap);
@@ -104,6 +120,28 @@ namespace Game
         public static int MakeTowerLevelId(int towerId, int level)
         {
             return towerId * 100 + level;
+        }
+
+        public static int MakeWorldBuildingLevelId(int buildingId, int level)
+        {
+            return buildingId * 100 + level;
+        }
+
+        public bool TryGetWorldBuildingLevel(int buildingId, int level, out WorldBuildingLevelConfig config)
+        {
+            config = null;
+
+            if (WorldBuildingLevel == null || buildingId <= 0 || level <= 0)
+            {
+                return false;
+            }
+
+            if (!WorldBuildingLevel.TryGet(MakeWorldBuildingLevelId(buildingId, level), out config))
+            {
+                return false;
+            }
+
+            return config != null && config.Enable;
         }
 
         public TowerLevelConfig GetTowerLevel(int towerId, int level)

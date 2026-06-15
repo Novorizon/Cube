@@ -1,0 +1,106 @@
+[
+  {
+    "id": 200101,
+    "buildingId": 2001,
+    "level": 1,
+    "buildCostGroupId": 0,
+    "buildSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 200201,
+    "buildingId": 2002,
+    "level": 1,
+    "buildCostGroupId": 200201,
+    "buildSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 200301,
+    "buildingId": 2003,
+    "level": 1,
+    "buildCostGroupId": 200301,
+    "buildSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 200401,
+    "buildingId": 2004,
+    "level": 1,
+    "buildCostGroupId": 200401,
+    "buildSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 200501,
+    "buildingId": 2005,
+    "level": 1,
+    "buildCostGroupId": 200501,
+    "buildSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 200601,
+    "buildingId": 2006,
+    "level": 1,
+    "buildCostGroupId": 200601,
+    "buildSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 200701,
+    "buildingId": 2007,
+    "level": 1,
+    "buildCostGroupId": 200701,
+    "buildSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 201101,
+    "buildingId": 2011,
+    "level": 1,
+    "buildCostGroupId": 201101,
+    "buildSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 201201,
+    "buildingId": 2012,
+    "level": 1,
+    "buildCostGroupId": 201201,
+    "buildSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 201301,
+    "buildingId": 2013,
+    "level": 1,
+    "buildCostGroupId": 201301,
+    "buildSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 202101,
+    "buildingId": 2021,
+    "level": 1,
+    "buildCostGroupId": 202101,
+    "buildSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 202201,
+    "buildingId": 2022,
+    "level": 1,
+    "buildCostGroupId": 202201,
+    "buildSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 202301,
+    "buildingId": 2023,
+    "level": 1,
+    "buildCostGroupId": 202301,
+    "buildSeconds": 0,
+    "enable": true
+  }
+]

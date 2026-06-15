@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities.Editor;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -29,6 +30,7 @@ namespace Game.Editor
             Paint,
             Points,
             Decoration,
+            Resources,
         }
 
         private enum TypeBrush
@@ -71,19 +73,61 @@ namespace Game.Editor
             public Vector3Int GoalPoint => mapData.GoalPoint;
         }
 
+        private sealed class WorldResourceEditorItem
+        {
+            [JsonProperty("id")]
+            public int Id { get; set; }
+
+            [JsonProperty("name")]
+            public string Name { get; set; }
+
+            [JsonProperty("resourceType")]
+            public int ResourceType { get; set; }
+
+            [JsonProperty("interactionType")]
+            public int InteractionType { get; set; }
+
+            [JsonProperty("gatherConfigId")]
+            public int GatherConfigId { get; set; }
+
+            [JsonProperty("pickupRewardGroupId")]
+            public int PickupRewardGroupId { get; set; }
+
+            [JsonProperty("mineBuildingId")]
+            public int MineBuildingId { get; set; }
+
+            [JsonProperty("prefabLocation")]
+            public string PrefabLocation { get; set; }
+
+            [JsonProperty("iconLocation")]
+            public string IconLocation { get; set; }
+
+            [JsonProperty("blocksBuild")]
+            public bool BlocksBuild { get; set; }
+
+            [JsonProperty("blocksMove")]
+            public bool BlocksMove { get; set; }
+
+            [JsonProperty("enable")]
+            public bool Enable { get; set; } = true;
+        }
+
         [TabGroup("Tabs", "Map", false, 0), OnInspectorGUI, PropertyOrder(-1000)]
         private void DrawMapTab()
         {
             DrawMapToolButtons();
         }
 
-        private const string PrefabConfigPath = "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset";
-        private const string DecorationConfigPath = "Assets/Data/Cube/Configs/MapDecorationPrefabConfig.asset";
+        private const string PrefabConfigPath = "Assets/Data/Configs/MapTilePrefabConfig.asset";
+        private const string DecorationConfigPath = "Assets/Data/Configs/MapDecorationPrefabConfig.asset";
+        private const string WorldResourceJsonPath = "Assets/Data/Json/tbworldresource.json";
         private const string RootName = "MapRoot";
         private const float RightDockPanelWidth = 360f;
         private const float MiddlePanelWidth = 430f;
         private const float DecorationSourcePreviewPanelWidth = 360f;
         private const float DecorationColumnGap = 12f;
+
+        private static string MapJsonDirectory => Path.Combine(Application.dataPath, "Data", "Map");
 
         private readonly Dictionary<Vector3Int, MapCellData> tileMap = new Dictionary<Vector3Int, MapCellData>();
         private readonly Dictionary<Vector3Int, GameObject> tileObjects = new Dictionary<Vector3Int, GameObject>();
@@ -91,8 +135,12 @@ namespace Game.Editor
         private readonly HashSet<Vector3Int> paintedThisDrag = new HashSet<Vector3Int>();
         private readonly List<GameObject> markers = new List<GameObject>();
         private readonly List<GameObject> decorationObjects = new List<GameObject>();
+        private readonly List<GameObject> objectPreviewObjects = new List<GameObject>();
         private readonly List<int> decorationIdOptions = new List<int>();
         private readonly List<string> decorationNameOptions = new List<string>();
+        private readonly List<WorldResourceEditorItem> worldResourceItems = new List<WorldResourceEditorItem>();
+        private readonly List<int> worldResourceIdOptions = new List<int>();
+        private readonly List<string> worldResourceNameOptions = new List<string>();
         private Vector2 logicDefaultsPreviewScroll;
         private bool showCurrentMapData;
         private PropertyTree currentMapPropertyTree;
@@ -159,7 +207,7 @@ namespace Game.Editor
 
         private void DrawTypeBrushPreviewSelector()
         {
-            EditorGUILayout.LabelField("Type Brush / 基础地块", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Type Brush", EditorStyles.boldLabel);
             EditorGUILayout.BeginHorizontal();
             DrawTypeBrushPreviewButton(TypeBrush.Grass);
             DrawTypeBrushPreviewButton(TypeBrush.Hill);
@@ -181,7 +229,7 @@ namespace Game.Editor
 
         private void DrawOverlayBrushPreviewSelector()
         {
-            EditorGUILayout.LabelField("Overlay Brush / 覆盖层", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Overlay Brush", EditorStyles.boldLabel);
             EditorGUILayout.BeginHorizontal();
             DrawOverlayBrushPreviewButton(MapTileOverlay.None);
             DrawOverlayBrushPreviewButton(MapTileOverlay.Bridge);
@@ -258,7 +306,7 @@ namespace Game.Editor
 
         private void DrawPaintToolButtons()
         {
-            EditorGUILayout.LabelField("Paint Tools / 笔刷工具", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Paint Tools", EditorStyles.boldLabel);
 
             bool toggleBrush;
             bool fillLayer;
@@ -268,15 +316,15 @@ namespace Game.Editor
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                toggleBrush = GUILayout.Button(brushEnabled ? "关闭笔刷\nToggle Off" : "开启笔刷\nToggle On", GUILayout.Width(118f), GUILayout.Height(44f));
-                fillLayer = GUILayout.Button("填充当前高度层\nFill Y Layer", GUILayout.Width(138f), GUILayout.Height(44f));
-                clearOverlay = GUILayout.Button("清除覆盖层\nClear Overlay", GUILayout.Width(118f), GUILayout.Height(44f));
+                toggleBrush = GUILayout.Button(brushEnabled ? "Toggle Off" : "Toggle On", GUILayout.Width(118f), GUILayout.Height(44f));
+                fillLayer = GUILayout.Button("Fill Y Layer", GUILayout.Width(138f), GUILayout.Height(44f));
+                clearOverlay = GUILayout.Button("Clear Overlay", GUILayout.Width(118f), GUILayout.Height(44f));
             }
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                raise = DrawPaintModeButton("升高笔刷\nRaise", BrushMode.Raise, 96f);
-                lower = DrawPaintModeButton("降低笔刷\nLower", BrushMode.Lower, 96f);
+                raise = DrawPaintModeButton("Raise", BrushMode.Raise, 96f);
+                lower = DrawPaintModeButton("Lower", BrushMode.Lower, 96f);
             }
 
             if (toggleBrush) ToggleBrush();
@@ -362,8 +410,28 @@ namespace Game.Editor
         [HideInInspector, SerializeField]
         private Vector3 decorationLocalScale = Vector3.one;
 
-        private int DecorationCount => currentMap != null && currentMap.Objects != null ? currentMap.Objects.Count : 0;
+        [HideInInspector, SerializeField]
+        private int selectedWorldResourceId;
+
+        [HideInInspector, SerializeField]
+        private Vector3 resourceLocalPosition = Vector3.zero;
+
+        [HideInInspector, SerializeField]
+        private Vector3 resourceLocalEuler = Vector3.zero;
+
+        [HideInInspector, SerializeField]
+        private Vector3 resourceLocalScale = Vector3.one;
+
+        [HideInInspector, SerializeField]
+        private bool resourceBlocksBuild = true;
+
+        [HideInInspector, SerializeField]
+        private bool resourceBlocksMove = true;
+
+        private int DecorationCount => CountObjects(MapObjectType.Decoration);
+        private int ResourceObjectCount => CountObjects(MapObjectType.Resource);
         private Vector2 decorationPreviewScroll;
+        private Vector2 resourcePreviewScroll;
 
         [TabGroup("Tabs", "Points", false, 2), LabelText("Spawn Points"), SerializeField]
         private List<Vector3Int> spawnPoints = new List<Vector3Int>();
@@ -378,6 +446,26 @@ namespace Game.Editor
 
         private int ObjectCount => currentMap != null && currentMap.Objects != null ? currentMap.Objects.Count : 0;
 
+        private int CountObjects(MapObjectType objectType)
+        {
+            if (currentMap == null || currentMap.Objects == null)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            for (int i = 0; i < currentMap.Objects.Count; i++)
+            {
+                MapObjectData mapObject = currentMap.Objects[i];
+                if (mapObject != null && mapObject.ObjectType == objectType)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         private MapData currentMap;
 
         private MapCellData selectedTile;
@@ -385,7 +473,7 @@ namespace Game.Editor
 
         private void DrawRightDockSelectionPanel()
         {
-            EditorGUILayout.LabelField("当前选中格子 / Selected Cell", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Selected Cell", EditorStyles.boldLabel);
 
             if (!HasSelection || selectedTile == null)
             {
@@ -424,7 +512,7 @@ namespace Game.Editor
                 return;
             }
 
-            EditorGUILayout.LabelField("Grass Visual / 草地表现", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Grass Visual", EditorStyles.boldLabel);
 
             bool enabled = selectedTile.GrassVisual != null;
             EditorGUI.BeginChangeCheck();
@@ -650,11 +738,11 @@ namespace Game.Editor
         {
             if (!TryGetObjectsAt(selectedCoord, out IReadOnlyList<MapObjectData> objects) || objects == null || objects.Count == 0)
             {
-                EditorGUILayout.LabelField("Objects On Cell / 当前格对象", "0");
+                EditorGUILayout.LabelField("Objects On Cell", "0");
                 return;
             }
 
-            EditorGUILayout.LabelField("Objects On Cell / 当前格对象", objects.Count.ToString(), EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Objects On Cell", objects.Count.ToString(), EditorStyles.boldLabel);
             TryLoadDecorationConfig();
 
             MapObjectData objectToDelete = null;
@@ -669,8 +757,14 @@ namespace Game.Editor
                 using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
                 {
                     EditorGUILayout.LabelField($"#{i + 1} {mapObject.ObjectType}", EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField("Object Id", mapObject.ObjectId.ToString());
                     EditorGUILayout.LabelField("Config", mapObject.ConfigId.ToString());
                     EditorGUILayout.LabelField("Name", GetObjectDisplayName(mapObject));
+                    if (mapObject.ObjectType == MapObjectType.Resource)
+                    {
+                        EditorGUILayout.LabelField("Resource Mode", GetObjectResourceSummary(mapObject));
+                    }
+                    EditorGUILayout.LabelField("Blocks", $"Build {mapObject.BlocksBuild} | Move {mapObject.BlocksMove}");
                     EditorGUILayout.LabelField("Pos", FormatVector(mapObject.LocalPosition));
                     EditorGUILayout.LabelField("Rot", FormatVector(mapObject.LocalEuler));
                     EditorGUILayout.LabelField("Scale", FormatVector(mapObject.LocalScale));
@@ -712,7 +806,27 @@ namespace Game.Editor
                 }
             }
 
+            if (mapObject.ObjectType == MapObjectType.Resource)
+            {
+                WorldResourceEditorItem item = GetWorldResourceItem(mapObject.ConfigId);
+                if (item != null && !string.IsNullOrEmpty(item.Name))
+                {
+                    return item.Name;
+                }
+            }
+
             return $"Object {mapObject.ObjectId}";
+        }
+
+        private string GetObjectResourceSummary(MapObjectData mapObject)
+        {
+            if (mapObject == null || mapObject.ObjectType != MapObjectType.Resource)
+            {
+                return "None";
+            }
+
+            WorldResourceEditorItem item = GetWorldResourceItem(mapObject.ConfigId);
+            return item != null ? GetWorldResourceInteractionSummary(item) : "Missing Config";
         }
 
         private void DeleteMapObject(MapObjectData mapObject)
@@ -725,6 +839,7 @@ namespace Game.Editor
             currentMap.Objects.Remove(mapObject);
             RebuildObjectIndex();
             RefreshDecorations();
+            RefreshMapObjectPreviews();
             Repaint();
             SceneView.RepaintAll();
         }
@@ -762,7 +877,7 @@ namespace Game.Editor
 
         private void DrawMainTabToolbar()
         {
-            string[] labels = { "Map", "Paint", "Points", "Decoration" };
+            string[] labels = { "Map", "Paint", "Points", "Decoration", "Resources" };
             activeMainTab = (MainTab)GUILayout.Toolbar((int)activeMainTab, labels, GUILayout.Height(20f));
         }
 
@@ -817,6 +932,10 @@ namespace Game.Editor
                 case MainTab.Decoration:
                     DrawDecorationPlacementPanel(panelWidth);
                     break;
+
+                case MainTab.Resources:
+                    DrawObjectPlacementPanel(panelWidth);
+                    break;
             }
         }
 
@@ -839,6 +958,10 @@ namespace Game.Editor
                 case MainTab.Decoration:
                     DrawDecorationSourcePreviewPanel(panelWidth);
                     break;
+
+                case MainTab.Resources:
+                    DrawObjectSourcePreviewPanel(panelWidth);
+                    break;
             }
         }
 
@@ -857,6 +980,7 @@ namespace Game.Editor
         {
             base.OnEnable();
             TryLoadPrefabConfig();
+            TryLoadWorldResourceItems();
             SceneView.duringSceneGui += OnSceneGUI;
         }
 
@@ -901,22 +1025,22 @@ namespace Game.Editor
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                createGrid = GUILayout.Button("创建地图\nCreate Grid", GUILayout.Width(128f), GUILayout.Height(44f));
-                rebuild = GUILayout.Button("重建预览\nRebuild", GUILayout.Width(118f), GUILayout.Height(44f));
-                clear = GUILayout.Button("清空地图\nClear", GUILayout.Width(108f), GUILayout.Height(44f));
+                createGrid = GUILayout.Button("Create Grid", GUILayout.Width(128f), GUILayout.Height(44f));
+                rebuild = GUILayout.Button("Rebuild", GUILayout.Width(118f), GUILayout.Height(44f));
+                clear = GUILayout.Button("Clear", GUILayout.Width(108f), GUILayout.Height(44f));
             }
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                import = GUILayout.Button("导入 Json\nImport", GUILayout.Width(128f), GUILayout.Height(44f));
-                export = GUILayout.Button("导出 Json\nExport", GUILayout.Width(118f), GUILayout.Height(44f));
-                validate = GUILayout.Button("校验地图\nValidate", GUILayout.Width(108f), GUILayout.Height(44f));
+                import = GUILayout.Button("Import Json", GUILayout.Width(128f), GUILayout.Height(44f));
+                export = GUILayout.Button("Export Json", GUILayout.Width(118f), GUILayout.Height(44f));
+                validate = GUILayout.Button("Validate", GUILayout.Width(108f), GUILayout.Height(44f));
             }
 
             if (createGrid) CreateGridMap();
             if (rebuild) RebuildPreview();
             if (clear) ClearMap();
-            if (import) ImportJson();
+            if (import) QueueImportJson();
             if (export) ExportJson();
             if (validate) ValidateCurrentMap();
 
@@ -1032,7 +1156,7 @@ namespace Game.Editor
             }
         }
 
-        private void DrawFixedObjectField<T>(string label, ref T value) where T : Object
+        private void DrawFixedObjectField<T>(string label, ref T value) where T : UnityEngine.Object
         {
             const float labelWidth = 112f;
             const float fieldWidth = 270f;
@@ -1048,8 +1172,8 @@ namespace Game.Editor
         {
             using (new EditorGUI.DisabledScope(true))
             {
-                DrawFixedReadOnlyTextField("Tile Count / 地块数量", TileCount.ToString());
-                DrawFixedReadOnlyTextField("Object Count / 对象数量", ObjectCount.ToString());
+                DrawFixedReadOnlyTextField("Tile Count", TileCount.ToString());
+                DrawFixedReadOnlyTextField("Object Count", ObjectCount.ToString());
             }
 
             DrawCurrentMapDataFoldout();
@@ -1069,7 +1193,7 @@ namespace Game.Editor
 
         private void DrawCurrentMapDataFoldout()
         {
-            showCurrentMapData = EditorGUILayout.Foldout(showCurrentMapData, "Current Map / 当前地图数据", true);
+            showCurrentMapData = EditorGUILayout.Foldout(showCurrentMapData, "Current Map", true);
             if (!showCurrentMapData)
             {
                 return;
@@ -1162,6 +1286,23 @@ namespace Game.Editor
             }
         }
 
+        [TabGroup("Tabs", "Resources", false, 4), OnInspectorGUI]
+        private void DrawResourcesTab()
+        {
+            TryLoadWorldResourceItems();
+
+            float contentWidth = Mathf.Max(760f, position.width - RightDockPanelWidth - 36f);
+            float rightWidth = Mathf.Min(DecorationSourcePreviewPanelWidth, Mathf.Max(320f, contentWidth * 0.45f));
+            float leftWidth = Mathf.Max(360f, contentWidth - rightWidth - DecorationColumnGap);
+
+            using (new EditorGUILayout.HorizontalScope(GUILayout.Width(contentWidth)))
+            {
+                DrawObjectPlacementPanel(leftWidth);
+                GUILayout.Space(DecorationColumnGap);
+                DrawObjectSourcePreviewPanel(rightWidth);
+            }
+        }
+
         private void DrawDecorationPlacementPanel(float panelWidth)
         {
             bool addDecoration = false;
@@ -1196,24 +1337,24 @@ namespace Game.Editor
                 {
                     using (new EditorGUI.DisabledScope(!HasSelection))
                     {
-                        addDecoration = GUILayout.Button("添加装饰\nAdd", GUILayout.Width(124f), GUILayout.Height(40f));
-                        removeDecorations = GUILayout.Button("删除当前格\nRemove", GUILayout.Width(124f), GUILayout.Height(40f));
+                        addDecoration = GUILayout.Button("Add", GUILayout.Width(124f), GUILayout.Height(40f));
+                        removeDecorations = GUILayout.Button("Remove", GUILayout.Width(124f), GUILayout.Height(40f));
                     }
                 }
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    createConfig = GUILayout.Button("创建配置\nCreate Config", GUILayout.Width(124f), GUILayout.Height(40f));
+                    createConfig = GUILayout.Button("Create Config", GUILayout.Width(124f), GUILayout.Height(40f));
                     using (new EditorGUI.DisabledScope(decorationConfig == null))
                     {
-                        selectConfig = GUILayout.Button("选中配置\nSelect Config", GUILayout.Width(124f), GUILayout.Height(40f));
+                        selectConfig = GUILayout.Button("Select Config", GUILayout.Width(124f), GUILayout.Height(40f));
                     }
                 }
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    useDefaults = GUILayout.Button("使用默认值\nUse Defaults", GUILayout.Width(124f), GUILayout.Height(40f));
-                    clearAll = GUILayout.Button("清空装饰\nClear All", GUILayout.Width(124f), GUILayout.Height(40f));
+                    useDefaults = GUILayout.Button("Use Defaults", GUILayout.Width(124f), GUILayout.Height(40f));
+                    clearAll = GUILayout.Button("Clear All", GUILayout.Width(124f), GUILayout.Height(40f));
                 }
 
                 EditorGUIUtility.labelWidth = oldLabelWidth;
@@ -1230,7 +1371,7 @@ namespace Game.Editor
         private void DrawDecorationSourcePreviewPanel(float panelWidth)
         {
             EditorGUILayout.BeginVertical(GUILayout.Width(panelWidth), GUILayout.MinWidth(panelWidth), GUILayout.MaxWidth(panelWidth));
-            EditorGUILayout.LabelField("装饰物资源库预览 / Source Preview", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Decoration Source Preview", EditorStyles.boldLabel);
 
             if (decorationConfig == null)
             {
@@ -1276,7 +1417,7 @@ namespace Game.Editor
             Rect textRect = new Rect(previewRect.xMax + 8f, rowRect.y + 8f, rowRect.width - previewRect.width - radioRect.width - 34f, 22f);
             Rect objectFieldRect = new Rect(textRect.x, rowRect.y + 42f, Mathf.Min(170f, textRect.width), 18f);
 
-            GUI.Label(radioRect, isSelected ? "●" : "○", EditorStyles.boldLabel);
+            GUI.Label(radioRect, isSelected ? "*" : "o", EditorStyles.boldLabel);
 
             GUI.Box(previewRect, GUIContent.none);
             Texture2D preview = GetDecorationPreview(item.Prefab);
@@ -1477,7 +1618,10 @@ namespace Game.Editor
         private void RemoveDecorationsAtSelected()
         {
             if (!EnsureMap()) return;
-            currentMap.Objects.RemoveAll(decoration => decoration != null && decoration.Coord == selectedCoord);
+            currentMap.Objects.RemoveAll(decoration =>
+                decoration != null &&
+                decoration.ObjectType == MapObjectType.Decoration &&
+                decoration.Coord == selectedCoord);
             RebuildObjectIndex();
             RefreshDecorations();
         }
@@ -1486,9 +1630,307 @@ namespace Game.Editor
         {
             if (!EnsureMap()) return;
             if (!EditorUtility.DisplayDialog("Clear Decorations", "Clear all decorations in current map?", "Clear", "Cancel")) return;
-            currentMap.Objects.Clear();
+            currentMap.Objects.RemoveAll(decoration => decoration != null && decoration.ObjectType == MapObjectType.Decoration);
             RebuildObjectIndex();
             RefreshDecorations();
+        }
+
+        private void DrawObjectPlacementPanel(float panelWidth)
+        {
+            bool addResource = false;
+            bool removeResources = false;
+            bool useDefaults;
+            bool reloadTypes;
+            bool clearResources;
+
+            TryLoadWorldResourceItems();
+
+            using (new EditorGUILayout.VerticalScope(GUILayout.Width(panelWidth), GUILayout.MinWidth(panelWidth), GUILayout.MaxWidth(panelWidth)))
+            {
+                float oldLabelWidth = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = 155f;
+
+                EditorGUILayout.LabelField("World Resources", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Object Type", MapObjectType.Resource.ToString());
+                DrawWorldResourceSelector();
+                EditorGUILayout.LabelField("Selected Resource", GetSelectedWorldResourceName());
+                EditorGUILayout.LabelField("Interaction", GetWorldResourceInteractionSummary(GetSelectedWorldResourceItem()));
+                resourceLocalPosition = EditorGUILayout.Vector3Field("Local Position", resourceLocalPosition);
+                resourceLocalEuler = EditorGUILayout.Vector3Field("Local Euler", resourceLocalEuler);
+                resourceLocalScale = EditorGUILayout.Vector3Field("Local Scale", resourceLocalScale);
+                resourceBlocksBuild = EditorGUILayout.Toggle("Blocks Build", resourceBlocksBuild);
+                resourceBlocksMove = EditorGUILayout.Toggle("Blocks Move", resourceBlocksMove);
+                EditorGUILayout.LabelField("Resource Count", ResourceObjectCount.ToString());
+                GUILayout.Space(4f);
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    using (new EditorGUI.DisabledScope(!HasSelection))
+                    {
+                        addResource = GUILayout.Button("Add", GUILayout.Width(124f), GUILayout.Height(40f));
+                        removeResources = GUILayout.Button("Remove", GUILayout.Width(124f), GUILayout.Height(40f));
+                    }
+                }
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    useDefaults = GUILayout.Button("Use Defaults", GUILayout.Width(124f), GUILayout.Height(40f));
+                    reloadTypes = GUILayout.Button("Reload", GUILayout.Width(124f), GUILayout.Height(40f));
+                }
+
+                clearResources = GUILayout.Button("Clear Resources", GUILayout.Width(124f), GUILayout.Height(40f));
+
+                EditorGUIUtility.labelWidth = oldLabelWidth;
+            }
+
+            if (addResource) AddResourceObjectToSelected();
+            if (removeResources) RemoveResourceObjectsAtSelected();
+            if (useDefaults) UseSelectedResourceDefaults();
+            if (reloadTypes) TryLoadWorldResourceItems(true);
+            if (clearResources) ClearResourceObjects();
+        }
+
+        private void DrawObjectSourcePreviewPanel(float panelWidth)
+        {
+            TryLoadWorldResourceItems();
+            using (new EditorGUILayout.VerticalScope(GUILayout.Width(panelWidth), GUILayout.MinWidth(panelWidth), GUILayout.MaxWidth(panelWidth)))
+            {
+                EditorGUILayout.LabelField("Resource Types", EditorStyles.boldLabel);
+
+                if (worldResourceItems.Count == 0)
+                {
+                    EditorGUILayout.HelpBox("No resource types found. Generate Luban json first.", MessageType.Info);
+                    return;
+                }
+
+                float listWidth = panelWidth - 24f;
+                using (EditorGUILayout.ScrollViewScope scroll = new EditorGUILayout.ScrollViewScope(resourcePreviewScroll, false, true, GUILayout.Width(panelWidth)))
+                {
+                    resourcePreviewScroll = scroll.scrollPosition;
+
+                    for (int i = 0; i < worldResourceItems.Count; i++)
+                    {
+                        DrawWorldResourcePreviewRow(worldResourceItems[i], listWidth);
+                    }
+                }
+            }
+        }
+
+        private void DrawWorldResourcePreviewRow(WorldResourceEditorItem item, float rowWidth)
+        {
+            if (item == null) return;
+
+            const float rowHeight = 116f;
+            Rect rowRect = GUILayoutUtility.GetRect(rowWidth, rowHeight, GUILayout.Width(rowWidth), GUILayout.Height(rowHeight));
+            rowRect = new Rect(rowRect.x + 2f, rowRect.y + 2f, rowRect.width - 4f, rowRect.height - 4f);
+
+            bool isSelected = item.Id == selectedWorldResourceId;
+            Color background = isSelected ? new Color(0.20f, 0.33f, 0.40f, 1f) : new Color(0.24f, 0.24f, 0.24f, 1f);
+            EditorGUI.DrawRect(rowRect, background);
+            GUI.Box(rowRect, GUIContent.none, EditorStyles.helpBox);
+
+            GameObject prefab = GetWorldResourcePrefab(item);
+            Rect radioRect = new Rect(rowRect.x + 8f, rowRect.y + 41f, 18f, 18f);
+            Rect previewRect = new Rect(radioRect.xMax + 4f, rowRect.y + 10f, 70f, 70f);
+            Rect titleRect = new Rect(previewRect.xMax + 8f, rowRect.y + 8f, rowRect.width - previewRect.width - radioRect.width - 34f, 22f);
+            Rect infoRect = new Rect(titleRect.x, titleRect.yMax + 3f, titleRect.width, 18f);
+            Rect interactionRect = new Rect(titleRect.x, infoRect.yMax + 1f, titleRect.width, 18f);
+            Rect objectFieldRect = new Rect(titleRect.x, interactionRect.yMax + 2f, Mathf.Min(230f, titleRect.width), 18f);
+            Rect pathRect = new Rect(titleRect.x, objectFieldRect.yMax + 2f, titleRect.width, 18f);
+
+            GUI.Label(radioRect, isSelected ? "*" : "o", EditorStyles.boldLabel);
+
+            GUI.Box(previewRect, GUIContent.none);
+            Texture2D preview = GetWorldResourcePreview(prefab);
+            if (preview != null)
+            {
+                GUI.DrawTexture(new Rect(previewRect.x + 3f, previewRect.y + 3f, previewRect.width - 6f, previewRect.height - 6f), preview, ScaleMode.ScaleToFit);
+            }
+            else
+            {
+                EditorGUI.DrawRect(new Rect(previewRect.x + 3f, previewRect.y + 3f, previewRect.width - 6f, previewRect.height - 6f), GetWorldResourceColor(item));
+                GUI.Label(previewRect, "No\nPrefab", EditorStyles.centeredGreyMiniLabel);
+            }
+
+            GUI.Label(titleRect, $"{item.Id} - {GetWorldResourceName(item)}", isSelected ? EditorStyles.boldLabel : EditorStyles.label);
+            GUI.Label(infoRect, $"Type {GetWorldResourceCategoryName(item)} | Build {item.BlocksBuild} | Move {item.BlocksMove}", EditorStyles.miniLabel);
+            GUI.Label(interactionRect, GetWorldResourceInteractionSummary(item), EditorStyles.miniLabel);
+            EditorGUI.ObjectField(objectFieldRect, GUIContent.none, prefab, typeof(GameObject), false);
+            GUI.Label(pathRect, GetWorldResourcePrefabPath(item, prefab), EditorStyles.miniLabel);
+
+            EditorGUIUtility.AddCursorRect(objectFieldRect, MouseCursor.Link);
+            EditorGUIUtility.AddCursorRect(rowRect, MouseCursor.Link);
+            Event current = Event.current;
+            if (current == null || current.type != EventType.MouseDown || current.button != 0 || !rowRect.Contains(current.mousePosition))
+            {
+                return;
+            }
+
+            SelectWorldResourceItem(item);
+            if (objectFieldRect.Contains(current.mousePosition))
+            {
+                LocateWorldResourcePrefab(prefab);
+            }
+
+            current.Use();
+            Repaint();
+        }
+
+        private static Texture2D GetWorldResourcePreview(GameObject prefab)
+        {
+            if (prefab == null)
+            {
+                return null;
+            }
+
+            Texture2D preview = AssetPreview.GetAssetPreview(prefab);
+            return preview != null ? preview : AssetPreview.GetMiniThumbnail(prefab);
+        }
+
+        private static string GetWorldResourcePrefabPath(WorldResourceEditorItem item, GameObject prefab)
+        {
+            if (item == null)
+            {
+                return "Prefab: None";
+            }
+
+            string assetPath = GetPrefabAssetPath(prefab);
+            if (!string.IsNullOrEmpty(item.PrefabLocation) && item.PrefabLocation != assetPath)
+            {
+                return $"Excel: {item.PrefabLocation}";
+            }
+
+            return $"Path: {assetPath}";
+        }
+
+        private void SelectWorldResourceItem(WorldResourceEditorItem item)
+        {
+            if (item == null)
+            {
+                return;
+            }
+
+            selectedWorldResourceId = item.Id;
+            UseSelectedResourceDefaults();
+        }
+
+        private static void LocateWorldResourcePrefab(GameObject prefab)
+        {
+            if (prefab == null)
+            {
+                return;
+            }
+
+            Selection.activeObject = prefab;
+            EditorGUIUtility.PingObject(prefab);
+        }
+
+        private void DrawWorldResourceSelector()
+        {
+            BuildWorldResourceOptions();
+            if (worldResourceIdOptions.Count == 0)
+            {
+                EditorGUILayout.Popup("Resource Type", 0, new[] { "None" });
+                selectedWorldResourceId = 0;
+                return;
+            }
+
+            int selectedIndex = Mathf.Max(0, worldResourceIdOptions.IndexOf(selectedWorldResourceId));
+            int newIndex = EditorGUILayout.Popup("Resource Type", selectedIndex, worldResourceNameOptions.ToArray());
+            selectedWorldResourceId = worldResourceIdOptions[Mathf.Clamp(newIndex, 0, worldResourceIdOptions.Count - 1)];
+        }
+
+        private void BuildWorldResourceOptions()
+        {
+            worldResourceIdOptions.Clear();
+            worldResourceNameOptions.Clear();
+            TryLoadWorldResourceItems();
+
+            for (int i = 0; i < worldResourceItems.Count; i++)
+            {
+                WorldResourceEditorItem item = worldResourceItems[i];
+                if (item == null || item.Id <= 0) continue;
+                worldResourceIdOptions.Add(item.Id);
+                worldResourceNameOptions.Add($"{item.Id} - {GetWorldResourceName(item)}");
+            }
+        }
+
+        private void AddResourceObjectToSelected()
+        {
+            if (!EnsureMap()) return;
+            if (!HasSelection)
+            {
+                EditorUtility.DisplayDialog("World Object", "Select a cell first.", "OK");
+                return;
+            }
+
+            WorldResourceEditorItem item = GetSelectedWorldResourceItem();
+            if (item == null)
+            {
+                EditorUtility.DisplayDialog("World Object", "Please select a valid Resource Type.", "OK");
+                return;
+            }
+
+            if (GetWorldResourcePrefab(item) == null)
+            {
+                EditorUtility.DisplayDialog("World Object", $"Missing prefab for resource: {item.Id} - {GetWorldResourceName(item)}", "OK");
+                return;
+            }
+
+            MapObjectData mapObject = new MapObjectData(
+                CreateNextMapObjectId(),
+                MapObjectType.Resource,
+                item.Id,
+                selectedCoord,
+                resourceLocalPosition,
+                resourceLocalEuler,
+                resourceLocalScale)
+            {
+                BlocksBuild = resourceBlocksBuild,
+                BlocksMove = resourceBlocksMove,
+            };
+
+            currentMap.Objects.Add(mapObject);
+            RebuildObjectIndex();
+            RefreshMapObjectPreviews();
+            Repaint();
+            SceneView.RepaintAll();
+        }
+
+        private void RemoveResourceObjectsAtSelected()
+        {
+            if (!EnsureMap()) return;
+            currentMap.Objects.RemoveAll(mapObject =>
+                mapObject != null &&
+                mapObject.ObjectType == MapObjectType.Resource &&
+                mapObject.Coord == selectedCoord);
+            RebuildObjectIndex();
+            RefreshMapObjectPreviews();
+            Repaint();
+            SceneView.RepaintAll();
+        }
+
+        private void ClearResourceObjects()
+        {
+            if (!EnsureMap()) return;
+            if (!EditorUtility.DisplayDialog("Clear Resources", "Clear all resource objects in current map?", "Clear", "Cancel")) return;
+            currentMap.Objects.RemoveAll(mapObject => mapObject != null && mapObject.ObjectType == MapObjectType.Resource);
+            RebuildObjectIndex();
+            RefreshMapObjectPreviews();
+            Repaint();
+            SceneView.RepaintAll();
+        }
+
+        private void UseSelectedResourceDefaults()
+        {
+            WorldResourceEditorItem item = GetSelectedWorldResourceItem();
+            resourceLocalPosition = Vector3.up * tileSize;
+            resourceLocalEuler = Vector3.zero;
+            resourceLocalScale = Vector3.one;
+
+            if (item == null) return;
+            resourceBlocksBuild = item.BlocksBuild;
+            resourceBlocksMove = item.BlocksMove;
         }
 
         private void ToggleBrush()
@@ -1584,12 +2026,12 @@ namespace Game.Editor
             {
                 using (new EditorGUI.DisabledScope(!HasSelection))
                 {
-                    addSpawn = GUILayout.Button("设为出生点\nAdd Spawn", GUILayout.Width(116f), GUILayout.Height(44f));
-                    setGoal = GUILayout.Button("设为终点\nSet Goal", GUILayout.Width(108f), GUILayout.Height(44f));
+                    addSpawn = GUILayout.Button("Add Spawn", GUILayout.Width(116f), GUILayout.Height(44f));
+                    setGoal = GUILayout.Button("Set Goal", GUILayout.Width(108f), GUILayout.Height(44f));
                 }
 
-                applyPoints = GUILayout.Button("应用点位\nApply Points", GUILayout.Width(112f), GUILayout.Height(44f));
-                clearPoints = GUILayout.Button("清空点位\nClear Points", GUILayout.Width(112f), GUILayout.Height(44f));
+                applyPoints = GUILayout.Button("Apply Points", GUILayout.Width(112f), GUILayout.Height(44f));
+                clearPoints = GUILayout.Button("Clear Points", GUILayout.Width(112f), GUILayout.Height(44f));
             }
 
             if (addSpawn) AddSelectedAsSpawn();
@@ -1620,7 +2062,7 @@ namespace Game.Editor
                 spawnPoints.RemoveAt(removeIndex);
             }
 
-            if (GUILayout.Button("添加出生点\nAdd Spawn Entry", GUILayout.Width(132f), GUILayout.Height(38f)))
+            if (GUILayout.Button("Add Spawn Entry", GUILayout.Width(132f), GUILayout.Height(38f)))
             {
                 spawnPoints.Add(default);
             }
@@ -1639,7 +2081,7 @@ namespace Game.Editor
         private void DrawPointsPreviewPanel(float panelWidth)
         {
             EditorGUILayout.BeginVertical(GUILayout.Width(panelWidth), GUILayout.MinWidth(panelWidth), GUILayout.MaxWidth(panelWidth), GUILayout.ExpandHeight(true));
-            EditorGUILayout.LabelField("点位预览 / Point Preview", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Point Preview", EditorStyles.boldLabel);
 
             using (new EditorGUI.DisabledScope(true))
             {
@@ -1739,7 +2181,7 @@ namespace Game.Editor
         private void DrawMapLogicDefaultsPanel(float panelWidth)
         {
             EditorGUILayout.BeginVertical(GUILayout.Width(panelWidth), GUILayout.MinWidth(panelWidth), GUILayout.MaxWidth(panelWidth), GUILayout.ExpandHeight(true));
-            EditorGUILayout.LabelField("默认逻辑资源库预览 / Source Preview", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Logic Defaults Source Preview", EditorStyles.boldLabel);
 
             if (currentMap == null)
             {
@@ -1784,7 +2226,7 @@ namespace Game.Editor
 
         private void DrawMapLogicApplyButtons()
         {
-            EditorGUILayout.LabelField("Logic Defaults / 默认逻辑", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Logic Defaults", EditorStyles.boldLabel);
 
             if (currentMap == null)
             {
@@ -1796,11 +2238,11 @@ namespace Game.Editor
             {
                 using (new EditorGUI.DisabledScope(!HasSelection))
                 {
-                    if (GUILayout.Button("应用到选中\nSelected", GUILayout.Width(104f), GUILayout.Height(38f))) ApplyDefaultLogicToSelected();
-                    if (GUILayout.Button("应用同地块\nSame Type", GUILayout.Width(104f), GUILayout.Height(38f))) ApplyDefaultLogicToSameType();
+                    if (GUILayout.Button("Selected", GUILayout.Width(104f), GUILayout.Height(38f))) ApplyDefaultLogicToSelected();
+                    if (GUILayout.Button("Same Type", GUILayout.Width(104f), GUILayout.Height(38f))) ApplyDefaultLogicToSameType();
                 }
 
-                if (GUILayout.Button("应用全部\nAll Cells", GUILayout.Width(104f), GUILayout.Height(38f))) ApplyDefaultLogicToAllCells();
+                if (GUILayout.Button("All Cells", GUILayout.Width(104f), GUILayout.Height(38f))) ApplyDefaultLogicToAllCells();
             }
         }
 
@@ -1914,32 +2356,50 @@ namespace Game.Editor
             Debug.Log($"Applied map logic defaults to {count} cell(s).");
         }
 
+        private void QueueImportJson()
+        {
+            EditorApplication.delayCall -= ImportJson;
+            EditorApplication.delayCall += ImportJson;
+        }
+
         private void ImportJson()
         {
-            string path = EditorUtility.OpenFilePanel("Import Map Json", Application.dataPath, "json");
-            if (string.IsNullOrEmpty(path)) return;
-
-            MapData data = JsonConvert.DeserializeObject<MapData>(File.ReadAllText(path));
-            if (data == null)
+            try
             {
-                EditorUtility.DisplayDialog("Import Failed", "Json did not contain valid MapData.", "OK");
-                return;
-            }
+                EnsureMapJsonDirectory();
+                string path = EditorUtility.OpenFilePanel("Import Map Json", MapJsonDirectory, "json");
+                if (string.IsNullOrEmpty(path)) return;
 
-            data.EnsureRuntimeCollections();
-            currentMap = data;
-            currentMapPropertyTree = null;
-            currentMapPropertyTreeTarget = null;
-            currentMapReadOnlyView = null;
-            PullSettingsFromMap();
-            RebuildTileIndex();
-            CreatePreviewObjects();
-            Debug.Log($"Map imported: {path}");
+                MapData data = JsonConvert.DeserializeObject<MapData>(File.ReadAllText(path));
+                if (data == null)
+                {
+                    EditorUtility.DisplayDialog("Import Failed", "Json did not contain valid MapData.", "OK");
+                    return;
+                }
+
+                data.EnsureRuntimeCollections();
+                currentMap = data;
+                currentMapPropertyTree = null;
+                currentMapPropertyTreeTarget = null;
+                currentMapReadOnlyView = null;
+                PullSettingsFromMap();
+                RebuildTileIndex();
+                CreatePreviewObjects();
+                Repaint();
+                SceneView.RepaintAll();
+                Debug.Log($"Map imported: {path}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogException(ex);
+                EditorUtility.DisplayDialog("Import Failed", ex.Message, "OK");
+            }
         }
 
         private void ExportJson()
         {
             if (!EnsureMap()) return;
+            EnsureMapJsonDirectory();
             ApplyPointsToMap();
             List<string> errors = ValidateMap(currentMap);
 
@@ -1949,12 +2409,18 @@ namespace Game.Editor
                 if (!EditorUtility.DisplayDialog("Map Validation", $"Found {errors.Count} issue(s). Export anyway?", "Export", "Cancel")) return;
             }
 
-            string path = EditorUtility.SaveFilePanel("Export Map Json", Application.dataPath, currentMap.Id + ".json", "json");
-            if (string.IsNullOrEmpty(path)) return;
-
+            string path = Path.Combine(MapJsonDirectory, currentMap.Id + ".json");
             File.WriteAllText(path, JsonConvert.SerializeObject(currentMap, Formatting.Indented));
             AssetDatabase.Refresh();
             Debug.Log($"Map exported: {path}");
+        }
+
+        private static void EnsureMapJsonDirectory()
+        {
+            if (!Directory.Exists(MapJsonDirectory))
+            {
+                Directory.CreateDirectory(MapJsonDirectory);
+            }
         }
 
         private void ValidateCurrentMap()
@@ -2595,6 +3061,7 @@ namespace Game.Editor
 
             RefreshAllVisuals();
             RefreshDecorations();
+            RefreshMapObjectPreviews();
             RefreshMarkers();
         }
 
@@ -2720,7 +3187,7 @@ namespace Game.Editor
 
             if (renderer != null)
             {
-                Material material = new Material(Shader.Find("Standard"));
+                Material material = new Material(Shader.Find("CubeTD/LowPolyTextured") ?? Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard"));
                 material.color = color;
                 renderer.sharedMaterial = material;
             }
@@ -2854,7 +3321,7 @@ namespace Game.Editor
 
         private void CreateDecorationObject(MapObjectData decoration, int index)
         {
-            if (decoration == null || decoration.ConfigId <= 0) return;
+            if (decoration == null || decoration.ObjectType != MapObjectType.Decoration || decoration.ConfigId <= 0) return;
             if (!tileObjects.TryGetValue(decoration.Coord, out GameObject tileObject) || tileObject == null) return;
 
             GameObject prefab = GetDecorationPrefab(decoration);
@@ -2874,6 +3341,62 @@ namespace Game.Editor
             instance.transform.localScale = decoration.LocalScale;
 
             decorationObjects.Add(instance);
+        }
+
+        private void RefreshMapObjectPreviews()
+        {
+            for (int i = objectPreviewObjects.Count - 1; i >= 0; i--)
+            {
+                if (objectPreviewObjects[i] != null) DestroyImmediate(objectPreviewObjects[i]);
+            }
+
+            objectPreviewObjects.Clear();
+            if (currentMap == null || currentMap.Objects == null || previewRoot == null) return;
+
+            for (int i = 0; i < currentMap.Objects.Count; i++)
+            {
+                CreateResourceObjectPreview(currentMap.Objects[i], i);
+            }
+        }
+
+        private void CreateResourceObjectPreview(MapObjectData mapObject, int index)
+        {
+            if (mapObject == null || mapObject.ObjectType != MapObjectType.Resource || mapObject.ConfigId <= 0) return;
+            if (!tileObjects.TryGetValue(mapObject.Coord, out GameObject tileObject) || tileObject == null) return;
+
+            WorldResourceEditorItem item = GetWorldResourceItem(mapObject.ConfigId);
+            GameObject prefab = GetWorldResourcePrefab(item);
+            GameObject instance = prefab != null ? PrefabUtility.InstantiatePrefab(prefab) as GameObject : null;
+            if (instance == null && prefab != null) instance = Instantiate(prefab);
+            if (instance == null) instance = CreateResourceFallbackObject(item);
+            if (instance == null) return;
+
+            instance.name = $"Resource_{index}_{GetWorldResourceName(item)}";
+            instance.transform.SetParent(tileObject.transform, false);
+            instance.transform.localPosition = mapObject.LocalPosition;
+            instance.transform.localRotation = Quaternion.Euler(mapObject.LocalEuler);
+            instance.transform.localScale = mapObject.LocalScale;
+
+            Collider collider = instance.GetComponent<Collider>();
+            if (collider != null) DestroyImmediate(collider);
+
+            objectPreviewObjects.Add(instance);
+        }
+
+        private GameObject CreateResourceFallbackObject(WorldResourceEditorItem item)
+        {
+            GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            marker.transform.localScale = new Vector3(tileSize * 0.45f, tileSize * 0.55f, tileSize * 0.45f);
+
+            Renderer renderer = marker.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                Material material = new Material(Shader.Find("CubeTD/LowPolyTextured") ?? Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard"));
+                material.color = GetWorldResourceColor(item);
+                renderer.sharedMaterial = material;
+            }
+
+            return marker;
         }
 
         private void RefreshMarkers()
@@ -2908,7 +3431,7 @@ namespace Game.Editor
             Renderer renderer = marker.GetComponent<Renderer>();
             if (renderer != null)
             {
-                Material material = new Material(Shader.Find("Standard"));
+                Material material = new Material(Shader.Find("CubeTD/LowPolyTextured") ?? Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard"));
                 material.color = color;
                 renderer.sharedMaterial = material;
             }
@@ -2924,6 +3447,7 @@ namespace Game.Editor
             if (previewRoot != null) DestroyImmediate(previewRoot.gameObject);
             tileObjects.Clear();
             decorationObjects.Clear();
+            objectPreviewObjects.Clear();
             markers.Clear();
             previewRoot = null;
         }
@@ -3005,6 +3529,176 @@ namespace Game.Editor
             return null;
         }
 
+        private void TryLoadWorldResourceItems(bool forceReload = false)
+        {
+            if (!forceReload && worldResourceItems.Count > 0)
+            {
+                return;
+            }
+
+            worldResourceItems.Clear();
+
+            if (!File.Exists(WorldResourceJsonPath))
+            {
+                return;
+            }
+
+            try
+            {
+                List<WorldResourceEditorItem> items = JsonConvert.DeserializeObject<List<WorldResourceEditorItem>>(File.ReadAllText(WorldResourceJsonPath));
+                if (items != null)
+                {
+                    for (int i = 0; i < items.Count; i++)
+                    {
+                        WorldResourceEditorItem item = items[i];
+                        if (item == null || item.Id <= 0 || !item.Enable)
+                        {
+                            continue;
+                        }
+
+                        worldResourceItems.Add(item);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[MapEditor] Failed to load world resources from {WorldResourceJsonPath}: {ex.Message}");
+            }
+
+            if (selectedWorldResourceId <= 0 && worldResourceItems.Count > 0)
+            {
+                selectedWorldResourceId = worldResourceItems[0].Id;
+                UseSelectedResourceDefaults();
+            }
+        }
+
+        private WorldResourceEditorItem GetSelectedWorldResourceItem()
+        {
+            return GetWorldResourceItem(selectedWorldResourceId);
+        }
+
+        private WorldResourceEditorItem GetWorldResourceItem(int id)
+        {
+            TryLoadWorldResourceItems();
+
+            for (int i = 0; i < worldResourceItems.Count; i++)
+            {
+                WorldResourceEditorItem item = worldResourceItems[i];
+                if (item != null && item.Id == id)
+                {
+                    return item;
+                }
+            }
+
+            return null;
+        }
+
+        private string GetSelectedWorldResourceName()
+        {
+            return GetWorldResourceName(GetSelectedWorldResourceItem());
+        }
+
+        private static string GetWorldResourceName(WorldResourceEditorItem item)
+        {
+            if (item == null)
+            {
+                return "None";
+            }
+
+            return string.IsNullOrEmpty(item.Name) ? $"Resource {item.Id}" : item.Name;
+        }
+
+        private static string GetWorldResourceCategoryName(WorldResourceEditorItem item)
+        {
+            if (item == null)
+            {
+                return "None";
+            }
+
+            return ((WorldResourceCategory)item.ResourceType).ToString();
+        }
+
+        private static string GetWorldResourceInteractionSummary(WorldResourceEditorItem item)
+        {
+            if (item == null)
+            {
+                return "None";
+            }
+
+            WorldResourceInteractionType interactionType = (WorldResourceInteractionType)item.InteractionType;
+            switch (interactionType)
+            {
+                case WorldResourceInteractionType.Pickup:
+                    return $"Pickup | Reward {item.PickupRewardGroupId}";
+
+                case WorldResourceInteractionType.Gather:
+                    return $"Gather | Config {item.GatherConfigId}";
+
+                case WorldResourceInteractionType.MineTarget:
+                    return $"Mine Target | Building {item.MineBuildingId}";
+
+                default:
+                    return "None";
+            }
+        }
+
+        private static GameObject GetWorldResourcePrefab(WorldResourceEditorItem item)
+        {
+            if (item == null || string.IsNullOrEmpty(item.PrefabLocation))
+            {
+                return null;
+            }
+
+            return AssetDatabase.LoadAssetAtPath<GameObject>(item.PrefabLocation);
+        }
+
+        private static Color GetWorldResourceColor(WorldResourceEditorItem item)
+        {
+            if (item == null)
+            {
+                return new Color(0.55f, 0.55f, 0.55f);
+            }
+
+            switch ((WorldResourceCategory)item.ResourceType)
+            {
+                case WorldResourceCategory.Tree:
+                    return new Color(0.18f, 0.62f, 0.24f);
+
+                case WorldResourceCategory.Stone:
+                    return new Color(0.50f, 0.50f, 0.52f);
+
+                case WorldResourceCategory.Ore:
+                    return GetWorldResourceName(item).ToLowerInvariant().Contains("iron")
+                        ? new Color(0.60f, 0.58f, 0.55f)
+                        : new Color(0.76f, 0.42f, 0.22f);
+
+                case WorldResourceCategory.Plant:
+                    return new Color(0.36f, 0.76f, 0.36f);
+
+                default:
+                    return new Color(0.55f, 0.55f, 0.55f);
+            }
+        }
+
+        private int CreateNextMapObjectId()
+        {
+            int maxObjectId = 0;
+
+            if (currentMap != null && currentMap.Objects != null)
+            {
+                for (int i = 0; i < currentMap.Objects.Count; i++)
+                {
+                    MapObjectData mapObject = currentMap.Objects[i];
+                    if (mapObject != null && mapObject.ObjectId > maxObjectId)
+                    {
+                        maxObjectId = mapObject.ObjectId;
+                    }
+                }
+            }
+
+            return maxObjectId + 1;
+        }
+
         private bool EnsureMap()
         {
             if (currentMap != null)
@@ -3077,6 +3771,56 @@ namespace Game.Editor
                 }
             }
 
+            HashSet<int> objectIds = new HashSet<int>();
+            if (mapData.Objects != null)
+            {
+                TryLoadWorldResourceItems();
+                for (int i = 0; i < mapData.Objects.Count; i++)
+                {
+                    MapObjectData mapObject = mapData.Objects[i];
+                    if (mapObject == null)
+                    {
+                        errors.Add($"Map object index {i} is null.");
+                        continue;
+                    }
+
+                    if (mapObject.ObjectId <= 0)
+                    {
+                        errors.Add($"Map object has invalid object id. Index: {i}, Config: {mapObject.ConfigId}");
+                    }
+                    else if (!objectIds.Add(mapObject.ObjectId))
+                    {
+                        errors.Add($"Duplicate map object id: {mapObject.ObjectId}");
+                    }
+
+                    if (!temp.ContainsKey(mapObject.Coord))
+                    {
+                        errors.Add($"Map object placed on missing tile. ObjectId: {mapObject.ObjectId}, Coord: {mapObject.Coord}");
+                    }
+
+                    if (mapObject.ObjectType == MapObjectType.Resource)
+                    {
+                        WorldResourceEditorItem resourceItem = GetWorldResourceItem(mapObject.ConfigId);
+                        if (resourceItem == null)
+                        {
+                            errors.Add($"Resource object missing world_resource config. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}");
+                            continue;
+                        }
+
+                        ValidateWorldResourceObject(mapObject, resourceItem, errors);
+
+                        if (GetWorldResourcePrefab(resourceItem) == null)
+                        {
+                            errors.Add($"Resource object missing prefab. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}, Prefab: {resourceItem.PrefabLocation}");
+                        }
+                    }
+                    else if (mapObject.ObjectType == MapObjectType.Decoration && GetDecorationPrefab(mapObject) == null)
+                    {
+                        errors.Add($"Decoration object missing prefab. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}");
+                    }
+                }
+            }
+
             bool hasValidGoal = false;
             if (mapData.SpawnPoints == null || mapData.SpawnPoints.Count == 0)
             {
@@ -3118,6 +3862,42 @@ namespace Game.Editor
             }
 
             return errors;
+        }
+
+        private static void ValidateWorldResourceObject(MapObjectData mapObject, WorldResourceEditorItem resourceItem, List<string> errors)
+        {
+            if (mapObject == null || resourceItem == null || errors == null)
+            {
+                return;
+            }
+
+            switch ((WorldResourceInteractionType)resourceItem.InteractionType)
+            {
+                case WorldResourceInteractionType.Pickup:
+                    if (resourceItem.PickupRewardGroupId <= 0)
+                    {
+                        errors.Add($"Pickup resource missing reward group. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}");
+                    }
+                    break;
+
+                case WorldResourceInteractionType.Gather:
+                    if (resourceItem.GatherConfigId <= 0)
+                    {
+                        errors.Add($"Gather resource missing gather config id. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}");
+                    }
+                    break;
+
+                case WorldResourceInteractionType.MineTarget:
+                    if (resourceItem.MineBuildingId <= 0)
+                    {
+                        errors.Add($"Mine target resource missing mine building id. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}");
+                    }
+                    break;
+
+                default:
+                    errors.Add($"Resource object missing interaction type. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}");
+                    break;
+            }
         }
     }
 }

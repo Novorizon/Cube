@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="WorldCropConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="name" type="string" comment="client" />
+    <var name="seedItemId" type="int" comment="client" />
+    <var name="seedCost" type="int" comment="client" />
+    <var name="outputItemId" type="int" comment="client" />
+    <var name="growSeconds" type="int" comment="client" />
+    <var name="outputCountPerSecond" type="int" comment="client" />
+    <var name="plotColor" type="string" comment="client" />
+    <var name="cropColor" type="string" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbWorldCrop" value="WorldCropConfig" input="world_crop.xlsx" mode="map" index="id" />
+</module>

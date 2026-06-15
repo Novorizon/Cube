@@ -70,7 +70,7 @@
   - Current safe approach is to define the target structure first, then migrate scripts in batches while moving `.cs` and `.cs.meta` together so Unity GUID references remain stable.
   - Recommended future top-level script folders: `Bootstrap`, `Framework`, `Game`, `MapEditor`, `Ability`, `Skill`, `Tools`, `Sandbox`.
   - On 2026-06-01, the target script-folder skeleton was created with `.gitkeep` placeholder files only. No existing scripts were moved.
-  - On 2026-06-01, placeholder C# files were added for planned but not-yet-implemented systems: `BootFlowManager`, `GameMode`, `GameModeManager`, `GameClock`, `GameSession`, `BuildManager`, `BuildValidator`, `BuildPreview`, `BuildCommand`, `BuildCost`, `BuildInputController`, `SaveManager`, `SaveData`, `SaveVersion`, `StoryManager`, `QuestManager`, `DialogManager`, and `EventTriggerSystem`. These are compile-safe empty skeletons, not completed systems.
+  - On 2026-06-01, placeholder C# files were added for planned but not-yet-implemented systems: `BootFlowManager`, `GameMode`, `GameModeManager`, `GameClock`, `GameSession`, `BuildManager`, `BuildValidator`, `BuildPreview`, `BuildCommand`, `BuildCost`, `BuildInputController`, `StorageManager`, `SaveData`, `SaveVersion`, `StoryManager`, `QuestManager`, `DialogManager`, and `EventTriggerSystem`. These are compile-safe empty skeletons, not completed systems.
   - On 2026-06-01, existing scripts were reorganized into the planned module folders while moving `.cs` and `.meta` together. Class names and namespaces were intentionally left unchanged.
   - `GameEntry.cs` now lives in `Assets/Scripts/Bootstrap`.
   - Shared map data/config/rendering/pathfinding now lives under `Assets/Scripts/Game/Map/{Data,Config,Runtime,Rendering,Pathfinding}`.

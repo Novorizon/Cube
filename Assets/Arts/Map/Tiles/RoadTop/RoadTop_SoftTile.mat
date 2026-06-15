@@ -28,20 +28,20 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MudOverlay:
-        m_Texture: {fileID: 2800000, guid: b3b901c18f0f43a8ab338519756ea4b7, type: 3}
+        m_Texture: {fileID: 2800000, guid: 4e77fc1197ede884fa1142a724473e25, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _LightStrength: 0.42
-    - _PatchStrength: 0.54
+    - _PatchStrength: 0.586
     - _PatchTileScale: 1.15
     - _SideDarkening: 1.15
     - _SoftSpecular: 0.18
     - _TextureStrength: 0.62
     m_Colors:
-    - _BaseColor: {r: 0.94509804, g: 0.8117647, b: 0.5372549, a: 1}
-    - _BevelShadowColor: {r: 0.7607843, g: 0.59607846, b: 0.34509805, a: 1}
-    - _DarkColor: {r: 0.85882354, g: 0.7176471, b: 0.4627451, a: 1}
-    - _HighlightColor: {r: 0.972549, g: 0.84313726, b: 0.5921569, a: 1}
+    - _BaseColor: {r: 0.990566, g: 0.8360312, b: 0.5093005, a: 1}
+    - _BevelShadowColor: {r: 0.7075472, g: 0.57927436, b: 0.383811, a: 1}
+    - _DarkColor: {r: 0.745283, g: 0.6166621, b: 0.3972499, a: 1}
+    - _HighlightColor: {r: 1, g: 0.8571776, b: 0.5801887, a: 1}
   m_BuildTextureStacks: []

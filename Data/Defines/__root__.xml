@@ -5,6 +5,14 @@
   <include name="tower.xml" />
   <include name="tower_level.xml" />
   <include name="item.xml" />
+  <include name="world_cost.xml" />
+  <include name="world_reward.xml" />
+  <include name="world_gather.xml" />
+  <include name="world_resource.xml" />
+  <include name="world_building.xml" />
+  <include name="world_building_level.xml" />
+  <include name="world_building_income.xml" />
+  <include name="world_crop.xml" />
   <include name="base.xml" />
   <include name="map.xml" />
   <include name="wave.xml" />

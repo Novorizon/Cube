@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -21,7 +21,7 @@ namespace Game.Framework
             }
         }
 
-        public Vector2 GameplayMove
+        public Vector2 WorldMove
         {
             get
             {
@@ -30,11 +30,11 @@ namespace Game.Framework
                     return Vector2.zero;
                 }
 
-                return controls.Gameplay.Move.ReadValue<Vector2>();
+                return controls.World.Move.ReadValue<Vector2>();
             }
         }
 
-        public Vector2 GameplayLook
+        public Vector2 WorldLook
         {
             get
             {
@@ -43,7 +43,7 @@ namespace Game.Framework
                     return Vector2.zero;
                 }
 
-                return controls.Gameplay.Look.ReadValue<Vector2>();
+                return controls.World.Look.ReadValue<Vector2>();
             }
         }
 
@@ -129,15 +129,31 @@ namespace Game.Framework
         {
             get
             {
-                return initialized && controls.Gameplay.Sprint.IsPressed();
+                return initialized && controls.World.Sprint.IsPressed();
+            }
+        }
+
+        public bool WorldSelectHeld
+        {
+            get
+            {
+                return initialized && controls.World.Select.IsPressed();
+            }
+        }
+
+        public bool WorldAttackCommandHeld
+        {
+            get
+            {
+                return initialized && controls.World.AttackCommand.IsPressed();
             }
         }
 
         public event Action<InputAction.CallbackContext> JumpStarted;
         public event Action<InputAction.CallbackContext> JumpCanceled;
-        public event Action<InputAction.CallbackContext> GameplaySelectPerformed;
-        public event Action<InputAction.CallbackContext> GameplayAttackCommandPerformed;
-        public event Action<InputAction.CallbackContext> GameplayCancelPerformed;
+        public event Action<InputAction.CallbackContext> WorldSelectPerformed;
+        public event Action<InputAction.CallbackContext> WorldAttackCommandPerformed;
+        public event Action<InputAction.CallbackContext> WorldCancelPerformed;
         public event Action<InputAction.CallbackContext> InteractPerformed;
         public event Action<InputAction.CallbackContext> PausePerformed;
 
@@ -155,7 +171,7 @@ namespace Game.Framework
         public event Action<InputAction.CallbackContext> DialogueSkipPerformed;
         public event Action<InputAction.CallbackContext> DialogueCancelPerformed;
 
-        public void Initialize(InputMode defaultMode = InputMode.Gameplay)
+        public void Initialize(InputMode defaultMode = InputMode.World)
         {
             if (initialized)
             {
@@ -182,6 +198,7 @@ namespace Game.Framework
 
             if (controls != null)
             {
+                controls.Disable();
                 controls.Common.Disable();
                 UnsubscribeEvents();
                 controls.Dispose();
@@ -194,9 +211,9 @@ namespace Game.Framework
 
             JumpStarted = null;
             JumpCanceled = null;
-            GameplaySelectPerformed = null;
-            GameplayAttackCommandPerformed = null;
-            GameplayCancelPerformed = null;
+            WorldSelectPerformed = null;
+            WorldAttackCommandPerformed = null;
+            WorldCancelPerformed = null;
             InteractPerformed = null;
             PausePerformed = null;
 
@@ -225,8 +242,8 @@ namespace Game.Framework
 
             switch (mode)
             {
-                case InputMode.Gameplay:
-                    controls.Gameplay.Enable();
+                case InputMode.World:
+                    controls.World.Enable();
                     break;
 
                 case InputMode.UI:
@@ -267,7 +284,7 @@ namespace Game.Framework
 
             if (modeStack.Count == 0)
             {
-                SetMode(InputMode.Gameplay);
+                SetMode(InputMode.World);
                 return;
             }
 
@@ -293,7 +310,7 @@ namespace Game.Framework
 
         private void DisableModeMaps()
         {
-            controls.Gameplay.Disable();
+            controls.World.Disable();
             controls.UI.Disable();
             controls.Battle.Disable();
             controls.Build.Disable();
@@ -302,12 +319,12 @@ namespace Game.Framework
 
         private void SubscribeEvents()
         {
-            controls.Gameplay.Jump.started += OnJumpStarted;
-            controls.Gameplay.Jump.canceled += OnJumpCanceled;
-            controls.Gameplay.Select.performed += OnGameplaySelectPerformed;
-            controls.Gameplay.AttackCommand.performed += OnGameplayAttackCommandPerformed;
-            controls.Gameplay.Cancel.performed += OnGameplayCancelPerformed;
-            controls.Gameplay.Interact.performed += OnInteractPerformed;
+            controls.World.Jump.started += OnJumpStarted;
+            controls.World.Jump.canceled += OnJumpCanceled;
+            controls.World.Select.performed += OnWorldSelectPerformed;
+            controls.World.AttackCommand.performed += OnWorldAttackCommandPerformed;
+            controls.World.Cancel.performed += OnWorldCancelPerformed;
+            controls.World.Interact.performed += OnInteractPerformed;
 
             controls.Common.Pause.performed += OnPausePerformed;
 
@@ -327,12 +344,12 @@ namespace Game.Framework
 
         private void UnsubscribeEvents()
         {
-            controls.Gameplay.Jump.started -= OnJumpStarted;
-            controls.Gameplay.Jump.canceled -= OnJumpCanceled;
-            controls.Gameplay.Select.performed -= OnGameplaySelectPerformed;
-            controls.Gameplay.AttackCommand.performed -= OnGameplayAttackCommandPerformed;
-            controls.Gameplay.Cancel.performed -= OnGameplayCancelPerformed;
-            controls.Gameplay.Interact.performed -= OnInteractPerformed;
+            controls.World.Jump.started -= OnJumpStarted;
+            controls.World.Jump.canceled -= OnJumpCanceled;
+            controls.World.Select.performed -= OnWorldSelectPerformed;
+            controls.World.AttackCommand.performed -= OnWorldAttackCommandPerformed;
+            controls.World.Cancel.performed -= OnWorldCancelPerformed;
+            controls.World.Interact.performed -= OnInteractPerformed;
 
             controls.Common.Pause.performed -= OnPausePerformed;
 
@@ -368,19 +385,19 @@ namespace Game.Framework
             JumpCanceled?.Invoke(context);
         }
 
-        private void OnGameplaySelectPerformed(InputAction.CallbackContext context)
+        private void OnWorldSelectPerformed(InputAction.CallbackContext context)
         {
-            GameplaySelectPerformed?.Invoke(context);
+            WorldSelectPerformed?.Invoke(context);
         }
 
-        private void OnGameplayAttackCommandPerformed(InputAction.CallbackContext context)
+        private void OnWorldAttackCommandPerformed(InputAction.CallbackContext context)
         {
-            GameplayAttackCommandPerformed?.Invoke(context);
+            WorldAttackCommandPerformed?.Invoke(context);
         }
 
-        private void OnGameplayCancelPerformed(InputAction.CallbackContext context)
+        private void OnWorldCancelPerformed(InputAction.CallbackContext context)
         {
-            GameplayCancelPerformed?.Invoke(context);
+            WorldCancelPerformed?.Invoke(context);
         }
 
         private void OnInteractPerformed(InputAction.CallbackContext context)
@@ -476,3 +493,4 @@ namespace Game.Framework
         }
     }
 }
+

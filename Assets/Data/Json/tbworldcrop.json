@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "name": "Wheat",
+    "seedItemId": 5000301,
+    "seedCost": 0,
+    "outputItemId": 8,
+    "growSeconds": 8,
+    "outputCountPerSecond": 1,
+    "plotColor": "#8C5C29",
+    "cropColor": "#F2BD2E",
+    "enable": true
+  },
+  {
+    "id": 2,
+    "name": "Tomato",
+    "seedItemId": 5000301,
+    "seedCost": 0,
+    "outputItemId": 9,
+    "growSeconds": 12,
+    "outputCountPerSecond": 1,
+    "plotColor": "#567A2E",
+    "cropColor": "#E11F14",
+    "enable": true
+  },
+  {
+    "id": 3,
+    "name": "Herb",
+    "seedItemId": 5000301,
+    "seedCost": 0,
+    "outputItemId": 7,
+    "growSeconds": 10,
+    "outputCountPerSecond": 1,
+    "plotColor": "#407338",
+    "cropColor": "#43C753",
+    "enable": true
+  },
+  {
+    "id": 4,
+    "name": "Flower",
+    "seedItemId": 5000301,
+    "seedCost": 0,
+    "outputItemId": 10,
+    "growSeconds": 14,
+    "outputCountPerSecond": 1,
+    "plotColor": "#4D6B33",
+    "cropColor": "#ED66D9",
+    "enable": true
+  }
+]

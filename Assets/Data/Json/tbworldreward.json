@@ -1,0 +1,130 @@
+[
+  {
+    "id": 200101,
+    "groupId": 2001,
+    "itemId": 2,
+    "minCount": 3,
+    "maxCount": 5,
+    "weight": 100
+  },
+  {
+    "id": 200201,
+    "groupId": 2002,
+    "itemId": 3,
+    "minCount": 2,
+    "maxCount": 4,
+    "weight": 100
+  },
+  {
+    "id": 200301,
+    "groupId": 2003,
+    "itemId": 4,
+    "minCount": 4,
+    "maxCount": 6,
+    "weight": 100
+  },
+  {
+    "id": 200401,
+    "groupId": 2004,
+    "itemId": 5,
+    "minCount": 2,
+    "maxCount": 3,
+    "weight": 100
+  },
+  {
+    "id": 200501,
+    "groupId": 2005,
+    "itemId": 6,
+    "minCount": 2,
+    "maxCount": 3,
+    "weight": 100
+  },
+  {
+    "id": 200601,
+    "groupId": 2006,
+    "itemId": 7,
+    "minCount": 1,
+    "maxCount": 2,
+    "weight": 100
+  },
+  {
+    "id": 200701,
+    "groupId": 2007,
+    "itemId": 8,
+    "minCount": 2,
+    "maxCount": 4,
+    "weight": 100
+  },
+  {
+    "id": 200801,
+    "groupId": 2008,
+    "itemId": 9,
+    "minCount": 1,
+    "maxCount": 3,
+    "weight": 100
+  },
+  {
+    "id": 210201,
+    "groupId": 2102,
+    "itemId": 3,
+    "minCount": 1,
+    "maxCount": 1,
+    "weight": 100
+  },
+  {
+    "id": 210501,
+    "groupId": 2105,
+    "itemId": 5,
+    "minCount": 1,
+    "maxCount": 1,
+    "weight": 100
+  },
+  {
+    "id": 210601,
+    "groupId": 2106,
+    "itemId": 6,
+    "minCount": 1,
+    "maxCount": 1,
+    "weight": 100
+  },
+  {
+    "id": 210701,
+    "groupId": 2107,
+    "itemId": 7,
+    "minCount": 1,
+    "maxCount": 1,
+    "weight": 100
+  },
+  {
+    "id": 210801,
+    "groupId": 2108,
+    "itemId": 8,
+    "minCount": 1,
+    "maxCount": 1,
+    "weight": 100
+  },
+  {
+    "id": 211001,
+    "groupId": 2110,
+    "itemId": 10,
+    "minCount": 1,
+    "maxCount": 1,
+    "weight": 100
+  },
+  {
+    "id": 220101,
+    "groupId": 2201,
+    "itemId": 2,
+    "minCount": 1,
+    "maxCount": 1,
+    "weight": 100
+  },
+  {
+    "id": 220201,
+    "groupId": 2202,
+    "itemId": 3,
+    "minCount": 1,
+    "maxCount": 1,
+    "weight": 100
+  }
+]

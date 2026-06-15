@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: RoadTop_Detail_Light
+  m_Shader: {fileID: 4800000, guid: c4e3a79d07f24c36a4b10de6e9186d60, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 8aa19785d8ae42b8a670080a5c126a14, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MudOverlay:
+        m_Texture: {fileID: 2800000, guid: b3b901c18f0f43a8ab338519756ea4b7, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _LightStrength: 0.42
+    - _PatchStrength: 0
+    - _PatchTileScale: 1
+    - _SideDarkening: 1.15
+    - _SoftSpecular: 0.18
+    - _TextureStrength: 1
+    m_Colors:
+    - _BaseColor: {r: 0.94509804, g: 0.8117647, b: 0.5372549, a: 1}
+    - _BevelShadowColor: {r: 0.7607843, g: 0.59607846, b: 0.34509805, a: 1}
+    - _DarkColor: {r: 0.85882354, g: 0.7176471, b: 0.4627451, a: 1}
+    - _HighlightColor: {r: 0.972549, g: 0.84313726, b: 0.5921569, a: 1}
+  m_BuildTextureStacks: []

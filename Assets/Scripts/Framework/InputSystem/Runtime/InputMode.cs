@@ -1,12 +1,13 @@
-namespace Game.Framework
+﻿namespace Game.Framework
 {
     public enum InputMode
     {
         None = 0,
-        Gameplay = 1,
+        World = 1,
         UI = 2,
         Build = 3,
         Dialogue = 4,
         Battle = 5,
     }
 }
+

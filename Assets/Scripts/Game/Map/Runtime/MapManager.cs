@@ -16,8 +16,8 @@ namespace Game
 {
     public class MapManager : Singleton<MapManager>
     {
-        private const string PrefabConfigPath = "Assets/Data/Cube/Configs/MapTilePrefabConfig.asset";
-        private const string DecorationConfigPath = "Assets/Data/Cube/Configs/MapDecorationPrefabConfig.asset";
+        private const string PrefabConfigPath = "Assets/Data/Configs/MapTilePrefabConfig.asset";
+        private const string DecorationConfigPath = "Assets/Data/Configs/MapDecorationPrefabConfig.asset";
         private const string BattleHudPrefabPath = "Assets/Arts/UI/TowerDefense/Prefabs/BattleHud.prefab";
         private const string MainMenuPagePath = "Assets/Arts/UI/Pages/MainMenuPage.prefab";
 
@@ -32,6 +32,7 @@ namespace Game
         private readonly Dictionary<Vector3Int, List<MapObjectData>> objectsByCoord = new Dictionary<Vector3Int, List<MapObjectData>>();
         private readonly Dictionary<Vector2Int, TileData> topTileDataMap = new Dictionary<Vector2Int, TileData>();
         private readonly Dictionary<Vector2Int, TileData> topLogicTileDataMap = new Dictionary<Vector2Int, TileData>();
+        private readonly HashSet<string> removedMapObjectKeys = new HashSet<string>();
 
         private Transform mapRoot;
         private float tileSize = 1f;
@@ -154,6 +155,24 @@ namespace Game
             return true;
         }
 
+        public bool LoadWorldMap(int mapId)
+        {
+            string location = "Assets/Data/Map/" + mapId + ".json";
+
+            ClearBattleRuntime(true);
+            currentMapConfigId = mapId;
+
+            bool loadDataSuccess = LoadMapData(location);
+            if (!loadDataSuccess)
+            {
+                return false;
+            }
+
+            CreateMap();
+            AfterWorldMapCreated();
+            return true;
+        }
+
 
 
         private bool LoadMapData(string location)
@@ -175,10 +194,12 @@ namespace Game
             }
 
             data.EnsureRuntimeCollections();
+            ApplyRemovedMapObjects(data);
 
             currentMap = data;
             RebuildTileIndex();
             RebuildObjectIndex();
+            WorldBuildingManager.Instance.RegisterMapObjects();
 
             return true;
         }
@@ -222,6 +243,8 @@ namespace Game
             }
 
             CreateDecorationViews();
+            CreateResourceViews();
+            WorldBuildingManager.Instance.CreateViews();
             Debug.Log($"Create map success. Count: {tileViews.Count}");
         }
 
@@ -318,12 +341,37 @@ namespace Game
             Renderer renderer = fallback.GetComponent<Renderer>();
             if (renderer != null)
             {
-                Material material = new Material(Shader.Find("Standard"));
-                material.color = color;
+                Material material = new Material(FindRuntimeColorShader());
+                if (material.HasProperty("_BaseColor"))
+                {
+                    material.SetColor("_BaseColor", color);
+                }
+                else
+                {
+                    material.color = color;
+                }
+
                 renderer.sharedMaterial = material;
             }
 
             return fallback;
+        }
+
+        private static Shader FindRuntimeColorShader()
+        {
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader != null)
+            {
+                return shader;
+            }
+
+            shader = Shader.Find("Unlit/Color");
+            if (shader != null)
+            {
+                return shader;
+            }
+
+            return Shader.Find("Sprites/Default");
         }
 
         private Quaternion GetDirectionRotation(MapDirection direction)
@@ -375,7 +423,7 @@ namespace Game
 
         private void CreateDecorationView(MapObjectData decoration, int index)
         {
-            if (decoration == null || decoration.ConfigId <= 0)
+            if (decoration == null || decoration.ObjectType != MapObjectType.Decoration || decoration.ConfigId <= 0)
             {
                 return;
             }
@@ -409,6 +457,75 @@ namespace Game
             }
 
             return null;
+        }
+
+        private void CreateResourceViews()
+        {
+            if (currentMap == null || currentMap.Objects == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < currentMap.Objects.Count; i++)
+            {
+                CreateResourceView(currentMap.Objects[i], i);
+            }
+        }
+
+        private void CreateResourceView(MapObjectData mapObject, int index)
+        {
+            if (mapObject == null || mapObject.ObjectType != MapObjectType.Resource || mapObject.ConfigId <= 0)
+            {
+                return;
+            }
+
+            if (!tileViews.TryGetValue(mapObject.Coord, out TileView tileView) || tileView == null)
+            {
+                Debug.LogWarning($"Resource skipped. Tile not found. Id: {mapObject.ConfigId}, Coord: {mapObject.Coord}");
+                return;
+            }
+
+            GameObject prefab = GetWorldResourcePrefab(mapObject.ConfigId);
+            if (prefab == null)
+            {
+                Debug.LogWarning($"Missing world resource prefab. Id: {mapObject.ConfigId}");
+                return;
+            }
+
+            GameObject instance = GameObject.Instantiate(prefab, tileView.transform);
+            instance.name = $"Resource_{index}_{prefab.name}";
+            instance.transform.localPosition = mapObject.LocalPosition;
+            instance.transform.localRotation = Quaternion.Euler(mapObject.LocalEuler);
+            instance.transform.localScale = mapObject.LocalScale;
+
+            WorldResourceView resourceView = instance.GetComponent<WorldResourceView>();
+            if (resourceView == null)
+            {
+                resourceView = instance.AddComponent<WorldResourceView>();
+            }
+
+            resourceView.Initialize(mapObject);
+        }
+
+        private GameObject GetWorldResourcePrefab(int worldResourceId)
+        {
+            if (DataManager.Instance.WorldResource == null ||
+                !DataManager.Instance.WorldResource.TryGet(worldResourceId, out WorldResourceConfig config) ||
+                config == null ||
+                string.IsNullOrEmpty(config.PrefabLocation))
+            {
+                return null;
+            }
+
+            return ResourceManager.Instance.LoadAsset<GameObject>(config.PrefabLocation);
+        }
+
+        private void AfterWorldMapCreated()
+        {
+            CameraManager.Instance.Initialize();
+            GameInputManager.Instance.SetMode(InputMode.World);
+            FarmManager.Instance.CreateViews();
+            WorldGameplayController.Ensure();
         }
 
         private void AfterMapCreated(MapConfig mapConfig)
@@ -572,7 +689,7 @@ namespace Game
 
             if (GameInputManager.IsCreated)
             {
-                GameInputManager.Instance.SetMode(InputMode.Gameplay);
+                GameInputManager.Instance.SetMode(InputMode.World);
             }
 
             await UIManager.Instance.Pages.ResetToAsync(MainMenuPagePath);
@@ -619,6 +736,7 @@ namespace Game
             ItemManager.Instance.Clear();
             DataManager.Instance.ClearWave();
             BattleFlowManager.Instance.Initialize();
+            WorldGameplayController.Shutdown();
             ClearMap();
 
             if (hideBattleUi)
@@ -718,6 +836,26 @@ namespace Game
             objects.Add(mapObject);
         }
 
+        private void RemoveObjectFromIndex(MapObjectData mapObject)
+        {
+            if (mapObject == null)
+            {
+                return;
+            }
+
+            Vector3Int coord = mapObject.Coord;
+            if (!objectsByCoord.TryGetValue(coord, out List<MapObjectData> objects) || objects == null)
+            {
+                return;
+            }
+
+            objects.Remove(mapObject);
+            if (objects.Count == 0)
+            {
+                objectsByCoord.Remove(coord);
+            }
+        }
+
         private void EnsureMapRoot()
         {
             GameObject rootObject = GameObject.Find("MapRoot");
@@ -741,6 +879,8 @@ namespace Game
             topTileDataMap.Clear();
             topLogicTileDataMap.Clear();
             objectsByCoord.Clear();
+            WorldBuildingManager.Instance.ClearViews();
+            FarmManager.Instance.ClearViews();
             ClearMapObjects();
         }
 
@@ -828,6 +968,147 @@ namespace Game
             return TryGetMapObjectsAt(new Vector3Int(x, y, z), out objects);
         }
 
+        public bool CanPlaceMapObject(Vector3Int coord)
+        {
+            return IsBuildable(coord);
+        }
+
+        public bool CanPlaceMapObject(MapObjectData mapObject)
+        {
+            if (mapObject == null)
+            {
+                return false;
+            }
+
+            return CanPlaceMapObject(mapObject.Coord);
+        }
+
+        public bool TryAddMapObject(MapObjectData mapObject)
+        {
+            if (mapObject == null)
+            {
+                return false;
+            }
+
+            if (!CanPlaceMapObject(mapObject))
+            {
+                return false;
+            }
+
+            if (currentMap == null)
+            {
+                return false;
+            }
+
+            currentMap.EnsureRuntimeCollections();
+
+            if (mapObject.ObjectId > 0 && TryGetMapObject(mapObject.ObjectId, out _))
+            {
+                Debug.LogWarning($"Add map object failed. Duplicate object id: {mapObject.ObjectId}");
+                return false;
+            }
+
+            currentMap.Objects.Add(mapObject);
+            AddObjectToIndex(mapObject);
+            return true;
+        }
+
+        public bool TryGetMapObject(int objectId, out MapObjectData mapObject)
+        {
+            mapObject = null;
+
+            if (objectId <= 0 || currentMap == null || currentMap.Objects == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < currentMap.Objects.Count; i++)
+            {
+                MapObjectData current = currentMap.Objects[i];
+                if (current != null && current.ObjectId == objectId)
+                {
+                    mapObject = current;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool TryRemoveMapObject(int objectId)
+        {
+            if (objectId <= 0 || currentMap == null || currentMap.Objects == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < currentMap.Objects.Count; i++)
+            {
+                MapObjectData mapObject = currentMap.Objects[i];
+                if (mapObject == null || mapObject.ObjectId != objectId)
+                {
+                    continue;
+                }
+
+                currentMap.Objects.RemoveAt(i);
+                RemoveObjectFromIndex(mapObject);
+                return true;
+            }
+
+            return false;
+        }
+
+        public void MarkMapObjectRemoved(int objectId)
+        {
+            if (objectId <= 0 || currentMapConfigId <= 0)
+            {
+                return;
+            }
+
+            removedMapObjectKeys.Add(MakeRemovedMapObjectKey(currentMapConfigId, objectId));
+            StorageManager.Instance.MarkDirty();
+        }
+
+        public SaveRemovedMapObjectData[] CreateRemovedMapObjectSaveData()
+        {
+            List<SaveRemovedMapObjectData> result = new List<SaveRemovedMapObjectData>();
+            foreach (string key in removedMapObjectKeys)
+            {
+                if (!TryParseRemovedMapObjectKey(key, out int mapId, out int objectId))
+                {
+                    continue;
+                }
+
+                result.Add(new SaveRemovedMapObjectData
+                {
+                    MapId = mapId,
+                    ObjectId = objectId,
+                });
+            }
+
+            return result.ToArray();
+        }
+
+        public void LoadRemovedMapObjectSaveData(IReadOnlyList<SaveRemovedMapObjectData> removedObjects)
+        {
+            removedMapObjectKeys.Clear();
+            if (removedObjects == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < removedObjects.Count; i++)
+            {
+                SaveRemovedMapObjectData removed = removedObjects[i];
+                if (removed == null || removed.MapId <= 0 || removed.ObjectId <= 0)
+                {
+                    continue;
+                }
+
+                removedMapObjectKeys.Add(MakeRemovedMapObjectKey(removed.MapId, removed.ObjectId));
+            }
+        }
+
         public bool TryGetTileData(Vector3Int coord, out TileData tileData)
         {
             return tileDataMap.TryGetValue(coord, out tileData);
@@ -861,13 +1142,22 @@ namespace Game
             }
 
             Ray ray = camera.ScreenPointToRay(screenPosition);
-
-            if (!Physics.Raycast(ray, out RaycastHit hit, 1000f))
+            RaycastHit[] hits = Physics.RaycastAll(ray, 1000f);
+            for (int i = 0; i < hits.Length; i++)
             {
-                return false;
+                RaycastHit hit = hits[i];
+                if (hit.collider == null)
+                {
+                    continue;
+                }
+
+                if (TileView.TryGetValidFrom(hit.collider.transform, out tileView))
+                {
+                    return true;
+                }
             }
 
-            return TileView.TryGetValidFrom(hit.collider.transform, out tileView);
+            return false;
         }
 
         public Vector3 GetTileWorldPosition(Vector3Int coord)
@@ -1049,7 +1339,7 @@ namespace Game
 
         public bool CanPlaceTower(Vector3Int coord)
         {
-            return IsBuildable(coord);
+            return CanPlaceMapObject(coord);
         }
 
         private bool HasBlockingObject(Vector3Int coord, bool blockMove)
@@ -1105,12 +1395,12 @@ namespace Game
                 return false;
             }
 
-            if (!tileDataMap.TryGetValue(coord, out TileData tileData))
+            if (!CanPlaceTower(coord))
             {
                 return false;
             }
 
-            if (!IsBuildable(coord))
+            if (!tileDataMap.TryGetValue(coord, out TileData tileData))
             {
                 return false;
             }
@@ -1201,6 +1491,43 @@ namespace Game
             RebuildObjectIndex();
         }
 
+        private void ApplyRemovedMapObjects(MapData mapData)
+        {
+            if (mapData == null || mapData.Objects == null || currentMapConfigId <= 0 || removedMapObjectKeys.Count == 0)
+            {
+                return;
+            }
+
+            mapData.Objects.RemoveAll(mapObject =>
+                mapObject != null &&
+                mapObject.ObjectId > 0 &&
+                removedMapObjectKeys.Contains(MakeRemovedMapObjectKey(currentMapConfigId, mapObject.ObjectId)));
+        }
+
+        private static string MakeRemovedMapObjectKey(int mapId, int objectId)
+        {
+            return $"{mapId}:{objectId}";
+        }
+
+        private static bool TryParseRemovedMapObjectKey(string key, out int mapId, out int objectId)
+        {
+            mapId = 0;
+            objectId = 0;
+            if (string.IsNullOrEmpty(key))
+            {
+                return false;
+            }
+
+            int separator = key.IndexOf(':');
+            if (separator <= 0 || separator >= key.Length - 1)
+            {
+                return false;
+            }
+
+            return int.TryParse(key.Substring(0, separator), out mapId) &&
+                   int.TryParse(key.Substring(separator + 1), out objectId);
+        }
+
         private MapTileType GetTileTypeOrNone(Vector3Int coord)
         {
             return tileMap.TryGetValue(coord, out MapCellData tile) ? tile.Type : MapTileType.None;
@@ -1233,3 +1560,4 @@ namespace Game
 
     }
 }
+

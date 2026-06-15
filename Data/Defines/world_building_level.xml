@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="WorldBuildingLevelConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="buildingId" type="int" comment="client" />
+    <var name="level" type="int" comment="client" />
+    <var name="buildCostGroupId" type="int" comment="client" />
+    <var name="buildSeconds" type="int" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbWorldBuildingLevel" value="WorldBuildingLevelConfig" input="world_building_level.xlsx" mode="map" index="id" />
+</module>

@@ -8,7 +8,7 @@ namespace Game
     public class GameEntry : MonoBehaviour
     {
         [SerializeField]
-        private string mainMenuPagePath = "Assets/Arts/UI/Pages/MainMenuPage.prefab";
+        private int startupWorldMapId = 1001;
 
         private void Start()
         {
@@ -19,11 +19,18 @@ namespace Game
         {
             await ResourceManager.Instance.InitializeAsync();
 
-            GameInputManager.Instance.Initialize(InputMode.Gameplay);
+            GameInputManager.Instance.Initialize(InputMode.World);
             CameraManager.Instance.Initialize();
             MapInputController.Instance.Initialize();
 
             DataManager.Instance.Initialize();
+            WorldGatherManager.Instance.Initialize();
+            WorldBuildingManager.Instance.Initialize();
+            MineManager.Instance.Initialize();
+            FarmManager.Instance.Initialize();
+            WorldIncomeManager.Instance.Initialize();
+            StorageManager.Instance.Initialize();
+            StorageManager.Instance.Load();
 
             BaseManager.Instance.Initialize();
             NpcManager.Instance.Initialize();
@@ -39,11 +46,16 @@ namespace Game
 
             UIManager.Instance.UseResourceManagerLoader();
 
-            await UIManager.Instance.Pages.ResetToAsync(mainMenuPagePath);
+            UIManager.Instance.ClearAll(true);
+            MapManager.Instance.LoadWorldMap(startupWorldMapId);
         }
 
         private void Update()
         {
+            WorldBuildingManager.Instance.Update();
+            WorldIncomeManager.Instance.Update();
+            StorageManager.Instance.Update();
+
             if (!BattleFlowManager.Instance.IsRunning)
             {
                 return;
@@ -69,9 +81,12 @@ namespace Game
 
         private void OnDestroy()
         {
+            StorageManager.Instance.Save();
+            WorldGameplayController.Shutdown();
             AbilityManager.Instance.Release();
             BattleTargetClickManager.Instance.Release();
             GameInputManager.Instance.Release();
         }
     }
 }
+

@@ -333,7 +333,7 @@ Game/Effects
 └── RuntimeEffects
 
 Game/Save
-├── SaveManager.cs
+├── StorageManager.cs
 ├── SaveData.cs
 └── SaveVersion.cs
 

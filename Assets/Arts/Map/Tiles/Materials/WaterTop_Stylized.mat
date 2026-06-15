@@ -24,32 +24,38 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 8a85724f6fa74fb8976092f8195c2705, type: 3}
-        m_Scale: {x: 1.65, y: 1.65}
+        m_Texture: {fileID: 2800000, guid: a0b7f35ca31a4e0dbab27e659f6f7491, type: 3}
+        m_Scale: {x: 1.2, y: 1.2}
         m_Offset: {x: 0, y: 0}
     - _DetailMap:
-        m_Texture: {fileID: 2800000, guid: 87f1d1995f4e492aad9f269151b6d3a5, type: 3}
-        m_Scale: {x: 1.65, y: 1.65}
+        m_Texture: {fileID: 2800000, guid: c4aa72bbf79d41f8a8fb8fa708fe91d3, type: 3}
+        m_Scale: {x: 1.05, y: 1.05}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Ambient: 0.6
-    - _DetailStrength: 0.15
-    - _EdgeDarkWidth: 0.065
-    - _EdgeDarkness: 0.06
-    - _EdgeHighlight: 0.08
-    - _EdgeHighlightWidth: 0.12
-    - _FlowStrength: 0.38
-    - _LightStrength: 0.34
-    - _LightWrap: 0.48
-    - _MaxBrightness: 1.02
-    - _RippleScale: 14
-    - _RippleSpeed: 0.55
-    - _RippleStrength: 0.024
-    - _Saturation: 0.92
-    - _ShadowStrength: 0.16
-    - _WaterBrightness: 0.94
+    - _Ambient: 0.76
+    - _DetailStrength: 0.035
+    - _EdgeDarkWidth: 0.08
+    - _EdgeDarkness: 0.018
+    - _EdgeHighlight: 0.045
+    - _EdgeHighlightWidth: 0.135
+    - _FlowStrength: 0.1
+    - _LightStrength: 0.16
+    - _LightWrap: 0.62
+    - _MaxBrightness: 1.04
+    - _Opacity: 0.28
+    - _RippleScale: 9
+    - _RippleSpeed: 0.25
+    - _RippleStrength: 0.006
+    - _Saturation: 0.82
+    - _ShadowStrength: 0.04
+    - _SurfaceLineOpacity: 0.18
+    - _SurfaceLineScale: 2.2
+    - _SurfaceLineStrength: 0.42
+    - _SurfaceLineWidth: 0.04
+    - _WaterBrightness: 0.9
     m_Colors:
-    - _BaseColor: {r: 0.72, g: 0.94, b: 1.02, a: 1}
-    - _FlowSpeed: {r: 0.018, g: 0.008, b: -0.012, a: 0.01}
+    - _BaseColor: {r: 0.58, g: 0.93, b: 1, a: 1}
+    - _FlowSpeed: {r: 0.005, g: 0.002, b: -0.003, a: 0.0015}
+    - _SurfaceLineColor: {r: 0.78, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="WorldBuildingIncomeConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="buildingId" type="int" comment="client" />
+    <var name="level" type="int" comment="client" />
+    <var name="outputRewardGroupId" type="int" comment="client" />
+    <var name="cycleSeconds" type="int" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbWorldBuildingIncome" value="WorldBuildingIncomeConfig" input="world_building_income.xlsx" mode="map" index="id" />
+</module>

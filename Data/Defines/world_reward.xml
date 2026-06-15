@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="WorldRewardConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="groupId" type="int" comment="client" />
+    <var name="itemId" type="int" comment="client" />
+    <var name="minCount" type="int" comment="client" />
+    <var name="maxCount" type="int" comment="client" />
+    <var name="weight" type="int" comment="client" />
+  </bean>
+
+  <table name="TbWorldReward" value="WorldRewardConfig" input="world_reward.xlsx" mode="map" index="id" />
+</module>

@@ -43,7 +43,7 @@ MonoBehaviour:
         FilterRuleName: CollectAll
         AssetTags: 
         UserData: 
-      - CollectPath: Assets/Data/Cube
+      - CollectPath: Assets/Data/Configs
         CollectorGUID: 1c19691863979df4bb9fae75399fa7a3
         CollectorType: 0
         AddressRuleName: AddressByFileName
@@ -132,6 +132,14 @@ MonoBehaviour:
         UserData: 
       - CollectPath: Assets/Arts/Tower
         CollectorGUID: 567cd3b2479f519428bdb84df7ee0680
+        CollectorType: 0
+        AddressRuleName: AddressByFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectAll
+        AssetTags: 
+        UserData: 
+      - CollectPath: Assets/Arts/Map
+        CollectorGUID: 2f5e6d7c8b9a4c31a0b1c2d3e4f50617
         CollectorType: 0
         AddressRuleName: AddressByFileName
         PackRuleName: PackDirectory

@@ -1,0 +1,4690 @@
+{
+  "Id": 1001,
+  "Name": "NewMap",
+  "Description": "Tower defense map",
+  "Width": 12,
+  "Height": 1,
+  "Depth": 12,
+  "Cells": [
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 0,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 0,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 0,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 0,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 0,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 0,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 0,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 0,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 0,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 0,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 0,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 0,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 1,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 1,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 1,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 1,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 1,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 1,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 1,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 1,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 1,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 1,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 1,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 1,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 2,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 2,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 2,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 2,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 2,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 2,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 2,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 2,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 2,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 2,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 2,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 2,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 3,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 3,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 3,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 3,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 3,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 3,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 3,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 3,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 3,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 3,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 3,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 3,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 4,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 4,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 4,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 4,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 4,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 4,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 4,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 4,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 4,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 4,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 4,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 4,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 5,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 5,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 5,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 5,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 5,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 5,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 5,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 5,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 5,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 5,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 5,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 5,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 6,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 6,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 6,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 6,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 6,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 6,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 6,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 6,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 6,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 6,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 6,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 6,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 7,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 7,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 7,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 7,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 7,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 7,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 7,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 7,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 7,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 7,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 7,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 7,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 8,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 8,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 8,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 8,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 8,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 8,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 8,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 8,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 8,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 8,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 8,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 8,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 9,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 9,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 9,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 9,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 9,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 9,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 9,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 9,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 9,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 9,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 9,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 9,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 10,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 10,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 10,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 10,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 10,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 10,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 10,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 10,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 10,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 10,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 10,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 10,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 0,
+      "Y": 0,
+      "Z": 11,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 1,
+      "Y": 0,
+      "Z": 11,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 2,
+      "Y": 0,
+      "Z": 11,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 3,
+      "Y": 0,
+      "Z": 11,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 4,
+      "Y": 0,
+      "Z": 11,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 5,
+      "Y": 0,
+      "Z": 11,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 6,
+      "Y": 0,
+      "Z": 11,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 7,
+      "Y": 0,
+      "Z": 11,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 8,
+      "Y": 0,
+      "Z": 11,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 9,
+      "Y": 0,
+      "Z": 11,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 10,
+      "Y": 0,
+      "Z": 11,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "X": 11,
+      "Y": 0,
+      "Z": 11,
+      "Tile": {
+        "Type": 1,
+        "Direction": 1,
+        "VariantId": 0
+      },
+      "Overlay": {
+        "Type": 0,
+        "Direction": 0,
+        "VariantId": 0
+      },
+      "GrassVisual": {
+        "BaseR": 0.43,
+        "BaseG": 0.66,
+        "BaseB": 0.09,
+        "DarkR": 0.34,
+        "DarkG": 0.56,
+        "DarkB": 0.055,
+        "LightR": 0.56,
+        "LightG": 0.76,
+        "LightB": 0.15,
+        "VariationStrength": 0.12,
+        "VariationScale": 1.35,
+        "VariationSoftness": 0.72
+      },
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    }
+  ],
+  "Objects": [],
+  "TileLogicDefaults": [
+    {
+      "Type": 1,
+      "Walkable": true,
+      "Buildable": true,
+      "MoveCost": 10
+    },
+    {
+      "Type": 2,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 20
+    },
+    {
+      "Type": 3,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 15
+    },
+    {
+      "Type": 4,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    },
+    {
+      "Type": 5,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 8
+    },
+    {
+      "Type": 6,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 8
+    },
+    {
+      "Type": 1000,
+      "Walkable": false,
+      "Buildable": false,
+      "MoveCost": 0
+    }
+  ],
+  "OverlayLogicDefaults": [
+    {
+      "Overlay": 1,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 8
+    },
+    {
+      "Overlay": 2,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 8
+    },
+    {
+      "Overlay": 3,
+      "Walkable": true,
+      "Buildable": false,
+      "MoveCost": 8
+    }
+  ],
+  "SpawnPoints": [],
+  "HasGoalPoint": false,
+  "GoalPoint": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  }
+}

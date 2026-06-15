@@ -18,6 +18,12 @@ Shader "CubeTD/Map/WaterTopSoftLit"
         _RippleScale ("Ripple Scale", Range(1, 40)) = 16
         _RippleSpeed ("Ripple Speed", Range(0, 6)) = 0.85
         _WaterBrightness ("Water Brightness", Range(0.5, 2)) = 1.12
+        _Opacity ("Opacity", Range(0, 1)) = 0.28
+        _SurfaceLineColor ("Surface Line Color", Color) = (0.78, 1.0, 1.0, 1.0)
+        _SurfaceLineStrength ("Surface Line Strength", Range(0, 1)) = 0.32
+        _SurfaceLineOpacity ("Surface Line Opacity", Range(0, 1)) = 0.16
+        _SurfaceLineWidth ("Surface Line Width", Range(0.005, 0.2)) = 0.045
+        _SurfaceLineScale ("Surface Line Scale", Range(0.5, 8)) = 2.4
         _EdgeDarkness ("Edge Darkness", Range(0, 1)) = 0.08
         _EdgeDarkWidth ("Edge Dark Width", Range(0.001, 0.2)) = 0.065
         _EdgeHighlight ("Edge Highlight", Range(0, 1)) = 0.18
@@ -29,9 +35,13 @@ Shader "CubeTD/Map/WaterTopSoftLit"
         Tags
         {
             "RenderPipeline" = "UniversalPipeline"
-            "RenderType" = "Opaque"
-            "Queue" = "Geometry"
+            "RenderType" = "Transparent"
+            "Queue" = "Transparent"
         }
+
+        Blend SrcAlpha OneMinusSrcAlpha
+        ZWrite Off
+        Cull Back
 
         Pass
         {
@@ -67,6 +77,12 @@ Shader "CubeTD/Map/WaterTopSoftLit"
                 half _RippleScale;
                 half _RippleSpeed;
                 half _WaterBrightness;
+                half _Opacity;
+                half4 _SurfaceLineColor;
+                half _SurfaceLineStrength;
+                half _SurfaceLineOpacity;
+                half _SurfaceLineWidth;
+                half _SurfaceLineScale;
                 half _EdgeDarkness;
                 half _EdgeDarkWidth;
                 half _EdgeHighlight;
@@ -107,6 +123,12 @@ Shader "CubeTD/Map/WaterTopSoftLit"
                 return lerp(luminance.xxx, color, saturation);
             }
 
+            half SoftWaveLine(half value, half width)
+            {
+                half waveLine = 1.0h - smoothstep(width, width * 2.8h, abs(value));
+                return waveLine * waveLine;
+            }
+
             half4 frag(Varyings input) : SV_Target
             {
                 half time = _Time.y;
@@ -137,6 +159,13 @@ Shader "CubeTD/Map/WaterTopSoftLit"
                 half3 lightColor = lerp(half3(1.0h, 1.0h, 1.0h), mainLight.color, 0.42h);
                 half3 color = tex.rgb * lightColor * light * _WaterBrightness;
 
+                half2 surfaceUv = input.baseUv * _SurfaceLineScale;
+                half drift = (detail - 0.5h) * 0.35h + ripple * 1.4h;
+                half waveLineA = SoftWaveLine(sin((surfaceUv.x * 1.13h + surfaceUv.y * 0.37h + time * 0.075h + drift) * 6.28318h), _SurfaceLineWidth);
+                half waveLineB = SoftWaveLine(sin((surfaceUv.x * -0.42h + surfaceUv.y * 1.08h - time * 0.052h - drift) * 6.28318h), _SurfaceLineWidth * 0.82h);
+                half surfaceLineMask = saturate(waveLineA * 0.72h + waveLineB * 0.45h);
+                surfaceLineMask *= saturate(1.0h - _Opacity * 0.35h);
+
                 half topMask = saturate((normalWS.y - 0.25h) * 2.5h);
                 half2 edgeUv = min(input.baseUv, 1.0h - input.baseUv);
                 half edgeDistance = min(edgeUv.x, edgeUv.y);
@@ -146,10 +175,13 @@ Shader "CubeTD/Map/WaterTopSoftLit"
 
                 color *= 1.0h - edgeDark * _EdgeDarkness * topMask;
                 color += color * edgeHighlight * _EdgeHighlight * topMask;
+                color = lerp(color, _SurfaceLineColor.rgb, surfaceLineMask * _SurfaceLineStrength * topMask);
                 color = min(color, _MaxBrightness.xxx);
                 color = ApplySaturation(color, _Saturation);
 
-                return half4(color, tex.a);
+                half alpha = saturate(tex.a * _BaseColor.a * _Opacity);
+                alpha = saturate(alpha + surfaceLineMask * _SurfaceLineOpacity * topMask + edgeHighlight * _EdgeHighlight * 0.035h * topMask);
+                return half4(color, alpha);
             }
             ENDHLSL
         }
