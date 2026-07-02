@@ -7,6 +7,7 @@ public enum ItemType
     Blueprint = 3,
     Seed = 4,
     Material = 5,
+    Tool = 6,
 }
 
 public enum ItemUseScope

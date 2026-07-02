@@ -136,7 +136,7 @@ namespace Game
 
         private int GetHeuristicCost(Vector3Int from, Vector3Int to)
         {
-            return 0;
+            return Mathf.Abs(from.x - to.x) + Mathf.Abs(from.z - to.z) + Mathf.Abs(from.y - to.y);
         }
 
         private Node GetOrCreateNode(Dictionary<Vector3Int, Node> nodes, Vector3Int coord)
@@ -281,6 +281,137 @@ namespace Game
                 left.HeapIndex = right.HeapIndex;
                 right.HeapIndex = leftIndex;
             }
+        }
+    }
+
+    public static class MapPathSmoother
+    {
+        private const float LineEpsilon = 0.000001f;
+
+        public static void SmoothBySupercoverLineOfSight(IReadOnlyList<Vector3Int> path, List<Vector3Int> result)
+        {
+            result.Clear();
+            if (path == null || path.Count == 0)
+            {
+                return;
+            }
+
+            result.Add(path[0]);
+            if (path.Count == 1)
+            {
+                return;
+            }
+
+            int anchorIndex = 0;
+            int probeIndex = 1;
+            while (probeIndex < path.Count)
+            {
+                if (HasLineOfSight(path[anchorIndex], path[probeIndex]))
+                {
+                    probeIndex++;
+                    continue;
+                }
+
+                int lastVisibleIndex = Mathf.Max(anchorIndex + 1, probeIndex - 1);
+                AddIfDifferent(result, path[lastVisibleIndex]);
+                anchorIndex = lastVisibleIndex;
+                probeIndex = anchorIndex + 1;
+            }
+
+            AddIfDifferent(result, path[path.Count - 1]);
+        }
+
+        public static bool HasLineOfSight(Vector3Int from, Vector3Int to)
+        {
+            if (from.y != to.y)
+            {
+                return false;
+            }
+
+            int x = from.x;
+            int z = from.z;
+            int endX = to.x;
+            int endZ = to.z;
+
+            int deltaX = endX - x;
+            int deltaZ = endZ - z;
+            int stepX = deltaX > 0 ? 1 : deltaX < 0 ? -1 : 0;
+            int stepZ = deltaZ > 0 ? 1 : deltaZ < 0 ? -1 : 0;
+
+            if (!CanUseForLineOfSight(x, z, from.y))
+            {
+                return false;
+            }
+
+            if (stepX == 0 && stepZ == 0)
+            {
+                return true;
+            }
+
+            float absDeltaX = Mathf.Abs(deltaX);
+            float absDeltaZ = Mathf.Abs(deltaZ);
+            float tMaxX = stepX != 0 ? 0.5f / absDeltaX : float.PositiveInfinity;
+            float tMaxZ = stepZ != 0 ? 0.5f / absDeltaZ : float.PositiveInfinity;
+            float tDeltaX = stepX != 0 ? 1f / absDeltaX : float.PositiveInfinity;
+            float tDeltaZ = stepZ != 0 ? 1f / absDeltaZ : float.PositiveInfinity;
+
+            while (x != endX || z != endZ)
+            {
+                if (Mathf.Abs(tMaxX - tMaxZ) <= LineEpsilon)
+                {
+                    int nextX = x + stepX;
+                    int nextZ = z + stepZ;
+
+                    if (!CanUseForLineOfSight(nextX, z, from.y) ||
+                        !CanUseForLineOfSight(x, nextZ, from.y))
+                    {
+                        return false;
+                    }
+
+                    x = nextX;
+                    z = nextZ;
+                    tMaxX += tDeltaX;
+                    tMaxZ += tDeltaZ;
+                }
+                else if (tMaxX < tMaxZ)
+                {
+                    x += stepX;
+                    tMaxX += tDeltaX;
+                }
+                else
+                {
+                    z += stepZ;
+                    tMaxZ += tDeltaZ;
+                }
+
+                if (!CanUseForLineOfSight(x, z, from.y))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool CanUseForLineOfSight(int x, int z, int expectedY)
+        {
+            if (!MapManager.Instance.TryGetTopLogicTile(x, z, out TileData tileData) || tileData == null)
+            {
+                return false;
+            }
+
+            Vector3Int coord = tileData.Coord;
+            return coord.y == expectedY && MapManager.Instance.IsWalkable(coord);
+        }
+
+        private static void AddIfDifferent(List<Vector3Int> result, Vector3Int coord)
+        {
+            if (result.Count > 0 && result[result.Count - 1] == coord)
+            {
+                return;
+            }
+
+            result.Add(coord);
         }
     }
 }

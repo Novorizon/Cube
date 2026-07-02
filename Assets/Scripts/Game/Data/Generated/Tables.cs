@@ -22,6 +22,7 @@ public partial class Tables
     public TbAbilitySystemEnumConfig TbAbilitySystemEnumConfig {get; }
     public TbBase TbBase {get; }
     public TbItem TbItem {get; }
+    public TbLocalization TbLocalization {get; }
     public TbMap TbMap {get; }
     public TbNpc TbNpc {get; }
     public TbNpcDrop TbNpcDrop {get; }
@@ -29,6 +30,8 @@ public partial class Tables
     public TbSkillAction TbSkillAction {get; }
     public TbSkillModifier TbSkillModifier {get; }
     public TbSkillSystemEnum TbSkillSystemEnum {get; }
+    public TbStorageCapacity TbStorageCapacity {get; }
+    public TbTechNode TbTechNode {get; }
     public TbTower TbTower {get; }
     public TbTowerLevel TbTowerLevel {get; }
     public TbWave TbWave {get; }
@@ -52,6 +55,7 @@ public partial class Tables
         TbAbilitySystemEnumConfig = new TbAbilitySystemEnumConfig(loader("tbabilitysystemenumconfig"));
         TbBase = new TbBase(loader("tbbase"));
         TbItem = new TbItem(loader("tbitem"));
+        TbLocalization = new TbLocalization(loader("tblocalization"));
         TbMap = new TbMap(loader("tbmap"));
         TbNpc = new TbNpc(loader("tbnpc"));
         TbNpcDrop = new TbNpcDrop(loader("tbnpcdrop"));
@@ -59,6 +63,8 @@ public partial class Tables
         TbSkillAction = new TbSkillAction(loader("tbskillaction"));
         TbSkillModifier = new TbSkillModifier(loader("tbskillmodifier"));
         TbSkillSystemEnum = new TbSkillSystemEnum(loader("tbskillsystemenum"));
+        TbStorageCapacity = new TbStorageCapacity(loader("tbstoragecapacity"));
+        TbTechNode = new TbTechNode(loader("tbtechnode"));
         TbTower = new TbTower(loader("tbtower"));
         TbTowerLevel = new TbTowerLevel(loader("tbtowerlevel"));
         TbWave = new TbWave(loader("tbwave"));
@@ -84,6 +90,7 @@ public partial class Tables
         TbAbilitySystemEnumConfig.ResolveRef(this);
         TbBase.ResolveRef(this);
         TbItem.ResolveRef(this);
+        TbLocalization.ResolveRef(this);
         TbMap.ResolveRef(this);
         TbNpc.ResolveRef(this);
         TbNpcDrop.ResolveRef(this);
@@ -91,6 +98,8 @@ public partial class Tables
         TbSkillAction.ResolveRef(this);
         TbSkillModifier.ResolveRef(this);
         TbSkillSystemEnum.ResolveRef(this);
+        TbStorageCapacity.ResolveRef(this);
+        TbTechNode.ResolveRef(this);
         TbTower.ResolveRef(this);
         TbTowerLevel.ResolveRef(this);
         TbWave.ResolveRef(this);

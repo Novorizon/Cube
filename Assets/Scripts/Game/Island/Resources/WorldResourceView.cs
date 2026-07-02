@@ -11,6 +11,7 @@ namespace Game
 
         private MapObjectData mapObject;
         private Renderer[] renderers;
+        private Collider[] colliders;
         private Vector3 originalLocalScale;
         private float nextRefreshTime;
         private bool initialized;
@@ -31,12 +32,45 @@ namespace Game
             }
         }
 
+        public bool TryGetClosestPoint(Vector3 position, out Vector3 closestPoint)
+        {
+            closestPoint = transform.position;
+
+            if (colliders == null)
+            {
+                colliders = GetComponentsInChildren<Collider>(true);
+            }
+
+            bool found = false;
+            float bestDistance = float.MaxValue;
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                Collider collider = colliders[i];
+                if (collider == null || !collider.enabled)
+                {
+                    continue;
+                }
+
+                Vector3 candidate = collider.ClosestPoint(position);
+                float distance = (candidate - position).sqrMagnitude;
+                if (!found || distance < bestDistance)
+                {
+                    found = true;
+                    bestDistance = distance;
+                    closestPoint = candidate;
+                }
+            }
+
+            return found;
+        }
+
         public void Initialize(MapObjectData resourceObject)
         {
             Unregister();
 
             mapObject = resourceObject;
             renderers = GetComponentsInChildren<Renderer>(true);
+            colliders = GetComponentsInChildren<Collider>(true);
             originalLocalScale = transform.localScale;
             initialized = mapObject != null && mapObject.ObjectType == MapObjectType.Resource;
 
@@ -141,11 +175,24 @@ namespace Game
                 renderers = GetComponentsInChildren<Renderer>(true);
             }
 
+            if (colliders == null)
+            {
+                colliders = GetComponentsInChildren<Collider>(true);
+            }
+
             for (int i = 0; i < renderers.Length; i++)
             {
                 if (renderers[i] != null)
                 {
                     renderers[i].enabled = visible;
+                }
+            }
+
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                if (colliders[i] != null)
+                {
+                    colliders[i].enabled = visible;
                 }
             }
 

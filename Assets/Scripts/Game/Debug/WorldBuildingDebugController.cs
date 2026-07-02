@@ -1,18 +1,17 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace Game
 {
     public sealed class WorldBuildingDebugController : MonoBehaviour
     {
         [SerializeField]
-        private int farmBuildingId = 1001;
+        private int farmBuildingId = 30001001;
 
         [SerializeField]
-        private int quarryBuildingId = 1002;
+        private int quarryBuildingId = 30002001;
 
         [SerializeField]
-        private int storageBuildingId = 1003;
+        private int storageBuildingId = 30000002;
 
         [SerializeField]
         private KeyCode buildFarmKey = KeyCode.F7;
@@ -109,7 +108,7 @@ namespace Game
         {
             tileView = null;
 
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            if (WorldPointerPicker.IsPointerOverUi())
             {
                 return false;
             }
@@ -121,7 +120,7 @@ namespace Game
                 return false;
             }
 
-            bool picked = MapManager.Instance.TryPickTile(Input.mousePosition, camera, out tileView);
+            bool picked = WorldPointerPicker.TryPickTile(WorldPointerPicker.CurrentPointerPosition, camera, out tileView, false);
             if (!picked)
             {
                 Debug.LogWarning("WorldBuildingDebugController pick failed. Tile not found.");

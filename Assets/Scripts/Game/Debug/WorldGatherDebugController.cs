@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace Game
 {
@@ -91,7 +90,7 @@ namespace Game
         {
             tileView = null;
 
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            if (WorldPointerPicker.IsPointerOverUi())
             {
                 return false;
             }
@@ -103,7 +102,7 @@ namespace Game
                 return false;
             }
 
-            bool picked = MapManager.Instance.TryPickTile(Input.mousePosition, camera, out tileView);
+            bool picked = WorldPointerPicker.TryPickTile(WorldPointerPicker.CurrentPointerPosition, camera, out tileView, false);
             if (!picked)
             {
                 Debug.LogWarning("WorldGatherDebugController pick failed. Tile not found.");

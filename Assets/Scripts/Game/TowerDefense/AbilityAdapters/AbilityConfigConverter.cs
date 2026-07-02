@@ -64,8 +64,8 @@ namespace Game
             AbilityDefinition definition = new AbilityDefinition
             {
                 Name = AbilityName(config.Id),
-                DisplayName = config.Name,
-                Description = config.Description,
+                DisplayName = LocalizedConfigText.SkillName(config.Id),
+                Description = LocalizedConfigText.SkillDescription(config.Id),
                 Icon = config.IconLocation,
                 Behavior = MapBehavior(config.Behavior),
                 TargetTeam = MapTargetTeam(config.TargetTeam),
@@ -94,7 +94,7 @@ namespace Game
             ModifierDefinition definition = new ModifierDefinition
             {
                 Name = ModifierName(config.Id),
-                DisplayName = config.Name,
+                DisplayName = LocalizationManager.GetOrFallback($"modifier.{config.Id}.name", config.Name),
                 IsHidden = config.IsHidden,
                 IsDebuff = config.IsDebuff,
                 IsPurgable = config.IsPurgable,

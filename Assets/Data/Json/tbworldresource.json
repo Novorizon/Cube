@@ -1,10 +1,10 @@
 [
   {
-    "id": 1001,
+    "id": 30300001,
     "name": "Tree",
     "resourceType": 1,
     "interactionType": 2,
-    "gatherConfigId": 1001,
+    "gatherConfigId": 30400001,
     "pickupRewardGroupId": 0,
     "mineBuildingId": 0,
     "prefabLocation": "Assets/Arts/Map/WorldResources/Prefabs/WR_Tree.prefab",
@@ -14,11 +14,11 @@
     "enable": true
   },
   {
-    "id": 1002,
+    "id": 30300002,
     "name": "Rock",
     "resourceType": 2,
     "interactionType": 2,
-    "gatherConfigId": 1002,
+    "gatherConfigId": 30400002,
     "pickupRewardGroupId": 0,
     "mineBuildingId": 0,
     "prefabLocation": "Assets/Arts/Map/WorldResources/Prefabs/WR_Rock.prefab",
@@ -28,13 +28,13 @@
     "enable": true
   },
   {
-    "id": 1003,
+    "id": 30300003,
     "name": "Copper Ore",
     "resourceType": 3,
     "interactionType": 3,
     "gatherConfigId": 0,
     "pickupRewardGroupId": 0,
-    "mineBuildingId": 2022,
+    "mineBuildingId": 30002002,
     "prefabLocation": "Assets/Arts/Map/WorldResources/Prefabs/WR_CopperOre.prefab",
     "iconLocation": "",
     "blocksBuild": true,
@@ -42,13 +42,13 @@
     "enable": true
   },
   {
-    "id": 1004,
+    "id": 30300004,
     "name": "Iron Ore",
     "resourceType": 3,
     "interactionType": 3,
     "gatherConfigId": 0,
     "pickupRewardGroupId": 0,
-    "mineBuildingId": 2023,
+    "mineBuildingId": 30002003,
     "prefabLocation": "Assets/Arts/Map/WorldResources/Prefabs/WR_IronOre.prefab",
     "iconLocation": "",
     "blocksBuild": true,
@@ -56,11 +56,11 @@
     "enable": true
   },
   {
-    "id": 1005,
+    "id": 30300005,
     "name": "Herb Bush",
     "resourceType": 4,
     "interactionType": 2,
-    "gatherConfigId": 1005,
+    "gatherConfigId": 30400005,
     "pickupRewardGroupId": 0,
     "mineBuildingId": 0,
     "prefabLocation": "Assets/Arts/Map/WorldResources/Prefabs/WR_HerbBush.prefab",
@@ -70,11 +70,11 @@
     "enable": true
   },
   {
-    "id": 1006,
+    "id": 30300006,
     "name": "Wheat",
     "resourceType": 4,
     "interactionType": 2,
-    "gatherConfigId": 1006,
+    "gatherConfigId": 30400006,
     "pickupRewardGroupId": 0,
     "mineBuildingId": 0,
     "prefabLocation": "Assets/Arts/Map/WorldResources/Prefabs/WR_Wheat.prefab",
@@ -84,11 +84,11 @@
     "enable": true
   },
   {
-    "id": 1007,
+    "id": 30300007,
     "name": "Tomato",
     "resourceType": 4,
     "interactionType": 2,
-    "gatherConfigId": 1007,
+    "gatherConfigId": 30400007,
     "pickupRewardGroupId": 0,
     "mineBuildingId": 0,
     "prefabLocation": "Assets/Arts/Map/WorldResources/Prefabs/WR_Tomato.prefab",
@@ -98,12 +98,12 @@
     "enable": true
   },
   {
-    "id": 1008,
+    "id": 30300008,
     "name": "Branch",
     "resourceType": 1,
     "interactionType": 1,
     "gatherConfigId": 0,
-    "pickupRewardGroupId": 2201,
+    "pickupRewardGroupId": 30902015,
     "mineBuildingId": 0,
     "prefabLocation": "Assets/Arts/Map/WorldResources/Prefabs/WR_Tree.prefab",
     "iconLocation": "",
@@ -112,12 +112,12 @@
     "enable": true
   },
   {
-    "id": 1009,
+    "id": 30300009,
     "name": "Loose Stone",
     "resourceType": 2,
     "interactionType": 1,
     "gatherConfigId": 0,
-    "pickupRewardGroupId": 2202,
+    "pickupRewardGroupId": 30902016,
     "mineBuildingId": 0,
     "prefabLocation": "Assets/Arts/Map/WorldResources/Prefabs/WR_Rock.prefab",
     "iconLocation": "",
@@ -126,13 +126,13 @@
     "enable": true
   },
   {
-    "id": 1010,
+    "id": 30300010,
     "name": "Stone Deposit",
     "resourceType": 3,
     "interactionType": 3,
     "gatherConfigId": 0,
     "pickupRewardGroupId": 0,
-    "mineBuildingId": 2021,
+    "mineBuildingId": 30002001,
     "prefabLocation": "Assets/Arts/Map/WorldResources/Prefabs/WR_Rock.prefab",
     "iconLocation": "",
     "blocksBuild": true,

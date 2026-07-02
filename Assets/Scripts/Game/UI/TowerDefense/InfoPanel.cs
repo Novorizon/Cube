@@ -318,13 +318,13 @@ namespace Game
         {
             List<TdInfoSlotData> result = new List<TdInfoSlotData>();
 
-            AddInfoSlot(result, "level", "等级", info.Level > 0 ? info.Level.ToString() : EmptyValue);
-            AddInfoSlot(result, "hp", "生命", info.MaxHp > 0 ? $"{Mathf.Max(0, info.CurrentHp)}/{info.MaxHp}" : EmptyValue);
-            AddInfoSlot(result, "attack", "攻击", info.Attack > 0 ? info.Attack.ToString() : EmptyValue, info.AttackAdd > 0 ? $"+{info.AttackAdd}" : string.Empty);
-            AddInfoSlot(result, "range", "范围", info.Range > 0f ? $"{info.Range:0.#}" : EmptyValue);
-            AddInfoSlot(result, "speed", "攻速", info.AttackInterval > 0f ? $"{info.AttackInterval:0.#}s" : EmptyValue);
-            AddInfoSlot(result, "upgradeCost", "升级", info.CanUpgrade ? info.UpgradeCost.ToString() : EmptyValue);
-            AddInfoSlot(result, "sellGold", "出售", info.CanSell ? info.SellGold.ToString() : EmptyValue);
+            AddInfoSlot(result, "level", LocalizationManager.Get("ui.td.info.level"), info.Level > 0 ? info.Level.ToString() : EmptyValue);
+            AddInfoSlot(result, "hp", LocalizationManager.Get("ui.td.info.hp"), info.MaxHp > 0 ? $"{Mathf.Max(0, info.CurrentHp)}/{info.MaxHp}" : EmptyValue);
+            AddInfoSlot(result, "attack", LocalizationManager.Get("ui.td.info.attack"), info.Attack > 0 ? info.Attack.ToString() : EmptyValue, info.AttackAdd > 0 ? $"+{info.AttackAdd}" : string.Empty);
+            AddInfoSlot(result, "range", LocalizationManager.Get("ui.td.info.range"), info.Range > 0f ? $"{info.Range:0.#}" : EmptyValue);
+            AddInfoSlot(result, "speed", LocalizationManager.Get("ui.td.info.attack_speed"), info.AttackInterval > 0f ? $"{info.AttackInterval:0.#}s" : EmptyValue);
+            AddInfoSlot(result, "upgradeCost", LocalizationManager.Get("ui.td.info.upgrade"), info.CanUpgrade ? info.UpgradeCost.ToString() : EmptyValue);
+            AddInfoSlot(result, "sellGold", LocalizationManager.Get("ui.td.info.sell"), info.CanSell ? info.SellGold.ToString() : EmptyValue);
 
             return result;
         }

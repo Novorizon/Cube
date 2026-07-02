@@ -7,6 +7,8 @@ namespace Game
     {
         public static MineManager Instance { get; } = new MineManager();
 
+        private readonly WorldCostResolver costResolver = new WorldCostResolver(DataManager.Instance.WorldCost);
+
         private MineManager()
         {
         }
@@ -22,12 +24,17 @@ namespace Game
                 return false;
             }
 
-            if (!WorldBuildingManager.Instance.HasActiveBuildingType(WorldBuildingType.MainBase))
+            if (!WorldBuildingManager.Instance.HasActiveBuildingType(WorldBuildingType.House))
             {
                 return false;
             }
 
             if (config.MineBuildingId <= 0 || !WorldBuildingManager.Instance.IsBuildingUnlocked(config.MineBuildingId))
+            {
+                return false;
+            }
+
+            if (!CanBuildMineBuilding(config.MineBuildingId))
             {
                 return false;
             }
@@ -51,6 +58,35 @@ namespace Game
             Debug.LogWarning($"Build mine failed after removing mine target. buildingId: {config.MineBuildingId}, coord: {coord}");
             StorageManager.Instance.MarkDirty();
             return false;
+        }
+
+        private bool CanBuildMineBuilding(int buildingId)
+        {
+            if (DataManager.Instance.WorldBuilding == null ||
+                !DataManager.Instance.WorldBuilding.TryGet(buildingId, out WorldBuildingConfig buildingConfig) ||
+                buildingConfig == null ||
+                !buildingConfig.Enable)
+            {
+                return false;
+            }
+
+            if (buildingConfig.MaxCount > 0 && WorldBuildingManager.Instance.CountBuildingConfig(buildingId) >= buildingConfig.MaxCount)
+            {
+                return false;
+            }
+
+            if (!DataManager.Instance.TryGetWorldBuildingLevel(buildingId, 1, out WorldBuildingLevelConfig levelConfig) || levelConfig == null)
+            {
+                return false;
+            }
+
+            if (levelConfig.BuildCostGroupId <= 0)
+            {
+                return true;
+            }
+
+            IReadOnlyList<WorldItem> costs = costResolver.GetCostGroup(levelConfig.BuildCostGroupId);
+            return costs.Count > 0 && WorldItemManager.Instance.HasItems(costs);
         }
 
         public List<WorldBuilding> GetActiveMines()

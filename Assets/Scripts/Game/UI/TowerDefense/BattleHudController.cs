@@ -87,6 +87,7 @@ namespace Game
             ResolveMissingReferences();
             InitializePanels();
             RegisterEvents();
+            LocalizationManager.LanguageChanged += RefreshLocalizedTexts;
         }
 
         private void ResolveMissingReferences()
@@ -132,6 +133,7 @@ namespace Game
         protected override void OnDestroyed()
         {
             UnregisterEvents();
+            LocalizationManager.LanguageChanged -= RefreshLocalizedTexts;
         }
 
         public void InitializePanels()
@@ -843,10 +845,17 @@ namespace Game
             }
 
             bool victory = message != null && message.Victory;
-            battleResultTitleText.text = victory ? "战斗胜利" : "战斗失败";
-            battleResultMapText.text = message != null && !string.IsNullOrWhiteSpace(message.MapName) ? message.MapName : "当前关卡";
+            battleResultTitleText.text = victory
+                ? LocalizationManager.Get("ui.td.result.victory")
+                : LocalizationManager.Get("ui.td.result.defeat");
+            battleResultMapText.text = message != null && message.MapId > 0
+                ? LocalizedConfigText.MapName(message.MapId)
+                : LocalizationManager.Get("ui.td.result.current_map");
             battleResultReasonText.text = message != null && !string.IsNullOrWhiteSpace(message.Reason) ? message.Reason : string.Empty;
             battleResultRewardText.text = BuildRewardText(message);
+            SetButtonText(battleResultNextButton, LocalizationManager.Get("ui.td.button.next"));
+            SetButtonText(battleResultRestartButton, LocalizationManager.Get("ui.td.button.restart"));
+            SetButtonText(battleResultMenuButton, LocalizationManager.Get("ui.td.button.main_menu"));
             RefreshBattleResultButtons(message, victory);
             battleResultDialog.SetActive(true);
         }
@@ -877,15 +886,15 @@ namespace Game
         {
             if (message == null || !message.Victory)
             {
-                return "奖励：无";
+                return LocalizationManager.Get("ui.td.result.reward_none");
             }
 
             if (message.Reward == null || message.Reward.OuterItemMap == null || message.Reward.OuterItemMap.Count == 0)
             {
-                return "奖励：无";
+                return LocalizationManager.Get("ui.td.result.reward_none");
             }
 
-            System.Text.StringBuilder builder = new System.Text.StringBuilder("奖励：");
+            System.Text.StringBuilder builder = new System.Text.StringBuilder(LocalizationManager.Get("ui.td.result.reward_prefix"));
             bool first = true;
 
             foreach (System.Collections.Generic.KeyValuePair<int, int> pair in message.Reward.OuterItemMap)
@@ -895,7 +904,7 @@ namespace Game
                     builder.Append("，");
                 }
 
-                builder.Append(pair.Key);
+                builder.Append(LocalizedConfigText.ItemName(pair.Key));
                 builder.Append(" x");
                 builder.Append(pair.Value);
                 first = false;
@@ -942,15 +951,15 @@ namespace Game
             battleResultRewardText = CreateText("Reward", panelRect, 20, FontStyles.Normal, TextAlignmentOptions.Center);
             SetRect(battleResultRewardText.rectTransform, new Vector2(0f, 0.5f), new Vector2(1f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -54f), new Vector2(-56f, 44f));
 
-            battleResultNextButton = CreateButton("NextButton", panelRect, "下一关");
+            battleResultNextButton = CreateButton("NextButton", panelRect, LocalizationManager.Get("ui.td.button.next"));
             SetRect(battleResultNextButton.GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-152f, 34f), new Vector2(132f, 46f));
             battleResultNextButton.onClick.AddListener(OnBattleResultNextClicked);
 
-            battleResultRestartButton = CreateButton("RestartButton", panelRect, "重新开始");
+            battleResultRestartButton = CreateButton("RestartButton", panelRect, LocalizationManager.Get("ui.td.button.restart"));
             SetRect(battleResultRestartButton.GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 34f), new Vector2(132f, 46f));
             battleResultRestartButton.onClick.AddListener(OnBattleResultRestartClicked);
 
-            battleResultMenuButton = CreateButton("MenuButton", panelRect, "主菜单");
+            battleResultMenuButton = CreateButton("MenuButton", panelRect, LocalizationManager.Get("ui.td.button.main_menu"));
             SetRect(battleResultMenuButton.GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(152f, 34f), new Vector2(132f, 46f));
             battleResultMenuButton.onClick.AddListener(OnBattleResultMenuClicked);
 
@@ -993,9 +1002,18 @@ namespace Game
             }
         }
 
+        private void RefreshLocalizedTexts()
+        {
+            RefreshSettingsSoundText();
+            if (battleResultDialog != null && battleResultDialog.activeSelf)
+            {
+                ShowBattleResultDialog(BattleFlowManager.Instance.LastEndMessage);
+            }
+        }
+
         private void OnSettingsLanguageClicked()
         {
-            Toast.Info("语言设置暂未开放");
+            Toast.Info(LocalizationManager.Get("ui.td.settings.language_unavailable"));
         }
 
         private void OnSettingsSoundClicked()
@@ -1010,7 +1028,9 @@ namespace Game
             soundMuted = AudioListener.volume <= 0.01f;
             if (settingsSoundText != null)
             {
-                settingsSoundText.text = soundMuted ? "声音：关" : "声音：开";
+                settingsSoundText.text = soundMuted
+                    ? LocalizationManager.Get("ui.td.settings.sound_off")
+                    : LocalizationManager.Get("ui.td.settings.sound_on");
             }
         }
 
@@ -1121,6 +1141,15 @@ namespace Game
             Stretch(text.rectTransform);
 
             return button;
+        }
+
+        private static void SetButtonText(Button button, string label)
+        {
+            TMP_Text text = button != null ? button.GetComponentInChildren<TMP_Text>(true) : null;
+            if (text != null)
+            {
+                text.text = label;
+            }
         }
 
         private static void Stretch(RectTransform rectTransform)

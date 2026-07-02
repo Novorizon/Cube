@@ -17,7 +17,7 @@ public class GameEntry : MonoBehaviour
         // GameInputManager.Instance.Initialize();
         // CameraManager.Instance.Initialize();
         // ResourceManager.Instance.Initialize();
-        // MapManager.Instance.LoadMap(1);
+        // MapManager.Instance.LoadMap(30950001);
         // NpcManager.Instance.Initialize();
         // BaseManager.Instance.Initialize(20);
     }

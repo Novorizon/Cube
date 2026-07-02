@@ -6,6 +6,9 @@ namespace Game
     public sealed class TileBoundsGizmo : MonoBehaviour
     {
         [SerializeField]
+        private bool drawBounds = false;
+
+        [SerializeField]
         private Color boundsColor = Color.yellow;
 
         [SerializeField]
@@ -32,7 +35,6 @@ namespace Game
         {
             get
             {
-                RefreshCachedBounds();
                 return boundsSize;
             }
         }
@@ -41,13 +43,33 @@ namespace Game
         {
             get
             {
-                RefreshCachedBounds();
                 return boundsCenter;
             }
         }
 
+        public bool DrawBoundsEnabled
+        {
+            get
+            {
+                return drawBounds;
+            }
+        }
+
+        private void OnEnable()
+        {
+        }
+
+        private void OnDisable()
+        {
+        }
+
         private void OnDrawGizmos()
         {
+            if (!drawBounds)
+            {
+                return;
+            }
+
             if (!drawWhenNotSelected)
             {
                 return;
@@ -58,11 +80,21 @@ namespace Game
 
         private void OnDrawGizmosSelected()
         {
+            if (!drawBounds)
+            {
+                return;
+            }
+
             DrawBounds();
         }
 
         private void DrawBounds()
         {
+            if (!drawBounds)
+            {
+                return;
+            }
+
             if (!TryGetRendererBounds(out Bounds bounds))
             {
                 return;
@@ -110,7 +142,7 @@ namespace Game
             return hasBounds;
         }
 
-        private void RefreshCachedBounds()
+        public void RefreshCachedBounds()
         {
             if (!TryGetRendererBounds(out Bounds bounds))
             {

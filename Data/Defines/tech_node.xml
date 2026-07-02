@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="TechNodeConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="branch" type="int" comment="client" />
+    <var name="name" type="string" comment="client" />
+    <var name="iconLocation" type="string" comment="client" />
+    <var name="sortOrder" type="int" comment="client" />
+    <var name="preTechId" type="int" comment="client" />
+    <var name="unlockBuildingId" type="int" comment="client" />
+    <var name="unlockSystem" type="string" comment="client" />
+    <var name="costGroupId" type="int" comment="client" />
+    <var name="desc" type="string" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+    <var name="defaultUnlocked" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbTechNode" value="TechNodeConfig" input="tech_node.xlsx" mode="map" index="id" />
+</module>

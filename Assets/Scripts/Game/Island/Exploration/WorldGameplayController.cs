@@ -1,33 +1,72 @@
 using Game.Framework;
 using System.Collections.Generic;
-using UI;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 namespace Game
 {
+    public enum CameraFollowMode
+    {
+        FollowPlayer,
+        Free,
+    }
+
     public sealed class WorldGameplayController : MonoBehaviour
     {
+        private enum PendingInteractionType
+        {
+            None,
+            Resource,
+        }
+
         public static WorldGameplayController Instance { get; private set; }
 
         private const float CameraMinHeight = 7f;
         private const float CameraMaxHeight = 24f;
         private const float CameraMoveSpeed = 8f;
+        private const float CameraFollowSpeed = 8f;
         private const float CameraZoomSpeed = 0.025f;
-        private const float PlayerMoveSpeed = 4f;
+        private const float PlayerMoveSpeed = 2f;
+        private const float PlayerTurnSpeed = 540f;
+        private const float InteractionDistance = 1.35f;
+        private const float ResourceGatherActionSeconds = 0.95f;
+        private const float ResourcePickupActionSeconds = 0.45f;
+        private const float ResourceMineActionSeconds = 0.95f;
         private const float DragThresholdPixels = 12f;
+        private const int MoveTargetSearchRadius = 6;
+        private const string PlacementValidMaterialPath = "Assets/Arts/Map/Buildings/Materials/Placement_Valid.mat";
+        private const string PlacementInvalidMaterialPath = "Assets/Arts/Map/Buildings/Materials/Placement_Invalid.mat";
 
         private readonly WorldRewardResolver rewardResolver = new WorldRewardResolver(DataManager.Instance.WorldReward);
         private readonly WorldCostResolver costResolver = new WorldCostResolver(DataManager.Instance.WorldCost);
+        private readonly MapPathFinder playerPathFinder = new MapPathFinder();
+        private readonly List<Vector3Int> playerPath = new List<Vector3Int>();
+        private readonly List<Vector3Int> smoothedPlayerPath = new List<Vector3Int>();
+
+        [SerializeField]
+        private bool usePathSmoothing = true;
 
         private Camera mainCamera;
         private Transform player;
+        private WorldPlayerView playerView;
         private Vector3 playerDestination;
         private bool hasPlayerDestination;
+        private int playerPathIndex;
+        private PendingInteractionType pendingInteractionType;
+        private WorldResourceView pendingResourceView;
+        private Vector3 pendingInteractionPosition;
+        private float pendingInteractionDistance;
+        private bool activeResourceInteraction;
+        private bool waitingForResourceActionEnd;
+        private WorldResourceView activeResourceView;
+        private WorldResourceConfig activeResourceConfig;
+        private WorldResourceInteractionType activeResourceInteractionType;
+        private Vector3 activeResourcePosition;
+        private float activeResourceDistance;
+        private float resourceActionEndTime;
         private Vector3 cameraPivot;
         private float cameraHeight = CameraMinHeight;
+        private CameraFollowMode cameraFollowMode = CameraFollowMode.FollowPlayer;
 
         private bool leftPointerActive;
         private bool leftPressOverUi;
@@ -35,22 +74,28 @@ namespace Game
         private Vector3Int leftPressCoord;
         private bool leftPressHasTile;
 
-        private GameObject seedPanel;
         private Farm selectedFarm;
-        private GameObject buildPanel;
+        private WorldBuilding selectedWorldBuilding;
         private int selectedBuildingId;
-        private Text selectedBuildingText;
-        private float nextBuildPanelRefreshTime;
-        private GameObject worldHud;
-        private Text worldHudText;
-        private float nextHudRefreshTime;
         private GameObject buildingPreview;
         private int previewBuildingId;
         private Material previewValidMaterial;
         private Material previewInvalidMaterial;
         private bool missingPreviewPrefabLogged;
+        private bool missingPreviewValidMaterialLogged;
+        private bool missingPreviewInvalidMaterialLogged;
+        private bool farmAreaMode;
+        private GameObject farmAreaPreviewRoot;
+        private GameObject farmAreaPreviewPrefab;
+        private readonly List<GameObject> farmAreaPreviewViews = new List<GameObject>();
+        private bool missingFarmAreaPreviewPrefabLogged;
 
         public int SelectedBuildingId => selectedBuildingId;
+        public bool IsFarmAreaMode => farmAreaMode;
+        public Farm SelectedFarm => selectedFarm;
+        public WorldBuilding SelectedWorldBuilding => selectedWorldBuilding;
+        public CameraFollowMode CurrentCameraFollowMode => cameraFollowMode;
+        public bool UsePathSmoothing => usePathSmoothing;
 
         public static void Ensure()
         {
@@ -98,10 +143,9 @@ namespace Game
             GameInputManager.Instance.WorldAttackCommandPerformed -= OnWorldAttackCommandPerformed;
             GameInputManager.Instance.WorldCancelPerformed -= OnWorldCancelPerformed;
             HideSeedPanel();
-            HideBuildPanel();
-            HideWorldHud();
             ClearBuildingPreview();
-            WorldMainPanel.Shutdown();
+            ClearFarmAreaPreview();
+            StopActiveResourceInteraction();
         }
 
         private void Update()
@@ -113,10 +157,11 @@ namespace Game
 
             EnsureCamera();
             EnsurePlayer();
-            WorldMainPanel.Ensure();
             UpdateCamera();
             UpdatePlayer();
+            UpdateActiveResourceInteraction();
             UpdateBuildingPreview();
+            UpdateFarmAreaPreview();
             UpdateLeftPointer();
         }
 
@@ -127,19 +172,75 @@ namespace Game
 
         private void OnWorldAttackCommandPerformed(InputAction.CallbackContext context)
         {
-            MovePlayerToPointer();
+            StartPointerInteractionOrMove();
         }
 
         private void OnWorldCancelPerformed(InputAction.CallbackContext context)
         {
             if (IsMouseRightButton(context))
             {
-                MovePlayerToPointer();
+                if (TryCancelCurrentMode())
+                {
+                    return;
+                }
+
+                StartPointerInteractionOrMove();
                 return;
             }
 
+            if (pendingInteractionType != PendingInteractionType.None)
+            {
+                ClearPendingInteraction();
+                StopPlayerMovement();
+                playerView?.SetMoveSpeed(0f);
+                return;
+            }
+
+            if (activeResourceInteraction)
+            {
+                StopActiveResourceInteraction();
+                StopPlayerMovement();
+                playerView?.SetMoveSpeed(0f);
+                return;
+            }
+
+            TryCancelCurrentMode();
+        }
+
+        private bool TryCancelCurrentMode()
+        {
+            bool hasModeToCancel = selectedBuildingId > 0 ||
+                                   farmAreaMode ||
+                                   selectedFarm != null ||
+                                   selectedWorldBuilding != null;
+            if (!hasModeToCancel)
+            {
+                return false;
+            }
+
             HideSeedPanel();
-            ClearSelectedBuilding();
+            WorldMainPanel.Instance?.HideBuildingDetailPanel();
+            selectedBuildingId = 0;
+            ClearSelectedWorldObject();
+            SetFarmAreaMode(false);
+            ClearBuildingPreview();
+            WorldMainPanel.Instance?.RefreshNow();
+            return true;
+        }
+
+        private void StartPointerInteractionOrMove()
+        {
+            if (IsPointerOverUi())
+            {
+                return;
+            }
+
+            if (TryStartPointerInteraction())
+            {
+                return;
+            }
+
+            MovePlayerToPointer();
         }
 
         private void MovePlayerToPointer()
@@ -151,11 +252,685 @@ namespace Game
 
             if (!TryPickTileCoord(out Vector3Int coord))
             {
+                Debug.Log("Move player failed. No tile picked.");
                 return;
             }
 
-            playerDestination = MapManager.Instance.GetTileWorldPosition(coord) + Vector3.up * (MapManager.Instance.TileSize * 1.12f);
-            hasPlayerDestination = true;
+            if (!TryMovePlayerToTile(coord))
+            {
+                Debug.Log($"Move player failed. No reachable path. destination: {coord}");
+                return;
+            }
+
+            ClearPendingInteraction();
+            StopActiveResourceInteraction();
+            StorageManager.Instance.MarkDirty();
+        }
+
+        private bool TryMovePlayerToTile(Vector3Int destinationCoord)
+        {
+            if (!TryGetPlayerPathStartCoord(out Vector3Int startCoord))
+            {
+                return false;
+            }
+
+            if (!TryResolveReachablePath(startCoord, destinationCoord, out List<Vector3Int> path) ||
+                path == null ||
+                path.Count == 0)
+            {
+                return false;
+            }
+
+            SetPlayerPath(path);
+            return true;
+        }
+
+        private bool TryGetPlayerPathStartCoord(out Vector3Int coord)
+        {
+            coord = default;
+            if (!TryGetPlayerTileCoord(out Vector3Int currentCoord))
+            {
+                return false;
+            }
+
+            if (MapManager.Instance.IsWalkable(currentCoord))
+            {
+                coord = currentCoord;
+                return true;
+            }
+
+            return TryFindNearestWalkableCoord(currentCoord, MoveTargetSearchRadius, out coord);
+        }
+
+        private bool TryResolveReachablePath(Vector3Int startCoord, Vector3Int targetCoord, out List<Vector3Int> path)
+        {
+            path = null;
+            if (MapManager.Instance.IsWalkable(targetCoord) &&
+                playerPathFinder.TryFindPath(startCoord, targetCoord, out path) &&
+                path != null &&
+                path.Count > 0)
+            {
+                return true;
+            }
+
+            return TryFindNearestReachablePath(startCoord, targetCoord, MoveTargetSearchRadius, out path);
+        }
+
+        private bool TryFindNearestReachablePath(Vector3Int startCoord, Vector3Int origin, int maxRadius, out List<Vector3Int> path)
+        {
+            path = null;
+            maxRadius = Mathf.Max(0, maxRadius);
+
+            for (int radius = 0; radius <= maxRadius; radius++)
+            {
+                bool found = false;
+                List<Vector3Int> bestPath = null;
+                int bestDistance = int.MaxValue;
+
+                if (radius == 0)
+                {
+                    TryConsiderReachablePath(startCoord, origin, 0, 0, ref found, ref bestPath, ref bestDistance);
+                }
+                else
+                {
+                    for (int dx = -radius; dx <= radius; dx++)
+                    {
+                        TryConsiderReachablePath(startCoord, origin, dx, -radius, ref found, ref bestPath, ref bestDistance);
+                        TryConsiderReachablePath(startCoord, origin, dx, radius, ref found, ref bestPath, ref bestDistance);
+                    }
+
+                    for (int dz = -radius + 1; dz <= radius - 1; dz++)
+                    {
+                        TryConsiderReachablePath(startCoord, origin, -radius, dz, ref found, ref bestPath, ref bestDistance);
+                        TryConsiderReachablePath(startCoord, origin, radius, dz, ref found, ref bestPath, ref bestDistance);
+                    }
+                }
+
+                if (found)
+                {
+                    path = bestPath;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void TryConsiderReachablePath(Vector3Int startCoord, Vector3Int origin, int offsetX, int offsetZ, ref bool found, ref List<Vector3Int> bestPath, ref int bestDistance)
+        {
+            if (!MapManager.Instance.TryGetTopLogicTile(origin.x + offsetX, origin.z + offsetZ, out TileData tileData) ||
+                tileData == null ||
+                !MapManager.Instance.IsWalkable(tileData.Coord))
+            {
+                return;
+            }
+
+            int distance = Mathf.Abs(offsetX) + Mathf.Abs(offsetZ);
+            if (found && distance >= bestDistance)
+            {
+                return;
+            }
+
+            if (!playerPathFinder.TryFindPath(startCoord, tileData.Coord, out List<Vector3Int> candidatePath) ||
+                candidatePath == null ||
+                candidatePath.Count == 0)
+            {
+                return;
+            }
+
+            found = true;
+            bestPath = candidatePath;
+            bestDistance = distance;
+        }
+
+        private bool TryFindNearestWalkableCoord(Vector3Int origin, int maxRadius, out Vector3Int result)
+        {
+            result = default;
+            maxRadius = Mathf.Max(0, maxRadius);
+
+            if (MapManager.Instance.IsWalkable(origin))
+            {
+                result = origin;
+                return true;
+            }
+
+            for (int radius = 1; radius <= maxRadius; radius++)
+            {
+                bool found = false;
+                Vector3Int best = default;
+                int bestDistance = int.MaxValue;
+
+                for (int dx = -radius; dx <= radius; dx++)
+                {
+                    TryConsiderWalkableCoord(origin, dx, -radius, ref found, ref best, ref bestDistance);
+                    TryConsiderWalkableCoord(origin, dx, radius, ref found, ref best, ref bestDistance);
+                }
+
+                for (int dz = -radius + 1; dz <= radius - 1; dz++)
+                {
+                    TryConsiderWalkableCoord(origin, -radius, dz, ref found, ref best, ref bestDistance);
+                    TryConsiderWalkableCoord(origin, radius, dz, ref found, ref best, ref bestDistance);
+                }
+
+                if (found)
+                {
+                    result = best;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void TryConsiderWalkableCoord(Vector3Int origin, int offsetX, int offsetZ, ref bool found, ref Vector3Int best, ref int bestDistance)
+        {
+            if (!MapManager.Instance.TryGetTopLogicTile(origin.x + offsetX, origin.z + offsetZ, out TileData tileData) ||
+                tileData == null)
+            {
+                return;
+            }
+
+            Vector3Int coord = tileData.Coord;
+            if (!MapManager.Instance.IsWalkable(coord))
+            {
+                return;
+            }
+
+            int distance = Mathf.Abs(offsetX) + Mathf.Abs(offsetZ);
+            if (found && distance >= bestDistance)
+            {
+                return;
+            }
+
+            found = true;
+            best = coord;
+            bestDistance = distance;
+        }
+
+        private bool TryStartPointerInteraction()
+        {
+            if (TryPickResource(out WorldResourceView resourceView) && resourceView != null)
+            {
+                return StartResourceInteraction(resourceView);
+            }
+
+            return false;
+        }
+
+        private bool StartResourceInteraction(WorldResourceView resourceView)
+        {
+            if (resourceView == null || resourceView.MapObject == null)
+            {
+                return false;
+            }
+
+            MapObjectData mapObject = resourceView.MapObject;
+            if (!DataManager.Instance.WorldResource.TryGet(mapObject.ConfigId, out WorldResourceConfig config) || config == null || !config.Enable)
+            {
+                return false;
+            }
+
+            StartPendingInteraction(
+                PendingInteractionType.Resource,
+                resourceView,
+                GetResourceInteractionPosition(resourceView, mapObject, player != null ? player.position : resourceView.transform.position),
+                InteractionDistance);
+            return true;
+        }
+
+        private void StartPendingInteraction(
+            PendingInteractionType interactionType,
+            WorldResourceView resourceView,
+            Vector3 targetPosition,
+            float interactionDistance)
+        {
+            EnsurePlayer();
+            pendingInteractionType = interactionType;
+            pendingResourceView = resourceView;
+            pendingInteractionPosition = targetPosition;
+            pendingInteractionDistance = Mathf.Max(0.1f, interactionDistance);
+            StopActiveResourceInteraction();
+
+            if (IsPlayerInInteractionRange())
+            {
+                hasPlayerDestination = false;
+                playerView?.SetMoveSpeed(0f);
+                TryExecutePendingInteraction();
+                return;
+            }
+
+            if (!MovePlayerNearInteractionTarget())
+            {
+                Debug.Log($"World interaction move failed. No reachable path. target: {GetCurrentPendingInteractionPosition()}");
+            }
+        }
+
+        private bool MovePlayerNearInteractionTarget()
+        {
+            if (player == null)
+            {
+                return false;
+            }
+
+            Vector3 target = GetCurrentPendingInteractionPosition();
+            if (TryGetTopLogicCoordFromWorld(target, out Vector3Int targetCoord) &&
+                TryMovePlayerToTile(targetCoord))
+            {
+                return true;
+            }
+
+            if (pendingResourceView != null &&
+                pendingResourceView.MapObject != null &&
+                TryMovePlayerToTile(pendingResourceView.MapObject.Coord))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryGetTopLogicCoordFromWorld(Vector3 worldPosition, out Vector3Int coord)
+        {
+            coord = default;
+            float tileSize = Mathf.Max(0.01f, MapManager.Instance.TileSize);
+            int x = Mathf.FloorToInt(worldPosition.x / tileSize + 0.5f);
+            int z = Mathf.FloorToInt(worldPosition.z / tileSize + 0.5f);
+            if (!MapManager.Instance.TryGetTopLogicTile(x, z, out TileData tileData) || tileData == null)
+            {
+                return false;
+            }
+
+            coord = tileData.Coord;
+            return true;
+        }
+
+        private bool IsPlayerInInteractionRange()
+        {
+            if (player == null)
+            {
+                return false;
+            }
+
+            Vector3 playerPosition = player.position;
+            Vector3 target = GetCurrentPendingInteractionPosition();
+            Vector2 playerFlat = new Vector2(playerPosition.x, playerPosition.z);
+            Vector2 targetFlat = new Vector2(target.x, target.z);
+            return Vector2.Distance(playerFlat, targetFlat) <= pendingInteractionDistance;
+        }
+
+        private void TryExecutePendingInteraction()
+        {
+            if (pendingInteractionType == PendingInteractionType.None || !IsPlayerInInteractionRange())
+            {
+                return;
+            }
+
+            FaceInteractionTarget();
+
+            PendingInteractionType interactionType = pendingInteractionType;
+            WorldResourceView resourceView = pendingResourceView;
+            ClearPendingInteraction();
+
+            switch (interactionType)
+            {
+                case PendingInteractionType.Resource:
+                    BeginResourceInteraction(resourceView);
+                    break;
+            }
+        }
+
+        private bool BeginResourceInteraction(WorldResourceView resourceView)
+        {
+            StopActiveResourceInteraction(false);
+            if (resourceView == null || resourceView.MapObject == null)
+            {
+                return false;
+            }
+
+            MapObjectData mapObject = resourceView.MapObject;
+            if (!DataManager.Instance.WorldResource.TryGet(mapObject.ConfigId, out WorldResourceConfig config) || config == null || !config.Enable)
+            {
+                return false;
+            }
+
+            activeResourceInteraction = true;
+            waitingForResourceActionEnd = false;
+            activeResourceView = resourceView;
+            activeResourceConfig = config;
+            activeResourceInteractionType = (WorldResourceInteractionType)config.InteractionType;
+            activeResourcePosition = GetResourceInteractionPosition(resourceView, mapObject, player != null ? player.position : resourceView.transform.position);
+            activeResourceDistance = InteractionDistance;
+
+            return StartNextResourceAction();
+        }
+
+        private void UpdateActiveResourceInteraction()
+        {
+            if (!activeResourceInteraction)
+            {
+                return;
+            }
+
+            if (!IsActiveResourceTargetValid() || !IsPlayerInActiveResourceRange())
+            {
+                StopActiveResourceInteraction();
+                return;
+            }
+
+            FaceActiveResourceTarget();
+            if (!waitingForResourceActionEnd)
+            {
+                StartNextResourceAction();
+                return;
+            }
+
+            if (Time.time >= resourceActionEndTime)
+            {
+                CompleteResourceAction();
+            }
+        }
+
+        private bool StartNextResourceAction()
+        {
+            if (!activeResourceInteraction || !IsActiveResourceTargetValid() || !IsPlayerInActiveResourceRange())
+            {
+                StopActiveResourceInteraction();
+                return false;
+            }
+
+            FaceActiveResourceTarget();
+            switch (activeResourceInteractionType)
+            {
+                case WorldResourceInteractionType.Pickup:
+                    playerView?.PlayPickUp();
+                    resourceActionEndTime = Time.time + ResourcePickupActionSeconds;
+                    break;
+
+                case WorldResourceInteractionType.Gather:
+                    if (!CanContinueGather(activeResourceView))
+                    {
+                        StopActiveResourceInteraction();
+                        return false;
+                    }
+
+                    if (!TryPlayGatherAction(activeResourceConfig))
+                    {
+                        StopActiveResourceInteraction();
+                        return false;
+                    }
+
+                    resourceActionEndTime = Time.time + ResourceGatherActionSeconds;
+                    break;
+
+                case WorldResourceInteractionType.MineTarget:
+                    if (!ToolKitManager.Instance.TryUseToolForAction(ToolKitActionType.BuildMine, out _))
+                    {
+                        StopActiveResourceInteraction();
+                        return false;
+                    }
+
+                    playerView?.PlayToolAction(ToolKitActionType.BuildMine);
+                    resourceActionEndTime = Time.time + ResourceMineActionSeconds;
+                    break;
+
+                default:
+                    StopActiveResourceInteraction();
+                    return false;
+            }
+
+            waitingForResourceActionEnd = true;
+            return true;
+        }
+
+        private void CompleteResourceAction()
+        {
+            if (!activeResourceInteraction || !IsActiveResourceTargetValid() || !IsPlayerInActiveResourceRange())
+            {
+                StopActiveResourceInteraction();
+                return;
+            }
+
+            WorldResourceView resourceView = activeResourceView;
+            WorldResourceConfig config = activeResourceConfig;
+            WorldResourceInteractionType interactionType = activeResourceInteractionType;
+            bool success = CompleteResourceActionOnce(resourceView, config, interactionType);
+            if (!success)
+            {
+                StopActiveResourceInteraction();
+                return;
+            }
+
+            WorldMainPanel.Instance?.RefreshNow();
+            if (interactionType != WorldResourceInteractionType.Gather || !CanContinueGather(resourceView))
+            {
+                StopActiveResourceInteraction(interactionType != WorldResourceInteractionType.Gather);
+                return;
+            }
+
+            waitingForResourceActionEnd = false;
+        }
+
+        private bool CompleteResourceActionOnce(
+            WorldResourceView resourceView,
+            WorldResourceConfig config,
+            WorldResourceInteractionType interactionType)
+        {
+            if (resourceView == null || resourceView.MapObject == null || config == null)
+            {
+                return false;
+            }
+
+            MapObjectData mapObject = resourceView.MapObject;
+            switch (interactionType)
+            {
+                case WorldResourceInteractionType.Pickup:
+                    return PickupResource(resourceView, config);
+
+                case WorldResourceInteractionType.Gather:
+                    if (!CanUseToolForGather(config))
+                    {
+                        return false;
+                    }
+
+                    if (!WorldGatherManager.Instance.TryGather(mapObject, out _))
+                    {
+                        return false;
+                    }
+
+                    resourceView.RefreshNow();
+                    return true;
+
+                case WorldResourceInteractionType.MineTarget:
+                    if (!ToolKitManager.Instance.TryUseToolForAction(ToolKitActionType.BuildMine, out _))
+                    {
+                        return false;
+                    }
+
+                    return MineManager.Instance.TryBuildMine(resourceView, config);
+
+                default:
+                    return false;
+            }
+        }
+
+        private bool CanContinueGather(WorldResourceView resourceView)
+        {
+            if (resourceView == null || resourceView.MapObject == null)
+            {
+                return false;
+            }
+
+            if (!WorldGatherManager.Instance.TryGetStatus(resourceView.MapObject, out WorldGatherStatus status))
+            {
+                return false;
+            }
+
+            return status.CanGather;
+        }
+
+        private bool TryPlayGatherAction(WorldResourceConfig config)
+        {
+            ToolKitActionType actionType = GetGatherToolAction(config);
+            if (!ToolKitManager.Instance.TryUseToolForAction(actionType, out _))
+            {
+                return false;
+            }
+
+            playerView?.PlayToolAction(actionType);
+            return true;
+        }
+
+        private bool CanUseToolForGather(WorldResourceConfig config)
+        {
+            ToolKitActionType actionType = GetGatherToolAction(config);
+            return ToolKitManager.Instance.TryUseToolForAction(actionType, out _);
+        }
+
+        private static ToolKitActionType GetGatherToolAction(WorldResourceConfig config)
+        {
+            if (config == null)
+            {
+                return ToolKitActionType.None;
+            }
+
+            WorldResourceCategory category = (WorldResourceCategory)config.ResourceType;
+            return ActionToolResolver.GetGatherAction(category);
+        }
+
+        private bool IsActiveResourceTargetValid()
+        {
+            return activeResourceView != null &&
+                   activeResourceView.MapObject != null &&
+                   activeResourceConfig != null;
+        }
+
+        private bool IsPlayerInActiveResourceRange()
+        {
+            if (player == null)
+            {
+                return false;
+            }
+
+            Vector2 playerFlat = new Vector2(player.position.x, player.position.z);
+            Vector3 targetPosition = GetCurrentActiveResourcePosition();
+            Vector2 targetFlat = new Vector2(targetPosition.x, targetPosition.z);
+            return Vector2.Distance(playerFlat, targetFlat) <= activeResourceDistance;
+        }
+
+        private void FaceActiveResourceTarget()
+        {
+            RotatePlayerToward(GetCurrentActiveResourcePosition() - player.position);
+        }
+
+        public void InterruptCurrentInteraction()
+        {
+            ClearPendingInteraction();
+            StopActiveResourceInteraction();
+            StopPlayerMovement();
+            playerView?.SetMoveSpeed(0f);
+        }
+
+        private void StopActiveResourceInteraction(bool hideTool = true)
+        {
+            activeResourceInteraction = false;
+            waitingForResourceActionEnd = false;
+            bool wasPlayingResourceAction = activeResourceView != null;
+            activeResourceView = null;
+            activeResourceConfig = null;
+            activeResourceInteractionType = default;
+            activeResourcePosition = Vector3.zero;
+            activeResourceDistance = 0f;
+            resourceActionEndTime = 0f;
+            if (wasPlayingResourceAction)
+            {
+                playerView?.CancelActionPlayback(hasPlayerDestination);
+                return;
+            }
+
+            if (hideTool)
+            {
+                playerView?.HideTool();
+            }
+        }
+
+        private void FaceInteractionTarget()
+        {
+            RotatePlayerToward(GetCurrentPendingInteractionPosition() - player.position);
+        }
+
+        private void RotatePlayerToward(Vector3 direction)
+        {
+            if (player == null)
+            {
+                return;
+            }
+
+            Vector3 flatDirection = new Vector3(direction.x, 0f, direction.z);
+            if (flatDirection.sqrMagnitude <= 0.000001f)
+            {
+                return;
+            }
+
+            Quaternion targetRotation = Quaternion.LookRotation(flatDirection.normalized, Vector3.up);
+            player.rotation = Quaternion.RotateTowards(
+                player.rotation,
+                targetRotation,
+                PlayerTurnSpeed * Time.deltaTime);
+        }
+
+        private void ClearPendingInteraction()
+        {
+            pendingInteractionType = PendingInteractionType.None;
+            pendingResourceView = null;
+            pendingInteractionPosition = Vector3.zero;
+            pendingInteractionDistance = 0f;
+        }
+
+        private Vector3 GetCurrentPendingInteractionPosition()
+        {
+            if (pendingInteractionType == PendingInteractionType.Resource &&
+                pendingResourceView != null &&
+                pendingResourceView.MapObject != null &&
+                player != null)
+            {
+                return GetResourceInteractionPosition(pendingResourceView, pendingResourceView.MapObject, player.position);
+            }
+
+            return pendingInteractionPosition;
+        }
+
+        private Vector3 GetCurrentActiveResourcePosition()
+        {
+            if (activeResourceView != null &&
+                activeResourceView.MapObject != null &&
+                player != null)
+            {
+                return GetResourceInteractionPosition(activeResourceView, activeResourceView.MapObject, player.position);
+            }
+
+            return activeResourcePosition;
+        }
+
+        private static Vector3 GetResourceInteractionPosition(WorldResourceView resourceView, MapObjectData mapObject, Vector3 fromPosition)
+        {
+            if (resourceView != null && resourceView.TryGetClosestPoint(fromPosition, out Vector3 closestPoint))
+            {
+                return closestPoint;
+            }
+
+            return GetMapObjectWorldPosition(mapObject, resourceView != null ? resourceView.transform.position : fromPosition);
+        }
+
+        private static Vector3 GetMapObjectWorldPosition(MapObjectData mapObject, Vector3 fallback)
+        {
+            if (mapObject == null)
+            {
+                return fallback;
+            }
+
+            Vector3 tilePosition = MapManager.Instance.GetTileWorldPosition(mapObject.Coord);
+            Vector3 localPosition = mapObject.LocalPosition;
+            return tilePosition + new Vector3(localPosition.x, 0f, localPosition.z);
         }
 
         private static bool IsMouseRightButton(InputAction.CallbackContext context)
@@ -170,8 +945,7 @@ namespace Game
             leftPointerActive = true;
             leftPressScreenPosition = GameInputManager.Instance.PointerPosition;
             leftPressOverUi = IsPointerOverUi();
-            leftPressHasTile = TryPickTile(out TileView tileView);
-            leftPressCoord = leftPressHasTile && tileView != null ? tileView.Coord : default;
+            leftPressHasTile = TryPickTileCoord(out leftPressCoord);
         }
 
         private void UpdateLeftPointer()
@@ -205,38 +979,87 @@ namespace Game
         private void HandleLeftClick()
         {
             HideSeedPanel();
+            WorldMainPanel.Instance?.HideBuildingDetailPanel();
+            ClearSelectedWorldObject();
+            ClearPendingInteraction();
+            StopActiveResourceInteraction();
 
-            if (TryPickResource(out WorldResourceView resourceView) && HandleResourceClick(resourceView))
-            {
-                return;
-            }
-
-            if (!TryPickTile(out TileView tileView) || tileView == null)
+            if (farmAreaMode)
             {
                 return;
             }
 
             if (selectedBuildingId > 0)
             {
-                TryBuildSelectedBuilding(tileView.Coord);
+                if (TryPickTileCoord(out Vector3Int buildCoord))
+                {
+                    TryBuildSelectedBuilding(buildCoord);
+                }
+
                 return;
             }
 
-            if (FarmManager.Instance.TryGetFarmAt(tileView.Coord, out Farm farm))
+            if (!TryPickTileCoord(out Vector3Int coord))
             {
-                selectedFarm = farm;
-                ShowSeedPanel();
+                return;
             }
+
+            if (FarmManager.Instance.TryGetFarmAt(coord, out Farm farm))
+            {
+                SelectFarmForInteraction(farm);
+                return;
+            }
+
+            if (TrySelectBuildingAt(coord))
+            {
+                WorldMainPanel.Instance?.ShowBuildingDetailPanel(selectedWorldBuilding);
+                WorldMainPanel.Instance?.RefreshNow();
+            }
+        }
+
+        private void SelectFarmForInteraction(Farm farm)
+        {
+            if (farm == null)
+            {
+                return;
+            }
+
+            HideSeedPanel();
+            WorldMainPanel.Instance?.HideBuildingDetailPanel();
+            ClearSelectedWorldObject();
+            selectedFarm = farm;
+            ShowSeedPanel();
+            WorldMainPanel.Instance?.RefreshNow();
+        }
+
+        private void SelectBuildingForInteraction(WorldBuilding building)
+        {
+            if (building == null)
+            {
+                return;
+            }
+
+            HideSeedPanel();
+            WorldMainPanel.Instance?.HideBuildingDetailPanel();
+            ClearSelectedWorldObject();
+            selectedWorldBuilding = building;
+            WorldMainPanel.Instance?.ShowBuildingDetailPanel(selectedWorldBuilding);
+            WorldMainPanel.Instance?.RefreshNow();
         }
 
         private void CompleteFarmDrag()
         {
-            if (!leftPressHasTile || !TryPickTile(out TileView endTile) || endTile == null)
+            if (!farmAreaMode)
             {
                 return;
             }
 
-            if (!HasMainBase())
+            if (!leftPressHasTile || !TryPickTileCoord(out Vector3Int endCoord))
+            {
+                return;
+            }
+
+            if (!HasHouse())
             {
                 return;
             }
@@ -246,46 +1069,18 @@ namespace Game
                 return;
             }
 
-            selectedFarm = FarmManager.Instance.CreateFarmArea(leftPressCoord, endTile.Coord);
+            if (!ToolKitManager.Instance.TryUseToolForAction(ToolKitActionType.CultivateFarm, out _))
+            {
+                return;
+            }
+
+            playerView?.PlayToolAction(ToolKitActionType.CultivateFarm);
+            selectedFarm = FarmManager.Instance.CreateFarmArea(leftPressCoord, endCoord);
             if (selectedFarm != null)
             {
+                SetFarmAreaMode(false);
                 ShowSeedPanel();
             }
-        }
-
-        private bool HandleResourceClick(WorldResourceView resourceView)
-        {
-            if (resourceView == null || resourceView.MapObject == null)
-            {
-                return false;
-            }
-
-            MapObjectData mapObject = resourceView.MapObject;
-            if (!DataManager.Instance.WorldResource.TryGet(mapObject.ConfigId, out WorldResourceConfig config) || config == null || !config.Enable)
-            {
-                return false;
-            }
-
-            WorldResourceInteractionType interactionType = (WorldResourceInteractionType)config.InteractionType;
-            switch (interactionType)
-            {
-                case WorldResourceInteractionType.Pickup:
-                    return PickupResource(resourceView, config);
-
-                case WorldResourceInteractionType.Gather:
-                    if (WorldGatherManager.Instance.TryGather(mapObject, out _))
-                    {
-                        resourceView.RefreshNow();
-                        return true;
-                    }
-
-                    return false;
-
-                case WorldResourceInteractionType.MineTarget:
-                    return MineManager.Instance.TryBuildMine(resourceView, config);
-            }
-
-            return false;
         }
 
         private bool TryBuildSelectedBuilding(Vector3Int coord)
@@ -298,7 +1093,6 @@ namespace Game
             if (WorldBuildingManager.Instance.TryBuild(selectedBuildingId, coord))
             {
                 ClearSelectedBuilding();
-                RefreshBuildPanel(true);
                 WorldMainPanel.Instance?.RefreshNow();
                 return true;
             }
@@ -326,14 +1120,21 @@ namespace Game
                 return;
             }
 
-            bool canPlace = CanPlaceSelectedBuilding(coord);
-            buildingPreview.transform.position = MapManager.Instance.GetTileWorldPosition(coord) + Vector3.up * MapManager.Instance.TileSize;
-            buildingPreview.transform.rotation = Quaternion.identity;
+            bool canPlace = CanPreviewPlaceSelectedBuilding(coord);
+            if (!DataManager.Instance.WorldBuilding.TryGet(selectedBuildingId, out WorldBuildingConfig config) || config == null)
+            {
+                SetBuildingPreviewVisible(false);
+                return;
+            }
+
+            int sizeX = WorldBuildingFootprint.GetSizeX(config);
+            int sizeZ = WorldBuildingFootprint.GetSizeZ(config);
+            buildingPreview.transform.position = WorldBuildingFootprint.GetCenterWorldPosition(coord, sizeX, sizeZ, MapManager.Instance.TileSize) + Vector3.up * MapManager.Instance.TileSize;
             SetBuildingPreviewVisible(true);
             ApplyPreviewMaterial(canPlace);
         }
 
-        private bool CanPlaceSelectedBuilding(Vector3Int coord)
+        private bool CanPreviewPlaceSelectedBuilding(Vector3Int coord)
         {
             if (selectedBuildingId <= 0)
             {
@@ -350,17 +1151,10 @@ namespace Game
                 return false;
             }
 
-            if (config.SizeX != 1 || config.SizeZ != 1)
-            {
-                return false;
-            }
-
-            if (!HasBuildCost(selectedBuildingId, out _))
-            {
-                return false;
-            }
-
-            return MapManager.Instance.CanPlaceMapObject(coord);
+            return MapManager.Instance.CanPlaceMapObject(
+                coord,
+                WorldBuildingFootprint.GetSizeX(config),
+                WorldBuildingFootprint.GetSizeZ(config));
         }
 
         private void EnsureBuildingPreview()
@@ -378,14 +1172,20 @@ namespace Game
             missingPreviewPrefabLogged = false;
 
             if (!DataManager.Instance.WorldBuilding.TryGet(selectedBuildingId, out WorldBuildingConfig config) ||
-                config == null ||
-                string.IsNullOrWhiteSpace(config.PrefabLocation))
+                config == null)
             {
                 LogMissingPreviewPrefab(config);
                 return;
             }
 
-            GameObject prefab = ResourceManager.Instance.LoadGameObject(config.PrefabLocation);
+            string prefabLocation = WorldBuildingManager.GetPrefabLocation(config);
+            if (string.IsNullOrWhiteSpace(prefabLocation))
+            {
+                LogMissingPreviewPrefab(config);
+                return;
+            }
+
+            GameObject prefab = ResourceManager.Instance.LoadGameObject(prefabLocation);
             if (prefab == null)
             {
                 LogMissingPreviewPrefab(config);
@@ -405,7 +1205,7 @@ namespace Game
                 return;
             }
 
-            string location = config != null ? config.PrefabLocation : string.Empty;
+            string location = config != null ? WorldBuildingManager.GetPrefabLocation(config) : string.Empty;
             Debug.LogError($"Missing world building preview prefab. buildingId: {selectedBuildingId}, location: {location}");
             missingPreviewPrefabLogged = true;
         }
@@ -426,7 +1226,23 @@ namespace Game
             }
 
             Material material = canPlace ? GetPreviewValidMaterial() : GetPreviewInvalidMaterial();
-            Renderer[] renderers = buildingPreview.GetComponentsInChildren<Renderer>(true);
+            if (material == null)
+            {
+                SetBuildingPreviewVisible(false);
+                return;
+            }
+
+            ApplyMaterial(buildingPreview, material);
+        }
+
+        private static void ApplyMaterial(GameObject root, Material material)
+        {
+            if (root == null || material == null)
+            {
+                return;
+            }
+
+            Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
             for (int i = 0; i < renderers.Length; i++)
             {
                 Renderer renderer = renderers[i];
@@ -441,7 +1257,7 @@ namespace Game
         {
             if (previewValidMaterial == null)
             {
-                previewValidMaterial = CreatePreviewMaterial(new Color(0.22f, 0.72f, 0.35f, 0.62f));
+                previewValidMaterial = LoadPreviewMaterial(PlacementValidMaterialPath, "valid", ref missingPreviewValidMaterialLogged);
             }
 
             return previewValidMaterial;
@@ -451,51 +1267,20 @@ namespace Game
         {
             if (previewInvalidMaterial == null)
             {
-                previewInvalidMaterial = CreatePreviewMaterial(new Color(0.9f, 0.18f, 0.18f, 0.62f));
+                previewInvalidMaterial = LoadPreviewMaterial(PlacementInvalidMaterialPath, "invalid", ref missingPreviewInvalidMaterialLogged);
             }
 
             return previewInvalidMaterial;
         }
 
-        private static Material CreatePreviewMaterial(Color color)
+        private static Material LoadPreviewMaterial(string path, string label, ref bool missingLogged)
         {
-            Material material = new Material(FindRuntimeColorShader());
-            if (material.HasProperty("_BaseColor"))
+            Material material = ResourceManager.Instance.LoadAsset<Material>(path);
+            if (material == null && !missingLogged)
             {
-                material.SetColor("_BaseColor", color);
+                Debug.LogError($"Missing world placement {label} material: {path}");
+                missingLogged = true;
             }
-            else
-            {
-                material.color = color;
-            }
-
-            if (material.HasProperty("_Surface"))
-            {
-                material.SetFloat("_Surface", 1f);
-            }
-
-            if (material.HasProperty("_Blend"))
-            {
-                material.SetFloat("_Blend", 0f);
-            }
-
-            if (material.HasProperty("_SrcBlend"))
-            {
-                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            }
-
-            if (material.HasProperty("_DstBlend"))
-            {
-                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            }
-
-            if (material.HasProperty("_ZWrite"))
-            {
-                material.SetFloat("_ZWrite", 0f);
-            }
-
-            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            material.renderQueue = 3000;
             return material;
         }
 
@@ -511,6 +1296,133 @@ namespace Game
             missingPreviewPrefabLogged = false;
         }
 
+        private void UpdateFarmAreaPreview()
+        {
+            if (!farmAreaMode || selectedBuildingId > 0 || IsPointerOverUi() || !HasHouse())
+            {
+                HideFarmAreaPreview();
+                return;
+            }
+
+            if (!TryPickTileCoord(out Vector3Int currentCoord))
+            {
+                HideFarmAreaPreview();
+                return;
+            }
+
+            Vector3Int startCoord = currentCoord;
+            if (leftPointerActive && GameInputManager.Instance.WorldSelectHeld && !leftPressOverUi && leftPressHasTile)
+            {
+                startCoord = leftPressCoord;
+            }
+
+            ShowFarmAreaPreview(startCoord, currentCoord);
+        }
+
+        private void ShowFarmAreaPreview(Vector3Int a, Vector3Int b)
+        {
+            EnsureFarmAreaPreviewRoot();
+            EnsureFarmAreaPreviewPrefab();
+            Material validMaterial = GetPreviewValidMaterial();
+            Material invalidMaterial = GetPreviewInvalidMaterial();
+            if (farmAreaPreviewRoot == null || farmAreaPreviewPrefab == null || validMaterial == null || invalidMaterial == null)
+            {
+                HideFarmAreaPreview();
+                return;
+            }
+
+            int minX = Mathf.Min(a.x, b.x);
+            int maxX = Mathf.Max(a.x, b.x);
+            int minZ = Mathf.Min(a.z, b.z);
+            int maxZ = Mathf.Max(a.z, b.z);
+            int y = a.y;
+            int neededCount = Mathf.Max(1, (maxX - minX + 1) * (maxZ - minZ + 1));
+            EnsureFarmAreaPreviewViewCount(neededCount);
+
+            int index = 0;
+            for (int x = minX; x <= maxX; x++)
+            {
+                for (int z = minZ; z <= maxZ; z++)
+                {
+                    Vector3Int coord = new Vector3Int(x, y, z);
+                    GameObject view = farmAreaPreviewViews[index++];
+                    view.SetActive(true);
+                    view.transform.position = MapManager.Instance.GetTileWorldPosition(coord) + Vector3.up * (MapManager.Instance.TileSize * 1.03f);
+                    view.transform.rotation = Quaternion.identity;
+                    view.transform.localScale = Vector3.one * MapManager.Instance.TileSize;
+                    ApplyMaterial(view, MapManager.Instance.CanPlaceMapObject(coord) ? validMaterial : invalidMaterial);
+                }
+            }
+
+            for (int i = index; i < farmAreaPreviewViews.Count; i++)
+            {
+                if (farmAreaPreviewViews[i] != null)
+                {
+                    farmAreaPreviewViews[i].SetActive(false);
+                }
+            }
+        }
+
+        private void EnsureFarmAreaPreviewRoot()
+        {
+            if (farmAreaPreviewRoot != null)
+            {
+                return;
+            }
+
+            farmAreaPreviewRoot = new GameObject("WorldFarmAreaPreview");
+        }
+
+        private void EnsureFarmAreaPreviewPrefab()
+        {
+            if (farmAreaPreviewPrefab != null || missingFarmAreaPreviewPrefabLogged)
+            {
+                return;
+            }
+
+            farmAreaPreviewPrefab = ResourceManager.Instance.LoadGameObject(FarmManager.FarmPlotPrefabPath);
+            if (farmAreaPreviewPrefab == null)
+            {
+                Debug.LogError($"Missing farm area preview prefab: {FarmManager.FarmPlotPrefabPath}");
+                missingFarmAreaPreviewPrefabLogged = true;
+            }
+        }
+
+        private void EnsureFarmAreaPreviewViewCount(int count)
+        {
+            while (farmAreaPreviewViews.Count < count)
+            {
+                GameObject view = GameObject.Instantiate(farmAreaPreviewPrefab, farmAreaPreviewRoot.transform);
+                view.name = $"FarmAreaPreview_{farmAreaPreviewViews.Count}";
+                RemoveColliders(view);
+                farmAreaPreviewViews.Add(view);
+            }
+        }
+
+        private void HideFarmAreaPreview()
+        {
+            for (int i = 0; i < farmAreaPreviewViews.Count; i++)
+            {
+                if (farmAreaPreviewViews[i] != null)
+                {
+                    farmAreaPreviewViews[i].SetActive(false);
+                }
+            }
+        }
+
+        private void ClearFarmAreaPreview()
+        {
+            if (farmAreaPreviewRoot != null)
+            {
+                Destroy(farmAreaPreviewRoot);
+            }
+
+            farmAreaPreviewRoot = null;
+            farmAreaPreviewPrefab = null;
+            farmAreaPreviewViews.Clear();
+            missingFarmAreaPreviewPrefabLogged = false;
+        }
+
         private bool PickupResource(WorldResourceView resourceView, WorldResourceConfig config)
         {
             IReadOnlyList<WorldItem> rewards = rewardResolver.GetRewardGroup(config.PickupRewardGroupId);
@@ -519,7 +1431,11 @@ namespace Game
                 return false;
             }
 
-            WorldItemManager.Instance.AddItems(rewards);
+            if (!BagManager.Instance.TryAddItems(rewards))
+            {
+                return false;
+            }
+
             RemoveResourceView(resourceView);
             StorageManager.Instance.MarkDirty();
             return true;
@@ -537,51 +1453,23 @@ namespace Game
             Destroy(resourceView.gameObject);
         }
 
-        private bool HasMainBase()
+        private bool HasHouse()
         {
-            return WorldBuildingManager.Instance.HasActiveBuildingType(WorldBuildingType.MainBase);
+            return WorldBuildingManager.Instance.HasActiveBuildingType(WorldBuildingType.House);
         }
 
         private bool TryPickTile(out TileView tileView)
         {
             tileView = null;
             EnsureCamera();
-            return MapManager.Instance.TryPickTile(GameInputManager.Instance.PointerPosition, mainCamera, out tileView);
+            return WorldPointerPicker.TryPickTile(GameInputManager.Instance.PointerPosition, mainCamera, out tileView, false);
         }
 
         private bool TryPickTileCoord(out Vector3Int coord)
         {
             coord = default;
-            if (TryPickTile(out TileView tileView) && tileView != null)
-            {
-                coord = tileView.Coord;
-                return true;
-            }
-
             EnsureCamera();
-            if (mainCamera == null)
-            {
-                return false;
-            }
-
-            Ray ray = mainCamera.ScreenPointToRay(GameInputManager.Instance.PointerPosition);
-            Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-            if (!groundPlane.Raycast(ray, out float enter))
-            {
-                return false;
-            }
-
-            Vector3 point = ray.GetPoint(enter);
-            float tileSize = Mathf.Max(0.01f, MapManager.Instance.TileSize);
-            int x = Mathf.RoundToInt(point.x / tileSize);
-            int z = Mathf.RoundToInt(point.z / tileSize);
-            if (MapManager.Instance.TryGetTopLogicTile(x, z, out TileData tileData) && tileData != null)
-            {
-                coord = tileData.Coord;
-                return true;
-            }
-
-            return false;
+            return WorldPointerPicker.TryPickTileCoord(GameInputManager.Instance.PointerPosition, mainCamera, out coord, false);
         }
 
         private bool TryPickResource(out WorldResourceView resourceView)
@@ -593,14 +1481,7 @@ namespace Game
                 return false;
             }
 
-            Ray ray = mainCamera.ScreenPointToRay(GameInputManager.Instance.PointerPosition);
-            if (!Physics.Raycast(ray, out RaycastHit hit, 1000f))
-            {
-                return false;
-            }
-
-            resourceView = hit.collider.GetComponentInParent<WorldResourceView>();
-            return resourceView != null;
+            return WorldPointerPicker.TryPickComponent(GameInputManager.Instance.PointerPosition, mainCamera, out resourceView, false);
         }
 
         private void EnsureCamera()
@@ -631,6 +1512,22 @@ namespace Game
                 return;
             }
 
+            UpdateCameraHeight();
+            if (cameraFollowMode == CameraFollowMode.FollowPlayer && TryGetCameraTargetPosition(out Vector3 targetPosition))
+            {
+                Vector3 targetPivot = new Vector3(targetPosition.x, 0f, targetPosition.z);
+                cameraPivot = Vector3.Lerp(cameraPivot, targetPivot, Mathf.Clamp01(CameraFollowSpeed * Time.deltaTime));
+            }
+            else
+            {
+                UpdateFreeCameraMove();
+            }
+
+            ApplyCameraTransform();
+        }
+
+        private void UpdateFreeCameraMove()
+        {
             Vector2 move = GameInputManager.Instance.WorldMove;
             if (move.sqrMagnitude > 1f)
             {
@@ -640,14 +1537,55 @@ namespace Game
             Vector3 right = Vector3.ProjectOnPlane(mainCamera.transform.right, Vector3.up).normalized;
             Vector3 forward = Vector3.ProjectOnPlane(mainCamera.transform.forward, Vector3.up).normalized;
             cameraPivot += (right * move.x + forward * move.y) * (CameraMoveSpeed * Time.deltaTime);
+        }
 
+        private void UpdateCameraHeight()
+        {
             float scroll = GameInputManager.Instance.Scroll.y;
-            if (Mathf.Abs(scroll) > 0.01f)
+            if (Mathf.Abs(scroll) > 0.01f && !IsPointerOverUi())
             {
                 cameraHeight = Mathf.Clamp(cameraHeight - scroll * CameraZoomSpeed, CameraMinHeight, CameraMaxHeight);
             }
+        }
 
-            ApplyCameraTransform();
+        private bool TryGetCameraTargetPosition(out Vector3 position)
+        {
+            if (playerView != null)
+            {
+                position = playerView.CameraTargetPosition;
+                return true;
+            }
+
+            if (player != null)
+            {
+                position = player.position;
+                return true;
+            }
+
+            position = default;
+            return false;
+        }
+
+        public void SetCameraFollowMode(CameraFollowMode mode)
+        {
+            cameraFollowMode = mode;
+        }
+
+        public void SetPathSmoothingEnabled(bool enabled)
+        {
+            usePathSmoothing = enabled;
+        }
+
+        public void TogglePathSmoothing()
+        {
+            usePathSmoothing = !usePathSmoothing;
+        }
+
+        public void ToggleCameraFollowMode()
+        {
+            cameraFollowMode = cameraFollowMode == CameraFollowMode.FollowPlayer
+                ? CameraFollowMode.Free
+                : CameraFollowMode.FollowPlayer;
         }
 
         private void ApplyCameraTransform()
@@ -690,20 +1628,64 @@ namespace Game
             GameObject playerObject = GameObject.Find("WorldPlayer");
             if (playerObject == null)
             {
-                playerObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                GameObject prefab = ResourceManager.Instance.LoadGameObject(WorldPlayerView.PrefabPath);
+                if (prefab == null)
+                {
+                    Debug.LogError($"Missing world player prefab: {WorldPlayerView.PrefabPath}");
+                    return;
+                }
+
+                playerObject = GameObject.Instantiate(prefab);
                 playerObject.name = "WorldPlayer";
-                playerObject.transform.localScale = new Vector3(0.55f, 0.9f, 0.55f);
-                RemoveCollider(playerObject);
-                SetMaterial(playerObject, new Color(0.18f, 0.35f, 0.85f));
-            }
-            else
-            {
-                RemoveCollider(playerObject);
             }
 
             player = playerObject.transform;
-            player.position = FindPlayerStartPosition();
+            playerView = playerObject.GetComponent<WorldPlayerView>();
+            if (playerView == null)
+            {
+                playerView = playerObject.AddComponent<WorldPlayerView>();
+            }
+
+            ApplyPlayerStartTransform();
+            ClearPlayerPath();
             playerDestination = player.position;
+            playerView.SetMoveSpeed(0f);
+            if (cameraFollowMode == CameraFollowMode.FollowPlayer && TryGetCameraTargetPosition(out Vector3 cameraTargetPosition))
+            {
+                cameraPivot = new Vector3(cameraTargetPosition.x, 0f, cameraTargetPosition.z);
+                ApplyCameraTransform();
+            }
+        }
+
+        public SavePlayerData CreatePlayerSaveData()
+        {
+            if (player == null || MapManager.Instance.CurrentMap == null)
+            {
+                return null;
+            }
+
+            Vector3 position = player.position;
+            return new SavePlayerData
+            {
+                MapId = MapManager.Instance.CurrentMap.Id,
+                X = position.x,
+                Y = position.y,
+                Z = position.z,
+                RotationY = player.eulerAngles.y,
+            };
+        }
+
+        private void ApplyPlayerStartTransform()
+        {
+            int mapId = MapManager.Instance.CurrentMap != null ? MapManager.Instance.CurrentMap.Id : 0;
+            if (StorageManager.Instance.TryGetPlayerSaveData(mapId, out SavePlayerData savedPlayer) && savedPlayer != null)
+            {
+                player.position = new Vector3(savedPlayer.X, savedPlayer.Y, savedPlayer.Z);
+                player.rotation = Quaternion.Euler(0f, savedPlayer.RotationY, 0f);
+                return;
+            }
+
+            player.position = FindPlayerStartPosition();
         }
 
         private Vector3 FindPlayerStartPosition()
@@ -720,336 +1702,188 @@ namespace Game
 
         private void UpdatePlayer()
         {
-            if (player == null || !hasPlayerDestination)
+            if (player == null)
             {
+                return;
+            }
+
+            if (!hasPlayerDestination)
+            {
+                playerView?.SetMoveSpeed(0f);
                 return;
             }
 
             Vector3 current = player.position;
             Vector3 next = Vector3.MoveTowards(current, playerDestination, PlayerMoveSpeed * Time.deltaTime);
+            Vector3 direction = playerDestination - current;
+            RotatePlayerToward(direction);
+
             player.position = next;
+            playerView?.SetMoveSpeed(PlayerMoveSpeed);
             if ((next - playerDestination).sqrMagnitude <= 0.0025f)
             {
+                player.position = playerDestination;
+                if (TryAdvancePlayerPath())
+                {
+                    return;
+                }
+
                 hasPlayerDestination = false;
+                playerView?.SetMoveSpeed(0f);
+                StorageManager.Instance.MarkDirty();
+                TryExecutePendingInteraction();
             }
+        }
+
+        private bool TryGetPlayerTileCoord(out Vector3Int coord)
+        {
+            coord = default;
+            if (player == null)
+            {
+                return false;
+            }
+
+            float tileSize = Mathf.Max(0.01f, MapManager.Instance.TileSize);
+            int x = Mathf.FloorToInt(player.position.x / tileSize + 0.5f);
+            int z = Mathf.FloorToInt(player.position.z / tileSize + 0.5f);
+            if (!MapManager.Instance.TryGetTopLogicTile(x, z, out TileData tileData) || tileData == null)
+            {
+                return false;
+            }
+
+            coord = tileData.Coord;
+            return true;
+        }
+
+        private void SetPlayerPath(IReadOnlyList<Vector3Int> path)
+        {
+            playerPath.Clear();
+            if (path == null || path.Count == 0)
+            {
+                StopPlayerMovement();
+                return;
+            }
+
+            IReadOnlyList<Vector3Int> movementPath = path;
+            if (usePathSmoothing && path.Count > 2)
+            {
+                MapPathSmoother.SmoothBySupercoverLineOfSight(path, smoothedPlayerPath);
+                if (smoothedPlayerPath.Count > 0)
+                {
+                    movementPath = smoothedPlayerPath;
+                }
+            }
+
+            for (int i = 0; i < movementPath.Count; i++)
+            {
+                playerPath.Add(movementPath[i]);
+            }
+
+            playerPathIndex = playerPath.Count > 1 ? 1 : 0;
+            SetPlayerDestination(playerPath[playerPathIndex]);
+        }
+
+        private bool TryAdvancePlayerPath()
+        {
+            if (playerPath.Count == 0 || playerPathIndex >= playerPath.Count - 1)
+            {
+                ClearPlayerPath();
+                return false;
+            }
+
+            playerPathIndex++;
+            SetPlayerDestination(playerPath[playerPathIndex]);
+            return true;
+        }
+
+        private void SetPlayerDestination(Vector3Int coord)
+        {
+            playerDestination = MapManager.Instance.GetTileWorldPosition(coord) + Vector3.up * (MapManager.Instance.TileSize * 1.12f);
+            hasPlayerDestination = true;
+        }
+
+        private void StopPlayerMovement()
+        {
+            hasPlayerDestination = false;
+            ClearPlayerPath();
+        }
+
+        private void ClearPlayerPath()
+        {
+            playerPath.Clear();
+            smoothedPlayerPath.Clear();
+            playerPathIndex = 0;
         }
 
         private bool IsPointerOverUi()
         {
-            return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+            return WorldPointerPicker.IsPointerOverUi();
         }
 
         private void ShowSeedPanel()
         {
-            HideSeedPanel();
-
-            Transform parent = UIManager.Instance.transform.Find("UICanvasRoot/Layer_Popup");
-            if (parent == null)
-            {
-                parent = UIManager.Instance.transform;
-            }
-
-            seedPanel = new GameObject("WorldSeedPanel");
-            seedPanel.transform.SetParent(parent, false);
-
-            RectTransform rect = seedPanel.AddComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.5f, 0f);
-            rect.anchorMax = new Vector2(0.5f, 0f);
-            rect.pivot = new Vector2(0.5f, 0f);
-            rect.anchoredPosition = new Vector2(0f, 28f);
-            rect.sizeDelta = new Vector2(520f, 96f);
-
-            Image background = seedPanel.AddComponent<Image>();
-            background.color = new Color(0.08f, 0.09f, 0.10f, 0.88f);
-
-            HorizontalLayoutGroup layout = seedPanel.AddComponent<HorizontalLayoutGroup>();
-            layout.padding = new RectOffset(12, 12, 12, 12);
-            layout.spacing = 10f;
-            layout.childAlignment = TextAnchor.MiddleCenter;
-            layout.childControlWidth = true;
-            layout.childControlHeight = true;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = true;
-
-            foreach (KeyValuePair<int, WorldCropDefinition> pair in FarmManager.Instance.Crops)
-            {
-                CreateSeedButton(seedPanel.transform, pair.Value);
-            }
-        }
-
-        private void CreateSeedButton(Transform parent, WorldCropDefinition crop)
-        {
-            GameObject buttonObject = new GameObject($"SeedButton_{crop.Name}");
-            buttonObject.transform.SetParent(parent, false);
-
-            Image image = buttonObject.AddComponent<Image>();
-            image.color = crop.CropColor;
-
-            Button button = buttonObject.AddComponent<Button>();
-            button.onClick.AddListener(() =>
-            {
-                PlantSelectedFarmArea(crop.Id);
-                HideSeedPanel();
-            });
-
-            GameObject textObject = new GameObject("Text");
-            textObject.transform.SetParent(buttonObject.transform, false);
-            RectTransform textRect = textObject.AddComponent<RectTransform>();
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = Vector2.zero;
-            textRect.offsetMax = Vector2.zero;
-
-            Text text = textObject.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.text = crop.Name;
-            text.fontSize = 18;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.color = Color.white;
+            WorldMainPanel.Instance?.ShowFarmPanel(selectedFarm);
         }
 
         private void HideSeedPanel()
         {
-            if (seedPanel == null)
-            {
-                return;
-            }
-
-            Destroy(seedPanel);
-            seedPanel = null;
+            WorldMainPanel.Instance?.HideFarmPanel();
         }
 
-        private void PlantSelectedFarmArea(int cropId)
+        public bool TryPlantSelectedFarm(int cropId)
         {
-            FarmManager.Instance.TryPlant(selectedFarm, cropId);
+            bool success = FarmManager.Instance.TryPlant(selectedFarm, cropId);
+            if (success)
+            {
+                WorldMainPanel.Instance?.RefreshNow();
+            }
+
+            return success;
         }
 
-        private void EnsureWorldBuildPanel()
+        private bool TrySelectBuildingAt(Vector3Int coord)
         {
-            if (!HasMainBase())
+            if (!TryGetBuildingAt(coord, out WorldBuilding building))
             {
-                HideBuildPanel();
-                selectedBuildingId = 0;
-                return;
+                return false;
             }
 
-            if (buildPanel != null)
-            {
-                return;
-            }
-
-            Transform parent = UIManager.Instance.transform.Find("UICanvasRoot/Layer_Panel");
-            if (parent == null)
-            {
-                parent = UIManager.Instance.transform;
-            }
-
-            buildPanel = new GameObject("WorldBuildPanel");
-            buildPanel.transform.SetParent(parent, false);
-
-            RectTransform rect = buildPanel.AddComponent<RectTransform>();
-            rect.anchorMin = new Vector2(1f, 0f);
-            rect.anchorMax = new Vector2(1f, 0f);
-            rect.pivot = new Vector2(1f, 0f);
-            rect.anchoredPosition = new Vector2(-16f, 16f);
-            rect.sizeDelta = new Vector2(360f, 324f);
-
-            Image background = buildPanel.AddComponent<Image>();
-            background.color = new Color(0.06f, 0.07f, 0.08f, 0.86f);
-
-            VerticalLayoutGroup layout = buildPanel.AddComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(12, 12, 10, 12);
-            layout.spacing = 8f;
-            layout.childControlWidth = true;
-            layout.childControlHeight = false;
-            layout.childForceExpandWidth = true;
-            layout.childForceExpandHeight = false;
-
-            CreateBuildPanelStaticRows();
-            RefreshBuildPanel(true);
+            selectedWorldBuilding = building;
+            return true;
         }
 
-        private void CreateBuildPanelStaticRows()
+        private bool TryGetBuildingAt(Vector3Int coord, out WorldBuilding building)
         {
-            CreateBuildPanelText("Title", "Buildings", 20, TextAnchor.MiddleLeft, 28f);
-            selectedBuildingText = CreateBuildPanelText("Selected", string.Empty, 16, TextAnchor.MiddleLeft, 24f);
-
-            GameObject cancelButton = CreateBuildButton("CancelBuild", "Cancel Build", true, () =>
+            building = null;
+            if (!MapManager.Instance.TryGetMapObjectsAt(coord, out IReadOnlyList<MapObjectData> objects) || objects == null)
             {
-                ClearSelectedBuilding();
-            });
-            LayoutElement cancelLayout = cancelButton.GetComponent<LayoutElement>();
-            if (cancelLayout != null)
-            {
-                cancelLayout.preferredHeight = 34f;
-            }
-        }
-
-        private Text CreateBuildPanelText(string name, string content, int fontSize, TextAnchor alignment, float height)
-        {
-            GameObject textObject = new GameObject(name);
-            textObject.transform.SetParent(buildPanel.transform, false);
-
-            Text text = textObject.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.text = content;
-            text.fontSize = fontSize;
-            text.alignment = alignment;
-            text.color = Color.white;
-            text.horizontalOverflow = HorizontalWrapMode.Wrap;
-            text.verticalOverflow = VerticalWrapMode.Overflow;
-
-            LayoutElement layout = textObject.AddComponent<LayoutElement>();
-            layout.preferredHeight = height;
-
-            return text;
-        }
-
-        private void UpdateWorldBuildPanel()
-        {
-            if (buildPanel == null || Time.unscaledTime < nextBuildPanelRefreshTime)
-            {
-                return;
+                return false;
             }
 
-            RefreshBuildPanel(false);
-        }
-
-        private void RefreshBuildPanel(bool force)
-        {
-            if (buildPanel == null || (!force && Time.unscaledTime < nextBuildPanelRefreshTime))
+            for (int i = 0; i < objects.Count; i++)
             {
-                return;
-            }
-
-            nextBuildPanelRefreshTime = Time.unscaledTime + 0.5f;
-
-            for (int i = buildPanel.transform.childCount - 1; i >= 0; i--)
-            {
-                Transform child = buildPanel.transform.GetChild(i);
-                if (child == null || child.name == "Title" || child.name == "Selected" || child.name == "CancelBuild")
+                MapObjectData mapObject = objects[i];
+                if (mapObject == null || mapObject.ObjectType != MapObjectType.Building)
                 {
                     continue;
                 }
 
-                Destroy(child.gameObject);
-            }
-
-            if (selectedBuildingText != null)
-            {
-                selectedBuildingText.text = selectedBuildingId > 0 ? $"Selected: {GetBuildingName(selectedBuildingId)}" : "Selected: None";
-            }
-
-            IReadOnlyDictionary<int, WorldBuildingConfig> configs = DataManager.Instance.WorldBuilding?.GetAll();
-            if (configs == null)
-            {
-                return;
-            }
-
-            List<WorldBuildingConfig> buildableConfigs = new List<WorldBuildingConfig>();
-            foreach (KeyValuePair<int, WorldBuildingConfig> pair in configs)
-            {
-                WorldBuildingConfig config = pair.Value;
-                if (config == null || !config.Enable || ShouldHideFromBuildPanel(config))
+                if (WorldBuildingManager.Instance.TryGetBuilding(mapObject.ObjectId, out WorldBuilding foundBuilding) && foundBuilding != null)
                 {
-                    continue;
-                }
-
-                buildableConfigs.Add(config);
-            }
-
-            buildableConfigs.Sort((left, right) => left.Id.CompareTo(right.Id));
-            for (int i = 0; i < buildableConfigs.Count; i++)
-            {
-                CreateBuildingConfigButton(buildableConfigs[i]);
-            }
-        }
-
-        private void CreateBuildingConfigButton(WorldBuildingConfig config)
-        {
-            bool unlocked = WorldBuildingManager.Instance.IsBuildingUnlocked(config.Id);
-            bool hasCost = HasBuildCost(config.Id, out string costText);
-            bool interactable = unlocked && hasCost;
-            string label = $"{config.Name}  {costText}";
-            if (!unlocked)
-            {
-                label = $"{config.Name}  Locked";
-            }
-            else if (!hasCost)
-            {
-                label = $"{config.Name}  Need {costText}";
-            }
-
-            GameObject buttonObject = CreateBuildButton($"Build_{config.Id}", label, interactable, () =>
-            {
-                selectedBuildingId = config.Id;
-                HideSeedPanel();
-                RefreshBuildPanel(true);
-            });
-
-            Image image = buttonObject.GetComponent<Image>();
-            if (image != null)
-            {
-                if (selectedBuildingId == config.Id)
-                {
-                    image.color = new Color(0.18f, 0.38f, 0.72f, 0.95f);
-                }
-                else if (!unlocked)
-                {
-                    image.color = new Color(0.18f, 0.18f, 0.18f, 0.82f);
-                }
-                else if (!hasCost)
-                {
-                    image.color = new Color(0.30f, 0.22f, 0.18f, 0.88f);
-                }
-                else
-                {
-                    image.color = new Color(0.18f, 0.24f, 0.28f, 0.9f);
+                    building = foundBuilding;
+                    return true;
                 }
             }
-        }
 
-        private GameObject CreateBuildButton(string name, string label, bool interactable, UnityEngine.Events.UnityAction clicked)
-        {
-            GameObject buttonObject = new GameObject(name);
-            buttonObject.transform.SetParent(buildPanel.transform, false);
-
-            Image image = buttonObject.AddComponent<Image>();
-            image.color = new Color(0.18f, 0.24f, 0.28f, 0.9f);
-
-            Button button = buttonObject.AddComponent<Button>();
-            button.interactable = interactable;
-            button.onClick.AddListener(clicked);
-
-            LayoutElement layout = buttonObject.AddComponent<LayoutElement>();
-            layout.preferredHeight = 38f;
-
-            GameObject textObject = new GameObject("Text");
-            textObject.transform.SetParent(buttonObject.transform, false);
-            RectTransform textRect = textObject.AddComponent<RectTransform>();
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(10f, 0f);
-            textRect.offsetMax = new Vector2(-10f, 0f);
-
-            Text text = textObject.AddComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.text = label;
-            text.fontSize = 15;
-            text.alignment = TextAnchor.MiddleLeft;
-            text.color = interactable ? Color.white : new Color(0.62f, 0.62f, 0.62f);
-            text.horizontalOverflow = HorizontalWrapMode.Wrap;
-            text.verticalOverflow = VerticalWrapMode.Truncate;
-
-            return buttonObject;
+            return false;
         }
 
         private bool HasBuildCost(int buildingId, out string costText)
         {
-            costText = "Free";
+            costText = LocalizationManager.Get("ui.common.free");
             if (!DataManager.Instance.TryGetWorldBuildingLevel(buildingId, 1, out WorldBuildingLevelConfig levelConfig) || levelConfig == null)
             {
-                costText = "Config";
+                costText = LocalizationManager.Get("ui.common.config");
                 return false;
             }
 
@@ -1067,7 +1901,7 @@ namespace Game
         {
             if (costs == null || costs.Count == 0)
             {
-                return "Free";
+                return LocalizationManager.Get("ui.common.free");
             }
 
             List<string> parts = new List<string>();
@@ -1082,145 +1916,66 @@ namespace Game
                 parts.Add($"{GetItemName(cost.ItemId)} {cost.Count}");
             }
 
-            return parts.Count > 0 ? string.Join(", ", parts) : "Free";
+            return parts.Count > 0 ? string.Join(", ", parts) : LocalizationManager.Get("ui.common.free");
         }
 
         private string GetItemName(int itemId)
         {
-            if (DataManager.Instance.Item != null && DataManager.Instance.Item.TryGet(itemId, out ItemConfig config) && config != null && !string.IsNullOrWhiteSpace(config.Name))
-            {
-                return config.Name;
-            }
-
-            return itemId.ToString();
+            return LocalizedConfigText.ItemName(itemId);
         }
 
         private string GetBuildingName(int buildingId)
         {
-            if (DataManager.Instance.WorldBuilding != null && DataManager.Instance.WorldBuilding.TryGet(buildingId, out WorldBuildingConfig config) && config != null)
-            {
-                return config.Name;
-            }
-
-            return buildingId.ToString();
-        }
-
-        private static bool ShouldHideFromBuildPanel(WorldBuildingConfig config)
-        {
-            WorldBuildingType buildingType = (WorldBuildingType)config.BuildingType;
-            return buildingType == WorldBuildingType.MainBase ||
-                   buildingType == WorldBuildingType.FarmPlot ||
-                   buildingType == WorldBuildingType.Mine;
+            return LocalizedConfigText.BuildingName(buildingId);
         }
 
         public void SelectBuilding(int buildingId)
         {
             selectedBuildingId = buildingId;
+            ClearSelectedWorldObject();
+            SetFarmAreaMode(false);
             ClearBuildingPreview();
             HideSeedPanel();
-            RefreshBuildPanel(true);
+            WorldMainPanel.Instance?.RefreshNow();
+        }
+
+        public void SelectFarmAreaMode()
+        {
+            selectedBuildingId = 0;
+            ClearSelectedWorldObject();
+            ClearBuildingPreview();
+            SetFarmAreaMode(true);
+            HideSeedPanel();
             WorldMainPanel.Instance?.RefreshNow();
         }
 
         public void ClearSelectedBuilding()
         {
             selectedBuildingId = 0;
+            ClearSelectedWorldObject();
+            SetFarmAreaMode(false);
             ClearBuildingPreview();
-            RefreshBuildPanel(true);
             WorldMainPanel.Instance?.RefreshNow();
         }
 
-        private void HideBuildPanel()
+        private void ClearSelectedWorldObject()
         {
-            if (buildPanel == null)
-            {
-                return;
-            }
-
-            Destroy(buildPanel);
-            buildPanel = null;
-            selectedBuildingText = null;
+            selectedFarm = null;
+            selectedWorldBuilding = null;
         }
 
-        private void EnsureWorldHud()
+        private void SetFarmAreaMode(bool enabled)
         {
-            if (worldHud != null)
+            if (farmAreaMode == enabled)
             {
                 return;
             }
 
-            Transform parent = UIManager.Instance.transform.Find("UICanvasRoot/Layer_Panel");
-            if (parent == null)
+            farmAreaMode = enabled;
+            if (!farmAreaMode)
             {
-                parent = UIManager.Instance.transform;
+                HideFarmAreaPreview();
             }
-
-            worldHud = new GameObject("WorldHud");
-            worldHud.transform.SetParent(parent, false);
-
-            RectTransform rect = worldHud.AddComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0f, 1f);
-            rect.anchorMax = new Vector2(0f, 1f);
-            rect.pivot = new Vector2(0f, 1f);
-            rect.anchoredPosition = new Vector2(16f, -16f);
-            rect.sizeDelta = new Vector2(430f, 174f);
-
-            Image background = worldHud.AddComponent<Image>();
-            background.color = new Color(0.06f, 0.07f, 0.08f, 0.82f);
-
-            GameObject textObject = new GameObject("Text");
-            textObject.transform.SetParent(worldHud.transform, false);
-
-            RectTransform textRect = textObject.AddComponent<RectTransform>();
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(14f, 10f);
-            textRect.offsetMax = new Vector2(-14f, -10f);
-
-            worldHudText = textObject.AddComponent<Text>();
-            worldHudText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            worldHudText.fontSize = 18;
-            worldHudText.alignment = TextAnchor.UpperLeft;
-            worldHudText.color = Color.white;
-            worldHudText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            worldHudText.verticalOverflow = VerticalWrapMode.Overflow;
-            UpdateWorldHud(true);
-        }
-
-        private void UpdateWorldHud(bool force = false)
-        {
-            if (worldHudText == null)
-            {
-                return;
-            }
-
-            if (!force && Time.unscaledTime < nextHudRefreshTime)
-            {
-                return;
-            }
-
-            nextHudRefreshTime = Time.unscaledTime + 0.25f;
-            int mapId = MapManager.Instance.CurrentMap != null ? MapManager.Instance.CurrentMap.Id : 0;
-            worldHudText.text =
-                $"World Map {mapId}\n" +
-                $"Base: {(HasMainBase() ? "Built" : "Left click a tile to build")}\n" +
-                $"Wood {WorldItemManager.Instance.GetCount(ItemIds.Wood)}   Stone {WorldItemManager.Instance.GetCount(ItemIds.Stone)}   Food {WorldItemManager.Instance.GetCount(ItemIds.Food)}\n" +
-                $"Copper {WorldItemManager.Instance.GetCount(ItemIds.CopperOre)}   Iron {WorldItemManager.Instance.GetCount(ItemIds.IronOre)}\n" +
-                $"Wheat {WorldItemManager.Instance.GetCount(ItemIds.Wheat)}   Tomato {WorldItemManager.Instance.GetCount(ItemIds.Tomato)}   Herb {WorldItemManager.Instance.GetCount(ItemIds.Herb)}   Flower {WorldItemManager.Instance.GetCount(ItemIds.Flower)}\n" +
-                $"Build: {(selectedBuildingId > 0 ? GetBuildingName(selectedBuildingId) : "None")}\n" +
-                "LMB select/build/farm   RMB move   WASD camera   Wheel height";
-        }
-
-        private void HideWorldHud()
-        {
-            if (worldHud == null)
-            {
-                return;
-            }
-
-            Destroy(worldHud);
-            worldHud = null;
-            worldHudText = null;
         }
 
         private static void SetMaterial(GameObject instance, Color color)

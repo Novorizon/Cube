@@ -1,7 +1,7 @@
 [
   {
-    "id": 1,
-    "npcConfigId": 1001,
+    "id": 30960001,
+    "npcConfigId": 41000001,
     "count": 5,
     "interval": 1,
     "startDelay": 1,
@@ -9,8 +9,8 @@
     "description": "测试第1组第1波：5个普通敌人"
   },
   {
-    "id": 2,
-    "npcConfigId": 1001,
+    "id": 30960002,
+    "npcConfigId": 41000001,
     "count": 8,
     "interval": 0.8,
     "startDelay": 2,
@@ -18,8 +18,8 @@
     "description": "测试第1组第2波：随机出生点"
   },
   {
-    "id": 3,
-    "npcConfigId": 1001,
+    "id": 30960003,
+    "npcConfigId": 41000001,
     "count": 8,
     "interval": 0.8,
     "startDelay": 1,
@@ -27,8 +27,8 @@
     "description": "测试第2组第1波：更难"
   },
   {
-    "id": 4,
-    "npcConfigId": 1001,
+    "id": 30960004,
+    "npcConfigId": 41000001,
     "count": 12,
     "interval": 0.6,
     "startDelay": 2,
@@ -36,8 +36,8 @@
     "description": "测试第2组第2波：数量更多"
   },
   {
-    "id": 5,
-    "npcConfigId": 1001,
+    "id": 30960005,
+    "npcConfigId": 41000001,
     "count": 10,
     "interval": 0.7,
     "startDelay": 1,
@@ -45,8 +45,8 @@
     "description": "测试第3组第1波"
   },
   {
-    "id": 6,
-    "npcConfigId": 1001,
+    "id": 30960006,
+    "npcConfigId": 41000001,
     "count": 15,
     "interval": 0.5,
     "startDelay": 2,

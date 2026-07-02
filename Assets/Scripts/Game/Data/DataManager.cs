@@ -17,6 +17,8 @@ namespace Game
         public ConfigTableReader<TowerConfig> Tower { get; private set; }
         public ConfigTableReader<TowerLevelConfig> TowerLevel { get; private set; }
         public ConfigTableReader<ItemConfig> Item { get; private set; }
+        public IReadOnlyDictionary<string, LocalizationConfig> Localization { get; private set; }
+        public ConfigTableReader<StorageCapacityConfig> StorageCapacity { get; private set; }
         public ConfigTableReader<WorldCostConfig> WorldCost { get; private set; }
         public ConfigTableReader<WorldGatherConfig> WorldGather { get; private set; }
         public ConfigTableReader<WorldRewardConfig> WorldReward { get; private set; }
@@ -25,6 +27,7 @@ namespace Game
         public ConfigTableReader<WorldBuildingIncomeConfig> WorldBuildingIncome { get; private set; }
         public ConfigTableReader<WorldCropConfig> WorldCrop { get; private set; }
         public ConfigTableReader<WorldResourceConfig> WorldResource { get; private set; }
+        public ConfigTableReader<TechNodeConfig> TechNode { get; private set; }
         public ConfigTableReader<BaseConfig> Base { get; private set; }
         public ConfigTableReader<MapConfig> Map { get; private set; }
         public ConfigTableReader<SkillConfig> Skill { get; private set; }
@@ -40,6 +43,8 @@ namespace Game
 
         private Tables tables;
         private readonly Dictionary<int, List<NpcDropConfig>> npcDropMap = new Dictionary<int, List<NpcDropConfig>>();
+        private readonly Dictionary<int, Dictionary<int, WorldBuildingLevelConfig>> worldBuildingLevelsByBuildingId = new Dictionary<int, Dictionary<int, WorldBuildingLevelConfig>>();
+        private readonly Dictionary<int, Dictionary<int, TowerLevelConfig>> towerLevelsByTowerId = new Dictionary<int, Dictionary<int, TowerLevelConfig>>();
 
         private DataManager()
         {
@@ -60,6 +65,8 @@ namespace Game
             Tower = new ConfigTableReader<TowerConfig>("TbTower", tables.TbTower.DataMap);
             TowerLevel = new ConfigTableReader<TowerLevelConfig>("TbTowerLevel", tables.TbTowerLevel.DataMap);
             Item = new ConfigTableReader<ItemConfig>("TbItem", tables.TbItem.DataMap);
+            Localization = tables.TbLocalization.DataMap;
+            StorageCapacity = new ConfigTableReader<StorageCapacityConfig>("TbStorageCapacity", tables.TbStorageCapacity.DataMap);
             WorldCost = new ConfigTableReader<WorldCostConfig>("TbWorldCost", tables.TbWorldCost.DataMap);
             WorldGather = new ConfigTableReader<WorldGatherConfig>("TbWorldGather", tables.TbWorldGather.DataMap);
             WorldReward = new ConfigTableReader<WorldRewardConfig>("TbWorldReward", tables.TbWorldReward.DataMap);
@@ -68,6 +75,7 @@ namespace Game
             WorldBuildingIncome = new ConfigTableReader<WorldBuildingIncomeConfig>("TbWorldBuildingIncome", tables.TbWorldBuildingIncome.DataMap);
             WorldCrop = new ConfigTableReader<WorldCropConfig>("TbWorldCrop", tables.TbWorldCrop.DataMap);
             WorldResource = new ConfigTableReader<WorldResourceConfig>("TbWorldResource", tables.TbWorldResource.DataMap);
+            TechNode = new ConfigTableReader<TechNodeConfig>("TbTechNode", tables.TbTechNode.DataMap);
             Base = new ConfigTableReader<BaseConfig>("TbBase", tables.TbBase.DataMap);
             Map = new ConfigTableReader<MapConfig>("TbMap", tables.TbMap.DataMap);
             Skill = new ConfigTableReader<SkillConfig>("TbSkill", tables.TbSkill.DataMap);
@@ -77,6 +85,8 @@ namespace Game
 
             Wave = null;
             BuildNpcDropIndex();
+            BuildWorldBuildingLevelIndex();
+            BuildTowerLevelIndex();
 
             Debug.Log("DataManager initialized.");
         }
@@ -117,26 +127,17 @@ namespace Game
             Wave = null;
         }
 
-        public static int MakeTowerLevelId(int towerId, int level)
-        {
-            return towerId * 100 + level;
-        }
-
-        public static int MakeWorldBuildingLevelId(int buildingId, int level)
-        {
-            return buildingId * 100 + level;
-        }
-
         public bool TryGetWorldBuildingLevel(int buildingId, int level, out WorldBuildingLevelConfig config)
         {
             config = null;
 
-            if (WorldBuildingLevel == null || buildingId <= 0 || level <= 0)
+            if (buildingId <= 0 || level <= 0)
             {
                 return false;
             }
 
-            if (!WorldBuildingLevel.TryGet(MakeWorldBuildingLevelId(buildingId, level), out config))
+            if (!worldBuildingLevelsByBuildingId.TryGetValue(buildingId, out Dictionary<int, WorldBuildingLevelConfig> levels) ||
+                !levels.TryGetValue(level, out config))
             {
                 return false;
             }
@@ -159,12 +160,13 @@ namespace Game
         {
             config = null;
 
-            if (TowerLevel == null || towerId <= 0 || level <= 0)
+            if (towerId <= 0 || level <= 0)
             {
                 return false;
             }
 
-            if (!TowerLevel.TryGet(MakeTowerLevelId(towerId, level), out config))
+            if (!towerLevelsByTowerId.TryGetValue(towerId, out Dictionary<int, TowerLevelConfig> levels) ||
+                !levels.TryGetValue(level, out config))
             {
                 return false;
             }
@@ -250,6 +252,62 @@ namespace Game
                 }
 
                 drops.Add(config);
+            }
+        }
+
+        private void BuildWorldBuildingLevelIndex()
+        {
+            worldBuildingLevelsByBuildingId.Clear();
+
+            IReadOnlyDictionary<int, WorldBuildingLevelConfig> configs = WorldBuildingLevel?.GetAll();
+            if (configs == null)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<int, WorldBuildingLevelConfig> pair in configs)
+            {
+                WorldBuildingLevelConfig config = pair.Value;
+                if (config == null || config.BuildingId <= 0 || config.Level <= 0)
+                {
+                    continue;
+                }
+
+                if (!worldBuildingLevelsByBuildingId.TryGetValue(config.BuildingId, out Dictionary<int, WorldBuildingLevelConfig> levels))
+                {
+                    levels = new Dictionary<int, WorldBuildingLevelConfig>();
+                    worldBuildingLevelsByBuildingId.Add(config.BuildingId, levels);
+                }
+
+                levels[config.Level] = config;
+            }
+        }
+
+        private void BuildTowerLevelIndex()
+        {
+            towerLevelsByTowerId.Clear();
+
+            IReadOnlyDictionary<int, TowerLevelConfig> configs = TowerLevel?.GetAll();
+            if (configs == null)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<int, TowerLevelConfig> pair in configs)
+            {
+                TowerLevelConfig config = pair.Value;
+                if (config == null || config.TowerId <= 0 || config.Level <= 0)
+                {
+                    continue;
+                }
+
+                if (!towerLevelsByTowerId.TryGetValue(config.TowerId, out Dictionary<int, TowerLevelConfig> levels))
+                {
+                    levels = new Dictionary<int, TowerLevelConfig>();
+                    towerLevelsByTowerId.Add(config.TowerId, levels);
+                }
+
+                levels[config.Level] = config;
             }
         }
 

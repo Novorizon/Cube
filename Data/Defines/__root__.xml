@@ -5,6 +5,8 @@
   <include name="tower.xml" />
   <include name="tower_level.xml" />
   <include name="item.xml" />
+  <include name="localization.xml" />
+  <include name="storage_capacity.xml" />
   <include name="world_cost.xml" />
   <include name="world_reward.xml" />
   <include name="world_gather.xml" />

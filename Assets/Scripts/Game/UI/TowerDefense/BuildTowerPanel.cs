@@ -70,7 +70,7 @@ namespace Game
                 if (towerConfig == null || !towerConfig.Enable)
                     continue;
 
-                string towerName = towerConfig.Name;
+                string towerName = LocalizedConfigText.TowerName(towerId);
                 string iconLocation = towerConfig.IconLocation;
                 int costCount = towerConfig.CostCount;
                 if (DataManager.Instance.TryGetTowerLevel(towerId, 1, out TowerLevelConfig levelConfig))
@@ -123,7 +123,7 @@ namespace Game
         {
             if (!TowerManager.Instance.HasGold(towerConfigId))
             {
-                Toast.Warning("金币不足");
+                Toast.Warning(LocalizationManager.Get("ui.td.toast.not_enough_gold"));
                 return;
             }
 

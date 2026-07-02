@@ -121,7 +121,7 @@ namespace Game
             }
 
             CommonSlotView slot = AcquireSlot();
-            slot.Init(config.Id, config.Name, count, LoadIcon(config.IconLocation), contentPrefab, OnItemClicked);
+            slot.Init(config.Id, LocalizedConfigText.ItemName(config.Id), count, LoadIcon(config.IconLocation), contentPrefab, OnItemClicked);
             slots[itemId] = slot;
         }
 

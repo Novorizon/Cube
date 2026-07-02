@@ -20,6 +20,8 @@ namespace Game
         private const string DecorationConfigPath = "Assets/Data/Configs/MapDecorationPrefabConfig.asset";
         private const string BattleHudPrefabPath = "Assets/Arts/UI/TowerDefense/Prefabs/BattleHud.prefab";
         private const string MainMenuPagePath = "Assets/Arts/UI/Pages/MainMenuPage.prefab";
+        private const float PickHeightEpsilon = 0.0001f;
+        private const float MinTileSize = 0.01f;
 
         private MapTilePrefabConfig mapTilePrefabConfig;
         private MapDecorationPrefabConfig decorationPrefabConfig;
@@ -32,6 +34,7 @@ namespace Game
         private readonly Dictionary<Vector3Int, List<MapObjectData>> objectsByCoord = new Dictionary<Vector3Int, List<MapObjectData>>();
         private readonly Dictionary<Vector2Int, TileData> topTileDataMap = new Dictionary<Vector2Int, TileData>();
         private readonly Dictionary<Vector2Int, TileData> topLogicTileDataMap = new Dictionary<Vector2Int, TileData>();
+        private readonly List<float> topLogicPickHeights = new List<float>();
         private readonly HashSet<string> removedMapObjectKeys = new HashSet<string>();
 
         private Transform mapRoot;
@@ -132,13 +135,13 @@ namespace Game
 
         public bool LoadMap(int mapId)
         {
-            string location = "Assets/Data/Map/" + mapId + ".json";
-
             if (!DataManager.Instance.Map.TryGet(mapId, out MapConfig mapConfig))
             {
                 Debug.LogError($"Start wave test failed. Missing map config: {mapId}");
                 return false;
             }
+
+            string location = "Assets/Data/Map/" + mapConfig.MapId + ".json";
 
             ClearBattleRuntime(true);
             currentMapConfigId = mapId;
@@ -272,11 +275,6 @@ namespace Game
             {
                 Debug.LogWarning($"Tile prefab root must contain TileView. Type: {tileData.Type}, Coord: {key}, Instance: {instance.name}");
                 return;
-            }
-
-            if (instance.GetComponent<Collider>() == null)
-            {
-                Debug.LogWarning($"Tile prefab root should contain a Collider for picking. Type: {tileData.Type}, Coord: {key}, Instance: {instance.name}");
             }
 
             ApplyTileVisual(tileData, tileView);
@@ -526,6 +524,21 @@ namespace Game
             GameInputManager.Instance.SetMode(InputMode.World);
             FarmManager.Instance.CreateViews();
             WorldGameplayController.Ensure();
+            ShowWorldMainPanelAsync().Forget();
+        }
+
+        private async Task ShowWorldMainPanelAsync()
+        {
+            UIHandle handle = await UIManager.Instance.Panels.ShowAsync(WorldMainPanel.PrefabPath);
+            if (!handle.IsValid)
+            {
+                return;
+            }
+
+            if (handle.View is WorldMainPanel panel)
+            {
+                panel.RefreshNow();
+            }
         }
 
         private void AfterMapCreated(MapConfig mapConfig)
@@ -750,6 +763,7 @@ namespace Game
             tileDataMap.Clear();
             topTileDataMap.Clear();
             topLogicTileDataMap.Clear();
+            topLogicPickHeights.Clear();
 
             if (currentMap == null || currentMap.Cells == null)
             {
@@ -780,6 +794,7 @@ namespace Game
         {
             topTileDataMap.Clear();
             topLogicTileDataMap.Clear();
+            topLogicPickHeights.Clear();
 
             foreach (KeyValuePair<Vector3Int, TileData> pair in tileDataMap)
             {
@@ -802,6 +817,43 @@ namespace Game
                     topLogicTileDataMap[column] = tileData;
                 }
             }
+
+            RebuildTopLogicPickHeights();
+        }
+
+        private void RebuildTopLogicPickHeights()
+        {
+            topLogicPickHeights.Clear();
+
+            foreach (KeyValuePair<Vector2Int, TileData> pair in topLogicTileDataMap)
+            {
+                TileData tileData = pair.Value;
+                if (tileData == null)
+                {
+                    continue;
+                }
+
+                float topWorldY = GetTileTopWorldY(tileData);
+                if (!ContainsPickHeight(topWorldY))
+                {
+                    topLogicPickHeights.Add(topWorldY);
+                }
+            }
+
+            topLogicPickHeights.Sort((left, right) => right.CompareTo(left));
+        }
+
+        private bool ContainsPickHeight(float height)
+        {
+            for (int i = 0; i < topLogicPickHeights.Count; i++)
+            {
+                if (Mathf.Abs(topLogicPickHeights[i] - height) <= PickHeightEpsilon)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void RebuildObjectIndex()
@@ -826,7 +878,21 @@ namespace Game
                 return;
             }
 
-            Vector3Int coord = mapObject.Coord;
+            GetMapObjectFootprintSize(mapObject, out int sizeX, out int sizeZ);
+            for (int offsetX = 0; offsetX < sizeX; offsetX++)
+            {
+                for (int offsetZ = 0; offsetZ < sizeZ; offsetZ++)
+                {
+                    AddObjectToIndexCoord(mapObject, new Vector3Int(
+                        mapObject.X + offsetX,
+                        mapObject.Y,
+                        mapObject.Z + offsetZ));
+                }
+            }
+        }
+
+        private void AddObjectToIndexCoord(MapObjectData mapObject, Vector3Int coord)
+        {
             if (!objectsByCoord.TryGetValue(coord, out List<MapObjectData> objects))
             {
                 objects = new List<MapObjectData>();
@@ -843,7 +909,21 @@ namespace Game
                 return;
             }
 
-            Vector3Int coord = mapObject.Coord;
+            GetMapObjectFootprintSize(mapObject, out int sizeX, out int sizeZ);
+            for (int offsetX = 0; offsetX < sizeX; offsetX++)
+            {
+                for (int offsetZ = 0; offsetZ < sizeZ; offsetZ++)
+                {
+                    RemoveObjectFromIndexCoord(mapObject, new Vector3Int(
+                        mapObject.X + offsetX,
+                        mapObject.Y,
+                        mapObject.Z + offsetZ));
+                }
+            }
+        }
+
+        private void RemoveObjectFromIndexCoord(MapObjectData mapObject, Vector3Int coord)
+        {
             if (!objectsByCoord.TryGetValue(coord, out List<MapObjectData> objects) || objects == null)
             {
                 return;
@@ -878,6 +958,7 @@ namespace Game
             tileDataMap.Clear();
             topTileDataMap.Clear();
             topLogicTileDataMap.Clear();
+            topLogicPickHeights.Clear();
             objectsByCoord.Clear();
             WorldBuildingManager.Instance.ClearViews();
             FarmManager.Instance.ClearViews();
@@ -920,6 +1001,49 @@ namespace Game
         private Vector3 GetWorldPosition(int x, int y, int z)
         {
             return new Vector3(x * tileSize, y * tileSize, z * tileSize);
+        }
+
+        private float GetSafeTileSize()
+        {
+            return Mathf.Max(MinTileSize, tileSize);
+        }
+
+        private float GetTileTopLocalY(MapTileType type)
+        {
+            return mapTilePrefabConfig != null
+                ? mapTilePrefabConfig.GetTopLocalY(type)
+                : MapTilePrefabConfig.DefaultTopLocalY;
+        }
+
+        private float GetTileTopWorldY(TileData tileData)
+        {
+            if (tileData == null)
+            {
+                return 0f;
+            }
+
+            return tileData.Y * tileSize + GetTileTopLocalY(tileData.Type);
+        }
+
+        private Vector2Int WorldPointToTileColumn(Vector3 point)
+        {
+            float safeTileSize = GetSafeTileSize();
+            return new Vector2Int(
+                Mathf.FloorToInt(point.x / safeTileSize + 0.5f),
+                Mathf.FloorToInt(point.z / safeTileSize + 0.5f));
+        }
+
+        private bool IsPointInsideTileFootprint(Vector3 point, TileData tileData)
+        {
+            if (tileData == null)
+            {
+                return false;
+            }
+
+            float halfSize = GetSafeTileSize() * 0.5f + PickHeightEpsilon;
+            Vector3 center = GetTileWorldPosition(tileData);
+            return Mathf.Abs(point.x - center.x) <= halfSize &&
+                   Mathf.Abs(point.z - center.z) <= halfSize;
         }
 
         private GameObject GetPrefab(MapTileType type)
@@ -973,6 +1097,25 @@ namespace Game
             return IsBuildable(coord);
         }
 
+        public bool CanPlaceMapObject(Vector3Int coord, int sizeX, int sizeZ)
+        {
+            sizeX = Mathf.Max(1, sizeX);
+            sizeZ = Mathf.Max(1, sizeZ);
+            for (int offsetX = 0; offsetX < sizeX; offsetX++)
+            {
+                for (int offsetZ = 0; offsetZ < sizeZ; offsetZ++)
+                {
+                    Vector3Int footprintCoord = new Vector3Int(coord.x + offsetX, coord.y, coord.z + offsetZ);
+                    if (!IsBuildable(footprintCoord))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         public bool CanPlaceMapObject(MapObjectData mapObject)
         {
             if (mapObject == null)
@@ -980,17 +1123,13 @@ namespace Game
                 return false;
             }
 
-            return CanPlaceMapObject(mapObject.Coord);
+            GetMapObjectFootprintSize(mapObject, out int sizeX, out int sizeZ);
+            return CanPlaceMapObject(mapObject.Coord, sizeX, sizeZ);
         }
 
         public bool TryAddMapObject(MapObjectData mapObject)
         {
             if (mapObject == null)
-            {
-                return false;
-            }
-
-            if (!CanPlaceMapObject(mapObject))
             {
                 return false;
             }
@@ -1005,6 +1144,11 @@ namespace Game
             if (mapObject.ObjectId > 0 && TryGetMapObject(mapObject.ObjectId, out _))
             {
                 Debug.LogWarning($"Add map object failed. Duplicate object id: {mapObject.ObjectId}");
+                return false;
+            }
+
+            if (!CanPlaceMapObject(mapObject))
+            {
                 return false;
             }
 
@@ -1141,8 +1285,88 @@ namespace Game
                 return false;
             }
 
+            if (TryPickTileByMath(screenPosition, camera, out tileView))
+            {
+                return true;
+            }
+
+            return TryPickTileByCollider(screenPosition, camera, out tileView);
+        }
+
+        public bool TryPickTileByMath(Vector2 screenPosition, Camera camera, out TileView tileView)
+        {
+            tileView = null;
+
+            if (!TryPickTileDataByMath(screenPosition, camera, out TileData tileData))
+            {
+                return false;
+            }
+
+            return tileData != null &&
+                   tileViews.TryGetValue(tileData.Coord, out tileView) &&
+                   tileView != null;
+        }
+
+        public bool TryPickTileDataByMath(Vector2 screenPosition, Camera camera, out TileData tileData)
+        {
+            tileData = null;
+
+            if (camera == null)
+            {
+                return false;
+            }
+
+            if (topLogicPickHeights.Count == 0 && topLogicTileDataMap.Count > 0)
+            {
+                RebuildTopLogicPickHeights();
+            }
+
+            Ray ray = camera.ScreenPointToRay(screenPosition);
+            for (int i = 0; i < topLogicPickHeights.Count; i++)
+            {
+                float pickHeight = topLogicPickHeights[i];
+                Plane plane = new Plane(Vector3.up, new Vector3(0f, pickHeight, 0f));
+                if (!plane.Raycast(ray, out float enter) || enter < 0f)
+                {
+                    continue;
+                }
+
+                Vector3 point = ray.GetPoint(enter);
+                Vector2Int column = WorldPointToTileColumn(point);
+                if (!topLogicTileDataMap.TryGetValue(column, out TileData candidate) || candidate == null)
+                {
+                    continue;
+                }
+
+                if (Mathf.Abs(GetTileTopWorldY(candidate) - pickHeight) > PickHeightEpsilon)
+                {
+                    continue;
+                }
+
+                if (!IsPointInsideTileFootprint(point, candidate))
+                {
+                    continue;
+                }
+
+                tileData = candidate;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryPickTileByCollider(Vector2 screenPosition, Camera camera, out TileView tileView)
+        {
+            tileView = null;
+
+            if (camera == null)
+            {
+                return false;
+            }
+
             Ray ray = camera.ScreenPointToRay(screenPosition);
             RaycastHit[] hits = Physics.RaycastAll(ray, 1000f);
+            System.Array.Sort(hits, (left, right) => left.distance.CompareTo(right.distance));
             for (int i = 0; i < hits.Length; i++)
             {
                 RaycastHit hit = hits[i];
@@ -1388,6 +1612,37 @@ namespace Game
             return item != null && item.BlocksBuild;
         }
 
+        private static void GetMapObjectFootprintSize(MapObjectData mapObject, out int sizeX, out int sizeZ)
+        {
+            sizeX = 1;
+            sizeZ = 1;
+            if (mapObject == null || mapObject.ObjectType != MapObjectType.Building)
+            {
+                return;
+            }
+
+            if (DataManager.Instance.WorldBuilding == null ||
+                !DataManager.Instance.WorldBuilding.TryGet(mapObject.ConfigId, out WorldBuildingConfig config) ||
+                config == null)
+            {
+                return;
+            }
+
+            sizeX = WorldBuildingFootprint.GetSizeX(config);
+            sizeZ = WorldBuildingFootprint.GetSizeZ(config);
+        }
+
+        private static bool MapObjectContainsCoord(MapObjectData mapObject, Vector3Int coord)
+        {
+            if (mapObject == null)
+            {
+                return false;
+            }
+
+            GetMapObjectFootprintSize(mapObject, out int sizeX, out int sizeZ);
+            return WorldBuildingFootprint.Contains(mapObject.Coord, sizeX, sizeZ, coord);
+        }
+
         public bool TryPlaceTower(Vector3Int coord, Tower tower)
         {
             if (tower == null)
@@ -1487,7 +1742,7 @@ namespace Game
                 return;
             }
 
-            currentMap.Objects.RemoveAll(mapObject => mapObject != null && mapObject.Coord == coord);
+            currentMap.Objects.RemoveAll(mapObject => MapObjectContainsCoord(mapObject, coord));
             RebuildObjectIndex();
         }
 

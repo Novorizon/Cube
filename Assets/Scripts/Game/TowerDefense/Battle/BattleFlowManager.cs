@@ -28,7 +28,7 @@ namespace Game
         public void BeginBattle(MapConfig mapConfig)
         {
             currentMapId = mapConfig != null ? mapConfig.Id : 0;
-            currentMapName = mapConfig != null ? mapConfig.Name : string.Empty;
+            currentMapName = currentMapId > 0 ? LocalizedConfigText.MapName(currentMapId) : string.Empty;
             lastEndMessage = null;
 
             ChangeState(BattleState.Running);
@@ -37,12 +37,12 @@ namespace Game
 
         public void CompleteVictory(string reason = null)
         {
-            CompleteBattle(BattleState.Victory, true, string.IsNullOrEmpty(reason) ? "All waves cleared." : reason);
+            CompleteBattle(BattleState.Victory, true, string.IsNullOrEmpty(reason) ? LocalizationManager.Get("ui.td.result.reason_victory") : reason);
         }
 
         public void CompleteDefeat(string reason = null)
         {
-            CompleteBattle(BattleState.Defeat, false, string.IsNullOrEmpty(reason) ? "Base destroyed." : reason);
+            CompleteBattle(BattleState.Defeat, false, string.IsNullOrEmpty(reason) ? LocalizationManager.Get("ui.td.result.reason_defeat") : reason);
         }
 
         private void CompleteBattle(BattleState endState, bool victory, string reason)

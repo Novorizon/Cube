@@ -2,8 +2,8 @@
 setlocal enabledelayedexpansion
 
 rem Run this file from the Config directory.
-rem Generate bytes/json for Assets\Data\Excel\Wave\wave*.xlsx.
-rem This script does not overwrite Assets\Data\Excel\wave.xlsx.
+rem Generate bytes/json for Data\Excel\Wave\wave*.xlsx.
+rem This script does not overwrite Data\Excel\wave.xlsx.
 rem This script only clears:
 rem   Assets\Data\Bin\Wave
 rem   Assets\Data\Json\Wave
@@ -12,7 +12,7 @@ rem It does not clear or overwrite gen_client.bat outputs outside Wave folders.
 set LUBAN_DLL=.\Luban\Luban.dll
 set PROJECT_ROOT=..
 
-set EXCEL_ROOT=..\Assets\Data\Excel
+set EXCEL_ROOT=.\Excel
 set WAVE_EXCEL_DIR=%EXCEL_ROOT%\Wave
 
 set BIN_ROOT=..\Assets\Data\Bin
@@ -170,7 +170,7 @@ echo   "schemaFiles":
 echo   [
 echo     {"fileName":"Defines_WaveTemp", "type":""}
 echo   ],
-echo   "dataDir": "../Assets/Data/Excel",
+echo   "dataDir": "Excel",
 echo   "targets":
 echo   [
 echo     {"name":"client", "manager":"Tables", "groups":["client"], "topModule":"Game"}

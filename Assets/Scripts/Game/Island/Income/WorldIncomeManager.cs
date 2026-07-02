@@ -7,7 +7,7 @@ namespace Game
     {
         public static WorldIncomeManager Instance { get; } = new WorldIncomeManager();
 
-        private readonly Dictionary<int, WorldBuildingIncomeConfig> buildingIncomeByLevel = new Dictionary<int, WorldBuildingIncomeConfig>();
+        private readonly Dictionary<int, Dictionary<int, WorldBuildingIncomeConfig>> buildingIncomeByBuildingId = new Dictionary<int, Dictionary<int, WorldBuildingIncomeConfig>>();
         private WorldRewardResolver rewardResolver;
 
         private WorldIncomeManager()
@@ -37,8 +37,9 @@ namespace Game
 
         public bool TryGetBuildingIncome(int buildingId, int level, out WorldBuildingIncomeConfig buildingIncome)
         {
-            int key = DataManager.MakeWorldBuildingLevelId(buildingId, level);
-            return buildingIncomeByLevel.TryGetValue(key, out buildingIncome);
+            buildingIncome = null;
+            return buildingIncomeByBuildingId.TryGetValue(buildingId, out Dictionary<int, WorldBuildingIncomeConfig> levels) &&
+                   levels.TryGetValue(level, out buildingIncome);
         }
 
         private bool UpdateMineIncome(long currentUnixTime)
@@ -127,7 +128,7 @@ namespace Game
 
         private void BuildProductionIndex()
         {
-            buildingIncomeByLevel.Clear();
+            buildingIncomeByBuildingId.Clear();
 
             IReadOnlyDictionary<int, WorldBuildingIncomeConfig> configs = DataManager.Instance.WorldBuildingIncome?.GetAll();
             if (configs == null)
@@ -143,8 +144,13 @@ namespace Game
                     continue;
                 }
 
-                int key = DataManager.MakeWorldBuildingLevelId(config.BuildingId, config.Level);
-                buildingIncomeByLevel[key] = config;
+                if (!buildingIncomeByBuildingId.TryGetValue(config.BuildingId, out Dictionary<int, WorldBuildingIncomeConfig> levels))
+                {
+                    levels = new Dictionary<int, WorldBuildingIncomeConfig>();
+                    buildingIncomeByBuildingId.Add(config.BuildingId, levels);
+                }
+
+                levels[config.Level] = config;
             }
         }
 

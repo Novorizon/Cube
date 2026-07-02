@@ -178,14 +178,24 @@ namespace Game
                     continue;
                 }
 
-                Vector3Int coord = mapObject.Coord;
-                if (!objectsByCoord.TryGetValue(coord, out List<MapObjectData> objects))
+                GetMapObjectFootprintSize(mapObject, out int sizeX, out int sizeZ);
+                for (int offsetX = 0; offsetX < sizeX; offsetX++)
                 {
-                    objects = new List<MapObjectData>();
-                    objectsByCoord[coord] = objects;
-                }
+                    for (int offsetZ = 0; offsetZ < sizeZ; offsetZ++)
+                    {
+                        Vector3Int coord = new Vector3Int(
+                            mapObject.X + offsetX,
+                            mapObject.Y,
+                            mapObject.Z + offsetZ);
+                        if (!objectsByCoord.TryGetValue(coord, out List<MapObjectData> objects))
+                        {
+                            objects = new List<MapObjectData>();
+                            objectsByCoord[coord] = objects;
+                        }
 
-                objects.Add(mapObject);
+                        objects.Add(mapObject);
+                    }
+                }
             }
         }
 
@@ -236,6 +246,26 @@ namespace Game
             }
 
             return false;
+        }
+
+        private static void GetMapObjectFootprintSize(MapObjectData mapObject, out int sizeX, out int sizeZ)
+        {
+            sizeX = 1;
+            sizeZ = 1;
+            if (mapObject == null || mapObject.ObjectType != MapObjectType.Building)
+            {
+                return;
+            }
+
+            if (DataManager.Instance.WorldBuilding == null ||
+                !DataManager.Instance.WorldBuilding.TryGet(mapObject.ConfigId, out WorldBuildingConfig config) ||
+                config == null)
+            {
+                return;
+            }
+
+            sizeX = WorldBuildingFootprint.GetSizeX(config);
+            sizeZ = WorldBuildingFootprint.GetSizeZ(config);
         }
 
         private bool IsExposed(Vector3Int coord)

@@ -1,6 +1,6 @@
 [
   {
-    "id": 1001,
+    "id": 50000001,
     "name": "Fireball",
     "description": "Single target magical damage",
     "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Skills/ui_td_skill_fireball_icon.png",
@@ -11,14 +11,14 @@
     "castPoint": 0.2,
     "channelTime": 0,
     "cooldown": 3,
-    "costResourceId": 1,
+    "costResourceId": 20000003,
     "costCount": 20,
-    "abilityActionGroupId": 1001,
+    "abilityActionGroupId": 50200001,
     "intrinsicModifierId": 0,
     "enable": true
   },
   {
-    "id": 1002,
+    "id": 50000002,
     "name": "Frost Nova",
     "description": "Area damage and slow at target point",
     "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Skills/ui_td_skill_freeze_icon.png",
@@ -29,14 +29,14 @@
     "castPoint": 0.3,
     "channelTime": 0,
     "cooldown": 8,
-    "costResourceId": 1,
+    "costResourceId": 20000003,
     "costCount": 40,
-    "abilityActionGroupId": 1002,
+    "abilityActionGroupId": 50200002,
     "intrinsicModifierId": 0,
     "enable": true
   },
   {
-    "id": 1003,
+    "id": 50000003,
     "name": "Ice Tower Shot",
     "description": "Tower hit applies damage and freeze slow",
     "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Skills/ui_td_skill_freeze_icon.png",
@@ -49,12 +49,12 @@
     "cooldown": 1,
     "costResourceId": 0,
     "costCount": 0,
-    "abilityActionGroupId": 1003,
+    "abilityActionGroupId": 50200003,
     "intrinsicModifierId": 0,
     "enable": true
   },
   {
-    "id": 1004,
+    "id": 50000004,
     "name": "Heal",
     "description": "Single target friendly heal",
     "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Skills/ui_td_skill_bomb_icon.png",
@@ -65,14 +65,14 @@
     "castPoint": 0.2,
     "channelTime": 0,
     "cooldown": 5,
-    "costResourceId": 1,
+    "costResourceId": 20000003,
     "costCount": 25,
-    "abilityActionGroupId": 1004,
+    "abilityActionGroupId": 50200004,
     "intrinsicModifierId": 0,
     "enable": true
   },
   {
-    "id": 1005,
+    "id": 50000005,
     "name": "Poison Cloud",
     "description": "Apply poison damage over time in area",
     "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Skills/ui_td_skill_bomb_icon.png",
@@ -83,14 +83,14 @@
     "castPoint": 0.3,
     "channelTime": 0,
     "cooldown": 10,
-    "costResourceId": 1,
+    "costResourceId": 20000003,
     "costCount": 50,
-    "abilityActionGroupId": 1005,
+    "abilityActionGroupId": 50200005,
     "intrinsicModifierId": 0,
     "enable": true
   },
   {
-    "id": 1006,
+    "id": 50000006,
     "name": "Stun Bolt",
     "description": "Single target damage and stun",
     "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Skills/ui_td_skill_lightning_icon.png",
@@ -101,14 +101,14 @@
     "castPoint": 0.25,
     "channelTime": 0,
     "cooldown": 6,
-    "costResourceId": 1,
+    "costResourceId": 20000003,
     "costCount": 35,
-    "abilityActionGroupId": 1006,
+    "abilityActionGroupId": 50200006,
     "intrinsicModifierId": 0,
     "enable": true
   },
   {
-    "id": 2001,
+    "id": 50001001,
     "name": "Attack Speed Aura",
     "description": "Passive attack speed aura placeholder",
     "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Skills/ui_td_skill_lightning_icon.png",
@@ -122,7 +122,7 @@
     "costResourceId": 0,
     "costCount": 0,
     "abilityActionGroupId": 0,
-    "intrinsicModifierId": 3003,
+    "intrinsicModifierId": 50500003,
     "enable": true
   }
 ]

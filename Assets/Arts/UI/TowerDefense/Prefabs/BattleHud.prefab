@@ -3179,6 +3179,7 @@ GameObject:
   - component: {fileID: 5920193025818037640}
   - component: {fileID: 6184751423665532606}
   - component: {fileID: 6598228905626502540}
+  - component: {fileID: 4098062235730344343}
   m_Layer: 0
   m_Name: Text
   m_TagString: Untagged
@@ -3303,6 +3304,22 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &4098062235730344343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2951989469251018898}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ab97112a8608b347b10622a081b81ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetText: {fileID: 6598228905626502540}
+  legacyText: {fileID: 0}
+  key: ui.building_detail.upgrade
+  fallback: "\u5347\u7EA7"
 --- !u!1 &3067027978790433714
 GameObject:
   m_ObjectHideFlags: 0
@@ -3512,6 +3529,7 @@ GameObject:
   - component: {fileID: 3219234474993983239}
   - component: {fileID: 6219414000803638036}
   - component: {fileID: 3508842515995723163}
+  - component: {fileID: 8482523361059029776}
   m_Layer: 0
   m_Name: LifeTitle
   m_TagString: Untagged
@@ -3636,6 +3654,22 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8482523361059029776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3549014371147423220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ab97112a8608b347b10622a081b81ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetText: {fileID: 3508842515995723163}
+  legacyText: {fileID: 0}
+  key: ui.td.label.base_life
+  fallback: "\u57FA\u5730\u751F\u547D"
 --- !u!1 &3662131994059054229
 GameObject:
   m_ObjectHideFlags: 0
@@ -3962,6 +3996,7 @@ GameObject:
   - component: {fileID: 6862469445832963528}
   - component: {fileID: 1637435031704520855}
   - component: {fileID: 7141530667561422800}
+  - component: {fileID: 7779552909669933071}
   m_Layer: 0
   m_Name: AutoNextWaveText
   m_TagString: Untagged
@@ -4086,6 +4121,22 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7779552909669933071
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4184276020832883543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ab97112a8608b347b10622a081b81ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetText: {fileID: 7141530667561422800}
+  legacyText: {fileID: 0}
+  key: ui.td.label.auto_next_wave
+  fallback: "\u81EA\u52A8\u4E0B\u4E00\u6CE2"
 --- !u!1 &4202501534775898984
 GameObject:
   m_ObjectHideFlags: 0
@@ -5649,6 +5700,7 @@ GameObject:
   - component: {fileID: 307570996164675012}
   - component: {fileID: 4261847905409442748}
   - component: {fileID: 6447175159019388072}
+  - component: {fileID: 6776666799108243102}
   m_Layer: 0
   m_Name: Text
   m_TagString: Untagged
@@ -5773,6 +5825,22 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6776666799108243102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6704981337800597008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ab97112a8608b347b10622a081b81ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetText: {fileID: 6447175159019388072}
+  legacyText: {fileID: 0}
+  key: ui.td.label.sell
+  fallback: "\u51FA\u552E"
 --- !u!1 &6829918222906450420
 GameObject:
   m_ObjectHideFlags: 0
@@ -10410,6 +10478,21 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4355003058409835872, guid: b993b1074c1f6c447815ca7133e4d98c,
+        type: 3}
+      propertyPath: key
+      value: ui.menu.language
+      objectReference: {fileID: 0}
+    - target: {fileID: 4355003058409835872, guid: b993b1074c1f6c447815ca7133e4d98c,
+        type: 3}
+      propertyPath: fallback
+      value: "\u8BED\u8A00"
+      objectReference: {fileID: 0}
+    - target: {fileID: 5005715743887648889, guid: b993b1074c1f6c447815ca7133e4d98c,
+        type: 3}
+      propertyPath: fallback
+      value: "\u8BBE\u7F6E"
+      objectReference: {fileID: 0}
     - target: {fileID: 5088761835989692608, guid: b993b1074c1f6c447815ca7133e4d98c,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -10439,6 +10522,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5706566869673883370, guid: b993b1074c1f6c447815ca7133e4d98c,
+        type: 3}
+      propertyPath: fallback
+      value: "\u91CD\u65B0\u5F00\u59CB"
       objectReference: {fileID: 0}
     - target: {fileID: 6713621334730123355, guid: b993b1074c1f6c447815ca7133e4d98c,
         type: 3}

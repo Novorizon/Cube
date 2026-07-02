@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace Game.Editor
 {
-    public sealed class MapEditorWindow : OdinEditorWindow
+    public partial class MapEditorWindow : OdinEditorWindow
     {
         private enum BrushMode
         {
@@ -127,7 +127,11 @@ namespace Game.Editor
         private const float DecorationSourcePreviewPanelWidth = 360f;
         private const float DecorationColumnGap = 12f;
 
-        private static string MapJsonDirectory => Path.Combine(Application.dataPath, "Data", "Map");
+        protected virtual string EditorTitle => "Map Editor";
+        protected virtual bool UsesFixedValidationMode => false;
+        protected virtual MapEditorValidationMode DefaultValidationMode => MapEditorValidationMode.World;
+        protected virtual bool SupportsPointsTab => true;
+        protected virtual bool SupportsResourcesTab => true;
 
         private readonly Dictionary<Vector3Int, MapCellData> tileMap = new Dictionary<Vector3Int, MapCellData>();
         private readonly Dictionary<Vector3Int, GameObject> tileObjects = new Dictionary<Vector3Int, GameObject>();
@@ -149,6 +153,9 @@ namespace Game.Editor
 
         [SerializeField, HideInInspector]
         private MainTab activeMainTab = MainTab.Map;
+
+        [SerializeField, HideInInspector]
+        private MapEditorValidationMode validationMode = MapEditorValidationMode.World;
 
         [HideInInspector, SerializeField]
         private int mapId = 1;
@@ -854,12 +861,9 @@ namespace Game.Editor
             return $"{value.x:0.##}, {value.y:0.##}, {value.z:0.##}";
         }
 
-        [MenuItem("Tools/Map/Map Editor")]
         public static void Open()
         {
-            MapEditorWindow window = GetWindow<MapEditorWindow>();
-            window.titleContent = new GUIContent("Map Editor");
-            window.Show();
+            WorldMapEditorWindow.OpenWorldMapEditor();
         }
 
         protected override void OnGUI()
@@ -873,12 +877,6 @@ namespace Game.Editor
 
                 DrawRightDockPreviewPanel();
             }
-        }
-
-        private void DrawMainTabToolbar()
-        {
-            string[] labels = { "Map", "Paint", "Points", "Decoration", "Resources" };
-            activeMainTab = (MainTab)GUILayout.Toolbar((int)activeMainTab, labels, GUILayout.Height(20f));
         }
 
         private void DrawMainEditorColumns()
@@ -979,8 +977,14 @@ namespace Game.Editor
         protected override void OnEnable()
         {
             base.OnEnable();
+            titleContent = new GUIContent(EditorTitle);
+            ApplyFixedEditorMode();
             TryLoadPrefabConfig();
-            TryLoadWorldResourceItems();
+            if (SupportsResourcesTab)
+            {
+                TryLoadWorldResourceItems();
+            }
+
             SceneView.duringSceneGui += OnSceneGUI;
         }
 
@@ -1060,6 +1064,23 @@ namespace Game.Editor
             DrawFixedIntField("Depth Z", ref depth, 1);
             DrawFixedFloatField("Tile Size", ref tileSize, 0.1f);
             DrawFixedDefaultTypeField();
+            DrawValidationModeField();
+        }
+
+        private void DrawValidationModeField()
+        {
+            if (UsesFixedValidationMode)
+            {
+                validationMode = DefaultValidationMode;
+                using (new EditorGUI.DisabledScope(true))
+                {
+                    EditorGUILayout.EnumPopup("Validation Mode", validationMode, GUILayout.Width(382f));
+                }
+
+                return;
+            }
+
+            validationMode = (MapEditorValidationMode)EditorGUILayout.EnumPopup("Validation Mode", validationMode, GUILayout.Width(382f));
         }
 
         private void DrawFixedTextField(string label, ref string value)
@@ -2366,11 +2387,10 @@ namespace Game.Editor
         {
             try
             {
-                EnsureMapJsonDirectory();
-                string path = EditorUtility.OpenFilePanel("Import Map Json", MapJsonDirectory, "json");
+                string path = MapJsonService.OpenImportPanel();
                 if (string.IsNullOrEmpty(path)) return;
 
-                MapData data = JsonConvert.DeserializeObject<MapData>(File.ReadAllText(path));
+                MapData data = MapJsonService.Load(path);
                 if (data == null)
                 {
                     EditorUtility.DisplayDialog("Import Failed", "Json did not contain valid MapData.", "OK");
@@ -2378,6 +2398,11 @@ namespace Game.Editor
                 }
 
                 data.EnsureRuntimeCollections();
+                if (!ApplyEditorModeConstraints(data, true, "Import"))
+                {
+                    return;
+                }
+
                 currentMap = data;
                 currentMapPropertyTree = null;
                 currentMapPropertyTreeTarget = null;
@@ -2399,9 +2424,18 @@ namespace Game.Editor
         private void ExportJson()
         {
             if (!EnsureMap()) return;
-            EnsureMapJsonDirectory();
-            ApplyPointsToMap();
-            List<string> errors = ValidateMap(currentMap);
+            if (SupportsPointsTab)
+            {
+                ApplyPointsToMap();
+            }
+
+            if (!ApplyEditorModeConstraints(currentMap, true, "Export"))
+            {
+                return;
+            }
+
+            List<string> errors = MapEditorValidator.Validate(currentMap, validationMode, ValidateMapObject);
+            AppendEditorModeValidationErrors(currentMap, errors);
 
             if (errors.Count > 0)
             {
@@ -2409,24 +2443,21 @@ namespace Game.Editor
                 if (!EditorUtility.DisplayDialog("Map Validation", $"Found {errors.Count} issue(s). Export anyway?", "Export", "Cancel")) return;
             }
 
-            string path = Path.Combine(MapJsonDirectory, currentMap.Id + ".json");
-            File.WriteAllText(path, JsonConvert.SerializeObject(currentMap, Formatting.Indented));
-            AssetDatabase.Refresh();
-            Debug.Log($"Map exported: {path}");
-        }
-
-        private static void EnsureMapJsonDirectory()
-        {
-            if (!Directory.Exists(MapJsonDirectory))
+            string path = MapJsonService.GetDefaultMapJsonPath(currentMap.Id);
+            if (!MapJsonService.ConfirmOverwrite(path))
             {
-                Directory.CreateDirectory(MapJsonDirectory);
+                return;
             }
+
+            MapJsonService.Save(currentMap, path);
+            Debug.Log($"Map exported: {path}");
         }
 
         private void ValidateCurrentMap()
         {
             if (!EnsureMap()) return;
-            List<string> errors = ValidateMap(currentMap);
+            List<string> errors = MapEditorValidator.Validate(currentMap, validationMode, ValidateMapObject);
+            AppendEditorModeValidationErrors(currentMap, errors);
 
             if (errors.Count == 0)
             {
@@ -3711,157 +3742,33 @@ namespace Game.Editor
             return false;
         }
 
-        private List<string> ValidateMap(MapData mapData)
+        private void ValidateMapObject(MapObjectData mapObject, List<string> errors)
         {
-            List<string> errors = new List<string>();
-            if (mapData == null)
+            if (mapObject == null || errors == null)
             {
-                errors.Add("MapData is null.");
-                return errors;
+                return;
             }
 
-            mapData.EnsureRuntimeCollections();
-            Dictionary<Vector3Int, MapCellData> temp = new Dictionary<Vector3Int, MapCellData>();
-
-            for (int i = 0; i < mapData.Cells.Count; i++)
+            if (mapObject.ObjectType == MapObjectType.Resource)
             {
-                MapCellData tile = mapData.Cells[i];
-                if (tile == null)
+                WorldResourceEditorItem resourceItem = GetWorldResourceItem(mapObject.ConfigId);
+                if (resourceItem == null)
                 {
-                    errors.Add($"Tile index {i} is null.");
-                    continue;
+                    errors.Add($"Resource object missing world_resource config. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}");
+                    return;
                 }
 
-                Vector3Int coord = new Vector3Int(tile.X, tile.Y, tile.Z);
-                if (temp.ContainsKey(coord))
+                ValidateWorldResourceObject(mapObject, resourceItem, errors);
+
+                if (GetWorldResourcePrefab(resourceItem) == null)
                 {
-                    errors.Add($"Duplicate tile coord: {coord}");
-                    continue;
-                }
-
-                temp.Add(coord, tile);
-
-                if (tile.X < 0 || tile.X >= mapData.Width || tile.Z < 0 || tile.Z >= mapData.Depth)
-                {
-                    errors.Add($"Tile outside positive map range: {coord}");
-                }
-
-                if (tile.Type == MapTileType.Soil) errors.Add($"Soil is not used by this editor: {coord}");
-                if (tile.Type != MapTileType.Soil && tile.Y < 0) errors.Add($"Non-soil tile must be y>=0: {coord}");
-                if (tile.MoveCost < 0) errors.Add($"MoveCost must be >= 0: {coord}");
-            }
-
-            for (int i = 0; i < mapData.Cells.Count; i++)
-            {
-                MapCellData tile = mapData.Cells[i];
-                if (tile == null || tile.Type == MapTileType.Soil) continue;
-
-                if (tile.Y == 0) continue;
-
-                Vector3Int below = new Vector3Int(tile.X, tile.Y - 1, tile.Z);
-                if (!temp.TryGetValue(below, out MapCellData belowTile))
-                {
-                    errors.Add($"Tile missing support below: ({tile.X}, {tile.Y}, {tile.Z})");
-                    continue;
-                }
-
-                if (!MapTileRule.CanPlaceOn(tile.Type, belowTile.Type))
-                {
-                    errors.Add($"Invalid stack. Below: {belowTile.Type}, Above: {tile.Type}, Coord: ({tile.X}, {tile.Y}, {tile.Z})");
+                    errors.Add($"Resource object missing prefab. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}, Prefab: {resourceItem.PrefabLocation}");
                 }
             }
-
-            HashSet<int> objectIds = new HashSet<int>();
-            if (mapData.Objects != null)
+            else if (mapObject.ObjectType == MapObjectType.Decoration && GetDecorationPrefab(mapObject) == null)
             {
-                TryLoadWorldResourceItems();
-                for (int i = 0; i < mapData.Objects.Count; i++)
-                {
-                    MapObjectData mapObject = mapData.Objects[i];
-                    if (mapObject == null)
-                    {
-                        errors.Add($"Map object index {i} is null.");
-                        continue;
-                    }
-
-                    if (mapObject.ObjectId <= 0)
-                    {
-                        errors.Add($"Map object has invalid object id. Index: {i}, Config: {mapObject.ConfigId}");
-                    }
-                    else if (!objectIds.Add(mapObject.ObjectId))
-                    {
-                        errors.Add($"Duplicate map object id: {mapObject.ObjectId}");
-                    }
-
-                    if (!temp.ContainsKey(mapObject.Coord))
-                    {
-                        errors.Add($"Map object placed on missing tile. ObjectId: {mapObject.ObjectId}, Coord: {mapObject.Coord}");
-                    }
-
-                    if (mapObject.ObjectType == MapObjectType.Resource)
-                    {
-                        WorldResourceEditorItem resourceItem = GetWorldResourceItem(mapObject.ConfigId);
-                        if (resourceItem == null)
-                        {
-                            errors.Add($"Resource object missing world_resource config. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}");
-                            continue;
-                        }
-
-                        ValidateWorldResourceObject(mapObject, resourceItem, errors);
-
-                        if (GetWorldResourcePrefab(resourceItem) == null)
-                        {
-                            errors.Add($"Resource object missing prefab. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}, Prefab: {resourceItem.PrefabLocation}");
-                        }
-                    }
-                    else if (mapObject.ObjectType == MapObjectType.Decoration && GetDecorationPrefab(mapObject) == null)
-                    {
-                        errors.Add($"Decoration object missing prefab. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}");
-                    }
-                }
+                errors.Add($"Decoration object missing prefab. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}");
             }
-
-            bool hasValidGoal = false;
-            if (mapData.SpawnPoints == null || mapData.SpawnPoints.Count == 0)
-            {
-                errors.Add("Map should have at least one spawn point.");
-            }
-
-            if (!mapData.HasGoalPoint)
-            {
-                errors.Add("Map should have one goal point.");
-            }
-            else if (!MapTileRule.IsValidMapPoint(mapData.GoalPoint, mapData, out string goalReason))
-            {
-                errors.Add($"Invalid goal point {mapData.GoalPoint}: {goalReason}");
-            }
-            else
-            {
-                hasValidGoal = true;
-            }
-
-            if (mapData.SpawnPoints != null)
-            {
-                MapDataAStarPathFinder pathFinder = hasValidGoal ? new MapDataAStarPathFinder() : null;
-                List<Vector3Int> path = hasValidGoal ? new List<Vector3Int>() : null;
-
-                for (int i = 0; i < mapData.SpawnPoints.Count; i++)
-                {
-                    Vector3Int spawn = mapData.SpawnPoints[i];
-                    if (!MapTileRule.IsValidMapPoint(spawn, mapData, out string spawnReason))
-                    {
-                        errors.Add($"Invalid spawn point {spawn}: {spawnReason}");
-                        continue;
-                    }
-
-                    if (hasValidGoal && !pathFinder.TryFindPath(mapData, spawn, mapData.GoalPoint, path))
-                    {
-                        errors.Add($"Spawn point cannot reach goal. Spawn: {spawn}, Goal: {mapData.GoalPoint}");
-                    }
-                }
-            }
-
-            return errors;
         }
 
         private static void ValidateWorldResourceObject(MapObjectData mapObject, WorldResourceEditorItem resourceItem, List<string> errors)

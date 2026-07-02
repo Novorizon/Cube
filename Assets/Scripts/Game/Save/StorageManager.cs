@@ -16,6 +16,7 @@ namespace Game
         private bool dirty;
         private float dirtyAtTime;
         private bool suppressSaveUntilInitialize;
+        private SavePlayerData loadedPlayer;
 
         private StorageManager()
         {
@@ -43,6 +44,7 @@ namespace Game
             dirty = false;
             dirtyAtTime = 0f;
             suppressSaveUntilInitialize = false;
+            loadedPlayer = null;
         }
 
         public void Update()
@@ -88,11 +90,25 @@ namespace Game
                     return false;
                 }
 
+                if (data.Version != SaveVersion.Current)
+                {
+                    Debug.LogWarning($"Ignore save file because version changed. Save: {data.Version}, Current: {SaveVersion.Current}, Path: {SavePath}");
+                    loadedPlayer = null;
+                    return false;
+                }
+
                 WorldItemManager.Instance.LoadSaveData(data.WorldItems);
+                TechManager.Instance.LoadSaveData(data.Tech);
                 WorldGatherManager.Instance.LoadSaveData(data.GatherNodes);
                 WorldBuildingManager.Instance.LoadSaveData(data.WorldBuildings);
+                WorldBuildingManager.Instance.LoadRuntimeUnlockSaveData(data.RuntimeUnlockedBuildingIds);
                 FarmManager.Instance.LoadSaveData(data.Farms, data.WorldFarmPlots);
                 MapManager.Instance.LoadRemovedMapObjectSaveData(data.RemovedMapObjects);
+                ToolKitManager.Instance.LoadSaveData(data.ToolKit);
+                CalendarManager.Instance.LoadSaveData(data.Calendar);
+                ApplyOfflineCalendarProgress(data.SavedAtUnixTime);
+                BagManager.Instance.LoadSaveData(data.Bag);
+                loadedPlayer = data.Player;
                 dirty = false;
                 return true;
             }
@@ -115,11 +131,18 @@ namespace Game
                 SaveData data = new SaveData
                 {
                     Version = SaveVersion.Current,
+                    SavedAtUnixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                     WorldItems = WorldItemManager.Instance.CreateSaveData(),
                     GatherNodes = WorldGatherManager.Instance.CreateSaveData(),
                     WorldBuildings = WorldBuildingManager.Instance.CreateSaveData(),
+                    RuntimeUnlockedBuildingIds = WorldBuildingManager.Instance.CreateRuntimeUnlockSaveData(),
                     Farms = FarmManager.Instance.CreateSaveData(),
                     RemovedMapObjects = MapManager.Instance.CreateRemovedMapObjectSaveData(),
+                    ToolKit = ToolKitManager.Instance.CreateSaveData(),
+                    Calendar = CalendarManager.Instance.CreateSaveData(),
+                    Bag = BagManager.Instance.CreateSaveData(),
+                    Tech = TechManager.Instance.CreateSaveData(),
+                    Player = WorldGameplayController.Instance != null ? WorldGameplayController.Instance.CreatePlayerSaveData() : loadedPlayer,
                 };
 
                 string directory = Path.GetDirectoryName(SavePath);
@@ -148,6 +171,36 @@ namespace Game
             }
         }
 
+        public bool TryGetPlayerSaveData(int mapId, out SavePlayerData data)
+        {
+            data = loadedPlayer;
+            return data != null && data.MapId == mapId;
+        }
+
+        private static void ApplyOfflineCalendarProgress(long savedAtUnixTime)
+        {
+            if (savedAtUnixTime <= 0)
+            {
+                return;
+            }
+
+            long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            long offlineSeconds = now - savedAtUnixTime;
+            if (offlineSeconds <= 0)
+            {
+                return;
+            }
+
+            float secondsPerGameMinute = Mathf.Max(0.01f, CalendarManager.Instance.RealSecondsPerGameMinute);
+            long gameMinutes = (long)Math.Floor(offlineSeconds / secondsPerGameMinute);
+            if (gameMinutes <= 0)
+            {
+                return;
+            }
+
+            CalendarManager.Instance.AdvanceMinutes((int)Math.Min(int.MaxValue, gameMinutes));
+        }
+
         public bool DeleteSaveFile(bool suppressSaveForCurrentSession)
         {
             try
@@ -166,6 +219,7 @@ namespace Game
                 dirty = false;
                 dirtyAtTime = 0f;
                 suppressSaveUntilInitialize = suppressSaveForCurrentSession;
+                loadedPlayer = null;
                 Debug.Log($"Deleted save file: {SavePath}");
                 return true;
             }

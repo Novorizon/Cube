@@ -13,6 +13,7 @@ namespace Game
 
         private readonly Dictionary<int, WorldBuilding> buildings = new Dictionary<int, WorldBuilding>();
         private readonly Dictionary<int, GameObject> buildingViews = new Dictionary<int, GameObject>();
+        private readonly HashSet<int> runtimeUnlockedBuildingIds = new HashSet<int>();
         private WorldCostResolver costResolver;
         private int nextInstanceId = FirstInstanceId;
         private Transform buildingRoot;
@@ -25,6 +26,7 @@ namespace Game
         {
             buildings.Clear();
             ClearViews();
+            runtimeUnlockedBuildingIds.Clear();
             nextInstanceId = FirstInstanceId;
             costResolver = new WorldCostResolver(DataManager.Instance.WorldCost);
         }
@@ -81,15 +83,11 @@ namespace Game
                 return false;
             }
 
-            if (config.SizeX != 1 || config.SizeZ != 1)
+            int sizeX = WorldBuildingFootprint.GetSizeX(config);
+            int sizeZ = WorldBuildingFootprint.GetSizeZ(config);
+            if (!MapManager.Instance.CanPlaceMapObject(coord, sizeX, sizeZ))
             {
-                Debug.LogWarning($"World building failed. Only 1x1 building is supported now. buildingId: {buildingId}");
-                return false;
-            }
-
-            if (!MapManager.Instance.CanPlaceMapObject(coord))
-            {
-                Debug.Log($"World building failed. Tile is not buildable: {coord}");
+                Debug.Log($"World building failed. Footprint is not buildable. buildingId: {buildingId}, coord: {coord}, size: {sizeX}x{sizeZ}");
                 return false;
             }
 
@@ -147,13 +145,83 @@ namespace Game
             return true;
         }
 
+        public bool TryUpgrade(int instanceId)
+        {
+            if (!buildings.TryGetValue(instanceId, out WorldBuilding building) || building == null)
+            {
+                return false;
+            }
+
+            if (building.Status != WorldBuildingStatus.Active)
+            {
+                return false;
+            }
+
+            if (!DataManager.Instance.TryGetWorldBuildingLevel(building.ConfigId, building.Level + 1, out WorldBuildingLevelConfig nextLevelConfig))
+            {
+                return false;
+            }
+
+            IReadOnlyList<WorldItem> costs = GetBuildCosts(nextLevelConfig.BuildCostGroupId);
+            if (nextLevelConfig.BuildCostGroupId > 0 && costs.Count == 0)
+            {
+                return false;
+            }
+
+            if (!WorldItemManager.Instance.TryConsumeItems(costs))
+            {
+                return false;
+            }
+
+            building.UpgradeTo(nextLevelConfig.Level);
+            StorageManager.Instance.MarkDirty();
+            return true;
+        }
+
+        public bool CanUpgrade(int instanceId, out string reason)
+        {
+            reason = string.Empty;
+            if (!buildings.TryGetValue(instanceId, out WorldBuilding building) || building == null)
+            {
+                reason = LocalizationManager.Get("ui.build.reason.missing_building");
+                return false;
+            }
+
+            if (building.Status != WorldBuildingStatus.Active)
+            {
+                reason = LocalizationManager.Get("ui.build.reason.construction");
+                return false;
+            }
+
+            if (!DataManager.Instance.TryGetWorldBuildingLevel(building.ConfigId, building.Level + 1, out WorldBuildingLevelConfig nextLevelConfig))
+            {
+                reason = LocalizationManager.Get("ui.build.reason.max_level");
+                return false;
+            }
+
+            IReadOnlyList<WorldItem> costs = GetBuildCosts(nextLevelConfig.BuildCostGroupId);
+            if (nextLevelConfig.BuildCostGroupId > 0 && costs.Count == 0)
+            {
+                reason = LocalizationManager.Get("ui.build.reason.cost_config");
+                return false;
+            }
+
+            if (!WorldItemManager.Instance.HasItems(costs))
+            {
+                reason = FormatCosts(costs);
+                return false;
+            }
+
+            return true;
+        }
+
         public bool TryRemoveAt(Vector3Int coord)
         {
             int mapId = GetCurrentMapId();
             foreach (KeyValuePair<int, WorldBuilding> pair in buildings)
             {
                 WorldBuilding building = pair.Value;
-                if (building != null && building.MapId == mapId && building.Coord == coord)
+                if (building != null && building.MapId == mapId && ContainsBuildingCoord(building, coord))
                 {
                     return TryRemove(building.InstanceId);
                 }
@@ -209,6 +277,26 @@ namespace Game
             return false;
         }
 
+        public int CountActiveBuildingType(WorldBuildingType buildingType)
+        {
+            int count = 0;
+            foreach (KeyValuePair<int, WorldBuilding> pair in buildings)
+            {
+                WorldBuilding building = pair.Value;
+                if (building == null || building.MapId != GetCurrentMapId() || building.Status != WorldBuildingStatus.Active)
+                {
+                    continue;
+                }
+
+                if (IsBuildingType(building, buildingType))
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         public bool IsBuildingUnlocked(int buildingId)
         {
             if (DataManager.Instance.WorldBuilding == null || !DataManager.Instance.WorldBuilding.TryGet(buildingId, out WorldBuildingConfig config))
@@ -217,6 +305,92 @@ namespace Game
             }
 
             return config != null && config.Enable && IsBuildingUnlocked(config);
+        }
+
+        public string GetUnlockRequirementText(int buildingId)
+        {
+            if (DataManager.Instance.WorldBuilding == null || !DataManager.Instance.WorldBuilding.TryGet(buildingId, out WorldBuildingConfig config))
+            {
+                return LocalizationManager.Get("ui.build.reason.missing_config");
+            }
+
+            return GetUnlockRequirementText(config);
+        }
+
+        public string GetUnlockRequirementText(WorldBuildingConfig config)
+        {
+            if (config == null || !config.Enable)
+            {
+                return LocalizationManager.Get("ui.build.reason.disabled");
+            }
+
+            if ((WorldBuildingType)config.BuildingType == WorldBuildingType.House)
+            {
+                return string.Empty;
+            }
+
+            if (config.UnlockHouseLevel > 0)
+            {
+                int currentLevel = GetHighestBuildingLevel(WorldBuildingType.House);
+                if (currentLevel < config.UnlockHouseLevel)
+                {
+                    return LocalizationManager.Format("ui.build.require.house_level", config.UnlockHouseLevel);
+                }
+            }
+
+            if (config.UnlockBuildingId > 0)
+            {
+                int requiredLevel = config.UnlockBuildingLevel > 0 ? config.UnlockBuildingLevel : 1;
+                if (GetHighestBuildingLevel(config.UnlockBuildingId) < requiredLevel)
+                {
+                    return LocalizationManager.Format("ui.build.require.building_level", GetBuildingName(config.UnlockBuildingId), requiredLevel);
+                }
+            }
+
+            string sourceRequirement = GetUnlockSourceRequirementText(config);
+            if (!string.IsNullOrWhiteSpace(sourceRequirement))
+            {
+                return sourceRequirement;
+            }
+
+            return string.Empty;
+        }
+
+        public void UnlockBuildingAtRuntime(int buildingId)
+        {
+            if (buildingId <= 0 || runtimeUnlockedBuildingIds.Contains(buildingId))
+            {
+                return;
+            }
+
+            runtimeUnlockedBuildingIds.Add(buildingId);
+            StorageManager.Instance.MarkDirty();
+        }
+
+        public int[] CreateRuntimeUnlockSaveData()
+        {
+            int[] ids = new int[runtimeUnlockedBuildingIds.Count];
+            runtimeUnlockedBuildingIds.CopyTo(ids);
+            Array.Sort(ids);
+            return ids;
+        }
+
+        public void LoadRuntimeUnlockSaveData(IReadOnlyList<int> buildingIds)
+        {
+            runtimeUnlockedBuildingIds.Clear();
+            if (buildingIds == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < buildingIds.Count; i++)
+            {
+                int buildingId = buildingIds[i];
+                if (buildingId > 0)
+                {
+                    runtimeUnlockedBuildingIds.Add(buildingId);
+                }
+            }
         }
 
         public SaveWorldBuildingData[] CreateSaveData()
@@ -306,7 +480,10 @@ namespace Game
                     continue;
                 }
 
-                MapManager.Instance.TryAddMapObject(CreateMapObject(building));
+                if (!MapManager.Instance.TryAddMapObject(CreateMapObject(building)))
+                {
+                    Debug.LogWarning($"Register world building map object failed. instanceId: {building.InstanceId}, buildingId: {building.ConfigId}, coord: {building.Coord}");
+                }
             }
         }
 
@@ -367,6 +544,28 @@ namespace Game
             return costResolver.GetCostGroup(costGroupId);
         }
 
+        private static string FormatCosts(IReadOnlyList<WorldItem> costs)
+        {
+            if (costs == null || costs.Count == 0)
+            {
+                return LocalizationManager.Get("ui.common.free");
+            }
+
+            List<string> parts = new List<string>();
+            for (int i = 0; i < costs.Count; i++)
+            {
+                WorldItem cost = costs[i];
+                if (cost == null || cost.ItemId <= 0 || cost.Count <= 0)
+                {
+                    continue;
+                }
+
+                parts.Add($"{GetItemName(cost.ItemId)} {cost.Count}");
+            }
+
+            return parts.Count > 0 ? string.Join(", ", parts) : LocalizationManager.Get("ui.common.free");
+        }
+
         private bool IsBuildingUnlocked(WorldBuildingConfig config)
         {
             if (config == null || !config.Enable)
@@ -374,12 +573,7 @@ namespace Game
                 return false;
             }
 
-            if ((WorldBuildingType)config.BuildingType == WorldBuildingType.MainBase)
-            {
-                return true;
-            }
-
-            if (config.UnlockMainBaseLevel > 0 && GetHighestBuildingLevel(WorldBuildingType.MainBase) < config.UnlockMainBaseLevel)
+            if (config.UnlockHouseLevel > 0 && GetHighestBuildingLevel(WorldBuildingType.House) < config.UnlockHouseLevel)
             {
                 return false;
             }
@@ -393,7 +587,71 @@ namespace Game
                 }
             }
 
+            if (!IsUnlockSourceSatisfied(config))
+            {
+                return false;
+            }
+
             return true;
+        }
+
+        private static bool IsUnlockSourceSatisfied(WorldBuildingConfig config)
+        {
+            if (config == null)
+            {
+                return false;
+            }
+
+            if (config.DefaultUnlocked)
+            {
+                return true;
+            }
+
+            WorldBuildingUnlockSource source = (WorldBuildingUnlockSource)config.UnlockSourceType;
+            switch (source)
+            {
+                case WorldBuildingUnlockSource.Default:
+                    return true;
+                case WorldBuildingUnlockSource.Tech:
+                    return TechManager.Instance.IsBuildingUnlockedByTech(config.Id);
+                case WorldBuildingUnlockSource.Runtime:
+                    return Instance.runtimeUnlockedBuildingIds.Contains(config.Id);
+                case WorldBuildingUnlockSource.None:
+                default:
+                    return false;
+            }
+        }
+
+        private static string GetUnlockSourceRequirementText(WorldBuildingConfig config)
+        {
+            if (config == null)
+            {
+                return string.Empty;
+            }
+
+            if (config.DefaultUnlocked)
+            {
+                return string.Empty;
+            }
+
+            WorldBuildingUnlockSource source = (WorldBuildingUnlockSource)config.UnlockSourceType;
+            switch (source)
+            {
+                case WorldBuildingUnlockSource.Default:
+                    return string.Empty;
+                case WorldBuildingUnlockSource.Tech:
+                    return TechManager.Instance.GetBuildingUnlockRequirementText(config.Id);
+                case WorldBuildingUnlockSource.Runtime:
+                    return LocalizationManager.Get("ui.build.reason.not_unlocked");
+                case WorldBuildingUnlockSource.None:
+                default:
+                    return LocalizationManager.Get("ui.build.reason.not_unlockable");
+            }
+        }
+
+        public int CountBuildingConfig(int configId)
+        {
+            return CountBuildings(configId);
         }
 
         private int CountBuildings(int configId)
@@ -451,6 +709,37 @@ namespace Game
             return highestLevel;
         }
 
+        private static string GetBuildingName(int buildingId)
+        {
+            return LocalizedConfigText.BuildingName(buildingId);
+        }
+
+        private static string GetItemName(int itemId)
+        {
+            return LocalizedConfigText.ItemName(itemId);
+        }
+
+        private static bool ContainsBuildingCoord(WorldBuilding building, Vector3Int coord)
+        {
+            if (building == null)
+            {
+                return false;
+            }
+
+            if (DataManager.Instance.WorldBuilding == null ||
+                !DataManager.Instance.WorldBuilding.TryGet(building.ConfigId, out WorldBuildingConfig config) ||
+                config == null)
+            {
+                return building.Coord == coord;
+            }
+
+            return WorldBuildingFootprint.Contains(
+                building.Coord,
+                WorldBuildingFootprint.GetSizeX(config),
+                WorldBuildingFootprint.GetSizeZ(config),
+                coord);
+        }
+
         private int AllocateInstanceId()
         {
             while (buildings.ContainsKey(nextInstanceId))
@@ -479,19 +768,23 @@ namespace Game
             }
 
             EnsureBuildingRoot();
-            Vector3 position = MapManager.Instance.GetTileWorldPosition(building.Coord) + Vector3.up * MapManager.Instance.TileSize;
+            int sizeX = WorldBuildingFootprint.GetSizeX(config);
+            int sizeZ = WorldBuildingFootprint.GetSizeZ(config);
+            Vector3 position = WorldBuildingFootprint.GetCenterWorldPosition(building.Coord, sizeX, sizeZ, MapManager.Instance.TileSize) + Vector3.up * MapManager.Instance.TileSize;
             GameObject instance = null;
 
-            if (!string.IsNullOrWhiteSpace(config.PrefabLocation))
+            string prefabLocation = GetPrefabLocation(config);
+            if (!string.IsNullOrWhiteSpace(prefabLocation))
             {
-                GameObject prefab = ResourceManager.Instance.LoadGameObject(config.PrefabLocation);
+                GameObject prefab = ResourceManager.Instance.LoadGameObject(prefabLocation);
                 if (prefab != null)
                 {
-                    instance = GameObject.Instantiate(prefab, position, Quaternion.identity, buildingRoot);
+                    instance = GameObject.Instantiate(prefab, position, prefab.transform.rotation, buildingRoot);
                 }
                 else
                 {
-                    Debug.LogWarning($"Create world building view fallback. Missing prefab. buildingId: {building.ConfigId}, location: {config.PrefabLocation}");
+                    Debug.LogError($"Create world building view failed. Missing prefab. buildingId: {building.ConfigId}, location: {prefabLocation}");
+                    return;
                 }
             }
 
@@ -517,7 +810,7 @@ namespace Game
 
             switch ((WorldBuildingType)config.BuildingType)
             {
-                case WorldBuildingType.MainBase:
+                case WorldBuildingType.House:
                     scale = new Vector3(0.95f, 0.9f, 0.95f);
                     color = new Color(0.20f, 0.42f, 0.85f);
                     break;
@@ -559,6 +852,10 @@ namespace Game
                     break;
             }
 
+            int sizeX = WorldBuildingFootprint.GetSizeX(config);
+            int sizeZ = WorldBuildingFootprint.GetSizeZ(config);
+            scale = new Vector3(scale.x * sizeX, scale.y, scale.z * sizeZ);
+
             GameObject instance = GameObject.CreatePrimitive(primitiveType);
             instance.transform.SetParent(buildingRoot, false);
             instance.transform.position = position;
@@ -587,6 +884,21 @@ namespace Game
             }
 
             return instance;
+        }
+
+        public static string GetPrefabLocation(WorldBuildingConfig config)
+        {
+            if (config == null)
+            {
+                return string.Empty;
+            }
+
+            if (!string.IsNullOrWhiteSpace(config.PrefabLocation))
+            {
+                return config.PrefabLocation;
+            }
+
+            return string.Empty;
         }
 
         private void DestroyView(int instanceId)

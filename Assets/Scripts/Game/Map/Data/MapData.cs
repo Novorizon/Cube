@@ -373,4 +373,42 @@ namespace Game
                 value.Value<int>("z"));
         }
     }
+
+    public sealed class Vector3JsonConverter : JsonConverter<Vector3>
+    {
+        public override void WriteJson(JsonWriter writer, Vector3 value, JsonSerializer serializer)
+        {
+            writer.WriteStartObject();
+            writer.WritePropertyName("x");
+            writer.WriteValue(value.x);
+            writer.WritePropertyName("y");
+            writer.WriteValue(value.y);
+            writer.WritePropertyName("z");
+            writer.WriteValue(value.z);
+            writer.WriteEndObject();
+        }
+
+        public override Vector3 ReadJson(JsonReader reader, Type objectType, Vector3 existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+            if (reader.TokenType == JsonToken.Null)
+            {
+                return default;
+            }
+
+            if (reader.TokenType == JsonToken.StartArray)
+            {
+                JArray array = JArray.Load(reader);
+                return new Vector3(
+                    array.Count > 0 ? array[0].Value<float>() : 0f,
+                    array.Count > 1 ? array[1].Value<float>() : 0f,
+                    array.Count > 2 ? array[2].Value<float>() : 0f);
+            }
+
+            JObject value = JObject.Load(reader);
+            return new Vector3(
+                value.Value<float>("x"),
+                value.Value<float>("y"),
+                value.Value<float>("z"));
+        }
+    }
 }

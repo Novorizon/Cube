@@ -59,6 +59,16 @@ namespace Game.Editor
                 return;
             }
 
+            if (File.Exists(path) &&
+                !EditorUtility.DisplayDialog(
+                    "Overwrite Map JSON",
+                    $"Map json already exists:\n{path}\n\nOverwrite it?",
+                    "Overwrite",
+                    "Cancel"))
+            {
+                return;
+            }
+
             SaveMapJson(mapData, path);
             AssetDatabase.Refresh();
             Debug.Log($"Exported map json: {path}, tiles: {mapData.Cells.Count}, size: {mapData.Width}x{mapData.Height}x{mapData.Depth}");

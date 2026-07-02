@@ -38,7 +38,7 @@ namespace Game
 
             if (nameText != null)
             {
-                nameText.text = config.Name;
+                nameText.text = LocalizedConfigText.ItemName(config.Id);
             }
 
             SetCount(count);

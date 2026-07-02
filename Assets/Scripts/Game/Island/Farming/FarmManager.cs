@@ -93,6 +93,32 @@ namespace Game
 
         public IReadOnlyDictionary<int, WorldCropDefinition> Crops => crops;
 
+        public IReadOnlyDictionary<int, Farm> GetAllFarms()
+        {
+            return farms;
+        }
+
+        public int CountFarmsOnCurrentMap()
+        {
+            int mapId = GetCurrentMapId();
+            if (mapId <= 0)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            foreach (KeyValuePair<int, Farm> pair in farms)
+            {
+                Farm farm = pair.Value;
+                if (farm != null && farm.MapId == mapId && farm.CellCount > 0)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
         public void Initialize()
         {
             BuildCropConfigs();

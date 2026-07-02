@@ -83,10 +83,16 @@ PrefabInstance:
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: 1fe13b6419b5d664ab71b290a3635cde, type: 2}
+    - target: {fileID: -5754084199372789682, guid: dc5e7f98ba2f839469e5ac0313ddb873,
+        type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 1916269774004080660, guid: 75b7263417a86d742a99f4c199d7c01c,
+        type: 3}
     - target: {fileID: 919132149155446097, guid: dc5e7f98ba2f839469e5ac0313ddb873,
         type: 3}
       propertyPath: m_Name
-      value: Meshy_AI_Lime_Green_Platform_0608094103_texture 1
+      value: Top
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

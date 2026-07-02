@@ -1,6 +1,5 @@
 using Game.Framework;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace Game
@@ -172,7 +171,7 @@ namespace Game
             Vector2 pointerPosition = GameInputManager.Instance.PointerPosition;
             Camera camera = CameraManager.Instance.MainCamera;
 
-            if (!MapManager.Instance.TryPickTile(pointerPosition, camera, out TileView tileView))
+            if (!WorldPointerPicker.TryPickTile(pointerPosition, camera, out TileView tileView, false))
             {
                 ClearSelection();
                 return;
@@ -221,12 +220,7 @@ namespace Game
 
         private bool IsPointerOverUI()
         {
-            if (EventSystem.current == null)
-            {
-                return false;
-            }
-
-            return EventSystem.current.IsPointerOverGameObject();
+            return WorldPointerPicker.IsPointerOverUi();
         }
 
         private bool IsCameraInputMode()

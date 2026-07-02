@@ -1,19 +1,6 @@
 [
   {
-    "id": 1,
-    "name": "Gold",
-    "description": "Gold",
-    "itemType": 1,
-    "useScope": 0,
-    "iconLocation": "Assets/Arts/UI/Icons/Item/Gold.png",
-    "dropPrefabLocation": "",
-    "autoPick": true,
-    "maxStack": 999999,
-    "settlementItemId": 0,
-    "settlementCountPerItem": 0
-  },
-  {
-    "id": 2,
+    "id": 20000001,
     "name": "Wood",
     "description": "Wood",
     "itemType": 1,
@@ -26,7 +13,7 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 3,
+    "id": 20000002,
     "name": "Stone",
     "description": "Stone",
     "itemType": 1,
@@ -39,12 +26,12 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 4,
-    "name": "Food",
-    "description": "Food",
+    "id": 20000003,
+    "name": "Gold",
+    "description": "Gold",
     "itemType": 1,
     "useScope": 0,
-    "iconLocation": "Assets/Arts/UI/Icons/Item/Food.png",
+    "iconLocation": "Assets/Arts/UI/Icons/Item/Gold.png",
     "dropPrefabLocation": "",
     "autoPick": true,
     "maxStack": 999999,
@@ -52,7 +39,7 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 5,
+    "id": 20000004,
     "name": "Copper Ore",
     "description": "Copper Ore",
     "itemType": 1,
@@ -65,7 +52,7 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 6,
+    "id": 20000005,
     "name": "Iron Ore",
     "description": "Iron Ore",
     "itemType": 1,
@@ -78,25 +65,12 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 7,
-    "name": "Herb",
-    "description": "Herb",
-    "itemType": 1,
-    "useScope": 0,
-    "iconLocation": "Assets/Arts/UI/Icons/Item/Herb.png",
-    "dropPrefabLocation": "",
-    "autoPick": true,
-    "maxStack": 999999,
-    "settlementItemId": 0,
-    "settlementCountPerItem": 0
-  },
-  {
-    "id": 8,
+    "id": 20100001,
     "name": "Wheat",
     "description": "Wheat",
     "itemType": 1,
     "useScope": 0,
-    "iconLocation": "Assets/Arts/UI/Icons/Item/Wheat.png",
+    "iconLocation": "Assets/Arts/UI/Icons/System/crop/wheat.png",
     "dropPrefabLocation": "",
     "autoPick": true,
     "maxStack": 999999,
@@ -104,12 +78,12 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 9,
+    "id": 20100002,
     "name": "Tomato",
     "description": "Tomato",
     "itemType": 1,
     "useScope": 0,
-    "iconLocation": "Assets/Arts/UI/Icons/Item/Tomato.png",
+    "iconLocation": "Assets/Arts/UI/Icons/System/crop/tomato.png",
     "dropPrefabLocation": "",
     "autoPick": true,
     "maxStack": 999999,
@@ -117,12 +91,25 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 10,
+    "id": 20100003,
+    "name": "Herb",
+    "description": "Herb",
+    "itemType": 1,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/System/crop/aloe.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 999999,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20100004,
     "name": "Flower",
     "description": "Flower",
     "itemType": 1,
     "useScope": 0,
-    "iconLocation": "Assets/Arts/UI/Icons/Item/Flower.png",
+    "iconLocation": "Assets/Arts/UI/Icons/System/crop/mint.png",
     "dropPrefabLocation": "",
     "autoPick": true,
     "maxStack": 999999,
@@ -130,7 +117,111 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 1000101,
+    "id": 20200001,
+    "name": "Wheat Seed",
+    "description": "Wheat seed",
+    "itemType": 4,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/System/crop/wheat.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 999,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20200002,
+    "name": "Tomato Seed",
+    "description": "Tomato seed",
+    "itemType": 4,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/System/crop/tomato.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 999,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20200003,
+    "name": "Herb Seed",
+    "description": "Herb seed",
+    "itemType": 4,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/System/crop/aloe.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 999,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20200004,
+    "name": "Flower Seed",
+    "description": "Flower seed",
+    "itemType": 4,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/System/crop/mint.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 999,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20300001,
+    "name": "Food",
+    "description": "Food",
+    "itemType": 1,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/Food.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 999999,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20300002,
+    "name": "Plank",
+    "description": "Plank",
+    "itemType": 5,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/Plank.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 999999,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20300003,
+    "name": "Copper Ingot",
+    "description": "Copper Ingot",
+    "itemType": 5,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/CopperIngot.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 999999,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20300004,
+    "name": "Iron Ingot",
+    "description": "Iron Ingot",
+    "itemType": 5,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/IronIngot.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 999999,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20400001,
     "name": "Bomb Tree",
     "description": "Destroy tree obstacle",
     "itemType": 2,
@@ -143,7 +234,7 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 1000102,
+    "id": 20400002,
     "name": "Bomb Bridge",
     "description": "Destroy bridge obstacle",
     "itemType": 2,
@@ -156,7 +247,7 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 3000201,
+    "id": 20500001,
     "name": "Blueprint",
     "description": "Building blueprint",
     "itemType": 3,
@@ -169,10 +260,10 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 4000401,
+    "id": 20600001,
     "name": "Slime Core",
     "description": "Monster material",
-    "itemType": 4,
+    "itemType": 5,
     "useScope": 0,
     "iconLocation": "Assets/Arts/UI/Icons/Item/SlimeCore.png",
     "dropPrefabLocation": "",
@@ -182,15 +273,80 @@
     "settlementCountPerItem": 0
   },
   {
-    "id": 5000301,
-    "name": "Seed",
-    "description": "Basic seed",
-    "itemType": 4,
+    "id": 20700001,
+    "name": "Basic Axe",
+    "description": "Basic tool for chopping trees.",
+    "itemType": 6,
     "useScope": 0,
-    "iconLocation": "Assets/Arts/UI/Icons/Item/Seed.png",
+    "iconLocation": "Assets/Arts/UI/Icons/Item/BasicAxe.png",
     "dropPrefabLocation": "",
     "autoPick": true,
-    "maxStack": 999,
+    "maxStack": 1,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20700002,
+    "name": "Basic Pickaxe",
+    "description": "Basic tool for mining stone and ore.",
+    "itemType": 6,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/BasicPickaxe.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 1,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20700003,
+    "name": "Basic Hoe",
+    "description": "Basic tool for cultivating farmland.",
+    "itemType": 6,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/BasicHoe.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 1,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20700004,
+    "name": "Basic Watering Can",
+    "description": "Basic tool for watering crops.",
+    "itemType": 6,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/BasicWateringCan.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 1,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20700005,
+    "name": "Basic Fishing Rod",
+    "description": "Basic tool for fishing.",
+    "itemType": 6,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/BasicFishingRod.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 1,
+    "settlementItemId": 0,
+    "settlementCountPerItem": 0
+  },
+  {
+    "id": 20700006,
+    "name": "Basic Hammer",
+    "description": "Basic tool for building and repairing.",
+    "itemType": 6,
+    "useScope": 0,
+    "iconLocation": "Assets/Arts/UI/Icons/Item/BasicHammer.png",
+    "dropPrefabLocation": "",
+    "autoPick": true,
+    "maxStack": 1,
     "settlementItemId": 0,
     "settlementCountPerItem": 0
   }

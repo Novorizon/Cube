@@ -49,6 +49,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a41d1551a77d565409556d8ec72ce8c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  drawBounds: 0
   boundsColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   drawWhenNotSelected: 1
   includeInactive: 1
@@ -73,7 +74,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0.5, z: 0}
@@ -172,6 +173,21 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1936440728988361424, guid: 62ed101e819a3c34fab6b5c8227edc10,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.147
+      objectReference: {fileID: 0}
+    - target: {fileID: 1936440728988361424, guid: 62ed101e819a3c34fab6b5c8227edc10,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.155
+      objectReference: {fileID: 0}
+    - target: {fileID: 1936440728988361424, guid: 62ed101e819a3c34fab6b5c8227edc10,
+        type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.15
+      objectReference: {fileID: 0}
     - target: {fileID: 7612813043869476651, guid: 62ed101e819a3c34fab6b5c8227edc10,
         type: 3}
       propertyPath: m_Name
@@ -210,6 +226,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Base
+      objectReference: {fileID: 0}
+    - target: {fileID: 1112526371727632022, guid: 6f54413335ae6914a9e31eb9612077cf,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9013729865140715024, guid: 6f54413335ae6914a9e31eb9612077cf,
         type: 3}

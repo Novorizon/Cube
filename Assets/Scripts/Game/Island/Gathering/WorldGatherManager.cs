@@ -52,7 +52,11 @@ namespace Game
                 return false;
             }
 
-            WorldItemManager.Instance.AddItems(rewards);
+            if (!BagManager.Instance.TryAddItems(rewards))
+            {
+                return false;
+            }
+
             state.Consume(config, currentUnixTime);
             StorageManager.Instance.MarkDirty();
             return true;

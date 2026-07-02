@@ -5,10 +5,10 @@ namespace Game
     public sealed class NpcSpawnTestController : MonoBehaviour
     {
         [SerializeField]
-        private int testMapId = 1;
+        private int testMapId = 30950001;
 
         [SerializeField]
-        private int testNpcConfigId = 1001;
+        private int testNpcConfigId = 41000001;
 
         [SerializeField]
         private KeyCode loadMapAndSpawnKey = KeyCode.F5;

@@ -27,7 +27,7 @@ namespace Game
             }
             if (nameText != null)
             {
-                nameText.text = config.Name;
+                nameText.text = LocalizedConfigText.SkillName(config.Id);
             }
             SetCount(count);
             if (button != null)

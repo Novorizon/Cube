@@ -1,6 +1,6 @@
 [
   {
-    "id": 3001,
+    "id": 50500001,
     "name": "Frost Slow",
     "modifierType": 1,
     "isDebuff": true,
@@ -21,7 +21,7 @@
     "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab"
   },
   {
-    "id": 3002,
+    "id": 50500002,
     "name": "Ice Freeze Slow",
     "modifierType": 1,
     "isDebuff": true,
@@ -42,7 +42,7 @@
     "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab"
   },
   {
-    "id": 3003,
+    "id": 50500003,
     "name": "Attack Speed Aura Buff",
     "modifierType": 1,
     "isDebuff": false,
@@ -63,7 +63,7 @@
     "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab"
   },
   {
-    "id": 3004,
+    "id": 50500004,
     "name": "Poison Dot",
     "modifierType": 2,
     "isDebuff": true,
@@ -78,13 +78,13 @@
     "state": 0,
     "triggerEventType": 0,
     "triggerActionGroupId": 0,
-    "periodicActionGroupId": 2001,
+    "periodicActionGroupId": 50201001,
     "onCreatedActionGroupId": 0,
     "onDestroyActionGroupId": 0,
     "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab"
   },
   {
-    "id": 3005,
+    "id": 50500005,
     "name": "Stun",
     "modifierType": 3,
     "isDebuff": true,

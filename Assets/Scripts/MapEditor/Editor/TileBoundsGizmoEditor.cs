@@ -25,6 +25,8 @@ namespace Game.Editor
 
             if (GUILayout.Button("Refresh Bounds"))
             {
+                gizmo.RefreshCachedBounds();
+                EditorUtility.SetDirty(gizmo);
                 Repaint();
                 SceneView.RepaintAll();
             }

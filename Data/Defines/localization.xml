@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="LocalizationConfig">
+    <var name="key" type="string" comment="client" />
+    <var name="zhCn" type="string" comment="client" />
+    <var name="en" type="string" comment="client" />
+  </bean>
+
+  <table name="TbLocalization" value="LocalizationConfig" input="localization.xlsx" mode="map" index="key" />
+</module>

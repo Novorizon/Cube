@@ -96,6 +96,14 @@ MonoBehaviour:
         FilterRuleName: CollectAll
         AssetTags: 
         UserData: 
+      - CollectPath: Assets/Arts/UI/Icons
+        CollectorGUID: 8ef56a2d6f78441e9d79966f4be42e15
+        CollectorType: 0
+        AddressRuleName: AddressByFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectAll
+        AssetTags: 
+        UserData: 
     - GroupName: Data
       GroupDesc: 
       AssetTags: 
@@ -140,6 +148,14 @@ MonoBehaviour:
         UserData: 
       - CollectPath: Assets/Arts/Map
         CollectorGUID: 2f5e6d7c8b9a4c31a0b1c2d3e4f50617
+        CollectorType: 0
+        AddressRuleName: AddressByFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectAll
+        AssetTags: 
+        UserData: 
+      - CollectPath: Assets/Arts/Structure
+        CollectorGUID: 1d72f3f2be4647359c02efb3f6a0c8b1
         CollectorType: 0
         AddressRuleName: AddressByFileName
         PackRuleName: PackDirectory

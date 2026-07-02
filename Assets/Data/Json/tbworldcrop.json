@@ -1,10 +1,10 @@
 [
   {
-    "id": 1,
+    "id": 30500001,
     "name": "Wheat",
-    "seedItemId": 5000301,
+    "seedItemId": 20200001,
     "seedCost": 0,
-    "outputItemId": 8,
+    "outputItemId": 20100001,
     "growSeconds": 8,
     "outputCountPerSecond": 1,
     "plotColor": "#8C5C29",
@@ -12,11 +12,11 @@
     "enable": true
   },
   {
-    "id": 2,
+    "id": 30500002,
     "name": "Tomato",
-    "seedItemId": 5000301,
+    "seedItemId": 20200002,
     "seedCost": 0,
-    "outputItemId": 9,
+    "outputItemId": 20100002,
     "growSeconds": 12,
     "outputCountPerSecond": 1,
     "plotColor": "#567A2E",
@@ -24,11 +24,11 @@
     "enable": true
   },
   {
-    "id": 3,
+    "id": 30500003,
     "name": "Herb",
-    "seedItemId": 5000301,
+    "seedItemId": 20200003,
     "seedCost": 0,
-    "outputItemId": 7,
+    "outputItemId": 20100003,
     "growSeconds": 10,
     "outputCountPerSecond": 1,
     "plotColor": "#407338",
@@ -36,11 +36,11 @@
     "enable": true
   },
   {
-    "id": 4,
+    "id": 30500004,
     "name": "Flower",
-    "seedItemId": 5000301,
+    "seedItemId": 20200004,
     "seedCost": 0,
-    "outputItemId": 10,
+    "outputItemId": 20100004,
     "growSeconds": 14,
     "outputCountPerSecond": 1,
     "plotColor": "#4D6B33",

@@ -1,0 +1,2027 @@
+[
+  {
+    "key": "ui.common.free",
+    "zhCn": "免费",
+    "en": "Free"
+  },
+  {
+    "key": "ui.common.none",
+    "zhCn": "无",
+    "en": "None"
+  },
+  {
+    "key": "ui.language.current",
+    "zhCn": "当前：{0}",
+    "en": "Current: {0}"
+  },
+  {
+    "key": "ui.language.english",
+    "zhCn": "英文",
+    "en": "English"
+  },
+  {
+    "key": "ui.language.chinese",
+    "zhCn": "中文",
+    "en": "Chinese"
+  },
+  {
+    "key": "ui.language.toast",
+    "zhCn": "语言：{0}",
+    "en": "Language: {0}"
+  },
+  {
+    "key": "ui.tech.cost.missing",
+    "zhCn": "消耗缺失",
+    "en": "Cost missing"
+  },
+  {
+    "key": "ui.tech.panel.title",
+    "zhCn": "科技树",
+    "en": "Tech Tree"
+  },
+  {
+    "key": "ui.tech.state.unlocked",
+    "zhCn": "已解锁",
+    "en": "Unlocked"
+  },
+  {
+    "key": "ui.tech.state.can_research",
+    "zhCn": "可研究",
+    "en": "Can research"
+  },
+  {
+    "key": "ui.tech.state.locked",
+    "zhCn": "锁定",
+    "en": "Locked"
+  },
+  {
+    "key": "ui.tech.state.prerequisite_locked",
+    "zhCn": "前置未解锁",
+    "en": "Prerequisite locked"
+  },
+  {
+    "key": "ui.tech.state.not_enough_cost",
+    "zhCn": "材料不足",
+    "en": "Not enough materials"
+  },
+  {
+    "key": "ui.tech.reason.missing_config",
+    "zhCn": "科技配置缺失",
+    "en": "Tech config missing"
+  },
+  {
+    "key": "ui.tech.reason.disabled",
+    "zhCn": "科技配置不可用",
+    "en": "Tech config disabled"
+  },
+  {
+    "key": "ui.tech.reason.already_unlocked",
+    "zhCn": "科技已经解锁",
+    "en": "Tech already unlocked"
+  },
+  {
+    "key": "ui.tech.reason.need_prerequisite",
+    "zhCn": "需要前置科技：{0}",
+    "en": "Requires prerequisite tech: {0}"
+  },
+  {
+    "key": "ui.tech.reason.missing_cost_config",
+    "zhCn": "科技消耗配置缺失",
+    "en": "Tech cost config missing"
+  },
+  {
+    "key": "ui.tech.reason.not_enough_cost",
+    "zhCn": "材料不足：{0}",
+    "en": "Not enough materials: {0}"
+  },
+  {
+    "key": "ui.tech.require.prerequisite",
+    "zhCn": "科技：{0}",
+    "en": "Tech: {0}"
+  },
+  {
+    "key": "ui.tech.require.tech",
+    "zhCn": "科技：{0}",
+    "en": "Tech: {0}"
+  },
+  {
+    "key": "ui.tech.toast.unlocked",
+    "zhCn": "科技已解锁：{0}",
+    "en": "Tech unlocked: {0}"
+  },
+  {
+    "key": "ui.tech.branch.building",
+    "zhCn": "建筑发展",
+    "en": "Building"
+  },
+  {
+    "key": "ui.tech.branch.farm",
+    "zhCn": "农业生产",
+    "en": "Farming"
+  },
+  {
+    "key": "ui.tech.branch.production",
+    "zhCn": "工业制造",
+    "en": "Production"
+  },
+  {
+    "key": "ui.tech.branch.resource",
+    "zhCn": "资源采集",
+    "en": "Resource"
+  },
+  {
+    "key": "ui.tech.branch.special",
+    "zhCn": "特殊",
+    "en": "Special"
+  },
+  {
+    "key": "ui.tech.branch.other",
+    "zhCn": "其他",
+    "en": "Other"
+  },
+  {
+    "key": "ui.gm.title",
+    "zhCn": "GM",
+    "en": "GM"
+  },
+  {
+    "key": "ui.gm.tab.common",
+    "zhCn": "常用",
+    "en": "Common"
+  },
+  {
+    "key": "ui.gm.tab.resources",
+    "zhCn": "资源",
+    "en": "Resources"
+  },
+  {
+    "key": "ui.gm.tab.farming",
+    "zhCn": "种植",
+    "en": "Farming"
+  },
+  {
+    "key": "ui.gm.section.resources",
+    "zhCn": "资源",
+    "en": "Resources"
+  },
+  {
+    "key": "ui.gm.section.seeds",
+    "zhCn": "种子",
+    "en": "Seeds"
+  },
+  {
+    "key": "ui.gm.section.crops",
+    "zhCn": "作物",
+    "en": "Crops"
+  },
+  {
+    "key": "ui.gm.button.starter_pack",
+    "zhCn": "新手包",
+    "en": "Starter Pack"
+  },
+  {
+    "key": "ui.gm.button.wood_100",
+    "zhCn": "木材 +100",
+    "en": "Wood +100"
+  },
+  {
+    "key": "ui.gm.button.stone_100",
+    "zhCn": "石头 +100",
+    "en": "Stone +100"
+  },
+  {
+    "key": "ui.gm.button.gold_100",
+    "zhCn": "金币 +100",
+    "en": "Gold +100"
+  },
+  {
+    "key": "ui.gm.button.food_100",
+    "zhCn": "食物 +100",
+    "en": "Food +100"
+  },
+  {
+    "key": "ui.gm.button.all_resources_1000",
+    "zhCn": "全部资源 +1000",
+    "en": "All Resources +1000"
+  },
+  {
+    "key": "ui.gm.button.all_seeds_100",
+    "zhCn": "全部种子 +100",
+    "en": "All Seeds +100"
+  },
+  {
+    "key": "ui.gm.button.all_crops_1000",
+    "zhCn": "全部作物 +1000",
+    "en": "All Crops +1000"
+  },
+  {
+    "key": "ui.gm.button.refresh_ui",
+    "zhCn": "刷新UI",
+    "en": "Refresh UI"
+  },
+  {
+    "key": "ui.gm.status.ready",
+    "zhCn": "就绪",
+    "en": "Ready"
+  },
+  {
+    "key": "ui.gm.status.refreshed",
+    "zhCn": "已刷新",
+    "en": "Refreshed"
+  },
+  {
+    "key": "ui.gm.status.no_group",
+    "zhCn": "未配置{0}",
+    "en": "No {0} configured"
+  },
+  {
+    "key": "ui.gm.status.added_item",
+    "zhCn": "已增加 {0} +{1}",
+    "en": "Added {0} +{1}"
+  },
+  {
+    "key": "ui.gm.status.add_item_failed",
+    "zhCn": "增加 {0} 失败",
+    "en": "Add {0} failed"
+  },
+  {
+    "key": "ui.gm.status.added_group",
+    "zhCn": "已增加{0} +{1}",
+    "en": "Added {0} +{1}"
+  },
+  {
+    "key": "ui.gm.status.add_group_partial_failed",
+    "zhCn": "增加{0}部分失败",
+    "en": "Add {0} partially failed"
+  },
+  {
+    "key": "ui.gm.status.added_starter_pack",
+    "zhCn": "已增加新手包",
+    "en": "Added starter pack"
+  },
+  {
+    "key": "ui.gm.status.dev_only",
+    "zhCn": "GM 仅在编辑器/开发包可用",
+    "en": "GM is available in editor/development builds."
+  },
+  {
+    "key": "ui.gm.toast.added_item",
+    "zhCn": "GM 已增加 {0} +{1}",
+    "en": "GM added {0} +{1}"
+  },
+  {
+    "key": "ui.gm.toast.add_item_failed",
+    "zhCn": "GM 增加 {0} 失败",
+    "en": "GM add {0} failed"
+  },
+  {
+    "key": "ui.gm.toast.added_group",
+    "zhCn": "GM 已增加{0} +{1}",
+    "en": "GM added {0} +{1}"
+  },
+  {
+    "key": "ui.gm.toast.add_group_partial_failed",
+    "zhCn": "GM 增加{0}部分失败",
+    "en": "GM add {0} partially failed"
+  },
+  {
+    "key": "ui.gm.toast.added_starter_pack",
+    "zhCn": "GM 已增加新手包",
+    "en": "GM added starter pack"
+  },
+  {
+    "key": "ui.gm.group.resources",
+    "zhCn": "资源",
+    "en": "resources"
+  },
+  {
+    "key": "ui.gm.group.seeds",
+    "zhCn": "种子",
+    "en": "seeds"
+  },
+  {
+    "key": "ui.gm.group.crops",
+    "zhCn": "作物",
+    "en": "crops"
+  },
+  {
+    "key": "item.wood",
+    "zhCn": "木材",
+    "en": "Wood"
+  },
+  {
+    "key": "item.stone",
+    "zhCn": "石头",
+    "en": "Stone"
+  },
+  {
+    "key": "item.gold",
+    "zhCn": "金币",
+    "en": "Gold"
+  },
+  {
+    "key": "item.copper_ore",
+    "zhCn": "铜矿",
+    "en": "Copper Ore"
+  },
+  {
+    "key": "item.iron_ore",
+    "zhCn": "铁矿",
+    "en": "Iron Ore"
+  },
+  {
+    "key": "item.food",
+    "zhCn": "食物",
+    "en": "Food"
+  },
+  {
+    "key": "item.plank",
+    "zhCn": "木板",
+    "en": "Plank"
+  },
+  {
+    "key": "item.copper_ingot",
+    "zhCn": "铜锭",
+    "en": "Copper Ingot"
+  },
+  {
+    "key": "item.iron_ingot",
+    "zhCn": "铁锭",
+    "en": "Iron Ingot"
+  },
+  {
+    "key": "item.wheat_seed",
+    "zhCn": "小麦种子",
+    "en": "Wheat Seed"
+  },
+  {
+    "key": "item.tomato_seed",
+    "zhCn": "番茄种子",
+    "en": "Tomato Seed"
+  },
+  {
+    "key": "item.herb_seed",
+    "zhCn": "药草种子",
+    "en": "Herb Seed"
+  },
+  {
+    "key": "item.flower_seed",
+    "zhCn": "花种子",
+    "en": "Flower Seed"
+  },
+  {
+    "key": "item.wheat",
+    "zhCn": "小麦",
+    "en": "Wheat"
+  },
+  {
+    "key": "item.tomato",
+    "zhCn": "番茄",
+    "en": "Tomato"
+  },
+  {
+    "key": "item.herb",
+    "zhCn": "药草",
+    "en": "Herb"
+  },
+  {
+    "key": "item.flower",
+    "zhCn": "花",
+    "en": "Flower"
+  },
+  {
+    "key": "ui.common.locked",
+    "zhCn": "锁定",
+    "en": "Locked"
+  },
+  {
+    "key": "ui.common.config",
+    "zhCn": "配置",
+    "en": "Config"
+  },
+  {
+    "key": "ui.common.empty",
+    "zhCn": "空",
+    "en": "Empty"
+  },
+  {
+    "key": "ui.common.ready",
+    "zhCn": "就绪",
+    "en": "Ready"
+  },
+  {
+    "key": "ui.common.cancel",
+    "zhCn": "取消",
+    "en": "Cancel"
+  },
+  {
+    "key": "ui.common.close",
+    "zhCn": "关闭",
+    "en": "Close"
+  },
+  {
+    "key": "ui.menu.title",
+    "zhCn": "菜单",
+    "en": "Menu"
+  },
+  {
+    "key": "ui.menu.sound",
+    "zhCn": "声音",
+    "en": "Sound"
+  },
+  {
+    "key": "ui.menu.language",
+    "zhCn": "语言",
+    "en": "Language"
+  },
+  {
+    "key": "ui.menu.save",
+    "zhCn": "存档",
+    "en": "Save"
+  },
+  {
+    "key": "ui.menu.gm",
+    "zhCn": "GM",
+    "en": "GM"
+  },
+  {
+    "key": "ui.menu.close",
+    "zhCn": "关闭",
+    "en": "Close"
+  },
+  {
+    "key": "ui.menu.follow_role",
+    "zhCn": "跟随角色",
+    "en": "Follow Role"
+  },
+  {
+    "key": "ui.menu.camera_free",
+    "zhCn": "自由相机",
+    "en": "Camera Free"
+  },
+  {
+    "key": "ui.sound.title",
+    "zhCn": "声音",
+    "en": "Sound"
+  },
+  {
+    "key": "ui.sound.volume_current",
+    "zhCn": "音量：{0}%",
+    "en": "Volume: {0}%"
+  },
+  {
+    "key": "ui.sound.decrease",
+    "zhCn": "音量 -",
+    "en": "Volume -"
+  },
+  {
+    "key": "ui.sound.increase",
+    "zhCn": "音量 +",
+    "en": "Volume +"
+  },
+  {
+    "key": "ui.sound.mute",
+    "zhCn": "静音",
+    "en": "Mute"
+  },
+  {
+    "key": "ui.sound.unmute",
+    "zhCn": "取消静音",
+    "en": "Unmute"
+  },
+  {
+    "key": "ui.language.title",
+    "zhCn": "语言",
+    "en": "Language"
+  },
+  {
+    "key": "ui.save.title",
+    "zhCn": "存档",
+    "en": "Save"
+  },
+  {
+    "key": "ui.save.button",
+    "zhCn": "保存",
+    "en": "Save"
+  },
+  {
+    "key": "ui.save.status.ready",
+    "zhCn": "就绪",
+    "en": "Ready"
+  },
+  {
+    "key": "ui.save.status.saved",
+    "zhCn": "已保存",
+    "en": "Saved"
+  },
+  {
+    "key": "ui.save.status.failed",
+    "zhCn": "保存失败",
+    "en": "Save failed"
+  },
+  {
+    "key": "ui.build.require_house",
+    "zhCn": "需要先建造房屋",
+    "en": "Build House first"
+  },
+  {
+    "key": "ui.build.cost.need",
+    "zhCn": "需要 {0}",
+    "en": "Need {0}"
+  },
+  {
+    "key": "ui.build.locked",
+    "zhCn": "建筑未解锁",
+    "en": "Building locked"
+  },
+  {
+    "key": "ui.build.missing_materials",
+    "zhCn": "材料不足：{0}",
+    "en": "Not enough materials: {0}"
+  },
+  {
+    "key": "ui.build.icon_fallback",
+    "zhCn": "建造",
+    "en": "Build"
+  },
+  {
+    "key": "ui.build.status.constructing",
+    "zhCn": "建造中",
+    "en": "Constructing"
+  },
+  {
+    "key": "ui.build.status.active",
+    "zhCn": "已完成",
+    "en": "Active"
+  },
+  {
+    "key": "ui.build.reason.missing_building",
+    "zhCn": "建筑不存在",
+    "en": "Missing building"
+  },
+  {
+    "key": "ui.build.reason.construction",
+    "zhCn": "建造中",
+    "en": "Construction"
+  },
+  {
+    "key": "ui.build.reason.max_level",
+    "zhCn": "已达最高等级",
+    "en": "Max level"
+  },
+  {
+    "key": "ui.build.reason.cost_config",
+    "zhCn": "消耗配置缺失",
+    "en": "Cost config missing"
+  },
+  {
+    "key": "ui.build.reason.missing_config",
+    "zhCn": "配置缺失",
+    "en": "Missing config"
+  },
+  {
+    "key": "ui.build.reason.disabled",
+    "zhCn": "未启用",
+    "en": "Disabled"
+  },
+  {
+    "key": "ui.build.reason.not_unlocked",
+    "zhCn": "尚未解锁",
+    "en": "Not unlocked"
+  },
+  {
+    "key": "ui.build.reason.not_unlockable",
+    "zhCn": "不可解锁",
+    "en": "Not unlockable"
+  },
+  {
+    "key": "ui.build.require.house_level",
+    "zhCn": "房屋 Lv.{0}",
+    "en": "House Lv.{0}"
+  },
+  {
+    "key": "ui.build.require.building_level",
+    "zhCn": "{0} Lv.{1}",
+    "en": "{0} Lv.{1}"
+  },
+  {
+    "key": "ui.build.tab.building",
+    "zhCn": "建筑",
+    "en": "Buildings"
+  },
+  {
+    "key": "ui.build.tab.production",
+    "zhCn": "生产",
+    "en": "Production"
+  },
+  {
+    "key": "ui.build.tab.resource",
+    "zhCn": "资源",
+    "en": "Resources"
+  },
+  {
+    "key": "ui.build.tab.farm",
+    "zhCn": "农田",
+    "en": "Farm"
+  },
+  {
+    "key": "ui.build.tab.decoration",
+    "zhCn": "装饰",
+    "en": "Decoration"
+  },
+  {
+    "key": "ui.build.tab.special",
+    "zhCn": "特殊",
+    "en": "Special"
+  },
+  {
+    "key": "ui.main.mode.farm",
+    "zhCn": "农田模式",
+    "en": "Farm mode"
+  },
+  {
+    "key": "ui.main.mode.build",
+    "zhCn": "建造：{0}",
+    "en": "Build: {0}"
+  },
+  {
+    "key": "ui.main.mode.select",
+    "zhCn": "选择模式",
+    "en": "Select mode"
+  },
+  {
+    "key": "ui.main.selected_build",
+    "zhCn": "已选择建造：{0}",
+    "en": "Selected build: {0}"
+  },
+  {
+    "key": "ui.main.current_tool",
+    "zhCn": "当前工具：{0}",
+    "en": "Current tool: {0}"
+  },
+  {
+    "key": "ui.main.selected_farm_none",
+    "zhCn": "未选择农田",
+    "en": "No farm selected"
+  },
+  {
+    "key": "ui.main.farm_summary",
+    "zhCn": "农田 #{0}  地块 {1}  {2}  {3}",
+    "en": "Farm #{0}  Cells {1}  {2}  {3}"
+  },
+  {
+    "key": "ui.main.selected_building_none",
+    "zhCn": "未选择建筑",
+    "en": "No building selected"
+  },
+  {
+    "key": "ui.main.building_summary",
+    "zhCn": "{0} Lv.{1}  {2}",
+    "en": "{0} Lv.{1}  {2}"
+  },
+  {
+    "key": "ui.farm.title",
+    "zhCn": "农田",
+    "en": "Farm"
+  },
+  {
+    "key": "ui.farm.info",
+    "zhCn": "农田 #{0}\n地块：{1}\n作物：{2}\n成熟：{3}\n产出：{4}\n{5}",
+    "en": "Farm #{0}\nCells: {1}\nCrop: {2}\nMaturity: {3}\nOutput: {4}\n{5}"
+  },
+  {
+    "key": "ui.farm.operation.choose_seed",
+    "zhCn": "选择种子种植所有地块。",
+    "en": "Choose a seed to plant all cells."
+  },
+  {
+    "key": "ui.farm.operation.producing",
+    "zhCn": "自动产出中。",
+    "en": "Producing automatically."
+  },
+  {
+    "key": "ui.farm.operation.growing",
+    "zhCn": "生长中，暂时不能补种。",
+    "en": "Growing. Replant is disabled for now."
+  },
+  {
+    "key": "ui.farm.seed_cost",
+    "zhCn": "种子 {0}/{1}",
+    "en": "Seed {0}/{1}"
+  },
+  {
+    "key": "ui.farm.no_seed_cost",
+    "zhCn": "无种子消耗",
+    "en": "No seed cost"
+  },
+  {
+    "key": "ui.farm.state.planted",
+    "zhCn": "已种植",
+    "en": "Planted"
+  },
+  {
+    "key": "ui.farm.state.not_enough",
+    "zhCn": "不足",
+    "en": "Not enough"
+  },
+  {
+    "key": "ui.time.remain",
+    "zhCn": "剩余 {0}",
+    "en": "Remain {0}"
+  },
+  {
+    "key": "ui.building_detail.title",
+    "zhCn": "建筑",
+    "en": "Building"
+  },
+  {
+    "key": "ui.building_detail.none",
+    "zhCn": "未选择建筑",
+    "en": "No building selected"
+  },
+  {
+    "key": "ui.building_detail.info",
+    "zhCn": "{0}\n等级：{1}\n状态：{2}\n坐标：{3},{4},{5}\n升级：{6}",
+    "en": "{0}\nLevel: {1}\nStatus: {2}\nCoord: {3},{4},{5}\nUpgrade: {6}"
+  },
+  {
+    "key": "ui.building_detail.no_recipe_for_building",
+    "zhCn": "这个建筑没有配方",
+    "en": "No recipe for this building"
+  },
+  {
+    "key": "ui.recipe.none",
+    "zhCn": "无配方",
+    "en": "No recipe"
+  },
+  {
+    "key": "ui.recipe.input",
+    "zhCn": "输入：",
+    "en": "In:"
+  },
+  {
+    "key": "ui.recipe.output",
+    "zhCn": "输出：",
+    "en": "Out:"
+  },
+  {
+    "key": "recipe.30600001.name",
+    "zhCn": "锯木板",
+    "en": "Saw Planks"
+  },
+  {
+    "key": "recipe.30600002.name",
+    "zhCn": "磨小麦",
+    "en": "Mill Wheat"
+  },
+  {
+    "key": "recipe.30600003.name",
+    "zhCn": "冶炼铜锭",
+    "en": "Smelt Copper"
+  },
+  {
+    "key": "recipe.30600004.name",
+    "zhCn": "冶炼铁锭",
+    "en": "Smelt Iron"
+  },
+  {
+    "key": "ui.production.title",
+    "zhCn": "生产",
+    "en": "Production"
+  },
+  {
+    "key": "ui.production.header",
+    "zhCn": "名称        数量      /分钟",
+    "en": "Name        Count      /Min"
+  },
+  {
+    "key": "ui.production.no_data",
+    "zhCn": "暂无生产数据",
+    "en": "No production data"
+  },
+  {
+    "key": "ui.production.group.overview",
+    "zhCn": "总览",
+    "en": "Overview"
+  },
+  {
+    "key": "ui.production.group.crops",
+    "zhCn": "作物",
+    "en": "Crops"
+  },
+  {
+    "key": "ui.production.group.ores",
+    "zhCn": "矿石",
+    "en": "Ores"
+  },
+  {
+    "key": "ui.production.group.basic",
+    "zhCn": "基础资源",
+    "en": "Basic Resources"
+  },
+  {
+    "key": "ui.production.group.buildings",
+    "zhCn": "建筑",
+    "en": "Buildings"
+  },
+  {
+    "key": "ui.topbar.gold",
+    "zhCn": "金币",
+    "en": "Gold"
+  },
+  {
+    "key": "ui.topbar.wood",
+    "zhCn": "木头",
+    "en": "Wood"
+  },
+  {
+    "key": "ui.topbar.stone",
+    "zhCn": "石头",
+    "en": "Stone"
+  },
+  {
+    "key": "ui.topbar.food",
+    "zhCn": "食物",
+    "en": "Food"
+  },
+  {
+    "key": "ui.topbar.ore",
+    "zhCn": "矿石",
+    "en": "Ore"
+  },
+  {
+    "key": "ui.topbar.crop",
+    "zhCn": "作物",
+    "en": "Crop"
+  },
+  {
+    "key": "ui.topbar.date",
+    "zhCn": "日期",
+    "en": "Date"
+  },
+  {
+    "key": "ui.topbar.time",
+    "zhCn": "时间",
+    "en": "Time"
+  },
+  {
+    "key": "ui.topbar.season",
+    "zhCn": "季节",
+    "en": "Season"
+  },
+  {
+    "key": "ui.topbar.weather",
+    "zhCn": "天气",
+    "en": "Weather"
+  },
+  {
+    "key": "ui.topbar.setting",
+    "zhCn": "设置",
+    "en": "Setting"
+  },
+  {
+    "key": "ui.topbar.weather_value",
+    "zhCn": "{0} {1}C",
+    "en": "{0} {1}C"
+  },
+  {
+    "key": "ui.weather.sunny",
+    "zhCn": "晴朗",
+    "en": "Sunny"
+  },
+  {
+    "key": "ui.calendar.date",
+    "zhCn": "第 {0} 年 {1} {2}/{3}",
+    "en": "Year {0} {1} {2}/{3}"
+  },
+  {
+    "key": "ui.calendar.short_date",
+    "zhCn": "{0} {1}/{2}",
+    "en": "{0} {1}/{2}"
+  },
+  {
+    "key": "ui.calendar.season.spring",
+    "zhCn": "春",
+    "en": "Spring"
+  },
+  {
+    "key": "ui.calendar.season.summer",
+    "zhCn": "夏",
+    "en": "Summer"
+  },
+  {
+    "key": "ui.calendar.season.autumn",
+    "zhCn": "秋",
+    "en": "Autumn"
+  },
+  {
+    "key": "ui.calendar.season.winter",
+    "zhCn": "冬",
+    "en": "Winter"
+  },
+  {
+    "key": "ui.calendar.season.unknown",
+    "zhCn": "未知",
+    "en": "Unknown"
+  },
+  {
+    "key": "ui.tech.icon_fallback",
+    "zhCn": "科技",
+    "en": "Tech"
+  },
+  {
+    "key": "ui.td.toast.not_enough_gold",
+    "zhCn": "金币不足",
+    "en": "Not enough gold"
+  },
+  {
+    "key": "ui.td.toast.tile_not_buildable",
+    "zhCn": "该地块不可建造",
+    "en": "This tile cannot be built on"
+  },
+  {
+    "key": "ui.td.toast.max_level",
+    "zhCn": "已达最高等级",
+    "en": "Max level reached"
+  },
+  {
+    "key": "ui.td.toast.upgrade_success",
+    "zhCn": "升级成功 Lv {0}",
+    "en": "Upgrade success Lv {0}"
+  },
+  {
+    "key": "ui.td.toast.sell_failed_level_config",
+    "zhCn": "出售失败：塔等级配置缺失",
+    "en": "Sell failed: tower level config missing"
+  },
+  {
+    "key": "ui.td.toast.tile_state_error",
+    "zhCn": "操作失败：地块状态异常",
+    "en": "Operation failed: tile state error"
+  },
+  {
+    "key": "ui.td.toast.upgrade_model_missing",
+    "zhCn": "升级失败：模型资源缺失",
+    "en": "Upgrade failed: model missing"
+  },
+  {
+    "key": "ui.td.result.victory",
+    "zhCn": "战斗胜利",
+    "en": "Victory"
+  },
+  {
+    "key": "ui.td.result.defeat",
+    "zhCn": "战斗失败",
+    "en": "Defeat"
+  },
+  {
+    "key": "ui.td.result.current_map",
+    "zhCn": "当前关卡",
+    "en": "Current Map"
+  },
+  {
+    "key": "ui.td.result.reward_none",
+    "zhCn": "奖励：无",
+    "en": "Reward: None"
+  },
+  {
+    "key": "ui.td.result.reward_prefix",
+    "zhCn": "奖励：",
+    "en": "Reward:"
+  },
+  {
+    "key": "ui.td.result.reason_victory",
+    "zhCn": "所有波次已清理。",
+    "en": "All waves cleared."
+  },
+  {
+    "key": "ui.td.result.reason_defeat",
+    "zhCn": "基地被摧毁。",
+    "en": "Base destroyed."
+  },
+  {
+    "key": "ui.td.button.next",
+    "zhCn": "下一关",
+    "en": "Next"
+  },
+  {
+    "key": "ui.td.button.restart",
+    "zhCn": "重新开始",
+    "en": "Restart"
+  },
+  {
+    "key": "ui.td.button.main_menu",
+    "zhCn": "主菜单",
+    "en": "Main Menu"
+  },
+  {
+    "key": "ui.td.settings.language_unavailable",
+    "zhCn": "语言设置暂未开放",
+    "en": "Language settings are not available yet"
+  },
+  {
+    "key": "ui.td.settings.sound_on",
+    "zhCn": "声音：开",
+    "en": "Sound: On"
+  },
+  {
+    "key": "ui.td.settings.sound_off",
+    "zhCn": "声音：关",
+    "en": "Sound: Off"
+  },
+  {
+    "key": "ui.td.settings.title",
+    "zhCn": "设置",
+    "en": "Settings"
+  },
+  {
+    "key": "ui.td.settings.language",
+    "zhCn": "语言",
+    "en": "Language"
+  },
+  {
+    "key": "ui.td.settings.sound",
+    "zhCn": "声音",
+    "en": "Sound"
+  },
+  {
+    "key": "ui.td.settings.restart",
+    "zhCn": "重新开始",
+    "en": "Restart"
+  },
+  {
+    "key": "ui.td.settings.main_menu",
+    "zhCn": "主菜单",
+    "en": "Main Menu"
+  },
+  {
+    "key": "ui.td.info.level",
+    "zhCn": "等级",
+    "en": "Level"
+  },
+  {
+    "key": "ui.td.info.attack",
+    "zhCn": "攻击",
+    "en": "Attack"
+  },
+  {
+    "key": "ui.td.info.range",
+    "zhCn": "范围",
+    "en": "Range"
+  },
+  {
+    "key": "ui.td.info.attack_speed",
+    "zhCn": "攻速",
+    "en": "Attack Speed"
+  },
+  {
+    "key": "ui.td.info.upgrade",
+    "zhCn": "升级",
+    "en": "Upgrade"
+  },
+  {
+    "key": "ui.td.info.sell",
+    "zhCn": "出售",
+    "en": "Sell"
+  },
+  {
+    "key": "ui.td.info.hp",
+    "zhCn": "生命",
+    "en": "HP"
+  },
+  {
+    "key": "ui.td.info.damage",
+    "zhCn": "伤害",
+    "en": "Damage"
+  },
+  {
+    "key": "ui.td.info.attack_range",
+    "zhCn": "攻击范围",
+    "en": "Attack Range"
+  },
+  {
+    "key": "ui.td.info.attack_interval",
+    "zhCn": "攻击间隔",
+    "en": "Attack Interval"
+  },
+  {
+    "key": "ui.td.info.move_speed",
+    "zhCn": "移动速度",
+    "en": "Move Speed"
+  },
+  {
+    "key": "ui.td.info.kill_gold",
+    "zhCn": "击杀金币",
+    "en": "Kill Gold"
+  },
+  {
+    "key": "ui.td.label.normal_tower",
+    "zhCn": "普通塔",
+    "en": "Normal Tower"
+  },
+  {
+    "key": "ui.td.label.frost_tower",
+    "zhCn": "冰冻塔",
+    "en": "Frost Tower"
+  },
+  {
+    "key": "ui.td.label.base_life",
+    "zhCn": "基地生命",
+    "en": "Base Life"
+  },
+  {
+    "key": "ui.td.label.auto_next_wave",
+    "zhCn": "自动下一波",
+    "en": "Auto Next Wave"
+  },
+  {
+    "key": "ui.td.label.tower",
+    "zhCn": "塔",
+    "en": "Tower"
+  },
+  {
+    "key": "ui.td.label.attack",
+    "zhCn": "攻击",
+    "en": "Attack"
+  },
+  {
+    "key": "ui.td.label.range",
+    "zhCn": "范围",
+    "en": "Range"
+  },
+  {
+    "key": "ui.td.label.upgrade",
+    "zhCn": "升级",
+    "en": "Upgrade"
+  },
+  {
+    "key": "ui.td.label.sell",
+    "zhCn": "出售",
+    "en": "Sell"
+  },
+  {
+    "key": "ui.task.current_goals",
+    "zhCn": "当前目标",
+    "en": "Current Goals"
+  },
+  {
+    "key": "task.60000001.name",
+    "zhCn": "建造房屋",
+    "en": "Build House"
+  },
+  {
+    "key": "task.60000002.name",
+    "zhCn": "收集木头",
+    "en": "Gather Wood"
+  },
+  {
+    "key": "task.60000003.name",
+    "zhCn": "收集石头",
+    "en": "Gather Stone"
+  },
+  {
+    "key": "task.60000004.name",
+    "zhCn": "开垦农田",
+    "en": "Open Farm"
+  },
+  {
+    "key": "task.60000005.name",
+    "zhCn": "建造矿场",
+    "en": "Build Mine"
+  },
+  {
+    "key": "item.food.desc",
+    "zhCn": "食物",
+    "en": "Food"
+  },
+  {
+    "key": "item.basic_fishing_rod",
+    "zhCn": "基础鱼竿",
+    "en": "Basic Fishing Rod"
+  },
+  {
+    "key": "item.basic_fishing_rod.desc",
+    "zhCn": "基础鱼竿",
+    "en": "Basic Fishing Rod"
+  },
+  {
+    "key": "item.iron_ingot.desc",
+    "zhCn": "铁锭",
+    "en": "Iron Ingot"
+  },
+  {
+    "key": "item.wheat.desc",
+    "zhCn": "小麦",
+    "en": "Wheat"
+  },
+  {
+    "key": "item.basic_hammer",
+    "zhCn": "基础锤子",
+    "en": "Basic Hammer"
+  },
+  {
+    "key": "item.basic_hammer.desc",
+    "zhCn": "基础锤子",
+    "en": "Basic Hammer"
+  },
+  {
+    "key": "item.wood.desc",
+    "zhCn": "木头",
+    "en": "Wood"
+  },
+  {
+    "key": "item.tomato_seed.desc",
+    "zhCn": "番茄种子",
+    "en": "Tomato Seed"
+  },
+  {
+    "key": "item.slime_core",
+    "zhCn": "史莱姆核心",
+    "en": "Slime Core"
+  },
+  {
+    "key": "item.slime_core.desc",
+    "zhCn": "史莱姆核心",
+    "en": "Slime Core"
+  },
+  {
+    "key": "item.basic_axe",
+    "zhCn": "基础斧头",
+    "en": "Basic Axe"
+  },
+  {
+    "key": "item.basic_axe.desc",
+    "zhCn": "基础斧头",
+    "en": "Basic Axe"
+  },
+  {
+    "key": "item.iron_ore.desc",
+    "zhCn": "铁矿石",
+    "en": "Iron Ore"
+  },
+  {
+    "key": "item.flower_seed.desc",
+    "zhCn": "花种子",
+    "en": "Flower Seed"
+  },
+  {
+    "key": "item.basic_pickaxe",
+    "zhCn": "基础镐",
+    "en": "Basic Pickaxe"
+  },
+  {
+    "key": "item.basic_pickaxe.desc",
+    "zhCn": "基础镐",
+    "en": "Basic Pickaxe"
+  },
+  {
+    "key": "item.basic_hoe",
+    "zhCn": "基础锄头",
+    "en": "Basic Hoe"
+  },
+  {
+    "key": "item.basic_hoe.desc",
+    "zhCn": "基础锄头",
+    "en": "Basic Hoe"
+  },
+  {
+    "key": "item.stone.desc",
+    "zhCn": "石头",
+    "en": "Stone"
+  },
+  {
+    "key": "item.herb.desc",
+    "zhCn": "药草",
+    "en": "Herb"
+  },
+  {
+    "key": "item.wheat_seed.desc",
+    "zhCn": "小麦种子",
+    "en": "Wheat Seed"
+  },
+  {
+    "key": "item.herb_seed.desc",
+    "zhCn": "药草种子",
+    "en": "Herb Seed"
+  },
+  {
+    "key": "item.copper_ingot.desc",
+    "zhCn": "铜锭",
+    "en": "Copper Ingot"
+  },
+  {
+    "key": "item.blueprint",
+    "zhCn": "蓝图",
+    "en": "Blueprint"
+  },
+  {
+    "key": "item.blueprint.desc",
+    "zhCn": "蓝图",
+    "en": "Blueprint"
+  },
+  {
+    "key": "item.bomb_bridge",
+    "zhCn": "炸桥炸弹",
+    "en": "Bomb Bridge"
+  },
+  {
+    "key": "item.bomb_bridge.desc",
+    "zhCn": "炸桥炸弹",
+    "en": "Bomb Bridge"
+  },
+  {
+    "key": "item.gold.desc",
+    "zhCn": "金币",
+    "en": "Gold"
+  },
+  {
+    "key": "item.bomb_tree",
+    "zhCn": "炸树炸弹",
+    "en": "Bomb Tree"
+  },
+  {
+    "key": "item.bomb_tree.desc",
+    "zhCn": "炸树炸弹",
+    "en": "Bomb Tree"
+  },
+  {
+    "key": "item.copper_ore.desc",
+    "zhCn": "铜矿石",
+    "en": "Copper Ore"
+  },
+  {
+    "key": "item.basic_watering_can",
+    "zhCn": "基础水壶",
+    "en": "Basic Watering Can"
+  },
+  {
+    "key": "item.basic_watering_can.desc",
+    "zhCn": "基础水壶",
+    "en": "Basic Watering Can"
+  },
+  {
+    "key": "item.flower.desc",
+    "zhCn": "花",
+    "en": "Flower"
+  },
+  {
+    "key": "item.tomato.desc",
+    "zhCn": "番茄",
+    "en": "Tomato"
+  },
+  {
+    "key": "item.plank.desc",
+    "zhCn": "木板",
+    "en": "Plank"
+  },
+  {
+    "key": "building.30000001.name",
+    "zhCn": "房屋",
+    "en": "House"
+  },
+  {
+    "key": "building.30000001.desc",
+    "zhCn": "最初的家，解锁早期建造流程。",
+    "en": "First home. Unlocks early world building progression."
+  },
+  {
+    "key": "building.30000002.name",
+    "zhCn": "仓库",
+    "en": "Warehouse"
+  },
+  {
+    "key": "building.30000002.desc",
+    "zhCn": "储存长期资源。",
+    "en": "Stores long-term resources."
+  },
+  {
+    "key": "building.30000003.name",
+    "zhCn": "工作台",
+    "en": "Workbench"
+  },
+  {
+    "key": "building.30000003.desc",
+    "zhCn": "基础制作与早期生产。",
+    "en": "Basic crafting and early production."
+  },
+  {
+    "key": "building.30000004.name",
+    "zhCn": "木工台",
+    "en": "Carpentry Bench"
+  },
+  {
+    "key": "building.30000004.desc",
+    "zhCn": "加工木材和木工配方。",
+    "en": "Processes wood and carpentry recipes."
+  },
+  {
+    "key": "building.30000005.name",
+    "zhCn": "熔炉",
+    "en": "Furnace"
+  },
+  {
+    "key": "building.30000005.desc",
+    "zhCn": "冶炼矿石并产出炉制材料。",
+    "en": "Smelts ore and produces furnace materials."
+  },
+  {
+    "key": "building.30000006.name",
+    "zhCn": "铁匠铺",
+    "en": "Blacksmith"
+  },
+  {
+    "key": "building.30000006.desc",
+    "zhCn": "加工金属和铁匠配方。",
+    "en": "Processes metal and blacksmith recipes."
+  },
+  {
+    "key": "building.30000007.name",
+    "zhCn": "磨坊",
+    "en": "Mill"
+  },
+  {
+    "key": "building.30000007.desc",
+    "zhCn": "把作物加工成食物材料。",
+    "en": "Processes crops into food materials."
+  },
+  {
+    "key": "building.30001001.name",
+    "zhCn": "作物田",
+    "en": "Crop Field"
+  },
+  {
+    "key": "building.30001001.desc",
+    "zhCn": "种植作物并自动产出。",
+    "en": "Field for crop planting and automatic crop output."
+  },
+  {
+    "key": "building.30001002.name",
+    "zhCn": "花田",
+    "en": "Flower Field"
+  },
+  {
+    "key": "building.30001002.desc",
+    "zhCn": "种植花并自动产出。",
+    "en": "Field for flower planting and automatic flower output."
+  },
+  {
+    "key": "building.30001003.name",
+    "zhCn": "药草田",
+    "en": "Herb Field"
+  },
+  {
+    "key": "building.30001003.desc",
+    "zhCn": "种植药草并自动产出。",
+    "en": "Field for herb planting and automatic herb output."
+  },
+  {
+    "key": "building.30002001.name",
+    "zhCn": "采石场",
+    "en": "Stone Mine"
+  },
+  {
+    "key": "building.30002001.desc",
+    "zhCn": "产出石头的资源建筑。",
+    "en": "Resource building for stone output."
+  },
+  {
+    "key": "building.30002002.name",
+    "zhCn": "铜矿场",
+    "en": "Copper Mine"
+  },
+  {
+    "key": "building.30002002.desc",
+    "zhCn": "产出铜矿石的资源建筑。",
+    "en": "Resource building for copper ore output."
+  },
+  {
+    "key": "building.30002003.name",
+    "zhCn": "铁矿场",
+    "en": "Iron Mine"
+  },
+  {
+    "key": "building.30002003.desc",
+    "zhCn": "产出铁矿石的资源建筑。",
+    "en": "Resource building for iron ore output."
+  },
+  {
+    "key": "tech.30700001.name",
+    "zhCn": "建筑规划",
+    "en": "Building Planning"
+  },
+  {
+    "key": "tech.30700001.desc",
+    "zhCn": "解锁建筑发展分支。",
+    "en": "Unlocks the building development branch."
+  },
+  {
+    "key": "tech.30700002.name",
+    "zhCn": "仓库建设",
+    "en": "Warehouse Construction"
+  },
+  {
+    "key": "tech.30700002.desc",
+    "zhCn": "解锁仓库建造。",
+    "en": "Unlocks warehouse construction."
+  },
+  {
+    "key": "tech.30700003.name",
+    "zhCn": "定居扩建",
+    "en": "Settlement Expansion"
+  },
+  {
+    "key": "tech.30700003.desc",
+    "zhCn": "预留：房屋和定居点成长。",
+    "en": "Reserved node for housing and town growth."
+  },
+  {
+    "key": "tech.30701001.name",
+    "zhCn": "开垦农田",
+    "en": "Farming"
+  },
+  {
+    "key": "tech.30701001.desc",
+    "zhCn": "解锁基础作物田。",
+    "en": "Unlocks basic crop fields."
+  },
+  {
+    "key": "tech.30701002.name",
+    "zhCn": "花田培育",
+    "en": "Flower Cultivation"
+  },
+  {
+    "key": "tech.30701002.desc",
+    "zhCn": "解锁花田。",
+    "en": "Unlocks flower fields."
+  },
+  {
+    "key": "tech.30701003.name",
+    "zhCn": "草药培育",
+    "en": "Herb Cultivation"
+  },
+  {
+    "key": "tech.30701003.desc",
+    "zhCn": "解锁草药田。",
+    "en": "Unlocks herb fields."
+  },
+  {
+    "key": "tech.30702001.name",
+    "zhCn": "基础工作台",
+    "en": "Basic Workbench"
+  },
+  {
+    "key": "tech.30702001.desc",
+    "zhCn": "解锁工作台。",
+    "en": "Unlocks the workbench."
+  },
+  {
+    "key": "tech.30702002.name",
+    "zhCn": "木工加工",
+    "en": "Carpentry"
+  },
+  {
+    "key": "tech.30702002.desc",
+    "zhCn": "解锁木工台。",
+    "en": "Unlocks the carpentry bench."
+  },
+  {
+    "key": "tech.30702003.name",
+    "zhCn": "磨坊加工",
+    "en": "Milling"
+  },
+  {
+    "key": "tech.30702003.desc",
+    "zhCn": "解锁磨坊。",
+    "en": "Unlocks the mill."
+  },
+  {
+    "key": "tech.30702004.name",
+    "zhCn": "熔炉冶炼",
+    "en": "Smelting"
+  },
+  {
+    "key": "tech.30702004.desc",
+    "zhCn": "解锁熔炉。",
+    "en": "Unlocks the furnace."
+  },
+  {
+    "key": "tech.30702005.name",
+    "zhCn": "铁匠锻造",
+    "en": "Blacksmithing"
+  },
+  {
+    "key": "tech.30702005.desc",
+    "zhCn": "解锁铁匠铺。",
+    "en": "Unlocks the blacksmith."
+  },
+  {
+    "key": "tech.30703001.name",
+    "zhCn": "采石技术",
+    "en": "Quarrying"
+  },
+  {
+    "key": "tech.30703001.desc",
+    "zhCn": "解锁采石场。",
+    "en": "Unlocks stone mine construction."
+  },
+  {
+    "key": "tech.30703002.name",
+    "zhCn": "铜矿开采",
+    "en": "Copper Mining"
+  },
+  {
+    "key": "tech.30703002.desc",
+    "zhCn": "解锁铜矿场。",
+    "en": "Unlocks copper mine construction."
+  },
+  {
+    "key": "tech.30703003.name",
+    "zhCn": "铁矿开采",
+    "en": "Iron Mining"
+  },
+  {
+    "key": "tech.30703003.desc",
+    "zhCn": "解锁铁矿场。",
+    "en": "Unlocks iron mine construction."
+  },
+  {
+    "key": "crop.30500001.name",
+    "zhCn": "小麦",
+    "en": "Wheat"
+  },
+  {
+    "key": "crop.30500002.name",
+    "zhCn": "番茄",
+    "en": "Tomato"
+  },
+  {
+    "key": "crop.30500003.name",
+    "zhCn": "药草",
+    "en": "Herb"
+  },
+  {
+    "key": "crop.30500004.name",
+    "zhCn": "花",
+    "en": "Flower"
+  },
+  {
+    "key": "tower.30100001.name",
+    "zhCn": "箭塔",
+    "en": "Arrow Tower"
+  },
+  {
+    "key": "tower.30100001.desc",
+    "zhCn": "基础单体塔，造价低，攻速较快。",
+    "en": "Basic single-target tower with low cost and fast attack."
+  },
+  {
+    "key": "tower.30100002.name",
+    "zhCn": "火焰塔",
+    "en": "Fire Tower"
+  },
+  {
+    "key": "tower.30100002.desc",
+    "zhCn": "高伤害塔，适合后续扩展范围伤害。",
+    "en": "High damage tower, ready for later AOE expansion."
+  },
+  {
+    "key": "tower.30100003.name",
+    "zhCn": "冰霜塔",
+    "en": "Frost Tower"
+  },
+  {
+    "key": "tower.30100003.desc",
+    "zhCn": "控制型塔，造成低伤害并减速。",
+    "en": "Control tower with low damage and slow."
+  },
+  {
+    "key": "tower.30100004.name",
+    "zhCn": "雷电塔",
+    "en": "Lightning Tower"
+  },
+  {
+    "key": "tower.30100004.desc",
+    "zhCn": "控制型塔，适合眩晕或连锁伤害。",
+    "en": "Control tower for stun or chain damage."
+  },
+  {
+    "key": "tower.30100005.name",
+    "zhCn": "毒液塔",
+    "en": "Poison Tower"
+  },
+  {
+    "key": "tower.30100005.desc",
+    "zhCn": "控制型塔，适合持续伤害。",
+    "en": "Control tower for damage over time."
+  },
+  {
+    "key": "npc.41000001.name",
+    "zhCn": "普通敌人",
+    "en": "Normal Enemy"
+  },
+  {
+    "key": "npc.41000001.desc",
+    "zhCn": "最基础的敌人。",
+    "en": "Basic enemy."
+  },
+  {
+    "key": "npc.41000002.name",
+    "zhCn": "快速敌人",
+    "en": "Fast Enemy"
+  },
+  {
+    "key": "npc.41000002.desc",
+    "zhCn": "移动速度更快的敌人。",
+    "en": "Enemy with higher move speed."
+  },
+  {
+    "key": "npc.40200001.name",
+    "zhCn": "流浪商人",
+    "en": "Wandering Merchant"
+  },
+  {
+    "key": "npc.40200001.desc",
+    "zhCn": "出售基础道具的商人。",
+    "en": "Merchant selling basic items."
+  },
+  {
+    "key": "base.default.name",
+    "zhCn": "基地",
+    "en": "Base"
+  },
+  {
+    "key": "base.default.desc",
+    "zhCn": "保护基地，生命归零则战斗失败。",
+    "en": "Protect the base. Battle is lost when its life reaches zero."
+  },
+  {
+    "key": "base.30200001.name",
+    "zhCn": "标准基地",
+    "en": "Standard Base"
+  },
+  {
+    "key": "base.30200001.desc",
+    "zhCn": "默认基地，适合测试关卡。",
+    "en": "Default base for test maps."
+  },
+  {
+    "key": "base.30200002.name",
+    "zhCn": "脆弱基地",
+    "en": "Fragile Base"
+  },
+  {
+    "key": "base.30200002.desc",
+    "zhCn": "低生命值测试基地。",
+    "en": "Low-life test base."
+  },
+  {
+    "key": "base.30200003.name",
+    "zhCn": "小型基地",
+    "en": "Small Base"
+  },
+  {
+    "key": "base.30200003.desc",
+    "zhCn": "小型测试基地。",
+    "en": "Small test base."
+  },
+  {
+    "key": "map.30950001.name",
+    "zhCn": "测试关卡 1",
+    "en": "Test Map 1"
+  },
+  {
+    "key": "map.30950001.desc",
+    "zhCn": "第一张测试地图。",
+    "en": "First test map."
+  },
+  {
+    "key": "map.30950002.name",
+    "zhCn": "测试关卡 2",
+    "en": "Test Map 2"
+  },
+  {
+    "key": "map.30950002.desc",
+    "zhCn": "复用地图 1，难度更高。",
+    "en": "Reuses map 1 with higher difficulty."
+  },
+  {
+    "key": "map.30950003.name",
+    "zhCn": "测试关卡 3",
+    "en": "Test Map 3"
+  },
+  {
+    "key": "map.30950003.desc",
+    "zhCn": "使用地图 2 的测试关卡。",
+    "en": "Test map using map 2."
+  },
+  {
+    "key": "skill.50000001.name",
+    "zhCn": "火球",
+    "en": "Fireball"
+  },
+  {
+    "key": "skill.50000001.desc",
+    "zhCn": "单体魔法伤害。",
+    "en": "Single target magical damage."
+  },
+  {
+    "key": "skill.50000002.name",
+    "zhCn": "冰霜新星",
+    "en": "Frost Nova"
+  },
+  {
+    "key": "skill.50000002.desc",
+    "zhCn": "目标点范围伤害并减速。",
+    "en": "Area damage and slow at target point."
+  },
+  {
+    "key": "skill.50000003.name",
+    "zhCn": "冰塔射击",
+    "en": "Ice Tower Shot"
+  },
+  {
+    "key": "skill.50000003.desc",
+    "zhCn": "塔命中后造成伤害并附加冰霜减速。",
+    "en": "Tower hit applies damage and freeze slow."
+  },
+  {
+    "key": "skill.50000004.name",
+    "zhCn": "治疗",
+    "en": "Heal"
+  },
+  {
+    "key": "skill.50000004.desc",
+    "zhCn": "单体友方治疗。",
+    "en": "Single target friendly heal."
+  },
+  {
+    "key": "skill.50000005.name",
+    "zhCn": "毒云",
+    "en": "Poison Cloud"
+  },
+  {
+    "key": "skill.50000005.desc",
+    "zhCn": "区域持续毒伤。",
+    "en": "Apply poison damage over time in area."
+  },
+  {
+    "key": "skill.50000006.name",
+    "zhCn": "眩晕箭",
+    "en": "Stun Bolt"
+  },
+  {
+    "key": "skill.50000006.desc",
+    "zhCn": "单体伤害并眩晕。",
+    "en": "Single target damage and stun."
+  },
+  {
+    "key": "skill.50001001.name",
+    "zhCn": "攻速光环",
+    "en": "Attack Speed Aura"
+  },
+  {
+    "key": "skill.50001001.desc",
+    "zhCn": "被动攻速光环。",
+    "en": "Passive attack speed aura."
+  },
+  {
+    "key": "modifier.50500001.name",
+    "zhCn": "冰霜减速",
+    "en": "Frost Slow"
+  },
+  {
+    "key": "modifier.50500002.name",
+    "zhCn": "冰冻减速",
+    "en": "Ice Freeze Slow"
+  },
+  {
+    "key": "modifier.50500003.name",
+    "zhCn": "攻速光环增益",
+    "en": "Attack Speed Aura Buff"
+  },
+  {
+    "key": "modifier.50500004.name",
+    "zhCn": "中毒",
+    "en": "Poison Dot"
+  },
+  {
+    "key": "modifier.50500005.name",
+    "zhCn": "眩晕",
+    "en": "Stun"
+  },
+  {
+    "key": "world_resource.30300001.name",
+    "zhCn": "树",
+    "en": "Tree"
+  },
+  {
+    "key": "world_resource.30300002.name",
+    "zhCn": "岩石",
+    "en": "Rock"
+  },
+  {
+    "key": "world_resource.30300003.name",
+    "zhCn": "铜矿",
+    "en": "Copper Ore"
+  },
+  {
+    "key": "world_resource.30300004.name",
+    "zhCn": "铁矿",
+    "en": "Iron Ore"
+  },
+  {
+    "key": "world_resource.30300005.name",
+    "zhCn": "药草丛",
+    "en": "Herb Bush"
+  },
+  {
+    "key": "world_resource.30300006.name",
+    "zhCn": "小麦",
+    "en": "Wheat"
+  },
+  {
+    "key": "world_resource.30300007.name",
+    "zhCn": "番茄",
+    "en": "Tomato"
+  },
+  {
+    "key": "world_resource.30300008.name",
+    "zhCn": "树枝",
+    "en": "Branch"
+  },
+  {
+    "key": "world_resource.30300009.name",
+    "zhCn": "散落石头",
+    "en": "Loose Stone"
+  },
+  {
+    "key": "world_resource.30300010.name",
+    "zhCn": "石矿",
+    "en": "Stone Deposit"
+  },
+  {
+    "key": "world_gather.30400001.name",
+    "zhCn": "树",
+    "en": "Tree"
+  },
+  {
+    "key": "world_gather.30400002.name",
+    "zhCn": "岩石",
+    "en": "Rock"
+  },
+  {
+    "key": "world_gather.30400003.name",
+    "zhCn": "铜矿",
+    "en": "Copper Ore"
+  },
+  {
+    "key": "world_gather.30400004.name",
+    "zhCn": "铁矿",
+    "en": "Iron Ore"
+  },
+  {
+    "key": "world_gather.30400005.name",
+    "zhCn": "药草丛",
+    "en": "Herb Bush"
+  },
+  {
+    "key": "world_gather.30400006.name",
+    "zhCn": "小麦",
+    "en": "Wheat"
+  },
+  {
+    "key": "world_gather.30400007.name",
+    "zhCn": "番茄",
+    "en": "Tomato"
+  },
+  {
+    "key": "ui.building_detail.upgrade",
+    "zhCn": "升级",
+    "en": "Upgrade"
+  },
+  {
+    "key": "ui.building_detail.craft",
+    "zhCn": "制作",
+    "en": "Craft"
+  },
+  {
+    "key": "ui.building_detail.remove",
+    "zhCn": "拆除",
+    "en": "Remove"
+  },
+  {
+    "key": "ui.bag.title",
+    "zhCn": "背包",
+    "en": "Bag"
+  },
+  {
+    "key": "ui.toolkit.title",
+    "zhCn": "工具",
+    "en": "Tool Kit"
+  },
+  {
+    "key": "ui.toolkit.upgrade",
+    "zhCn": "升级",
+    "en": "Upgrade"
+  }
+]

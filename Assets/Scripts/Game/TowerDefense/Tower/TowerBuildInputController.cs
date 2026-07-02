@@ -1,6 +1,5 @@
 using Game.Framework;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace Game
@@ -9,12 +8,24 @@ namespace Game
     {
         private Camera mainCamera;
         private bool initialized;
+        private bool inputRegistered;
 
         public void Initialize()
         {
             base.Initialize();
             mainCamera = Camera.main;
             initialized = true;
+            RegisterInput();
+        }
+
+        private void OnEnable()
+        {
+            RegisterInput();
+        }
+
+        private void OnDisable()
+        {
+            UnregisterInput();
         }
 
         public bool RefreshPreviewAtCurrentPointer()
@@ -29,13 +40,7 @@ namespace Game
                 return false;
             }
 
-            if (Mouse.current == null)
-            {
-                return false;
-            }
-
-            Vector2 screenPosition = Mouse.current.position.ReadValue();
-            return RefreshPreview(screenPosition);
+            return RefreshPreview(WorldPointerPicker.CurrentPointerPosition);
         }
 
         private void Update()
@@ -50,30 +55,71 @@ namespace Game
                 return;
             }
 
-            if (Mouse.current == null)
-            {
-                return;
-            }
-
-            Vector2 screenPosition = Mouse.current.position.ReadValue();
-            bool pointerOverUi = IsPointerOverUI();
-
+            Vector2 screenPosition = WorldPointerPicker.CurrentPointerPosition;
             RefreshPreview(screenPosition);
-
-            if (!pointerOverUi && Mouse.current.leftButton.wasPressedThisFrame)
-            {
-                TowerBuildManager.Instance.TryBuildPreviewTower();
-            }
 
             if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 TowerBuildManager.Instance.CancelSelect();
             }
+        }
 
-            if (Mouse.current.rightButton.wasPressedThisFrame)
+        private void RegisterInput()
+        {
+            if (inputRegistered || !GameInputManager.IsCreated)
+            {
+                return;
+            }
+
+            GameInputManager.Instance.BuildPlacePerformed += OnBuildPlacePerformed;
+            GameInputManager.Instance.BuildCancelPerformed += OnBuildCancelPerformed;
+            inputRegistered = true;
+        }
+
+        private void UnregisterInput()
+        {
+            if (!inputRegistered || !GameInputManager.IsCreated)
+            {
+                return;
+            }
+
+            GameInputManager.Instance.BuildPlacePerformed -= OnBuildPlacePerformed;
+            GameInputManager.Instance.BuildCancelPerformed -= OnBuildCancelPerformed;
+            inputRegistered = false;
+        }
+
+        private void OnBuildPlacePerformed(InputAction.CallbackContext context)
+        {
+            if (context.canceled || !CanHandleBuildInput())
+            {
+                return;
+            }
+
+            if (IsPointerOverUI())
+            {
+                return;
+            }
+
+            RefreshPreview(WorldPointerPicker.CurrentPointerPosition);
+            TowerBuildManager.Instance.TryBuildPreviewTower();
+        }
+
+        private void OnBuildCancelPerformed(InputAction.CallbackContext context)
+        {
+            if (context.canceled || !initialized)
+            {
+                return;
+            }
+
+            if (TowerBuildManager.Instance.HasSelectedTower)
             {
                 TowerBuildManager.Instance.CancelSelect();
             }
+        }
+
+        private bool CanHandleBuildInput()
+        {
+            return initialized && TowerBuildManager.Instance.HasSelectedTower;
         }
 
         private bool RefreshPreview(Vector2 screenPosition)
@@ -95,7 +141,7 @@ namespace Game
                 return null;
             }
 
-            bool picked = MapManager.Instance.TryPickTile(screenPosition, mainCamera, out TileView tileView);
+            bool picked = WorldPointerPicker.TryPickTile(screenPosition, mainCamera, out TileView tileView, false);
 
             if (!picked)
             {
@@ -107,12 +153,7 @@ namespace Game
 
         private bool IsPointerOverUI()
         {
-            if (EventSystem.current == null)
-            {
-                return false;
-            }
-
-            return EventSystem.current.IsPointerOverGameObject();
+            return WorldPointerPicker.IsPointerOverUi();
         }
     }
 }

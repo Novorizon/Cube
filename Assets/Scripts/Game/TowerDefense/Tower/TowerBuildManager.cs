@@ -191,13 +191,13 @@ namespace Game
             if (!previewCanBuild)
             {
                 Debug.Log($"Build tower failed. Preview coord is not buildable: {previewCoord}");
-                Toast.Warning("该地块不可建造");
+                Toast.Warning(LocalizationManager.Get("ui.td.toast.tile_not_buildable"));
                 return false;
             }
 
             if (!TowerManager.Instance.HasGold(selectedTowerConfigId))
             {
-                Toast.Warning("閲戝竵涓嶈冻");
+                Toast.Warning(LocalizationManager.Get("ui.td.toast.not_enough_gold"));
                 return false;
             }
 
@@ -233,7 +233,7 @@ namespace Game
             int costItemId = GetCostItemId(levelConfig.CostItemId);
             if (!ItemManager.Instance.TryConsume(costItemId, levelConfig.BuildCost))
             {
-                Toast.Warning("閲戝竵涓嶈冻");
+                Toast.Warning(LocalizationManager.Get("ui.td.toast.not_enough_gold"));
                 return false;
             }
 
@@ -284,20 +284,20 @@ namespace Game
 
             if (!DataManager.Instance.TryGetNextTowerLevel(tower, out TowerLevelConfig nextLevelConfig))
             {
-                Toast.Info("已达最高等级");
+                Toast.Info(LocalizationManager.Get("ui.td.toast.max_level"));
                 return false;
             }
 
             int costItemId = GetCostItemId(nextLevelConfig.UpgradeCostItemId);
             if (!ItemManager.Instance.TryConsume(costItemId, nextLevelConfig.UpgradeCost))
             {
-                Toast.Warning("閲戝竵涓嶈冻");
+                Toast.Warning(LocalizationManager.Get("ui.td.toast.not_enough_gold"));
                 return false;
             }
 
             if (ApplyTowerLevel(tower, nextLevelConfig))
             {
-                Toast.Info($"鍗囩骇鎴愬姛 Lv {nextLevelConfig.Level}");
+                Toast.Info(LocalizationManager.Format("ui.td.toast.upgrade_success", nextLevelConfig.Level));
                 return true;
             }
 
@@ -318,7 +318,7 @@ namespace Game
             TowerLevelConfig currentLevelConfig = DataManager.Instance.GetTowerLevel(tower.ConfigId, tower.Level);
             if (currentLevelConfig == null)
             {
-                Toast.Warning("鍑哄敭澶辫触锛氬绛夌骇閰嶇疆缂哄け");
+                Toast.Warning(LocalizationManager.Get("ui.td.toast.sell_failed_level_config"));
                 return false;
             }
 
@@ -327,7 +327,7 @@ namespace Game
 
             if (!MapManager.Instance.RemoveTower(tower.Coord))
             {
-                Toast.Warning("出售失败：地块状态异常");
+                Toast.Warning(LocalizationManager.Get("ui.td.toast.tile_state_error"));
                 return false;
             }
 
@@ -392,7 +392,7 @@ namespace Game
             if (prefab == null)
             {
                 Debug.LogWarning($"Upgrade tower failed. Load prefab failed. towerConfigId: {nextLevelConfig.TowerId}, level: {nextLevelConfig.Level}, location: {nextLevelConfig.PrefabLocation}");
-                Toast.Warning("升级失败：模型资源缺失");
+                Toast.Warning(LocalizationManager.Get("ui.td.toast.upgrade_model_missing"));
                 return false;
             }
 
@@ -415,7 +415,7 @@ namespace Game
             if (!MapManager.Instance.RemoveTower(coord))
             {
                 GameObject.Destroy(instance);
-                Toast.Warning("升级失败：地块状态异常");
+                Toast.Warning(LocalizationManager.Get("ui.td.toast.tile_state_error"));
                 return false;
             }
 
@@ -426,7 +426,7 @@ namespace Game
             {
                 TowerManager.Instance.Unregister(newTower);
                 GameObject.Destroy(instance);
-                Toast.Warning("升级失败：地块状态异常");
+                Toast.Warning(LocalizationManager.Get("ui.td.toast.tile_state_error"));
                 return false;
             }
 

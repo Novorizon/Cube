@@ -1,0 +1,50 @@
+[
+  {
+    "itemId": 20000001,
+    "level1": 100,
+    "level2": 200,
+    "level3": 300,
+    "level4": 400,
+    "enable": true
+  },
+  {
+    "itemId": 20000002,
+    "level1": 100,
+    "level2": 200,
+    "level3": 300,
+    "level4": 400,
+    "enable": true
+  },
+  {
+    "itemId": 20100001,
+    "level1": 100,
+    "level2": 200,
+    "level3": 300,
+    "level4": 400,
+    "enable": true
+  },
+  {
+    "itemId": 20100002,
+    "level1": 100,
+    "level2": 200,
+    "level3": 300,
+    "level4": 400,
+    "enable": true
+  },
+  {
+    "itemId": 20100003,
+    "level1": 100,
+    "level2": 200,
+    "level3": 300,
+    "level4": 400,
+    "enable": true
+  },
+  {
+    "itemId": 20100004,
+    "level1": 100,
+    "level2": 200,
+    "level3": 300,
+    "level4": 400,
+    "enable": true
+  }
+]

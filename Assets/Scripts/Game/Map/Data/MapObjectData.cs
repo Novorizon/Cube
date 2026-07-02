@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Game
@@ -20,8 +21,13 @@ namespace Game
         public int X;
         public int Y;
         public int Z;
+        [JsonConverter(typeof(Vector3JsonConverter))]
         public Vector3 LocalPosition;
+
+        [JsonConverter(typeof(Vector3JsonConverter))]
         public Vector3 LocalEuler;
+
+        [JsonConverter(typeof(Vector3JsonConverter))]
         public Vector3 LocalScale = Vector3.one;
         public bool BlocksBuild;
         public bool BlocksMove;

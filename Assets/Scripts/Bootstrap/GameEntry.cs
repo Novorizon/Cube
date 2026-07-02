@@ -24,13 +24,23 @@ namespace Game
             MapInputController.Instance.Initialize();
 
             DataManager.Instance.Initialize();
+            TechManager.Instance.Initialize();
             WorldGatherManager.Instance.Initialize();
             WorldBuildingManager.Instance.Initialize();
             MineManager.Instance.Initialize();
             FarmManager.Instance.Initialize();
+            WorldRecipeManager.Instance.Initialize();
+            WorldTaskManager.Instance.Initialize();
+            ToolKitManager.Instance.Initialize();
+            BagManager.Instance.Initialize();
+            CalendarManager.Instance.Initialize();
             WorldIncomeManager.Instance.Initialize();
             StorageManager.Instance.Initialize();
             StorageManager.Instance.Load();
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            GmCommandController.EnsureExists();
+#endif
 
             BaseManager.Instance.Initialize();
             NpcManager.Instance.Initialize();
@@ -52,6 +62,7 @@ namespace Game
 
         private void Update()
         {
+            CalendarManager.Instance.Update(Time.deltaTime);
             WorldBuildingManager.Instance.Update();
             WorldIncomeManager.Instance.Update();
             StorageManager.Instance.Update();
@@ -82,6 +93,7 @@ namespace Game
         private void OnDestroy()
         {
             StorageManager.Instance.Save();
+            BagManager.Instance.Release();
             WorldGameplayController.Shutdown();
             AbilityManager.Instance.Release();
             BattleTargetClickManager.Instance.Release();

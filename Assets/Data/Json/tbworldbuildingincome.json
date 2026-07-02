@@ -1,57 +1,57 @@
 [
   {
-    "id": 200701,
-    "buildingId": 2007,
+    "id": 30020001,
+    "buildingId": 30000007,
     "level": 1,
-    "outputRewardGroupId": 2003,
+    "outputRewardGroupId": 30902003,
     "cycleSeconds": 10,
     "enable": true
   },
   {
-    "id": 201101,
-    "buildingId": 2011,
+    "id": 30020002,
+    "buildingId": 30001001,
     "level": 1,
-    "outputRewardGroupId": 2108,
+    "outputRewardGroupId": 30902013,
     "cycleSeconds": 1,
     "enable": true
   },
   {
-    "id": 201201,
-    "buildingId": 2012,
+    "id": 30020003,
+    "buildingId": 30001002,
     "level": 1,
-    "outputRewardGroupId": 2110,
+    "outputRewardGroupId": 30902014,
     "cycleSeconds": 1,
     "enable": true
   },
   {
-    "id": 201301,
-    "buildingId": 2013,
+    "id": 30020004,
+    "buildingId": 30001003,
     "level": 1,
-    "outputRewardGroupId": 2107,
+    "outputRewardGroupId": 30902012,
     "cycleSeconds": 1,
     "enable": true
   },
   {
-    "id": 202101,
-    "buildingId": 2021,
+    "id": 30020005,
+    "buildingId": 30002001,
     "level": 1,
-    "outputRewardGroupId": 2102,
+    "outputRewardGroupId": 30902009,
     "cycleSeconds": 1,
     "enable": true
   },
   {
-    "id": 202201,
-    "buildingId": 2022,
+    "id": 30020006,
+    "buildingId": 30002002,
     "level": 1,
-    "outputRewardGroupId": 2105,
+    "outputRewardGroupId": 30902010,
     "cycleSeconds": 1,
     "enable": true
   },
   {
-    "id": 202301,
-    "buildingId": 2023,
+    "id": 30020007,
+    "buildingId": 30002003,
     "level": 1,
-    "outputRewardGroupId": 2106,
+    "outputRewardGroupId": 30902011,
     "cycleSeconds": 1,
     "enable": true
   }

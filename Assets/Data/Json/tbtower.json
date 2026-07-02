@@ -1,11 +1,11 @@
 [
   {
-    "id": 1001,
+    "id": 30100001,
     "name": "箭塔",
     "description": "基础单体塔，造价低，攻速较快",
     "towerType": 1,
     "prefabLocation": "Assets/Arts/Tower/NormalTower.prefab",
-    "costItemId": 1,
+    "costItemId": 20000003,
     "costCount": 100,
     "range": 3.5,
     "damage": 100,
@@ -20,12 +20,12 @@
     "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Towers/ui_td_tower_arrow_icon.png"
   },
   {
-    "id": 1002,
+    "id": 30100002,
     "name": "火焰塔",
     "description": "高伤害塔，适合以后扩展AOE，现在可先按单体瞬间伤害处理",
     "towerType": 2,
     "prefabLocation": "Assets/Arts/Tower/IceTower.prefab",
-    "costItemId": 1,
+    "costItemId": 20000003,
     "costCount": 180,
     "range": 3,
     "damage": 25,
@@ -40,12 +40,12 @@
     "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Towers/ui_td_tower_fire_icon.png"
   },
   {
-    "id": 1003,
+    "id": 30100003,
     "name": "冰霜塔",
     "description": "控制型塔，当前阶段可先做低伤害，减速后续再接",
     "towerType": 3,
     "prefabLocation": "Assets/Arts/Tower/IceTower.prefab",
-    "costItemId": 1,
+    "costItemId": 20000003,
     "costCount": 150,
     "range": 3.2,
     "damage": 5,
@@ -60,12 +60,12 @@
     "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Towers/ui_td_tower_ice_icon.png"
   },
   {
-    "id": 1004,
+    "id": 30100004,
     "name": "雷电塔",
     "description": "控制型塔，当前阶段可先做低伤害，减速后续再接",
     "towerType": 4,
     "prefabLocation": "Assets/Arts/Tower/IceTower.prefab",
-    "costItemId": 1,
+    "costItemId": 20000003,
     "costCount": 150,
     "range": 3.2,
     "damage": 5,
@@ -80,12 +80,12 @@
     "iconLocation": "Assets/Arts/UI/TowerDefense/Icons/Towers/ui_td_tower_cannon_icon.png"
   },
   {
-    "id": 1005,
+    "id": 30100005,
     "name": "毒液塔",
     "description": "控制型塔，当前阶段可先做低伤害，减速后续再接",
     "towerType": 5,
     "prefabLocation": "Assets/Arts/Tower/IceTower.prefab",
-    "costItemId": 1,
+    "costItemId": 20000003,
     "costCount": 150,
     "range": 3.2,
     "damage": 5,

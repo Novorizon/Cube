@@ -5,15 +5,21 @@
     <var name="name" type="string" comment="client" />
     <var name="buildingType" type="int" comment="client" />
     <var name="subType" type="int" comment="client" />
+    <var name="buildCategory" type="int" comment="client" />
+    <var name="sortOrder" type="int" comment="client" />
     <var name="sizeX" type="int" comment="client" />
     <var name="sizeZ" type="int" comment="client" />
     <var name="prefabLocation" type="string" comment="client" />
     <var name="iconLocation" type="string" comment="client" />
+    <var name="desc" type="string" comment="client" />
     <var name="maxCount" type="int" comment="client" />
-    <var name="unlockMainBaseLevel" type="int" comment="client" />
+    <var name="unlockHouseLevel" type="int" comment="client" />
     <var name="unlockBuildingId" type="int" comment="client" />
     <var name="unlockBuildingLevel" type="int" comment="client" />
     <var name="enable" type="bool" comment="client" />
+    <var name="showInBuildPanel" type="bool" comment="client" />
+    <var name="defaultUnlocked" type="bool" comment="client" />
+    <var name="unlockSourceType" type="int" comment="client" />
   </bean>
 
   <table name="TbWorldBuilding" value="WorldBuildingConfig" input="world_building.xlsx" mode="map" index="id" />

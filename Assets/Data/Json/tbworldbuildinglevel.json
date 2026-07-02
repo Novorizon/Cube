@@ -1,105 +1,105 @@
 [
   {
-    "id": 200101,
-    "buildingId": 2001,
+    "id": 30010001,
+    "buildingId": 30000001,
     "level": 1,
     "buildCostGroupId": 0,
     "buildSeconds": 0,
     "enable": true
   },
   {
-    "id": 200201,
-    "buildingId": 2002,
+    "id": 30010002,
+    "buildingId": 30000002,
     "level": 1,
-    "buildCostGroupId": 200201,
+    "buildCostGroupId": 30901001,
     "buildSeconds": 0,
     "enable": true
   },
   {
-    "id": 200301,
-    "buildingId": 2003,
+    "id": 30010003,
+    "buildingId": 30000003,
     "level": 1,
-    "buildCostGroupId": 200301,
+    "buildCostGroupId": 30901002,
     "buildSeconds": 0,
     "enable": true
   },
   {
-    "id": 200401,
-    "buildingId": 2004,
+    "id": 30010004,
+    "buildingId": 30000004,
     "level": 1,
-    "buildCostGroupId": 200401,
+    "buildCostGroupId": 30901003,
     "buildSeconds": 0,
     "enable": true
   },
   {
-    "id": 200501,
-    "buildingId": 2005,
+    "id": 30010005,
+    "buildingId": 30000005,
     "level": 1,
-    "buildCostGroupId": 200501,
+    "buildCostGroupId": 30901004,
     "buildSeconds": 0,
     "enable": true
   },
   {
-    "id": 200601,
-    "buildingId": 2006,
+    "id": 30010006,
+    "buildingId": 30000006,
     "level": 1,
-    "buildCostGroupId": 200601,
+    "buildCostGroupId": 30901005,
     "buildSeconds": 0,
     "enable": true
   },
   {
-    "id": 200701,
-    "buildingId": 2007,
+    "id": 30010007,
+    "buildingId": 30000007,
     "level": 1,
-    "buildCostGroupId": 200701,
+    "buildCostGroupId": 30901006,
     "buildSeconds": 0,
     "enable": true
   },
   {
-    "id": 201101,
-    "buildingId": 2011,
+    "id": 30010008,
+    "buildingId": 30001001,
     "level": 1,
-    "buildCostGroupId": 201101,
+    "buildCostGroupId": 30901007,
     "buildSeconds": 0,
     "enable": true
   },
   {
-    "id": 201201,
-    "buildingId": 2012,
+    "id": 30010009,
+    "buildingId": 30001002,
     "level": 1,
-    "buildCostGroupId": 201201,
+    "buildCostGroupId": 30901008,
     "buildSeconds": 0,
     "enable": true
   },
   {
-    "id": 201301,
-    "buildingId": 2013,
+    "id": 30010010,
+    "buildingId": 30001003,
     "level": 1,
-    "buildCostGroupId": 201301,
+    "buildCostGroupId": 30901009,
     "buildSeconds": 0,
     "enable": true
   },
   {
-    "id": 202101,
-    "buildingId": 2021,
+    "id": 30010011,
+    "buildingId": 30002001,
     "level": 1,
-    "buildCostGroupId": 202101,
+    "buildCostGroupId": 30901010,
     "buildSeconds": 0,
     "enable": true
   },
   {
-    "id": 202201,
-    "buildingId": 2022,
+    "id": 30010012,
+    "buildingId": 30002002,
     "level": 1,
-    "buildCostGroupId": 202201,
+    "buildCostGroupId": 30901011,
     "buildSeconds": 0,
     "enable": true
   },
   {
-    "id": 202301,
-    "buildingId": 2023,
+    "id": 30010013,
+    "buildingId": 30002003,
     "level": 1,
-    "buildCostGroupId": 202301,
+    "buildCostGroupId": 30901012,
     "buildSeconds": 0,
     "enable": true
   }

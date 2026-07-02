@@ -1,7 +1,6 @@
 using Game.Framework;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace Game
@@ -108,12 +107,7 @@ namespace Game
 
         private bool IsPointerOverUi()
         {
-            if (EventSystem.current == null)
-            {
-                return false;
-            }
-
-            return EventSystem.current.IsPointerOverGameObject();
+            return WorldPointerPicker.IsPointerOverUi();
         }
 
         private void TrySelectTarget(Vector2 screenPosition)
@@ -270,8 +264,8 @@ namespace Game
             {
                 Type = TdTargetInfoType.Tower,
                 TargetId = tower.ConfigId,
-                Name = config.Name,
-                Description = config.Description,
+                Name = LocalizedConfigText.TowerName(config.Id),
+                Description = LocalizedConfigText.TowerDescription(config.Id),
                 Icon = LoadIconSprite(config.IconLocation),
                 PreviewPrefabLocation = levelConfig.PrefabLocation,
                 Coord = tower.Coord,
@@ -288,12 +282,12 @@ namespace Game
 
             info.InfoSlots = new List<TdInfoSlotData>
             {
-                new TdInfoSlotData("level", "等级", info.Level.ToString()),
-                new TdInfoSlotData("attack", "攻击", info.Attack.ToString(), info.AttackAdd > 0 ? $"+{info.AttackAdd}" : string.Empty),
-                new TdInfoSlotData("range", "范围", $"{info.Range:0.#}"),
-                new TdInfoSlotData("speed", "攻速", $"{info.AttackInterval:0.#}s"),
-                new TdInfoSlotData("upgradeCost", "升级", info.CanUpgrade ? info.UpgradeCost.ToString() : "--"),
-                new TdInfoSlotData("sellGold", "出售", info.SellGold.ToString())
+                new TdInfoSlotData("level", LocalizationManager.Get("ui.td.info.level"), info.Level.ToString()),
+                new TdInfoSlotData("attack", LocalizationManager.Get("ui.td.info.attack"), info.Attack.ToString(), info.AttackAdd > 0 ? $"+{info.AttackAdd}" : string.Empty),
+                new TdInfoSlotData("range", LocalizationManager.Get("ui.td.info.range"), $"{info.Range:0.#}"),
+                new TdInfoSlotData("speed", LocalizationManager.Get("ui.td.info.attack_speed"), $"{info.AttackInterval:0.#}s"),
+                new TdInfoSlotData("upgradeCost", LocalizationManager.Get("ui.td.info.upgrade"), info.CanUpgrade ? info.UpgradeCost.ToString() : "--"),
+                new TdInfoSlotData("sellGold", LocalizationManager.Get("ui.td.info.sell"), info.SellGold.ToString())
             };
 
             return info;
@@ -310,8 +304,8 @@ namespace Game
             {
                 Type = TdTargetInfoType.Npc,
                 TargetId = npc.Config.Id,
-                Name = npc.Config.Name,
-                Description = npc.Config.Description,
+                Name = LocalizedConfigText.NpcName(npc.Config.Id),
+                Description = LocalizedConfigText.NpcDescription(npc.Config.Id),
                 PreviewPrefabLocation = npc.Config.PrefabLocation,
                 CurrentHp = npc.Data.CurrentHp,
                 MaxHp = npc.Data.MaxHp,
@@ -324,12 +318,12 @@ namespace Game
 
             info.InfoSlots = new List<TdInfoSlotData>
             {
-                new TdInfoSlotData("hp", "生命", $"{Mathf.Max(0, info.CurrentHp)}/{info.MaxHp}"),
-                new TdInfoSlotData("attack", "伤害", info.Attack.ToString()),
-                new TdInfoSlotData("range", "攻击范围", $"{info.Range:0.#}"),
-                new TdInfoSlotData("speed", "攻击间隔", $"{info.AttackInterval:0.#}s"),
-                new TdInfoSlotData("moveSpeed", "移动速度", $"{npc.Data.MoveSpeed:0.#}"),
-                new TdInfoSlotData("reward", "击杀金币", npc.Data.RewardGold.ToString())
+                new TdInfoSlotData("hp", LocalizationManager.Get("ui.td.info.hp"), $"{Mathf.Max(0, info.CurrentHp)}/{info.MaxHp}"),
+                new TdInfoSlotData("attack", LocalizationManager.Get("ui.td.info.damage"), info.Attack.ToString()),
+                new TdInfoSlotData("range", LocalizationManager.Get("ui.td.info.attack_range"), $"{info.Range:0.#}"),
+                new TdInfoSlotData("speed", LocalizationManager.Get("ui.td.info.attack_interval"), $"{info.AttackInterval:0.#}s"),
+                new TdInfoSlotData("moveSpeed", LocalizationManager.Get("ui.td.info.move_speed"), $"{npc.Data.MoveSpeed:0.#}"),
+                new TdInfoSlotData("reward", LocalizationManager.Get("ui.td.info.kill_gold"), npc.Data.RewardGold.ToString())
             };
 
             return info;
@@ -342,8 +336,8 @@ namespace Game
             {
                 Type = TdTargetInfoType.Base,
                 TargetId = config != null ? config.Id : 0,
-                Name = "基地",
-                Description = "保护基地，生命归零则战斗失败。",
+                Name = LocalizationManager.Get("base.default.name"),
+                Description = LocalizationManager.Get("base.default.desc"),
                 Icon = config != null ? LoadIconSprite(config.IconLocation) : null,
                 PreviewPrefabLocation = config != null ? config.PrefabLocation : string.Empty,
                 CurrentHp = BaseManager.Instance.CurrentLife,
@@ -354,13 +348,13 @@ namespace Game
 
             if (config != null)
             {
-                info.Name = config.Name;
-                info.Description = config.Description;
+                info.Name = LocalizedConfigText.BaseName(config.Id);
+                info.Description = LocalizedConfigText.BaseDescription(config.Id);
             }
 
             info.InfoSlots = new List<TdInfoSlotData>
             {
-                new TdInfoSlotData("hp", "生命", $"{Mathf.Max(0, info.CurrentHp)}/{info.MaxHp}")
+                new TdInfoSlotData("hp", LocalizationManager.Get("ui.td.info.hp"), $"{Mathf.Max(0, info.CurrentHp)}/{info.MaxHp}")
             };
 
             return info;

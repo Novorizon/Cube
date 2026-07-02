@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="StorageCapacityConfig">
+    <var name="itemId" type="int" comment="client" />
+    <var name="level1" type="int" comment="client" />
+    <var name="level2" type="int" comment="client" />
+    <var name="level3" type="int" comment="client" />
+    <var name="level4" type="int" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbStorageCapacity" value="StorageCapacityConfig" input="storage_capacity.xlsx" mode="map" index="itemId" />
+</module>

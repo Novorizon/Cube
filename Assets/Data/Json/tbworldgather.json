@@ -1,56 +1,56 @@
 [
   {
-    "id": 1001,
+    "id": 30400001,
     "name": "Tree",
-    "rewardGroupId": 2001,
+    "rewardGroupId": 30902001,
     "depleteAfterTimes": 3,
     "respawnSeconds": 0,
     "enable": true
   },
   {
-    "id": 1002,
+    "id": 30400002,
     "name": "Rock",
-    "rewardGroupId": 2002,
+    "rewardGroupId": 30902002,
     "depleteAfterTimes": 3,
     "respawnSeconds": 0,
     "enable": true
   },
   {
-    "id": 1003,
+    "id": 30400003,
     "name": "Copper Ore",
-    "rewardGroupId": 2004,
+    "rewardGroupId": 30902004,
     "depleteAfterTimes": 3,
     "respawnSeconds": 0,
     "enable": true
   },
   {
-    "id": 1004,
+    "id": 30400004,
     "name": "Iron Ore",
-    "rewardGroupId": 2005,
+    "rewardGroupId": 30902005,
     "depleteAfterTimes": 3,
     "respawnSeconds": 0,
     "enable": true
   },
   {
-    "id": 1005,
+    "id": 30400005,
     "name": "Herb Bush",
-    "rewardGroupId": 2006,
+    "rewardGroupId": 30902006,
     "depleteAfterTimes": 2,
     "respawnSeconds": 0,
     "enable": true
   },
   {
-    "id": 1006,
+    "id": 30400006,
     "name": "Wheat",
-    "rewardGroupId": 2007,
+    "rewardGroupId": 30902007,
     "depleteAfterTimes": 2,
     "respawnSeconds": 0,
     "enable": true
   },
   {
-    "id": 1007,
+    "id": 30400007,
     "name": "Tomato",
-    "rewardGroupId": 2008,
+    "rewardGroupId": 30902008,
     "depleteAfterTimes": 2,
     "respawnSeconds": 0,
     "enable": true

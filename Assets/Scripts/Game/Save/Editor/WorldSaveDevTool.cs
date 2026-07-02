@@ -6,7 +6,7 @@ namespace Game.Editor
 {
     public static class WorldSaveDevTool
     {
-        [MenuItem("Tools/World/Dev/Delete Local Save File")]
+        [MenuItem("Debug/Delete Local Save File")]
         public static void DeleteLocalSaveFile()
         {
             bool suppressCurrentSessionSave = Application.isPlaying;
@@ -19,7 +19,7 @@ namespace Game.Editor
             }
         }
 
-        [MenuItem("Tools/World/Dev/Log Local Save Path")]
+        [MenuItem("Debug/Log Local Save Path")]
         public static void LogLocalSavePath()
         {
             Debug.Log($"[World Dev] Save path: {StorageManager.Instance.SavePath}");

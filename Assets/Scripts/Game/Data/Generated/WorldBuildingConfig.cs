@@ -20,15 +20,21 @@ public sealed partial class WorldBuildingConfig : Luban.BeanBase
         Name = _buf.ReadString();
         BuildingType = _buf.ReadInt();
         SubType = _buf.ReadInt();
+        BuildCategory = _buf.ReadInt();
+        SortOrder = _buf.ReadInt();
         SizeX = _buf.ReadInt();
         SizeZ = _buf.ReadInt();
         PrefabLocation = _buf.ReadString();
         IconLocation = _buf.ReadString();
+        Desc = _buf.ReadString();
         MaxCount = _buf.ReadInt();
-        UnlockMainBaseLevel = _buf.ReadInt();
+        UnlockHouseLevel = _buf.ReadInt();
         UnlockBuildingId = _buf.ReadInt();
         UnlockBuildingLevel = _buf.ReadInt();
         Enable = _buf.ReadBool();
+        ShowInBuildPanel = _buf.ReadBool();
+        DefaultUnlocked = _buf.ReadBool();
+        UnlockSourceType = _buf.ReadInt();
     }
 
     public static WorldBuildingConfig DeserializeWorldBuildingConfig(ByteBuf _buf)
@@ -55,6 +61,14 @@ public sealed partial class WorldBuildingConfig : Luban.BeanBase
     /// <summary>
     /// client
     /// </summary>
+    public readonly int BuildCategory;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly int SortOrder;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int SizeX;
     /// <summary>
     /// client
@@ -71,11 +85,15 @@ public sealed partial class WorldBuildingConfig : Luban.BeanBase
     /// <summary>
     /// client
     /// </summary>
+    public readonly string Desc;
+    /// <summary>
+    /// client
+    /// </summary>
     public readonly int MaxCount;
     /// <summary>
     /// client
     /// </summary>
-    public readonly int UnlockMainBaseLevel;
+    public readonly int UnlockHouseLevel;
     /// <summary>
     /// client
     /// </summary>
@@ -88,6 +106,18 @@ public sealed partial class WorldBuildingConfig : Luban.BeanBase
     /// client
     /// </summary>
     public readonly bool Enable;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly bool ShowInBuildPanel;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly bool DefaultUnlocked;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly int UnlockSourceType;
    
     public const int __ID__ = 624800552;
     public override int GetTypeId() => __ID__;
@@ -103,15 +133,21 @@ public sealed partial class WorldBuildingConfig : Luban.BeanBase
         + "name:" + Name + ","
         + "buildingType:" + BuildingType + ","
         + "subType:" + SubType + ","
+        + "buildCategory:" + BuildCategory + ","
+        + "sortOrder:" + SortOrder + ","
         + "sizeX:" + SizeX + ","
         + "sizeZ:" + SizeZ + ","
         + "prefabLocation:" + PrefabLocation + ","
         + "iconLocation:" + IconLocation + ","
+        + "desc:" + Desc + ","
         + "maxCount:" + MaxCount + ","
-        + "unlockMainBaseLevel:" + UnlockMainBaseLevel + ","
+        + "unlockHouseLevel:" + UnlockHouseLevel + ","
         + "unlockBuildingId:" + UnlockBuildingId + ","
         + "unlockBuildingLevel:" + UnlockBuildingLevel + ","
         + "enable:" + Enable + ","
+        + "showInBuildPanel:" + ShowInBuildPanel + ","
+        + "defaultUnlocked:" + DefaultUnlocked + ","
+        + "unlockSourceType:" + UnlockSourceType + ","
         + "}";
     }
 }
