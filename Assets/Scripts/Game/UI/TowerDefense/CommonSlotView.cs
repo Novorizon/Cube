@@ -25,9 +25,17 @@ namespace Game
         [SerializeField]
         private GameObject disabledMask;
 
+        [SerializeField]
+        private Image cooldownMask;
+
+        [SerializeField]
+        private TMP_Text cooldownText;
+
         private int id;
         private Action<int> clicked;
         private GameObject contentInstance;
+        private bool hasCount;
+        private bool coolingDown;
 
         public void Init(int slotId, string displayName, int count, Sprite icon, GameObject contentPrefab, Action<int> onClicked)
         {
@@ -62,17 +70,26 @@ namespace Game
                 countBadge.SetActive(true);
             }
 
-            bool available = count > 0;
+            hasCount = count > 0;
+            RefreshInteractable();
+        }
 
-            if (button != null)
+        public void SetCooldown(float remainingSeconds, float durationSeconds)
+        {
+            coolingDown = remainingSeconds > 0f && durationSeconds > 0f;
+            if (cooldownMask != null)
             {
-                button.interactable = available;
+                cooldownMask.gameObject.SetActive(coolingDown);
+                cooldownMask.fillAmount = coolingDown ? Mathf.Clamp01(remainingSeconds / durationSeconds) : 0f;
             }
 
-            if (disabledMask != null)
+            if (cooldownText != null)
             {
-                disabledMask.SetActive(!available);
+                cooldownText.gameObject.SetActive(coolingDown);
+                cooldownText.text = coolingDown ? Mathf.CeilToInt(remainingSeconds).ToString() : string.Empty;
             }
+
+            RefreshInteractable();
         }
 
         public void ClearContent()
@@ -106,6 +123,21 @@ namespace Game
                 disabledMask.SetActive(false);
             }
 
+            if (cooldownMask != null)
+            {
+                cooldownMask.gameObject.SetActive(false);
+                cooldownMask.fillAmount = 0f;
+            }
+
+            if (cooldownText != null)
+            {
+                cooldownText.gameObject.SetActive(false);
+                cooldownText.text = string.Empty;
+            }
+
+            hasCount = false;
+            coolingDown = false;
+
             if (button != null)
             {
                 button.interactable = false;
@@ -130,40 +162,29 @@ namespace Game
             contentInstance = Instantiate(contentPrefab, parent, false);
             contentInstance.transform.SetSiblingIndex(Mathf.Min(1, contentInstance.transform.parent.childCount - 1));
 
-            Image iconImage = FindIconImage(contentInstance.transform);
-            if (iconImage != null)
+            BattleSlotContentView contentView = contentInstance.GetComponent<BattleSlotContentView>();
+            if (contentView != null)
             {
-                iconImage.sprite = icon;
-                iconImage.enabled = icon != null;
+                contentView.SetIcon(icon);
+            }
+            else
+            {
+                Debug.LogError($"Slot content prefab is missing {nameof(BattleSlotContentView)}.", contentPrefab);
             }
         }
 
-        private static Image FindIconImage(Transform root)
+        private void RefreshInteractable()
         {
-            if (root == null)
+            bool interactable = hasCount && !coolingDown;
+            if (button != null)
             {
-                return null;
+                button.interactable = interactable;
             }
 
-            if (root.name == "Icon")
+            if (disabledMask != null)
             {
-                Image image = root.GetComponent<Image>();
-                if (image != null)
-                {
-                    return image;
-                }
+                disabledMask.SetActive(!hasCount);
             }
-
-            for (int i = 0; i < root.childCount; i++)
-            {
-                Image image = FindIconImage(root.GetChild(i));
-                if (image != null)
-                {
-                    return image;
-                }
-            }
-
-            return null;
         }
 
         private void OnDestroy()

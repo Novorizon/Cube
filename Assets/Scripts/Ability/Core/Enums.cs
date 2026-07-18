@@ -173,6 +173,16 @@ namespace Game.Ability
     }
 
     /// <summary>
+    /// Configured modifiers are relation-scoped by default. Global delivery must be explicit;
+    /// custom ModifierScript implementations may still inspect every broadcast themselves.
+    /// </summary>
+    public enum ModifierEventScope
+    {
+        Related = 0,
+        Global = 1
+    }
+
+    /// <summary>
     /// Stable cast rejection reasons for UI, AI, and tests.
     /// </summary>
     public enum CastFailureReason
@@ -195,7 +205,8 @@ namespace Game.Ability
         NoVision = 15,
         Channeling = 16,
         Casting = 17,
-        CustomRejected = 18
+        CustomRejected = 18,
+        CommandRestricted = 19
     }
 
     /// <summary>

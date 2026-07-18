@@ -1,0 +1,155 @@
+[
+  {
+    "id": 30610001,
+    "blueprintId": 30600001,
+    "itemKind": 1,
+    "itemId": 20000001,
+    "count": 1,
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 30610002,
+    "blueprintId": 30600001,
+    "itemKind": 1,
+    "itemId": 20000002,
+    "count": 1,
+    "sortOrder": 20,
+    "enable": true
+  },
+  {
+    "id": 30610003,
+    "blueprintId": 30600001,
+    "itemKind": 2,
+    "itemId": 20700001,
+    "count": 1,
+    "sortOrder": 90,
+    "enable": true
+  },
+  {
+    "id": 30610004,
+    "blueprintId": 30600002,
+    "itemKind": 1,
+    "itemId": 20000001,
+    "count": 1,
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 30610005,
+    "blueprintId": 30600002,
+    "itemKind": 1,
+    "itemId": 20000002,
+    "count": 1,
+    "sortOrder": 20,
+    "enable": true
+  },
+  {
+    "id": 30610006,
+    "blueprintId": 30600002,
+    "itemKind": 2,
+    "itemId": 20700002,
+    "count": 1,
+    "sortOrder": 90,
+    "enable": true
+  },
+  {
+    "id": 30610007,
+    "blueprintId": 30600003,
+    "itemKind": 1,
+    "itemId": 20000001,
+    "count": 2,
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 30610008,
+    "blueprintId": 30600003,
+    "itemKind": 1,
+    "itemId": 20000002,
+    "count": 1,
+    "sortOrder": 20,
+    "enable": true
+  },
+  {
+    "id": 30610009,
+    "blueprintId": 30600003,
+    "itemKind": 2,
+    "itemId": 20700003,
+    "count": 1,
+    "sortOrder": 90,
+    "enable": true
+  },
+  {
+    "id": 30610010,
+    "blueprintId": 30601001,
+    "itemKind": 1,
+    "itemId": 20000001,
+    "count": 5,
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 30610011,
+    "blueprintId": 30601001,
+    "itemKind": 2,
+    "itemId": 20300002,
+    "count": 1,
+    "sortOrder": 90,
+    "enable": true
+  },
+  {
+    "id": 30610012,
+    "blueprintId": 30601002,
+    "itemKind": 1,
+    "itemId": 20100001,
+    "count": 5,
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 30610013,
+    "blueprintId": 30601002,
+    "itemKind": 2,
+    "itemId": 20300001,
+    "count": 1,
+    "sortOrder": 90,
+    "enable": true
+  },
+  {
+    "id": 30610014,
+    "blueprintId": 30601003,
+    "itemKind": 1,
+    "itemId": 20000004,
+    "count": 5,
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 30610015,
+    "blueprintId": 30601003,
+    "itemKind": 2,
+    "itemId": 20300003,
+    "count": 1,
+    "sortOrder": 90,
+    "enable": true
+  },
+  {
+    "id": 30610016,
+    "blueprintId": 30601004,
+    "itemKind": 1,
+    "itemId": 20000005,
+    "count": 5,
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 30610017,
+    "blueprintId": 30601004,
+    "itemKind": 2,
+    "itemId": 20300004,
+    "count": 1,
+    "sortOrder": 90,
+    "enable": true
+  }
+]

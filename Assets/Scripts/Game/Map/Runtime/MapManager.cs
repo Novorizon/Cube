@@ -5,28 +5,22 @@
 /// Description閿涙艾婀撮崶鍓ь吀閻炲棗娅?///------------------------------------
 
 using Game.Framework;
-using Google.Protobuf.WellKnownTypes;
-using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using UI;
 using UnityEngine;
 
 namespace Game
 {
-    public class MapManager : Singleton<MapManager>
+    public partial class MapManager : Singleton<MapManager>
     {
         private const string PrefabConfigPath = "Assets/Data/Configs/MapTilePrefabConfig.asset";
         private const string DecorationConfigPath = "Assets/Data/Configs/MapDecorationPrefabConfig.asset";
-        private const string BattleHudPrefabPath = "Assets/Arts/UI/TowerDefense/Prefabs/BattleHud.prefab";
-        private const string MainMenuPagePath = "Assets/Arts/UI/Pages/MainMenuPage.prefab";
         private const float PickHeightEpsilon = 0.0001f;
         private const float MinTileSize = 0.01f;
 
         private MapTilePrefabConfig mapTilePrefabConfig;
         private MapDecorationPrefabConfig decorationPrefabConfig;
         private MapData currentMap;
-        private int currentMapConfigId;
+        private int currentMapId;
 
         private readonly Dictionary<Vector3Int, MapCellData> tileMap = new Dictionary<Vector3Int, MapCellData>();
         private readonly Dictionary<Vector3Int, TileData> tileDataMap = new Dictionary<Vector3Int, TileData>();
@@ -130,80 +124,6 @@ namespace Game
             }
 
             initialized = true;
-            return true;
-        }
-
-        public bool LoadMap(int mapId)
-        {
-            if (!DataManager.Instance.Map.TryGet(mapId, out MapConfig mapConfig))
-            {
-                Debug.LogError($"Start wave test failed. Missing map config: {mapId}");
-                return false;
-            }
-
-            string location = "Assets/Data/Map/" + mapConfig.MapId + ".json";
-
-            ClearBattleRuntime(true);
-            currentMapConfigId = mapId;
-            ItemManager.Instance.AddItem(ItemIds.Gold, mapConfig.InitialGold);
-
-            bool loadDataSuccess = LoadMapData(location);
-            if (!loadDataSuccess)
-            {
-                return false;
-            }
-
-            CreateMap();
-            AfterMapCreated(mapConfig);
-            return true;
-        }
-
-        public bool LoadWorldMap(int mapId)
-        {
-            string location = "Assets/Data/Map/" + mapId + ".json";
-
-            ClearBattleRuntime(true);
-            currentMapConfigId = mapId;
-
-            bool loadDataSuccess = LoadMapData(location);
-            if (!loadDataSuccess)
-            {
-                return false;
-            }
-
-            CreateMap();
-            AfterWorldMapCreated();
-            return true;
-        }
-
-
-
-        private bool LoadMapData(string location)
-        {
-            TextAsset json = ResourceManager.Instance.LoadTextAsset(location);
-
-            if (json == null)
-            {
-                Debug.LogError($"Failed to load map json: {location}");
-                return false;
-            }
-
-            MapData data = JsonConvert.DeserializeObject<MapData>(json.text);
-
-            if (data == null)
-            {
-                Debug.LogError($"Failed to parse map json: {location}");
-                return false;
-            }
-
-            data.EnsureRuntimeCollections();
-            ApplyRemovedMapObjects(data);
-
-            currentMap = data;
-            RebuildTileIndex();
-            RebuildObjectIndex();
-            WorldBuildingManager.Instance.RegisterMapObjects();
-
             return true;
         }
 
@@ -507,8 +427,8 @@ namespace Game
 
         private GameObject GetWorldResourcePrefab(int worldResourceId)
         {
-            if (DataManager.Instance.WorldResource == null ||
-                !DataManager.Instance.WorldResource.TryGet(worldResourceId, out WorldResourceConfig config) ||
+            if (DataManager.Instance.Resource == null ||
+                !DataManager.Instance.Resource.TryGet(worldResourceId, out ResourceConfig config) ||
                 config == null ||
                 string.IsNullOrEmpty(config.PrefabLocation))
             {
@@ -518,245 +438,6 @@ namespace Game
             return ResourceManager.Instance.LoadAsset<GameObject>(config.PrefabLocation);
         }
 
-        private void AfterWorldMapCreated()
-        {
-            CameraManager.Instance.Initialize();
-            GameInputManager.Instance.SetMode(InputMode.World);
-            FarmManager.Instance.CreateViews();
-            WorldGameplayController.Ensure();
-            ShowWorldMainPanelAsync().Forget();
-        }
-
-        private async Task ShowWorldMainPanelAsync()
-        {
-            UIHandle handle = await UIManager.Instance.Panels.ShowAsync(WorldMainPanel.PrefabPath);
-            if (!handle.IsValid)
-            {
-                return;
-            }
-
-            if (handle.View is WorldMainPanel panel)
-            {
-                panel.RefreshNow();
-            }
-        }
-
-        private void AfterMapCreated(MapConfig mapConfig)
-        {
-            CameraManager.Instance.Initialize();
-            CameraManager.Instance.SetViewAngle(55f, 45f);
-            CameraManager.Instance.SetPadding(2f);
-            CameraManager.Instance.FocusCurrentMap();
-
-            ShowBattleHudAsync().Forget();
-            BattleFlowManager.Instance.BeginBattle(mapConfig);
-
-            if (!BaseManager.Instance.LoadBase(mapConfig.BaseId))
-            {
-                BattleFlowManager.Instance.CompleteDefeat("Base load failed.");
-                return;
-            }
-
-            GameInputManager.Instance.SetMode(InputMode.Battle);
-
-            if (!DataManager.Instance.LoadWave(mapConfig.WaveNormal))
-            {
-                BattleFlowManager.Instance.CompleteDefeat("Wave data load failed.");
-                return;
-            }
-
-            //WaveConfig waveConfig = DataManager.Instance.Wave.Get(1);
-            if (!WaveManager.Instance.StartWave())
-            {
-                BattleFlowManager.Instance.CompleteDefeat("Wave start failed.");
-            }
-        }
-
-        private async Task ShowBattleHudAsync()
-        {
-            UIHandle handle = await UIManager.Instance.Panels.ShowAsync(BattleHudPrefabPath);
-            if (!handle.IsValid)
-            {
-                return;
-            }
-
-            if (handle.View is BattleHudController battleHud)
-            {
-                battleHud.SkillClicked -= OnBattleHudSkillClicked;
-                battleHud.SkillClicked += OnBattleHudSkillClicked;
-                battleHud.AutoNextWaveChanged -= OnBattleHudAutoNextWaveChanged;
-                battleHud.AutoNextWaveChanged += OnBattleHudAutoNextWaveChanged;
-                battleHud.TowerSellTargetClicked -= OnBattleHudTowerSellClicked;
-                battleHud.TowerSellTargetClicked += OnBattleHudTowerSellClicked;
-                battleHud.TowerUpgradeTargetClicked -= OnBattleHudTowerUpgradeClicked;
-                battleHud.TowerUpgradeTargetClicked += OnBattleHudTowerUpgradeClicked;
-                battleHud.ItemClicked -= OnBattleHudItemClicked;
-                battleHud.ItemClicked += OnBattleHudItemClicked;
-            }
-        }
-
-        private void OnBattleHudSkillClicked(int skillId)
-        {
-            Ability.CastResult result = AbilityManager.Instance.CastBaseAbilityAtBestTarget(skillId);
-            if (result == null || result.Success)
-            {
-                return;
-            }
-
-            Debug.LogWarning($"Cast skill failed. skillId: {skillId}, reason: {result.FailureReason}, message: {result.Message}");
-        }
-
-        private void OnBattleHudAutoNextWaveChanged(bool autoNextWave)
-        {
-            // true means waves chain immediately after spawn completion; false waits for the field to clear.
-            WaveManager.Instance.SetWaitAllEnemiesKilledBeforeNextWave(!autoNextWave);
-        }
-
-        private void OnBattleHudTowerSellClicked(TdTargetRuntimeInfo info)
-        {
-            if (info.Type != TdTargetInfoType.Tower)
-            {
-                return;
-            }
-
-            if (!TryGetTower(info.Coord, out Tower tower) || tower == null)
-            {
-                Toast.Warning("鏈壘鍒拌鍑哄敭鐨勫");
-                return;
-            }
-
-            if (!TowerBuildManager.Instance.TrySellTower(tower, out int sellItemId, out int sellCount))
-            {
-                return;
-            }
-
-            BattleTargetClickManager.Instance.ClearSelection();
-            Toast.Info($"鍑哄敭鎴愬姛 +{sellCount}");
-        }
-
-        private void OnBattleHudTowerUpgradeClicked(TdTargetRuntimeInfo info)
-        {
-            if (info.Type != TdTargetInfoType.Tower)
-            {
-                return;
-            }
-
-            if (!TryGetTower(info.Coord, out Tower tower) || tower == null)
-            {
-                Toast.Warning("鏈壘鍒拌鍗囩骇鐨勫");
-                return;
-            }
-
-            if (TowerBuildManager.Instance.TryUpgradeTower(tower))
-            {
-                BattleTargetClickManager.Instance.ClearSelection();
-            }
-        }
-
-        private void OnBattleHudItemClicked(int itemId)
-        {
-            Toast.Warning($"閬撳叿 {itemId} 鐨勪娇鐢ㄩ€昏緫灏氭湭閰嶇疆");
-        }
-
-        public void RestartCurrentMap()
-        {
-            int mapId = currentMapConfigId;
-            if (mapId <= 0 && BattleFlowManager.Instance.LastEndMessage != null)
-            {
-                mapId = BattleFlowManager.Instance.LastEndMessage.MapId;
-            }
-
-            if (mapId <= 0)
-            {
-                Debug.LogWarning("Restart map failed. Current map id is invalid.");
-                return;
-            }
-
-            LoadMap(mapId);
-        }
-
-        public bool HasNextMap(int mapId)
-        {
-            return TryGetNextMapId(mapId, out int nextMapId);
-        }
-
-        public bool LoadNextMap(int mapId)
-        {
-            if (!TryGetNextMapId(mapId, out int nextMapId))
-            {
-                Toast.Info("已经是最后一关");
-                return false;
-            }
-
-            return LoadMap(nextMapId);
-        }
-
-        public void ReturnToMainMenu()
-        {
-            ReturnToMainMenuAsync().Forget();
-        }
-
-        private async Task ReturnToMainMenuAsync()
-        {
-            ClearBattleRuntime(true);
-
-            if (GameInputManager.IsCreated)
-            {
-                GameInputManager.Instance.SetMode(InputMode.World);
-            }
-
-            await UIManager.Instance.Pages.ResetToAsync(MainMenuPagePath);
-        }
-
-        private bool TryGetNextMapId(int mapId, out int nextMapId)
-        {
-            nextMapId = 0;
-
-            if (DataManager.Instance.Map == null || DataManager.Instance.Map.GetAll() == null)
-            {
-                return false;
-            }
-
-            foreach (KeyValuePair<int, MapConfig> pair in DataManager.Instance.Map.GetAll())
-            {
-                int candidateId = pair.Key;
-                if (candidateId <= mapId)
-                {
-                    continue;
-                }
-
-                if (nextMapId == 0 || candidateId < nextMapId)
-                {
-                    nextMapId = candidateId;
-                }
-            }
-
-            return nextMapId > 0;
-        }
-
-        private void ClearBattleRuntime(bool hideBattleUi)
-        {
-            Time.timeScale = 1f;
-            WaveManager.Instance.Stop();
-            WaveManager.Instance.Clear();
-            NpcManager.Instance.Clear();
-            TowerManager.Instance.Clear();
-            TowerBuildManager.Instance.Clear();
-            BattleTargetClickManager.Instance.ClearSelection();
-            BaseManager.Instance.ClearBaseObject();
-            AbilityManager.Instance.Release();
-            AbilityManager.Instance.Initialize();
-            ItemManager.Instance.Clear();
-            DataManager.Instance.ClearWave();
-            BattleFlowManager.Instance.Initialize();
-            WorldGameplayController.Shutdown();
-            ClearMap();
-
-            if (hideBattleUi)
-            {
-                UIManager.Instance.Panels.HideAll(true);
-            }
-        }
         private void RebuildTileIndex()
         {
             tileMap.Clear();
@@ -954,6 +635,7 @@ namespace Game
             BaseManager.Instance.ClearBaseObject();
 
             currentMap = null;
+            currentMapId = 0;
             tileMap.Clear();
             tileDataMap.Clear();
             topTileDataMap.Clear();
@@ -1202,57 +884,6 @@ namespace Game
             return false;
         }
 
-        public void MarkMapObjectRemoved(int objectId)
-        {
-            if (objectId <= 0 || currentMapConfigId <= 0)
-            {
-                return;
-            }
-
-            removedMapObjectKeys.Add(MakeRemovedMapObjectKey(currentMapConfigId, objectId));
-            StorageManager.Instance.MarkDirty();
-        }
-
-        public SaveRemovedMapObjectData[] CreateRemovedMapObjectSaveData()
-        {
-            List<SaveRemovedMapObjectData> result = new List<SaveRemovedMapObjectData>();
-            foreach (string key in removedMapObjectKeys)
-            {
-                if (!TryParseRemovedMapObjectKey(key, out int mapId, out int objectId))
-                {
-                    continue;
-                }
-
-                result.Add(new SaveRemovedMapObjectData
-                {
-                    MapId = mapId,
-                    ObjectId = objectId,
-                });
-            }
-
-            return result.ToArray();
-        }
-
-        public void LoadRemovedMapObjectSaveData(IReadOnlyList<SaveRemovedMapObjectData> removedObjects)
-        {
-            removedMapObjectKeys.Clear();
-            if (removedObjects == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < removedObjects.Count; i++)
-            {
-                SaveRemovedMapObjectData removed = removedObjects[i];
-                if (removed == null || removed.MapId <= 0 || removed.ObjectId <= 0)
-                {
-                    continue;
-                }
-
-                removedMapObjectKeys.Add(MakeRemovedMapObjectKey(removed.MapId, removed.ObjectId));
-            }
-        }
-
         public bool TryGetTileData(Vector3Int coord, out TileData tileData)
         {
             return tileDataMap.TryGetValue(coord, out tileData);
@@ -1293,6 +924,25 @@ namespace Game
             return TryPickTileByCollider(screenPosition, camera, out tileView);
         }
 
+        public bool TryPickTile(Vector2 screenPosition, Camera camera, out TileView tileView, out Vector3 worldPosition)
+        {
+            tileView = null;
+            worldPosition = Vector3.zero;
+
+            if (camera == null)
+            {
+                Debug.LogWarning("TryPickTile failed. Camera is null.");
+                return false;
+            }
+
+            if (TryPickTileByMath(screenPosition, camera, out tileView, out worldPosition))
+            {
+                return true;
+            }
+
+            return TryPickTileByCollider(screenPosition, camera, out tileView, out worldPosition);
+        }
+
         public bool TryPickTileByMath(Vector2 screenPosition, Camera camera, out TileView tileView)
         {
             tileView = null;
@@ -1307,9 +957,30 @@ namespace Game
                    tileView != null;
         }
 
+        public bool TryPickTileByMath(Vector2 screenPosition, Camera camera, out TileView tileView, out Vector3 worldPosition)
+        {
+            tileView = null;
+            worldPosition = Vector3.zero;
+
+            if (!TryPickTileDataByMath(screenPosition, camera, out TileData tileData, out worldPosition))
+            {
+                return false;
+            }
+
+            return tileData != null &&
+                   tileViews.TryGetValue(tileData.Coord, out tileView) &&
+                   tileView != null;
+        }
+
         public bool TryPickTileDataByMath(Vector2 screenPosition, Camera camera, out TileData tileData)
         {
+            return TryPickTileDataByMath(screenPosition, camera, out tileData, out _);
+        }
+
+        public bool TryPickTileDataByMath(Vector2 screenPosition, Camera camera, out TileData tileData, out Vector3 worldPosition)
+        {
             tileData = null;
+            worldPosition = Vector3.zero;
 
             if (camera == null)
             {
@@ -1349,6 +1020,7 @@ namespace Game
                 }
 
                 tileData = candidate;
+                worldPosition = point;
                 return true;
             }
 
@@ -1357,7 +1029,13 @@ namespace Game
 
         private bool TryPickTileByCollider(Vector2 screenPosition, Camera camera, out TileView tileView)
         {
+            return TryPickTileByCollider(screenPosition, camera, out tileView, out _);
+        }
+
+        private bool TryPickTileByCollider(Vector2 screenPosition, Camera camera, out TileView tileView, out Vector3 worldPosition)
+        {
             tileView = null;
+            worldPosition = Vector3.zero;
 
             if (camera == null)
             {
@@ -1377,6 +1055,7 @@ namespace Game
 
                 if (TileView.TryGetValidFrom(hit.collider.transform, out tileView))
                 {
+                    worldPosition = hit.point;
                     return true;
                 }
             }
@@ -1744,43 +1423,6 @@ namespace Game
 
             currentMap.Objects.RemoveAll(mapObject => MapObjectContainsCoord(mapObject, coord));
             RebuildObjectIndex();
-        }
-
-        private void ApplyRemovedMapObjects(MapData mapData)
-        {
-            if (mapData == null || mapData.Objects == null || currentMapConfigId <= 0 || removedMapObjectKeys.Count == 0)
-            {
-                return;
-            }
-
-            mapData.Objects.RemoveAll(mapObject =>
-                mapObject != null &&
-                mapObject.ObjectId > 0 &&
-                removedMapObjectKeys.Contains(MakeRemovedMapObjectKey(currentMapConfigId, mapObject.ObjectId)));
-        }
-
-        private static string MakeRemovedMapObjectKey(int mapId, int objectId)
-        {
-            return $"{mapId}:{objectId}";
-        }
-
-        private static bool TryParseRemovedMapObjectKey(string key, out int mapId, out int objectId)
-        {
-            mapId = 0;
-            objectId = 0;
-            if (string.IsNullOrEmpty(key))
-            {
-                return false;
-            }
-
-            int separator = key.IndexOf(':');
-            if (separator <= 0 || separator >= key.Length - 1)
-            {
-                return false;
-            }
-
-            return int.TryParse(key.Substring(0, separator), out mapId) &&
-                   int.TryParse(key.Substring(separator + 1), out objectId);
         }
 
         private MapTileType GetTileTypeOrNone(Vector3Int coord)

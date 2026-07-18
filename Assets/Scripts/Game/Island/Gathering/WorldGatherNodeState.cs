@@ -1,4 +1,4 @@
-namespace Game
+﻿namespace Game
 {
     public sealed class WorldGatherNodeState
     {
@@ -15,7 +15,7 @@ namespace Game
             }
         }
 
-        public WorldGatherNodeState(int objectId, WorldGatherConfig config)
+        public WorldGatherNodeState(int objectId, GatherConfig config)
         {
             ObjectId = objectId;
             GatherConfigId = config != null ? config.Id : 0;
@@ -30,7 +30,7 @@ namespace Game
             AvailableAtUnixTime = availableAtUnixTime;
         }
 
-        public bool CanGather(long currentUnixTime, WorldGatherConfig config)
+        public bool CanGather(long currentUnixTime, GatherConfig config)
         {
             if (config == null || !config.Enable)
             {
@@ -52,7 +52,7 @@ namespace Game
             return RemainingTimes > 0;
         }
 
-        public void Consume(WorldGatherConfig config, long currentUnixTime)
+        public void Consume(GatherConfig config, long currentUnixTime)
         {
             if (config == null || config.DepleteAfterTimes <= 0)
             {
@@ -72,7 +72,7 @@ namespace Game
             }
         }
 
-        private static int GetInitialRemainingTimes(WorldGatherConfig config)
+        private static int GetInitialRemainingTimes(GatherConfig config)
         {
             if (config == null || config.DepleteAfterTimes <= 0)
             {

@@ -16,7 +16,7 @@
   {
     "id": 30700002,
     "branch": 1,
-    "name": "仓储建设",
+    "name": "仓库",
     "iconLocation": "",
     "sortOrder": 20,
     "preTechId": 30700001,
@@ -30,7 +30,7 @@
   {
     "id": 30700003,
     "branch": 1,
-    "name": "定居扩建",
+    "name": "水源",
     "iconLocation": "",
     "sortOrder": 30,
     "preTechId": 30700002,
@@ -44,8 +44,8 @@
   {
     "id": 30701001,
     "branch": 2,
-    "name": "开垦农田",
-    "iconLocation": "",
+    "name": "农田",
+    "iconLocation": "Assets/Arts/UI/Icons/System/farm.png",
     "sortOrder": 10,
     "preTechId": 0,
     "unlockBuildingId": 30001001,
@@ -58,8 +58,8 @@
   {
     "id": 30701002,
     "branch": 2,
-    "name": "花田培育",
-    "iconLocation": "",
+    "name": "花田",
+    "iconLocation": "Assets/Arts/UI/Icons/System/flower.png",
     "sortOrder": 20,
     "preTechId": 30701001,
     "unlockBuildingId": 30001002,
@@ -72,7 +72,7 @@
   {
     "id": 30701003,
     "branch": 2,
-    "name": "草药培育",
+    "name": "草药",
     "iconLocation": "",
     "sortOrder": 30,
     "preTechId": 30701001,
@@ -86,8 +86,8 @@
   {
     "id": 30702001,
     "branch": 3,
-    "name": "基础工作台",
-    "iconLocation": "",
+    "name": "工作台",
+    "iconLocation": "Assets/Arts/UI/Icons/System/lab.png",
     "sortOrder": 10,
     "preTechId": 0,
     "unlockBuildingId": 30000003,
@@ -100,8 +100,8 @@
   {
     "id": 30702002,
     "branch": 3,
-    "name": "木工加工",
-    "iconLocation": "",
+    "name": "伐木场",
+    "iconLocation": "Assets/Arts/UI/Icons/System/woodland.png",
     "sortOrder": 20,
     "preTechId": 30702001,
     "unlockBuildingId": 30000004,
@@ -114,7 +114,7 @@
   {
     "id": 30702003,
     "branch": 3,
-    "name": "磨坊加工",
+    "name": "磨坊",
     "iconLocation": "",
     "sortOrder": 30,
     "preTechId": 30702001,
@@ -128,7 +128,7 @@
   {
     "id": 30702004,
     "branch": 3,
-    "name": "熔炉冶炼",
+    "name": "采石场",
     "iconLocation": "",
     "sortOrder": 40,
     "preTechId": 30702001,
@@ -142,7 +142,7 @@
   {
     "id": 30702005,
     "branch": 3,
-    "name": "铁匠锻造",
+    "name": "锻造",
     "iconLocation": "",
     "sortOrder": 50,
     "preTechId": 30702004,

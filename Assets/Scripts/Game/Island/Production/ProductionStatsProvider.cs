@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Game
@@ -8,7 +8,7 @@ namespace Game
         public static ProductionStatsProvider Instance { get; } = new ProductionStatsProvider();
 
         private readonly Dictionary<int, float> perMinuteByItem = new Dictionary<int, float>();
-        private readonly WorldRewardResolver rewardResolver = new WorldRewardResolver(DataManager.Instance.WorldReward);
+        private readonly RewardResolver rewardResolver = new RewardResolver(DataManager.Instance.Reward);
 
         private ProductionStatsProvider()
         {
@@ -97,10 +97,10 @@ namespace Game
                     continue;
                 }
 
-                IReadOnlyList<WorldItem> rewards = rewardResolver.GetRewardGroup(income.OutputRewardGroupId);
+                IReadOnlyList<ItemStack> rewards = rewardResolver.GetRewardGroup(income.OutputRewardGroupId);
                 for (int i = 0; i < rewards.Count; i++)
                 {
-                    WorldItem reward = rewards[i];
+                    ItemStack reward = rewards[i];
                     if (reward == null || reward.ItemId <= 0 || reward.Count <= 0 || BagManager.IsBagItem(reward.ItemId))
                     {
                         continue;
@@ -162,7 +162,7 @@ namespace Game
                     continue;
                 }
 
-                int count = WorldItemManager.Instance.GetCount(itemId);
+                int count = ItemManager.Instance.GetCount(itemId);
                 perMinuteByItem.TryGetValue(itemId, out float perMinute);
                 if (count <= 0 && perMinute <= 0.001f)
                 {

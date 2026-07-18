@@ -180041,6 +180041,181 @@
       }
     },
     {
+      "ObjectId": 6,
+      "ObjectType": 1,
+      "ConfigId": 30300008,
+      "X": 48,
+      "Y": 0,
+      "Z": 49,
+      "LocalPosition": {
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0
+      },
+      "LocalEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "LocalScale": {
+        "x": 0.55,
+        "y": 0.55,
+        "z": 0.55
+      },
+      "BlocksBuild": false,
+      "BlocksMove": false
+    },
+    {
+      "ObjectId": 7,
+      "ObjectType": 1,
+      "ConfigId": 30300008,
+      "X": 51,
+      "Y": 0,
+      "Z": 48,
+      "LocalPosition": {
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0
+      },
+      "LocalEuler": {
+        "x": 0.0,
+        "y": 25.0,
+        "z": 0.0
+      },
+      "LocalScale": {
+        "x": 0.55,
+        "y": 0.55,
+        "z": 0.55
+      },
+      "BlocksBuild": false,
+      "BlocksMove": false
+    },
+    {
+      "ObjectId": 8,
+      "ObjectType": 1,
+      "ConfigId": 30300008,
+      "X": 52,
+      "Y": 0,
+      "Z": 51,
+      "LocalPosition": {
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0
+      },
+      "LocalEuler": {
+        "x": 0.0,
+        "y": 340.0,
+        "z": 0.0
+      },
+      "LocalScale": {
+        "x": 0.55,
+        "y": 0.55,
+        "z": 0.55
+      },
+      "BlocksBuild": false,
+      "BlocksMove": false
+    },
+    {
+      "ObjectId": 9,
+      "ObjectType": 1,
+      "ConfigId": 30300009,
+      "X": 49,
+      "Y": 0,
+      "Z": 52,
+      "LocalPosition": {
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0
+      },
+      "LocalEuler": {
+        "x": 0.0,
+        "y": 15.0,
+        "z": 0.0
+      },
+      "LocalScale": {
+        "x": 0.55,
+        "y": 0.55,
+        "z": 0.55
+      },
+      "BlocksBuild": false,
+      "BlocksMove": false
+    },
+    {
+      "ObjectId": 10,
+      "ObjectType": 1,
+      "ConfigId": 30300009,
+      "X": 53,
+      "Y": 0,
+      "Z": 49,
+      "LocalPosition": {
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0
+      },
+      "LocalEuler": {
+        "x": 0.0,
+        "y": 315.0,
+        "z": 0.0
+      },
+      "LocalScale": {
+        "x": 0.55,
+        "y": 0.55,
+        "z": 0.55
+      },
+      "BlocksBuild": false,
+      "BlocksMove": false
+    },
+    {
+      "ObjectId": 11,
+      "ObjectType": 1,
+      "ConfigId": 30300001,
+      "X": 56,
+      "Y": 0,
+      "Z": 50,
+      "LocalPosition": {
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0
+      },
+      "LocalEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "LocalScale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "BlocksBuild": true,
+      "BlocksMove": true
+    },
+    {
+      "ObjectId": 12,
+      "ObjectType": 1,
+      "ConfigId": 30300002,
+      "X": 57,
+      "Y": 0,
+      "Z": 53,
+      "LocalPosition": {
+        "x": 0.0,
+        "y": 1.0,
+        "z": 0.0
+      },
+      "LocalEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "LocalScale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "BlocksBuild": true,
+      "BlocksMove": true
+    },
+    {
       "ObjectId": 2,
       "ObjectType": 1,
       "ConfigId": 30300001,

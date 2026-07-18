@@ -1,0 +1,90 @@
+[
+  {
+    "id": 60010001,
+    "questId": 60000001,
+    "objectiveId": 1,
+    "type": 2,
+    "targetId": 20000001,
+    "targetCount": 6,
+    "text": "Pick up wood",
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 60010002,
+    "questId": 60000001,
+    "objectiveId": 2,
+    "type": 2,
+    "targetId": 20000002,
+    "targetCount": 4,
+    "text": "Pick up stone",
+    "sortOrder": 20,
+    "enable": true
+  },
+  {
+    "id": 60020001,
+    "questId": 60000002,
+    "objectiveId": 1,
+    "type": 6,
+    "targetId": 1,
+    "targetCount": 1,
+    "text": "Build a house",
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 60030001,
+    "questId": 60000003,
+    "objectiveId": 1,
+    "type": 4,
+    "targetId": 30600001,
+    "targetCount": 1,
+    "text": "Craft a basic axe",
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 60040001,
+    "questId": 60000004,
+    "objectiveId": 1,
+    "type": 2,
+    "targetId": 20000001,
+    "targetCount": 6,
+    "text": "Chop wood from trees",
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 60050001,
+    "questId": 60000005,
+    "objectiveId": 1,
+    "type": 4,
+    "targetId": 30600002,
+    "targetCount": 1,
+    "text": "Craft a basic pickaxe",
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 60060001,
+    "questId": 60000006,
+    "objectiveId": 1,
+    "type": 2,
+    "targetId": 20000002,
+    "targetCount": 4,
+    "text": "Break rocks for stone",
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 60070001,
+    "questId": 60000007,
+    "objectiveId": 1,
+    "type": 6,
+    "targetId": 3,
+    "targetCount": 1,
+    "text": "Build a workbench",
+    "sortOrder": 10,
+    "enable": true
+  }
+]

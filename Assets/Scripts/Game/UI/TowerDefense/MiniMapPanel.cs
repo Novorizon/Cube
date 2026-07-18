@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,7 +14,7 @@ namespace Game
         Player
     }
 
-    public sealed class MiniMapPanel : MonoBehaviour
+    public sealed class MiniMapPanel : UIPanel
     {
         [SerializeField] private RectTransform mapRoot;
         [SerializeField] private Image iconPrefab;
@@ -31,6 +32,13 @@ namespace Game
         private readonly List<Image> icons = new List<Image>();
         private Vector2 minPosition;
         private Vector2 maxPosition = Vector2.one;
+
+        public override UICloseTriggers CloseTriggers => UICloseTriggers.None;
+
+        protected override void OnDestroyed()
+        {
+            Clear();
+        }
 
         public void SetMapBounds(Vector2 min, Vector2 max)
         {

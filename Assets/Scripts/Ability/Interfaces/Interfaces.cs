@@ -49,6 +49,29 @@ namespace Game.Ability
     {
         void PlayEffect(string effectName, Vector3 position);
         void PlayEffect(string effectName, IUnit target);
+        IPresentationHandle PlayPersistentEffect(string effectName, IUnit target);
         void PlaySound(string soundName, Vector3 position);
+    }
+
+    /// <summary>Core-owned lifetime token for a persistent presentation request.</summary>
+    public interface IPresentationHandle
+    {
+        string EffectName { get; }
+        int TargetEntityId { get; }
+        bool IsActive { get; }
+        void Stop();
+    }
+
+    /// <summary>Optional diagnostics surface implemented by presentation adapters.</summary>
+    public interface ITrackedPresentation
+    {
+        void GetActivePresentationHandles(IList<PresentationHandleInfo> results);
+    }
+
+    public sealed class PresentationHandleInfo
+    {
+        public string EffectName;
+        public int TargetEntityId;
+        public bool IsActive;
     }
 }

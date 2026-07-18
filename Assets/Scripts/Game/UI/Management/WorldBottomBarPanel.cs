@@ -1,78 +1,74 @@
 using System;
-using Game.Framework;
 using System.Collections.Generic;
+using Game.Framework;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game
 {
-    internal sealed class WorldBottomBarPanel
+    public sealed class WorldBottomBarPanel : MonoBehaviour
     {
+        [SerializeField] private TMP_Text currentModeText;
+        [SerializeField] private TMP_Text selectedSummaryText;
+        [SerializeField] private RectTransform hotBarGridRect;
+        [SerializeField] private WorldBagPanel bagPanel;
+        [SerializeField] private GameObject bagOpenIcon;
+        [SerializeField] private GameObject bagCloseIcon;
+        [SerializeField] private Button bagButton;
+        [SerializeField] private Button buildButton;
+        [SerializeField] private Button toolKitButton;
+        [SerializeField] private Button techButton;
+        [SerializeField] private RectTransform[] hotSlotRects = Array.Empty<RectTransform>();
+
         private readonly List<BagSlotView> hotSlotViews = new List<BagSlotView>();
-        private GameObject bagOpenIcon;
-        private GameObject bagCloseIcon;
+        private readonly BagDragController bagDragController = new BagDragController();
         private ISubscription bagChangedSubscription;
 
-        public TMP_Text CurrentModeText { get; private set; }
-        public TMP_Text SelectedSummaryText { get; private set; }
+        public TMP_Text CurrentModeText => currentModeText;
+        public TMP_Text SelectedSummaryText => selectedSummaryText;
+        public RectTransform HotBarGridRect => hotBarGridRect;
+        public RectTransform RootRect => transform as RectTransform;
+        public bool IsBagOpen => bagPanel != null && bagPanel.IsOpen;
 
-        public bool Bind(
-            Transform root,
+        public void Initialize(
             Action bagClicked,
             Action buildClicked,
+            Action toolKitClicked,
             Action techClicked)
         {
-            if (root == null)
+            DisposeRuntimeBindings();
+            if (bagPanel == null)
             {
-                Clear();
-                return false;
+                Debug.LogError($"[{nameof(WorldBottomBarPanel)}] BagPanel reference is missing.", this);
             }
 
-            Transform hotPanel = root.Find("HotPanel") ?? root;
-            CurrentModeText = WorldPanelBindingUtility.FindText(hotPanel.Find("ModePanel"), "ModeHint") ??
-                              WorldPanelBindingUtility.FindText(hotPanel, "ModeHint");
-            SelectedSummaryText = WorldPanelBindingUtility.FindText(hotPanel.Find("SelectionPanel"), "SelectionSlot") ??
-                                  WorldPanelBindingUtility.FindText(hotPanel, "SelectionSlot");
-
-            Transform bag = hotPanel.Find("Bag") ?? hotPanel.Find("Entry_Bag");
-            bagOpenIcon = bag != null && bag.Find("Open") != null ? bag.Find("Open").gameObject : null;
-            bagCloseIcon = bag != null && bag.Find("Close") != null ? bag.Find("Close").gameObject : null;
-
-            Transform build = hotPanel.Find("Build") ?? hotPanel.Find("Entry_Build");
-            Transform tech = hotPanel.Find("Tech") ?? hotPanel.Find("TechEntry") ?? hotPanel.Find("Entry_Tech");
-
-            WorldPanelBindingUtility.BindButton(
-                bag,
-                () => bagClicked?.Invoke(),
-                "Bag entry");
-            WorldPanelBindingUtility.BindButton(
-                build,
-                () => buildClicked?.Invoke(),
-                "Build entry");
-            WorldPanelBindingUtility.BindButton(
-                tech,
-                () => techClicked?.Invoke(),
-                "Tech entry");
-
-            BindHotSlots(hotPanel);
+            bagPanel?.Initialize(bagDragController, () => SetBagOpen(false));
+            BindButton(bagButton, bagClicked);
+            BindButton(buildButton, buildClicked);
+            BindButton(toolKitButton, toolKitClicked);
+            BindButton(techButton, techClicked);
+            BindHotSlots();
             bagChangedSubscription = Messager.Instance.Subscribe<WorldMessageTopic, BagChangedMessage>(
                 WorldMessageTopic.BagChanged,
                 OnBagChanged);
+            SetBagOpen(false);
             RefreshSlots();
-            return true;
         }
 
         public void SetBagOpen(bool isOpen)
         {
-            if (bagOpenIcon != null)
+            if (!isOpen)
             {
-                bagOpenIcon.SetActive(!isOpen);
+                bagDragController.Cancel();
             }
 
-            if (bagCloseIcon != null)
-            {
-                bagCloseIcon.SetActive(isOpen);
-            }
+            bagPanel?.SetOpen(isOpen);
+            SetOpenCloseIcons(bagOpenIcon, bagCloseIcon, isOpen);
+        }
+
+        public void SetTechOpen(bool isOpen)
+        {
         }
 
         public void RefreshSlots()
@@ -81,42 +77,47 @@ namespace Game
             {
                 hotSlotViews[i]?.Refresh();
             }
+
+            bagPanel?.RefreshSlots();
         }
 
         public void Dispose()
         {
-            bagChangedSubscription?.Dispose();
-            bagChangedSubscription = null;
-
-            for (int i = 0; i < hotSlotViews.Count; i++)
-            {
-                hotSlotViews[i]?.Dispose();
-            }
-
-            hotSlotViews.Clear();
-            Clear();
+            DisposeRuntimeBindings();
         }
 
-        private void BindHotSlots(Transform hotPanel)
+        public bool TryGetHotSlotRect(int slotNumber, out RectTransform slotRect)
         {
-            for (int i = 0; i < hotSlotViews.Count; i++)
+            int index = slotNumber - 1;
+            if (index >= 0 && index < hotSlotRects.Length)
             {
-                hotSlotViews[i]?.Dispose();
+                slotRect = hotSlotRects[index];
+                return slotRect != null;
             }
 
-            hotSlotViews.Clear();
+            slotRect = null;
+            return false;
+        }
 
-            Transform hotBarGrid = hotPanel != null ? hotPanel.Find("HotBarGrid") : null;
-            if (hotBarGrid == null)
-            {
-                return;
-            }
+        private void OnDestroy()
+        {
+            DisposeRuntimeBindings();
+        }
 
-            List<Transform> slots = CollectSlotTransforms(hotBarGrid);
-            for (int i = 0; i < slots.Count && i < BagManager.QuickSlotCount; i++)
+        private void BindHotSlots()
+        {
+            for (int i = 0; i < hotSlotRects.Length && i < BagManager.QuickSlotCount; i++)
             {
-                BagSlotView view = new BagSlotView(i, slots[i]);
-                view.Bind(slotIndex => BagManager.Instance.TryUseSlot(slotIndex));
+                RectTransform slotRect = hotSlotRects[i];
+                if (slotRect == null)
+                {
+                    continue;
+                }
+
+                BagSlotView view = new BagSlotView(i, slotRect, bagDragController);
+                view.Bind(
+                    slotIndex => BagManager.Instance.TryUseSlot(slotIndex),
+                    (fromSlotIndex, toSlotIndex) => BagManager.Instance.TryMoveOrSwapSlot(fromSlotIndex, toSlotIndex));
                 hotSlotViews.Add(view);
             }
         }
@@ -126,46 +127,43 @@ namespace Game
             RefreshSlots();
         }
 
-        private void Clear()
+        private void DisposeRuntimeBindings()
         {
-            CurrentModeText = null;
-            SelectedSummaryText = null;
-            bagOpenIcon = null;
-            bagCloseIcon = null;
-        }
+            bagDragController.Cancel();
+            bagChangedSubscription?.Dispose();
+            bagChangedSubscription = null;
 
-        private static List<Transform> CollectSlotTransforms(Transform root)
-        {
-            List<Transform> result = new List<Transform>();
-            for (int i = 0; root != null && i < root.childCount; i++)
+            for (int i = 0; i < hotSlotViews.Count; i++)
             {
-                Transform child = root.GetChild(i);
-                if (TryGetSlotNumber(child.name, out _))
-                {
-                    result.Add(child);
-                }
+                hotSlotViews[i]?.Dispose();
             }
 
-            result.Sort(CompareSlotTransform);
-            return result;
+            hotSlotViews.Clear();
+            bagPanel?.Dispose();
         }
 
-        private static int CompareSlotTransform(Transform left, Transform right)
+        private static void BindButton(Button button, Action clicked)
         {
-            TryGetSlotNumber(left != null ? left.name : string.Empty, out int leftNumber);
-            TryGetSlotNumber(right != null ? right.name : string.Empty, out int rightNumber);
-            return leftNumber.CompareTo(rightNumber);
-        }
-
-        private static bool TryGetSlotNumber(string name, out int number)
-        {
-            number = 0;
-            if (string.IsNullOrEmpty(name) || !name.StartsWith("Slot_", StringComparison.Ordinal))
+            if (button == null)
             {
-                return false;
+                return;
             }
 
-            return int.TryParse(name.Substring("Slot_".Length), out number);
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(() => clicked?.Invoke());
+        }
+
+        private static void SetOpenCloseIcons(GameObject openIcon, GameObject closeIcon, bool isOpen)
+        {
+            if (openIcon != null)
+            {
+                openIcon.SetActive(!isOpen);
+            }
+
+            if (closeIcon != null)
+            {
+                closeIcon.SetActive(isOpen);
+            }
         }
     }
 }

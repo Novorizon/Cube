@@ -5,64 +5,49 @@ using UnityEngine.UI;
 
 namespace Game
 {
-    internal sealed class WorldBuildingDetailPanel
+    public sealed class WorldBuildingDetailPanel : MonoBehaviour
     {
-        private GameObject root;
-        private TMP_Text infoText;
-        private TMP_Text recipeText;
-        private Button upgradeButton;
-        private Button craftButton;
-        private Button removeButton;
+        [SerializeField] private TMP_Text infoText;
+        [SerializeField] private TMP_Text blueprintText;
+        [SerializeField] private Button upgradeButton;
+        [SerializeField] private Button craftButton;
+        [SerializeField] private Button removeButton;
+        [SerializeField] private Button closeButton;
+
         private WorldBuilding selectedBuilding;
+        private BlueprintConfig selectedBlueprint;
         private Action closeClicked;
         private Action changed;
 
-        public GameObject Root => root;
+        public GameObject Root => gameObject;
 
-        public bool Bind(Transform rootTransform, Action onCloseClicked, Action onChanged)
+        public void Initialize(Action onCloseClicked, Action onChanged)
         {
-            root = rootTransform != null ? rootTransform.gameObject : null;
             closeClicked = onCloseClicked;
             changed = onChanged;
 
-            if (rootTransform == null)
-            {
-                Clear();
-                return false;
-            }
-
-            infoText = WorldPanelBindingUtility.FindText(rootTransform, "Info");
-            recipeText = WorldPanelBindingUtility.FindText(rootTransform, "RecipeInfo");
-            upgradeButton = BindButton(rootTransform.Find("Upgrade"), TryUpgrade, "Building upgrade");
-            craftButton = BindButton(rootTransform.Find("Craft"), TryCraft, "Building craft");
-            removeButton = BindButton(rootTransform.Find("Remove"), TryRemove, "Building remove");
-            WorldPanelBindingUtility.BindButton(rootTransform.Find("Close"), () => closeClicked?.Invoke(), "Building close");
-            return infoText != null;
+            BindButton(upgradeButton, TryUpgrade);
+            BindButton(craftButton, TryCraft);
+            BindButton(removeButton, TryRemove);
+            BindButton(closeButton, () => closeClicked?.Invoke());
         }
 
         public void Show(WorldBuilding building)
         {
             selectedBuilding = building;
-            if (root != null)
-            {
-                root.SetActive(true);
-            }
-
+            gameObject.SetActive(true);
             Refresh();
         }
 
         public void Hide()
         {
             selectedBuilding = null;
-            if (root != null)
-            {
-                root.SetActive(false);
-            }
+            gameObject.SetActive(false);
         }
 
         public void Refresh()
         {
-            if (root == null || !root.activeSelf)
+            if (!gameObject.activeSelf)
             {
                 return;
             }
@@ -70,7 +55,7 @@ namespace Game
             if (selectedBuilding == null)
             {
                 SetText(infoText, LocalizationManager.Get("ui.building_detail.none"));
-                SetText(recipeText, LocalizationManager.Get("ui.recipe.none"));
+                SetText(blueprintText, LocalizationManager.GetOrFallback("ui.blueprint.none", "No blueprint"));
                 SetInteractable(upgradeButton, false);
                 SetInteractable(craftButton, false);
                 SetInteractable(removeButton, false);
@@ -97,18 +82,18 @@ namespace Game
                     selectedBuilding.Coord.z,
                     upgradeState));
 
-            WorldRecipeConfig recipe = WorldRecipeManager.Instance.GetFirstRecipeForBuilding(selectedBuilding.ConfigId);
-            if (recipe != null)
+            selectedBlueprint = GetDisplayBlueprint(selectedBuilding.ConfigId);
+            if (selectedBlueprint != null)
             {
-                SetText(recipeText, WorldRecipeManager.Instance.FormatRecipe(recipe));
+                SetText(blueprintText, BlueprintManager.Instance.FormatBlueprint(selectedBlueprint));
             }
             else
             {
-                SetText(recipeText, LocalizationManager.Get("ui.building_detail.no_recipe_for_building"));
+                SetText(blueprintText, LocalizationManager.GetOrFallback("ui.building_detail.no_blueprint_for_building", "No blueprint for this building"));
             }
 
             SetInteractable(upgradeButton, WorldBuildingManager.Instance.CanUpgrade(selectedBuilding.InstanceId, out _));
-            SetInteractable(craftButton, recipe != null && WorldRecipeManager.Instance.CanCraft(recipe.Id));
+            SetInteractable(craftButton, selectedBlueprint != null && BlueprintManager.Instance.CanComplete(selectedBlueprint.Id));
             SetInteractable(removeButton, !WorldBuildingManager.Instance.IsBuildingType(selectedBuilding, WorldBuildingType.House));
         }
 
@@ -134,7 +119,7 @@ namespace Game
                 return;
             }
 
-            if (WorldRecipeManager.Instance.TryCraftFirstForBuilding(selectedBuilding.ConfigId))
+            if (selectedBlueprint != null && BlueprintManager.Instance.TryComplete(selectedBlueprint.Id))
             {
                 changed?.Invoke();
             }
@@ -157,10 +142,15 @@ namespace Game
             }
         }
 
-        private static Button BindButton(Transform transform, UnityEngine.Events.UnityAction clicked, string label)
+        private static void BindButton(Button button, UnityEngine.Events.UnityAction clicked)
         {
-            WorldPanelBindingUtility.BindButton(transform, clicked, label);
-            return transform != null ? transform.GetComponent<Button>() : null;
+            if (button == null)
+            {
+                return;
+            }
+
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(clicked);
         }
 
         private static void SetInteractable(Button button, bool interactable)
@@ -179,19 +169,24 @@ namespace Game
             }
         }
 
-        private void Clear()
-        {
-            infoText = null;
-            recipeText = null;
-            upgradeButton = null;
-            craftButton = null;
-            removeButton = null;
-            selectedBuilding = null;
-        }
-
         private static string GetBuildingName(int buildingId)
         {
             return LocalizedConfigText.BuildingName(buildingId);
+        }
+
+        private static BlueprintConfig GetDisplayBlueprint(int buildingId)
+        {
+            int questBlueprintId = QuestManager.Instance.GetActiveBlueprintObjectiveForBuilding(buildingId);
+            if (questBlueprintId > 0)
+            {
+                BlueprintConfig questBlueprint = BlueprintManager.Instance.Get(questBlueprintId);
+                if (questBlueprint != null)
+                {
+                    return questBlueprint;
+                }
+            }
+
+            return BlueprintManager.Instance.GetFirstBlueprintForBuilding(buildingId);
         }
     }
 }

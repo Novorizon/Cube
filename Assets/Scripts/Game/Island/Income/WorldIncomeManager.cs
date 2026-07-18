@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Game
@@ -8,7 +8,7 @@ namespace Game
         public static WorldIncomeManager Instance { get; } = new WorldIncomeManager();
 
         private readonly Dictionary<int, Dictionary<int, WorldBuildingIncomeConfig>> buildingIncomeByBuildingId = new Dictionary<int, Dictionary<int, WorldBuildingIncomeConfig>>();
-        private WorldRewardResolver rewardResolver;
+        private RewardResolver rewardResolver;
 
         private WorldIncomeManager()
         {
@@ -17,7 +17,7 @@ namespace Game
         public void Initialize()
         {
             BuildProductionIndex();
-            rewardResolver = new WorldRewardResolver(DataManager.Instance.WorldReward);
+            rewardResolver = new RewardResolver(DataManager.Instance.Reward);
         }
 
         public void Update()
@@ -108,7 +108,7 @@ namespace Game
                     continue;
                 }
 
-                IReadOnlyList<WorldItem> rewards = GetRewards(buildingIncome.OutputRewardGroupId);
+                IReadOnlyList<ItemStack> rewards = GetRewards(buildingIncome.OutputRewardGroupId);
                 if (rewards.Count == 0)
                 {
                     building.SetNextIncomeAt(currentUnixTime + buildingIncome.CycleSeconds);
@@ -154,18 +154,18 @@ namespace Game
             }
         }
 
-        private IReadOnlyList<WorldItem> GetRewards(int rewardGroupId)
+        private IReadOnlyList<ItemStack> GetRewards(int rewardGroupId)
         {
             if (rewardGroupId <= 0)
             {
-                return Array.Empty<WorldItem>();
+                return Array.Empty<ItemStack>();
             }
 
-            rewardResolver ??= new WorldRewardResolver(DataManager.Instance.WorldReward);
+            rewardResolver ??= new RewardResolver(DataManager.Instance.Reward);
             return rewardResolver.GetRewardGroup(rewardGroupId);
         }
 
-        private static void AddRewards(IReadOnlyList<WorldItem> rewards, int multiplier)
+        private static void AddRewards(IReadOnlyList<ItemStack> rewards, int multiplier)
         {
             if (rewards == null || multiplier <= 0)
             {
@@ -174,13 +174,13 @@ namespace Game
 
             for (int i = 0; i < rewards.Count; i++)
             {
-                WorldItem reward = rewards[i];
+                ItemStack reward = rewards[i];
                 if (reward == null || reward.ItemId <= 0 || reward.Count <= 0)
                 {
                     continue;
                 }
 
-                WorldItemManager.Instance.AddItem(reward.ItemId, reward.Count * multiplier);
+                ItemManager.Instance.AddItem(reward.ItemId, reward.Count * multiplier);
             }
         }
     }

@@ -7,12 +7,14 @@ namespace Game
 {
     public sealed class WorldSavePanel : UIPanel
     {
-        public const string PrefabPath = "Assets/Arts/UI/Panels/SavePanel.prefab";
+        public const string PrefabPath = "Assets/Arts/UI/Panels/Menu/SavePanel.prefab";
 
         [SerializeField] private Button closeButton;
         [SerializeField] private Button saveButton;
         [SerializeField] private TMP_Text statusText;
         private string statusKey = "ui.save.status.ready";
+
+        public override UICloseTriggers CloseTriggers => UICloseTriggers.CloseButton | UICloseTriggers.Back | UICloseTriggers.RightOutside;
 
         protected override void OnCreate()
         {
@@ -74,7 +76,10 @@ namespace Game
 
         private void CloseSelf()
         {
-            UIManager.Instance.Panels.Hide(PrefabPath);
+            if (!UIManager.Instance.Panels.PopStack(WorldMenuPanel.SettingsStackGroupId))
+            {
+                UIManager.Instance.Panels.Hide(PrefabPath);
+            }
         }
     }
 }

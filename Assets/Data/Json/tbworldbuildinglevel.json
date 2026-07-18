@@ -3,7 +3,7 @@
     "id": 30010001,
     "buildingId": 30000001,
     "level": 1,
-    "buildCostGroupId": 0,
+    "buildCostGroupId": 30901013,
     "buildSeconds": 0,
     "enable": true
   },

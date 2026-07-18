@@ -1,0 +1,12 @@
+D:\Cube\Tools\AbilityConfigValidator\bin\Release\net471\AbilityConfigValidator.exe.config
+D:\Cube\Tools\AbilityConfigValidator\bin\Release\net471\AbilityConfigValidator.exe
+D:\Cube\Tools\AbilityConfigValidator\bin\Release\net471\AbilityConfigValidator.pdb
+D:\Cube\Tools\AbilityConfigValidator\obj\Release\net471\AbilityConfigValidator.csproj.AssemblyReference.cache
+D:\Cube\Tools\AbilityConfigValidator\obj\Release\net471\AbilityConfigValidator.GeneratedMSBuildEditorConfig.editorconfig
+D:\Cube\Tools\AbilityConfigValidator\obj\Release\net471\AbilityConfigValidator.AssemblyInfoInputs.cache
+D:\Cube\Tools\AbilityConfigValidator\obj\Release\net471\AbilityConfigValidator.AssemblyInfo.cs
+D:\Cube\Tools\AbilityConfigValidator\obj\Release\net471\AbilityConfigValidator.csproj.CoreCompileInputs.cache
+D:\Cube\Tools\AbilityConfigValidator\obj\Release\net471\AbilityConfigValidator.sourcelink.json
+D:\Cube\Tools\AbilityConfigValidator\obj\Release\net471\AbilityConfigValidator.exe
+D:\Cube\Tools\AbilityConfigValidator\obj\Release\net471\AbilityConfigValidator.pdb
+D:\Cube\Tools\AbilityConfigValidator\obj\Release\net471\AbilityConfigValidator.exe.config

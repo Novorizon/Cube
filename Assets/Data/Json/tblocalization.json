@@ -987,7 +987,7 @@
   {
     "key": "ui.td.result.reward_prefix",
     "zhCn": "奖励：",
-    "en": "Reward:"
+    "en": "Reward: "
   },
   {
     "key": "ui.td.result.reason_victory",
@@ -1910,87 +1910,87 @@
     "en": "Stun"
   },
   {
-    "key": "world_resource.30300001.name",
+    "key": "resource.30300001.name",
     "zhCn": "树",
     "en": "Tree"
   },
   {
-    "key": "world_resource.30300002.name",
+    "key": "resource.30300002.name",
     "zhCn": "岩石",
     "en": "Rock"
   },
   {
-    "key": "world_resource.30300003.name",
+    "key": "resource.30300003.name",
     "zhCn": "铜矿",
     "en": "Copper Ore"
   },
   {
-    "key": "world_resource.30300004.name",
+    "key": "resource.30300004.name",
     "zhCn": "铁矿",
     "en": "Iron Ore"
   },
   {
-    "key": "world_resource.30300005.name",
+    "key": "resource.30300005.name",
     "zhCn": "药草丛",
     "en": "Herb Bush"
   },
   {
-    "key": "world_resource.30300006.name",
+    "key": "resource.30300006.name",
     "zhCn": "小麦",
     "en": "Wheat"
   },
   {
-    "key": "world_resource.30300007.name",
+    "key": "resource.30300007.name",
     "zhCn": "番茄",
     "en": "Tomato"
   },
   {
-    "key": "world_resource.30300008.name",
+    "key": "resource.30300008.name",
     "zhCn": "树枝",
     "en": "Branch"
   },
   {
-    "key": "world_resource.30300009.name",
+    "key": "resource.30300009.name",
     "zhCn": "散落石头",
     "en": "Loose Stone"
   },
   {
-    "key": "world_resource.30300010.name",
+    "key": "resource.30300010.name",
     "zhCn": "石矿",
     "en": "Stone Deposit"
   },
   {
-    "key": "world_gather.30400001.name",
+    "key": "gather.30400001.name",
     "zhCn": "树",
     "en": "Tree"
   },
   {
-    "key": "world_gather.30400002.name",
+    "key": "gather.30400002.name",
     "zhCn": "岩石",
     "en": "Rock"
   },
   {
-    "key": "world_gather.30400003.name",
+    "key": "gather.30400003.name",
     "zhCn": "铜矿",
     "en": "Copper Ore"
   },
   {
-    "key": "world_gather.30400004.name",
+    "key": "gather.30400004.name",
     "zhCn": "铁矿",
     "en": "Iron Ore"
   },
   {
-    "key": "world_gather.30400005.name",
+    "key": "gather.30400005.name",
     "zhCn": "药草丛",
     "en": "Herb Bush"
   },
   {
-    "key": "world_gather.30400006.name",
+    "key": "gather.30400006.name",
     "zhCn": "小麦",
     "en": "Wheat"
   },
   {
-    "key": "world_gather.30400007.name",
+    "key": "gather.30400007.name",
     "zhCn": "番茄",
     "en": "Tomato"
   },
@@ -2023,5 +2023,170 @@
     "key": "ui.toolkit.upgrade",
     "zhCn": "升级",
     "en": "Upgrade"
+  },
+  {
+    "key": "ui.quest.main_title",
+    "zhCn": "任务",
+    "en": "Quest"
+  },
+  {
+    "key": "ui.quest.current_goals",
+    "zhCn": "当前任务",
+    "en": "Current Quests"
+  },
+  {
+    "key": "ui.quest.none",
+    "zhCn": "没有进行中的任务。",
+    "en": "No active quests."
+  },
+  {
+    "key": "ui.quest.tracker_title",
+    "zhCn": "主线任务",
+    "en": "Main Quest"
+  },
+  {
+    "key": "ui.quest.track",
+    "zhCn": "跟踪",
+    "en": "Track"
+  },
+  {
+    "key": "ui.quest.tracking",
+    "zhCn": "跟踪中",
+    "en": "Tracking"
+  },
+  {
+    "key": "ui.quest.incomplete",
+    "zhCn": "未完成",
+    "en": "Incomplete"
+  },
+  {
+    "key": "ui.quest.not_started",
+    "zhCn": "未开始",
+    "en": "Not Started"
+  },
+  {
+    "key": "ui.quest.claim",
+    "zhCn": "领取奖励",
+    "en": "Claim Reward"
+  },
+  {
+    "key": "ui.quest.claimed",
+    "zhCn": "已领取",
+    "en": "Reward Claimed"
+  },
+  {
+    "key": "quest.60000001.name",
+    "zhCn": "搜寻海岸",
+    "en": "Scavenge the Shore"
+  },
+  {
+    "key": "quest.60000001.description",
+    "zhCn": "拾取海滩附近散落的树枝和石头。",
+    "en": "Pick up loose branches and stones near the beach."
+  },
+  {
+    "key": "quest.60000001.objective.1.text",
+    "zhCn": "收集木头",
+    "en": "Pick up wood"
+  },
+  {
+    "key": "quest.60000001.objective.2.text",
+    "zhCn": "收集石头",
+    "en": "Pick up stone"
+  },
+  {
+    "key": "quest.60000002.name",
+    "zhCn": "建造小屋",
+    "en": "Build a House"
+  },
+  {
+    "key": "quest.60000002.description",
+    "zhCn": "建造一座简单小屋，作为你的第一个庇护所。",
+    "en": "Build a simple house to mark your first shelter."
+  },
+  {
+    "key": "quest.60000002.objective.1.text",
+    "zhCn": "建造小屋",
+    "en": "Build a house"
+  },
+  {
+    "key": "quest.60000003.name",
+    "zhCn": "制作基础斧",
+    "en": "Craft a Basic Axe"
+  },
+  {
+    "key": "quest.60000003.description",
+    "zhCn": "用找到的材料制作基础斧。",
+    "en": "Use the materials you found to craft a basic axe."
+  },
+  {
+    "key": "quest.60000003.objective.1.text",
+    "zhCn": "制作基础斧",
+    "en": "Craft a basic axe"
+  },
+  {
+    "key": "quest.60000004.name",
+    "zhCn": "砍倒树木",
+    "en": "Chop Down a Tree"
+  },
+  {
+    "key": "quest.60000004.description",
+    "zhCn": "使用斧头从树木采集木材。",
+    "en": "Use the axe to collect wood from a tree."
+  },
+  {
+    "key": "quest.60000004.objective.1.text",
+    "zhCn": "采集木头",
+    "en": "Chop wood from trees"
+  },
+  {
+    "key": "quest.60000005.name",
+    "zhCn": "制作基础镐",
+    "en": "Craft a Basic Pickaxe"
+  },
+  {
+    "key": "quest.60000005.description",
+    "zhCn": "制作基础镐，用来敲碎岩石。",
+    "en": "Craft a basic pickaxe for breaking rocks."
+  },
+  {
+    "key": "quest.60000005.objective.1.text",
+    "zhCn": "制作基础镐",
+    "en": "Craft a basic pickaxe"
+  },
+  {
+    "key": "quest.60000006.name",
+    "zhCn": "敲碎岩石",
+    "en": "Break Rocks"
+  },
+  {
+    "key": "quest.60000006.description",
+    "zhCn": "使用镐从岩石采集石头。",
+    "en": "Use the pickaxe to collect stone from a rock."
+  },
+  {
+    "key": "quest.60000006.objective.1.text",
+    "zhCn": "采集石头",
+    "en": "Break rocks for stone"
+  },
+  {
+    "key": "quest.60000007.name",
+    "zhCn": "建造工作台",
+    "en": "Build a Workbench"
+  },
+  {
+    "key": "quest.60000007.description",
+    "zhCn": "建造工作台，开始更完整的制作流程。",
+    "en": "Build a workbench to open the first crafting route."
+  },
+  {
+    "key": "quest.60000007.objective.1.text",
+    "zhCn": "建造工作台",
+    "en": "Build a workbench"
+  },
+  {
+    "key": "ui.quest.craft",
+    "zhCn": "制作",
+    "en": "Craft"
   }
 ]

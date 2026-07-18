@@ -8,27 +8,38 @@ namespace Game
 {
     public sealed class BuildTowerPanel : UIPanel
     {
-        private const string TowerCardSkillPrefabPath = "Assets/Arts/UI/TowerDefense/Prefabs/TowerCardSkill.prefab";
-
         [SerializeField]
         private RectTransform contentRoot;
 
         [SerializeField]
         private GameObject cardPrefab;
 
+        [SerializeField]
+        private GameObject towerCardSkillPrefab;
+
         private readonly List<TowerBuildCardView> cards = new List<TowerBuildCardView>();
         private readonly HashSet<string> missingIconWarnings = new HashSet<string>();
-        private GameObject towerCardSkillPrefab;
         private int selectedTowerConfigId;
 
         public event Action<int> TowerClicked;
 
-        protected override void OnCreate()
+        public override UICloseTriggers CloseTriggers => UICloseTriggers.None;
+
+        protected override void OnOpen(object args)
         {
+            BattleItemManager.Instance.OnItemChanged += OnItemChanged;
+            Initialize();
+        }
+
+        protected override void OnClose()
+        {
+            BattleItemManager.Instance.OnItemChanged -= OnItemChanged;
+            CancelSelect();
         }
 
         protected override void OnDestroyed()
         {
+            BattleItemManager.Instance.OnItemChanged -= OnItemChanged;
             ClearCards();
             TowerClicked = null;
         }
@@ -82,13 +93,24 @@ namespace Game
                 IReadOnlyList<SkillConfig> skills = GetTowerSkills(towerId);
                 GameObject go = Instantiate(cardPrefab, contentRoot);
                 TowerBuildCardView card = go?.GetComponent<TowerBuildCardView>();
+                if (card == null)
+                {
+                    if (go != null)
+                    {
+                        Destroy(go);
+                    }
+
+                    Debug.LogError($"Build tower card prefab is missing {nameof(TowerBuildCardView)}.", cardPrefab);
+                    continue;
+                }
+
                 card.Init(towerId, towerName, costCount, OnTowerCardClicked);
                 card.SetIcon(icon);
-                card.SetSkills(skills, skills.Count > 0 ? GetTowerCardSkillPrefab() : null, location => LoadIcon(location, "Tower skill"));
+                card.SetSkills(skills, skills.Count > 0 ? towerCardSkillPrefab : null, location => LoadIcon(location, "Tower skill"));
                 card.SetSelected(towerId == selectedTowerConfigId);
+                card.SetAffordable(TowerManager.Instance.HasGold(towerId));
                 cards.Add(card);
                 createdCount++;
-                Debug.Log($"TowerId: {towerId}, Name: {towerConfig.Name}, Cost: {costCount}");
             }
 
             if (createdCount == 0)
@@ -154,6 +176,23 @@ namespace Game
                 }
 
                 card.SetSelected(card.TowerId == selectedTowerConfigId);
+            }
+        }
+
+        private void OnItemChanged(int itemId, int count)
+        {
+            if (itemId != ItemIds.Gold)
+            {
+                return;
+            }
+
+            for (int i = 0; i < cards.Count; i++)
+            {
+                TowerBuildCardView card = cards[i];
+                if (card != null)
+                {
+                    card.SetAffordable(TowerManager.Instance.HasGold(card.TowerId));
+                }
             }
         }
 
@@ -232,22 +271,6 @@ namespace Game
             }
 
             return left.Level.CompareTo(right.Level);
-        }
-
-        private GameObject GetTowerCardSkillPrefab()
-        {
-            if (towerCardSkillPrefab != null)
-            {
-                return towerCardSkillPrefab;
-            }
-
-            towerCardSkillPrefab = ResourceManager.Instance.LoadGameObject(TowerCardSkillPrefabPath);
-            if (towerCardSkillPrefab == null)
-            {
-                Debug.LogWarning($"Tower card skill prefab load failed. location: {TowerCardSkillPrefabPath}");
-            }
-
-            return towerCardSkillPrefab;
         }
 
         private Sprite LoadIcon(string location, string iconKind)

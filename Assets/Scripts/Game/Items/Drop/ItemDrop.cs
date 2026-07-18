@@ -61,7 +61,7 @@ public class ItemDrop : MonoBehaviour
         picked = true;
 
         Vector3 pickPosition = transform.position;
-        ItemManager.Instance.AddItem(itemId, count);
+        BattleItemManager.Instance.AddItem(itemId, count);
         NotifyItemFly(pickPosition);
 
         Destroy(gameObject);

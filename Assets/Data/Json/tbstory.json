@@ -1,0 +1,13 @@
+[
+  {
+    "id": 10001,
+    "title": "Ashore",
+    "triggerMode": 1,
+    "triggerTargetId": 0,
+    "completeQuestEventType": 2,
+    "completeQuestTargetId": 10001,
+    "nextStoryId": 0,
+    "repeatable": false,
+    "enable": true
+  }
+]

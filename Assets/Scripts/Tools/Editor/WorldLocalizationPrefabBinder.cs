@@ -48,9 +48,13 @@ namespace Game.Editor
             { "English", new TextBinding("ui.language.english", "English") },
             { "Tech Tree", new TextBinding("ui.tech.panel.title", "Tech Tree") },
             { "科技树", new TextBinding("ui.tech.panel.title", "科技树") },
+            { "Build", new TextBinding("ui.build.icon_fallback", "Build") },
+            { "Build Panel", new TextBinding("ui.build.icon_fallback", "Build") },
             { "Building", new TextBinding("ui.build.tab.building", "Building") },
             { "Buildings", new TextBinding("ui.production.group.buildings", "Buildings") },
+            { "Decor", new TextBinding("ui.build.tab.decoration", "Decoration") },
             { "Production", new TextBinding("ui.build.tab.production", "Production") },
+            { "Produce", new TextBinding("ui.build.tab.production", "Production") },
             { "Resource", new TextBinding("ui.build.tab.resource", "Resource") },
             { "Resources", new TextBinding("ui.build.tab.resource", "Resources") },
             { "Farm", new TextBinding("ui.build.tab.farm", "Farm") },
@@ -99,20 +103,20 @@ namespace Game.Editor
         public static void BindAll()
         {
             int bound = 0;
-            bound += BindPrefab("Assets/Arts/UI/Panels/MenuPanel.prefab", BindMenuPanel);
-            bound += BindPrefab("Assets/Arts/UI/Panels/SoundPanel.prefab", BindSoundPanel);
-            bound += BindPrefab("Assets/Arts/UI/Panels/LanguagePanel.prefab", BindLanguagePanel);
-            bound += BindPrefab("Assets/Arts/UI/Panels/SavePanel.prefab", BindSavePanel);
-            bound += BindPrefab("Assets/Arts/UI/Panels/TechTreePanel.prefab", root => BindByCurrentText(root.transform));
-            bound += BindPrefab("Assets/Arts/UI/Panels/BuildPanel.prefab", root => BindByCurrentText(root.transform));
-            bound += BindPrefab("Assets/Arts/UI/Panels/BagPanel.prefab", root => BindByCurrentText(root.transform));
-            bound += BindPrefab("Assets/Arts/UI/Panels/FarmPanel.prefab", root => BindByCurrentText(root.transform));
-            bound += BindPrefab("Assets/Arts/UI/Panels/BuildingDetailPanel.prefab", root => BindByCurrentText(root.transform));
-            bound += BindPrefab("Assets/Arts/UI/Panels/ProductionPanel.prefab", root => BindByCurrentText(root.transform));
-            bound += BindPrefab("Assets/Arts/UI/Panels/ToolKitPanel.prefab", root => BindByCurrentText(root.transform));
+            bound += BindPrefab("Assets/Arts/UI/Panels/Menu/MenuPanel.prefab", BindMenuPanel);
+            bound += BindPrefab("Assets/Arts/UI/Panels/Menu/SoundPanel.prefab", BindSoundPanel);
+            bound += BindPrefab("Assets/Arts/UI/Panels/Menu/LanguagePanel.prefab", BindLanguagePanel);
+            bound += BindPrefab("Assets/Arts/UI/Panels/Menu/SavePanel.prefab", BindSavePanel);
+            bound += BindPrefab("Assets/Arts/UI/Panels/TechTree/TechTreePanel.prefab", root => BindByCurrentText(root.transform));
+            bound += BindPrefab("Assets/Arts/UI/Panels/Build/BuildPanel.prefab", root => BindByCurrentText(root.transform));
+            bound += BindPrefab("Assets/Arts/UI/Panels/Bag/BagPanel.prefab", root => BindByCurrentText(root.transform));
+            bound += BindPrefab("Assets/Arts/UI/Panels/Farm/FarmPanel.prefab", root => BindByCurrentText(root.transform));
+            bound += BindPrefab("Assets/Arts/UI/Panels/Build/BuildingDetailPanel.prefab", root => BindByCurrentText(root.transform));
+            bound += BindPrefab("Assets/Arts/UI/Panels/Production/ProductionPanel.prefab", root => BindByCurrentText(root.transform));
+            bound += BindPrefab("Assets/Arts/UI/Panels/ToolKit/ToolKitPanel.prefab", root => BindByCurrentText(root.transform));
             bound += BindPrefab("Assets/Arts/UI/Pages/BuildHudPage.prefab", root => BindByCurrentText(root.transform));
-            bound += BindPrefab("Assets/Arts/UI/TowerDefense/Prefabs/SettingsDialog.prefab", BindSettingsDialog);
-            bound += BindPrefab("Assets/Arts/UI/TowerDefense/Prefabs/BattleHud.prefab", root => BindByCurrentText(root.transform));
+            bound += BindPrefab("Assets/Arts/UI/Panels/Battle/BattleSettingsPopup.prefab", BindSettingsDialog);
+            bound += BindPrefab("Assets/Arts/UI/Panels/Battle/BattlePage.prefab", root => BindByCurrentText(root.transform));
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();

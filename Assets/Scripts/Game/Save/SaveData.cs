@@ -15,6 +15,8 @@ namespace Game
         public SaveCalendarData Calendar;
         public SaveBagData Bag;
         public SaveTechData Tech;
+        public SaveQuestData Quest;
+        public StorageManager.StoryData Story;
         public SavePlayerData Player;
     }
 
@@ -112,6 +114,15 @@ namespace Game
     public sealed class SaveTechData
     {
         public int[] ResearchedTechIds;
+    }
+
+    public sealed class SaveQuestData
+    {
+        public int TrackedQuestId;
+        public QuestData[] Quests;
+        public int[] AcceptedQuestIds;
+        public int[] CompletedQuestIds;
+        public int[] ClaimedQuestIds;
     }
 
     public sealed class SavePlayerData

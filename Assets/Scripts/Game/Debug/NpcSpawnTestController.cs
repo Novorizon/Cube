@@ -20,7 +20,7 @@ namespace Game
         {
             if (Input.GetKeyDown(loadMapAndSpawnKey))
             {
-                LoadMap();
+                LoadBattleMap();
                 SpawnNpc();
                 return;
             }
@@ -31,17 +31,17 @@ namespace Game
             }
         }
 
-        private void LoadMap()
+        private void LoadBattleMap()
         {
-            bool success = MapManager.Instance.LoadMap(testMapId);
+            bool success = MapManager.Instance.LoadBattleMap(testMapId);
 
             if (!success)
             {
-                Debug.LogError($"NpcSpawnTestController load map failed. MapId: {testMapId}");
+                Debug.LogError($"NpcSpawnTestController load battle map failed. MapConfigId: {testMapId}");
                 return;
             }
 
-            Debug.Log($"NpcSpawnTestController load map success. MapId: {testMapId}");
+            Debug.Log($"NpcSpawnTestController load battle map success. MapConfigId: {testMapId}");
         }
 
         private void SpawnNpc()

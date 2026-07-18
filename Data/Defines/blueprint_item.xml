@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="BlueprintItemTableConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="blueprintId" type="int" comment="client" />
+    <var name="itemKind" type="int" comment="client" />
+    <var name="itemId" type="int" comment="client" />
+    <var name="count" type="int" comment="client" />
+    <var name="sortOrder" type="int" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbBlueprintItem" value="BlueprintItemTableConfig" input="blueprint_item.xlsx" mode="map" index="id" />
+</module>

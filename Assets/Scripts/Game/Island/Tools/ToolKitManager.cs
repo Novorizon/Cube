@@ -42,9 +42,9 @@ namespace Game
                 return false;
             }
 
-            if (itemId > 0 && !CanPutTool(itemId))
+            if (itemId > 0 && !CanUseTool(itemId))
             {
-                Debug.LogWarning($"ToolKit set slot failed. Item is not a tool: {itemId}");
+                Debug.LogWarning($"ToolKit set slot failed. Tool is not owned: {itemId}");
                 return false;
             }
 
@@ -70,6 +70,30 @@ namespace Game
             MarkDirtyIfReady();
         }
 
+        public bool TryMoveOrSwapSlot(int fromSlotIndex, int toSlotIndex)
+        {
+            EnsureSlotCount();
+            if (fromSlotIndex < 0 ||
+                fromSlotIndex >= Capacity ||
+                toSlotIndex < 0 ||
+                toSlotIndex >= Capacity ||
+                fromSlotIndex == toSlotIndex)
+            {
+                return false;
+            }
+
+            int fromItemId = slots[fromSlotIndex];
+            if (fromItemId <= 0)
+            {
+                return false;
+            }
+
+            slots[fromSlotIndex] = slots[toSlotIndex];
+            slots[toSlotIndex] = fromItemId;
+            MarkDirtyIfReady();
+            return true;
+        }
+
         public bool TryFindTool(ToolType toolType, out int itemId)
         {
             itemId = 0;
@@ -81,7 +105,8 @@ namespace Game
                 int candidateItemId = slots[i];
                 if (!ToolKitDefinitions.TryGetTool(candidateItemId, out ToolDefinition definition) ||
                     definition == null ||
-                    definition.ToolType != toolType)
+                    definition.ToolType != toolType ||
+                    !CanUseTool(candidateItemId))
                 {
                     continue;
                 }
@@ -118,7 +143,7 @@ namespace Game
 
         public bool TrySelectToolItem(int itemId)
         {
-            if (!CanPutTool(itemId))
+            if (!CanUseTool(itemId))
             {
                 return false;
             }
@@ -195,7 +220,7 @@ namespace Game
                 for (int i = 0; i < data.SlotItemIds.Length && i < Capacity; i++)
                 {
                     int itemId = data.SlotItemIds[i];
-                    slots.Add(CanPutTool(itemId) ? itemId : 0);
+                    slots.Add(CanUseTool(itemId) ? itemId : 0);
                 }
             }
 
@@ -227,10 +252,18 @@ namespace Game
             IReadOnlyList<int> defaults = ToolKitDefinitions.GetDefaultSlots();
             for (int i = 0; i < defaults.Count && i < Capacity; i++)
             {
-                slots.Add(defaults[i]);
+                int itemId = defaults[i];
+                slots.Add(CanUseTool(itemId) ? itemId : 0);
             }
 
             EnsureSlotCount();
+        }
+
+        private static bool CanUseTool(int itemId)
+        {
+            return itemId > 0 &&
+                   ToolKitDefinitions.TryGetTool(itemId, out _) &&
+                   ItemManager.Instance.GetCount(itemId) > 0;
         }
 
         private void EnsureSlotCount()

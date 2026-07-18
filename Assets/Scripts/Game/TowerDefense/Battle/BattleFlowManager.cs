@@ -12,6 +12,8 @@ namespace Game
         private string currentMapName;
         private BattleEndedMessage lastEndMessage;
 
+        public event System.Action<BattleEndedMessage> BattleCompleted;
+
         public BattleState State => state;
         public bool IsRunning => state == BattleState.Running;
         public bool HasEnded => state == BattleState.Victory || state == BattleState.Defeat || state == BattleState.Settled;
@@ -65,7 +67,7 @@ namespace Game
                 GameInputManager.Instance.SetMode(InputMode.UI);
             }
 
-            BattleSettlementReward reward = victory ? settlementBuilder.BuildReward(ItemManager.Instance.GetAllItems()) : new BattleSettlementReward();
+            BattleSettlementReward reward = victory ? settlementBuilder.BuildReward(BattleItemManager.Instance.GetAllItems()) : new BattleSettlementReward();
             if (victory)
             {
                 settlementBuilder.PrintReward(reward);
@@ -82,6 +84,7 @@ namespace Game
             };
 
             Messager.Instance.Notify(BattleMessageTopic.BattleEnded, lastEndMessage);
+            BattleCompleted?.Invoke(lastEndMessage);
             Debug.Log($"Battle ended. state: {endState}, victory: {victory}, reason: {reason}");
         }
 

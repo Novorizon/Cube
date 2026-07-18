@@ -120,7 +120,7 @@ namespace Game.Editor
 
         private const string PrefabConfigPath = "Assets/Data/Configs/MapTilePrefabConfig.asset";
         private const string DecorationConfigPath = "Assets/Data/Configs/MapDecorationPrefabConfig.asset";
-        private const string WorldResourceJsonPath = "Assets/Data/Json/tbworldresource.json";
+        private const string WorldResourceJsonPath = "Assets/Data/Json/tbresource.json";
         private const string RootName = "MapRoot";
         private const float RightDockPanelWidth = 360f;
         private const float MiddlePanelWidth = 430f;
@@ -1674,7 +1674,7 @@ namespace Game.Editor
                 EditorGUILayout.LabelField("World Resources", EditorStyles.boldLabel);
                 EditorGUILayout.LabelField("Object Type", MapObjectType.Resource.ToString());
                 DrawWorldResourceSelector();
-                EditorGUILayout.LabelField("Selected Resource", GetSelectedWorldResourceName());
+                EditorGUILayout.LabelField("Selected Resource", GetSelectedResourceName());
                 EditorGUILayout.LabelField("Interaction", GetWorldResourceInteractionSummary(GetSelectedWorldResourceItem()));
                 resourceLocalPosition = EditorGUILayout.Vector3Field("Local Position", resourceLocalPosition);
                 resourceLocalEuler = EditorGUILayout.Vector3Field("Local Euler", resourceLocalEuler);
@@ -1773,7 +1773,7 @@ namespace Game.Editor
                 GUI.Label(previewRect, "No\nPrefab", EditorStyles.centeredGreyMiniLabel);
             }
 
-            GUI.Label(titleRect, $"{item.Id} - {GetWorldResourceName(item)}", isSelected ? EditorStyles.boldLabel : EditorStyles.label);
+            GUI.Label(titleRect, $"{item.Id} - {GetResourceName(item)}", isSelected ? EditorStyles.boldLabel : EditorStyles.label);
             GUI.Label(infoRect, $"Type {GetWorldResourceCategoryName(item)} | Build {item.BlocksBuild} | Move {item.BlocksMove}", EditorStyles.miniLabel);
             GUI.Label(interactionRect, GetWorldResourceInteractionSummary(item), EditorStyles.miniLabel);
             EditorGUI.ObjectField(objectFieldRect, GUIContent.none, prefab, typeof(GameObject), false);
@@ -1872,7 +1872,7 @@ namespace Game.Editor
                 WorldResourceEditorItem item = worldResourceItems[i];
                 if (item == null || item.Id <= 0) continue;
                 worldResourceIdOptions.Add(item.Id);
-                worldResourceNameOptions.Add($"{item.Id} - {GetWorldResourceName(item)}");
+                worldResourceNameOptions.Add($"{item.Id} - {GetResourceName(item)}");
             }
         }
 
@@ -1894,7 +1894,7 @@ namespace Game.Editor
 
             if (GetWorldResourcePrefab(item) == null)
             {
-                EditorUtility.DisplayDialog("World Object", $"Missing prefab for resource: {item.Id} - {GetWorldResourceName(item)}", "OK");
+                EditorUtility.DisplayDialog("World Object", $"Missing prefab for resource: {item.Id} - {GetResourceName(item)}", "OK");
                 return;
             }
 
@@ -3402,7 +3402,7 @@ namespace Game.Editor
             if (instance == null) instance = CreateResourceFallbackObject(item);
             if (instance == null) return;
 
-            instance.name = $"Resource_{index}_{GetWorldResourceName(item)}";
+            instance.name = $"Resource_{index}_{GetResourceName(item)}";
             instance.transform.SetParent(tileObject.transform, false);
             instance.transform.localPosition = mapObject.LocalPosition;
             instance.transform.localRotation = Quaternion.Euler(mapObject.LocalEuler);
@@ -3624,12 +3624,12 @@ namespace Game.Editor
             return null;
         }
 
-        private string GetSelectedWorldResourceName()
+        private string GetSelectedResourceName()
         {
-            return GetWorldResourceName(GetSelectedWorldResourceItem());
+            return GetResourceName(GetSelectedWorldResourceItem());
         }
 
-        private static string GetWorldResourceName(WorldResourceEditorItem item)
+        private static string GetResourceName(WorldResourceEditorItem item)
         {
             if (item == null)
             {
@@ -3699,7 +3699,7 @@ namespace Game.Editor
                     return new Color(0.50f, 0.50f, 0.52f);
 
                 case WorldResourceCategory.Ore:
-                    return GetWorldResourceName(item).ToLowerInvariant().Contains("iron")
+                    return GetResourceName(item).ToLowerInvariant().Contains("iron")
                         ? new Color(0.60f, 0.58f, 0.55f)
                         : new Color(0.76f, 0.42f, 0.22f);
 
@@ -3754,7 +3754,7 @@ namespace Game.Editor
                 WorldResourceEditorItem resourceItem = GetWorldResourceItem(mapObject.ConfigId);
                 if (resourceItem == null)
                 {
-                    errors.Add($"Resource object missing world_resource config. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}");
+                    errors.Add($"Resource object missing resource config. ObjectId: {mapObject.ObjectId}, Config: {mapObject.ConfigId}");
                     return;
                 }
 

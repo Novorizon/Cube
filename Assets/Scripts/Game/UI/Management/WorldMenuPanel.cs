@@ -8,7 +8,8 @@ namespace Game
 {
     public sealed class WorldMenuPanel : UIPanel
     {
-        public const string PrefabPath = "Assets/Arts/UI/Panels/MenuPanel.prefab";
+        public const string PrefabPath = "Assets/Arts/UI/Panels/Menu/MenuPanel.prefab";
+        public const string SettingsStackGroupId = "SystemSettings";
 
         [SerializeField] private Button soundButton;
         [SerializeField] private Button languageButton;
@@ -17,6 +18,8 @@ namespace Game
         [SerializeField] private Button closeButton;
         [SerializeField] private Button cameraModeButton;
         [SerializeField] private TMP_Text cameraModeButtonText;
+
+        public override UICloseTriggers CloseTriggers => UICloseTriggers.CloseButton | UICloseTriggers.Back | UICloseTriggers.RightOutside;
 
         protected override void OnCreate()
         {
@@ -96,18 +99,21 @@ namespace Game
 
         private async System.Threading.Tasks.Task ShowPanelAsync(string prefabPath)
         {
-            UIManager.Instance.Panels.Hide(PrefabPath);
-            await UIManager.Instance.Panels.ShowAsync(prefabPath);
+            await UIManager.Instance.Panels.PushStackAsync(SettingsStackGroupId, PrefabPath);
+            await UIManager.Instance.Panels.PushStackAsync(SettingsStackGroupId, prefabPath);
         }
 
         private void CloseSelf()
         {
-            UIManager.Instance.Panels.Hide(PrefabPath);
+            if (!UIManager.Instance.Panels.PopStack(SettingsStackGroupId))
+            {
+                UIManager.Instance.Panels.Hide(PrefabPath);
+            }
         }
 
         private void ToggleCameraMode()
         {
-            WorldGameplayController.Instance?.ToggleCameraFollowMode();
+            GameplayController.Instance?.ToggleCameraFollowMode();
             RefreshCameraModeButton();
         }
 
@@ -118,8 +124,8 @@ namespace Game
                 return;
             }
 
-            CameraFollowMode mode = WorldGameplayController.Instance != null
-                ? WorldGameplayController.Instance.CurrentCameraFollowMode
+            CameraFollowMode mode = GameplayController.Instance != null
+                ? GameplayController.Instance.CurrentCameraFollowMode
                 : CameraFollowMode.FollowPlayer;
             cameraModeButtonText.text = mode == CameraFollowMode.FollowPlayer
                 ? LocalizationManager.Get("ui.menu.camera_free")

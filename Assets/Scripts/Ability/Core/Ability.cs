@@ -37,6 +37,9 @@ namespace Game.Ability
             Script = script ?? new DefaultAbilityScript();
             Level = Mathf.Clamp(level, 1, Mathf.Max(1, definition.MaxLevel));
             Charges = definition.Charges != null && definition.Charges.StartFull ? Mathf.Max(0, definition.Charges.MaxCharges) : Mathf.Max(0, definition.Charges != null ? 0 : -1);
+            chargeRestoreRemaining = definition.Charges != null && Charges < definition.Charges.MaxCharges
+                ? Mathf.Max(0f, definition.Charges.RestoreTime)
+                : 0f;
             Script.Bind(this);
             Script.OnCreated();
             ApplyIntrinsicModifier();
@@ -44,7 +47,13 @@ namespace Game.Ability
 
         public void SetLevel(int level)
         {
-            Level = Mathf.Clamp(level, 1, Mathf.Max(1, Definition.MaxLevel));
+            int resolvedLevel = Mathf.Clamp(level, 1, Mathf.Max(1, Definition.MaxLevel));
+            if (Level == resolvedLevel)
+            {
+                return;
+            }
+
+            Level = resolvedLevel;
             Script.OnUpgrade();
             ApplyIntrinsicModifier();
         }
@@ -101,7 +110,19 @@ namespace Game.Ability
                 return;
             }
 
-            Charges = Mathf.Clamp(value, 0, Mathf.Max(0, Definition.Charges.MaxCharges));
+            int maxCharges = Mathf.Max(0, Definition.Charges.MaxCharges);
+            int previousCharges = Charges;
+            Charges = Mathf.Clamp(value, 0, maxCharges);
+
+            if (Charges >= maxCharges)
+            {
+                chargeRestoreRemaining = 0f;
+            }
+            else if (previousCharges >= maxCharges || chargeRestoreRemaining <= 0f)
+            {
+                chargeRestoreRemaining = Mathf.Max(0f, Definition.Charges.RestoreTime);
+            }
+
             Engine.RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.ChargeChanged, Ability = this, Caster = Owner, Value = Charges });
         }
 
@@ -193,6 +214,26 @@ namespace Game.Ability
             TickCooldown(deltaTime);
             TickCharges(deltaTime);
 
+            if (Phase == AbilityPhase.Casting || Phase == AbilityPhase.Channeling)
+            {
+                CastResult interruption = ValidateOngoingCaster();
+                if (!interruption.Success)
+                {
+                    if (Phase == AbilityPhase.Casting)
+                    {
+                        CastOrder cancelledOrder = pendingOrder;
+                        Interrupt();
+                        Engine.RaiseCastFailed(this, cancelledOrder, interruption);
+                    }
+                    else
+                    {
+                        Interrupt();
+                    }
+
+                    return;
+                }
+            }
+
             if (Phase == AbilityPhase.Casting)
             {
                 TickCasting(deltaTime);
@@ -214,6 +255,27 @@ namespace Game.Ability
             }
 
             Script.OnRemoved();
+        }
+
+        internal void OnUnitRemoved(IUnit unit)
+        {
+            if (unit == null)
+            {
+                return;
+            }
+
+            if (Phase == AbilityPhase.Casting && pendingOrder != null && IsSameUnit(pendingOrder.Target, unit))
+            {
+                CastOrder cancelledOrder = pendingOrder;
+                Interrupt();
+                Engine.RaiseCastFailed(this, cancelledOrder, CastResult.Fail(CastFailureReason.InvalidTarget, "Target left the ability world."));
+                return;
+            }
+
+            if (Phase == AbilityPhase.Channeling && channelContext != null && IsSameUnit(channelContext.Target, unit))
+            {
+                Interrupt();
+            }
         }
 
         private CastResult CanCastBasic()
@@ -246,6 +308,17 @@ namespace Game.Ability
             if (Engine.HasState(Owner, UnitState.Silenced))
             {
                 return CastResult.Fail(CastFailureReason.Silenced);
+            }
+
+            if ((Definition.Behavior & AbilityBehavior.RootDisables) != 0 &&
+                Engine.HasState(Owner, UnitState.Rooted))
+            {
+                return CastResult.Fail(CastFailureReason.Rooted);
+            }
+
+            if (Engine.HasState(Owner, UnitState.CommandRestricted))
+            {
+                return CastResult.Fail(CastFailureReason.CommandRestricted);
             }
 
             if (Phase == AbilityPhase.Casting)
@@ -333,14 +406,27 @@ namespace Game.Ability
             CastOrder order = pendingOrder;
             pendingOrder = null;
             Phase = AbilityPhase.Idle;
-            if (Targeting.BuildCastContext(Engine, this, order, out CastContext context, out CastResult result))
-            {
-                ExecuteCast(context);
-            }
-            else
+            CastResult result = CanCastBasic();
+            if (!result.Success)
             {
                 Engine.RaiseCastFailed(this, order, result);
+                return;
             }
+
+            if (!Targeting.BuildCastContext(Engine, this, order, out CastContext context, out result))
+            {
+                Engine.RaiseCastFailed(this, order, result);
+                return;
+            }
+
+            result = Script.CastFilter(context) ?? CastResult.Ok();
+            if (!result.Success)
+            {
+                Engine.RaiseCastFailed(this, order, result);
+                return;
+            }
+
+            ExecuteCast(context);
         }
 
         private void TickChannel(float deltaTime)
@@ -385,11 +471,53 @@ namespace Game.Ability
             }
 
             chargeRestoreRemaining -= deltaTime;
-            if (chargeRestoreRemaining <= 0f)
+            while (chargeRestoreRemaining <= 0f && Charges < Definition.Charges.MaxCharges)
             {
+                float nextRemaining = chargeRestoreRemaining + Definition.Charges.RestoreTime;
                 SetCharges(Charges + 1);
-                chargeRestoreRemaining = Definition.Charges.RestoreTime;
+                if (Charges >= Definition.Charges.MaxCharges)
+                {
+                    break;
+                }
+
+                chargeRestoreRemaining = nextRemaining;
             }
+        }
+
+        private CastResult ValidateOngoingCaster()
+        {
+            if (!Activated)
+            {
+                return CastResult.Fail(CastFailureReason.NotActivated);
+            }
+
+            if (Owner == null || !Owner.IsAlive)
+            {
+                return CastResult.Fail(CastFailureReason.DeadCaster);
+            }
+
+            if (Engine.HasState(Owner, UnitState.Stunned))
+            {
+                return CastResult.Fail(CastFailureReason.Stunned);
+            }
+
+            if (Engine.HasState(Owner, UnitState.Silenced))
+            {
+                return CastResult.Fail(CastFailureReason.Silenced);
+            }
+
+            if ((Definition.Behavior & AbilityBehavior.RootDisables) != 0 &&
+                Engine.HasState(Owner, UnitState.Rooted))
+            {
+                return CastResult.Fail(CastFailureReason.Rooted);
+            }
+
+            if (Engine.HasState(Owner, UnitState.CommandRestricted))
+            {
+                return CastResult.Fail(CastFailureReason.CommandRestricted);
+            }
+
+            return CastResult.Ok();
         }
 
         private void ApplyIntrinsicModifier()
@@ -402,6 +530,12 @@ namespace Game.Ability
             }
 
             intrinsicModifier = Engine.AddModifier(Owner, Owner, this, modifierName, new ModifierApplyOptions { Duration = -1f });
+        }
+
+        private static bool IsSameUnit(IUnit left, IUnit right)
+        {
+            return left != null && right != null &&
+                   (ReferenceEquals(left, right) || left.EntityId == right.EntityId);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Game
                 return;
             }
 
-            if (!WorldGatherManager.Instance.TryGather(resourceObject, out IReadOnlyList<WorldItem> rewards))
+            if (!WorldGatherManager.Instance.TryGather(resourceObject, out IReadOnlyList<ItemStack> rewards))
             {
                 if (WorldGatherManager.Instance.TryGetStatus(resourceObject, out WorldGatherStatus status))
                 {
@@ -69,7 +69,7 @@ namespace Game
             return false;
         }
 
-        private static string FormatRewards(IReadOnlyList<WorldItem> rewards)
+        private static string FormatRewards(IReadOnlyList<ItemStack> rewards)
         {
             if (rewards == null || rewards.Count == 0)
             {
@@ -79,7 +79,7 @@ namespace Game
             List<string> parts = new List<string>(rewards.Count);
             for (int i = 0; i < rewards.Count; i++)
             {
-                WorldItem item = rewards[i];
+                ItemStack item = rewards[i];
                 parts.Add($"{item.ItemId} x{item.Count}");
             }
 

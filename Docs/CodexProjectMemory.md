@@ -1,325 +1,185 @@
-# Codex Project Memory
+﻿# Codex Project Memory
+
+这是给 Codex 新对话的最小入口，不是完整设计文档。读完本文件后，只按当前任务继续读相关模块。
 
 ## Project Basics
 
-- Workspace: `D:\Cube`
-- Engine: Unity 2022
-- Key packages/tools: Odin Inspector 3.1.2, YooAsset, Luban Excel pipeline
-- Game direction: the main project is an island survival / island management simulation after drifting ashore; combat is implemented through a tower defense mode.
-- Current focus: tower defense module. Map editor and tower defense flow already exist.
+```text
+Workspace: D:\Cube
+Engine: Unity 2022
+User language: Chinese
+Main direction: island survival / island management, with separate tower-defense combat mode
+Current focus: management UI, Story -> Quest flow, Blueprint production, data-driven configuration
+```
 
-## Important Paths
+重要路径：
 
-- Luban source data: `D:\Cube\Data`
-- Luban Excel tables: `D:\Cube\Data\Excel`
-- Luban schema definitions: `D:\Cube\Data\Defines`
-- Generated client config code: `D:\Cube\Assets\Scripts\Game\Data\Generated`
-- Runtime config bytes: `D:\Cube\Assets\Data\Bin`
-- Map json data: `D:\Cube\Assets\Data\Map`
-- Art assets: `D:\Cube\Assets\Arts`
-- Main scripts: `D:\Cube\Assets\Scripts`
-- Project docs: `D:\Cube\Docs`
+```text
+Assets/Scripts/Framework
+Assets/Scripts/Game
+Assets/Scripts/Game/UI/Management
+Assets/Scripts/Game/Island
+Assets/Scripts/Game/Quests
+Assets/Scripts/Game/Story
+Assets/Scripts/Game/Blueprints
+Assets/Scripts/Game/Data/Generated
 
-## Luban / Data Notes
+Assets/Arts/UI/Panels
+Assets/Arts/UI/Icons
+Assets/Arts/Map
 
-- `Data/luban.conf` uses:
-  - `schemaFiles`: `Defines`
-  - `dataDir`: `Excel`
-  - target manager: `Tables`
-  - top module: `Game`
-- Main Excel files observed:
-  - Ability system: `AbilityConfig.xlsx`, `AbilityAction.xlsx`, `AbilityModifier.xlsx`, `AbilityModifierProperty.xlsx`, `AbilityProjectile.xlsx`, `AbilitySpecialValue.xlsx`, `AbilitySystemEnum.xlsx`
-  - Legacy/skill system: `skill.xlsx`, `skill_action.xlsx`, `skill_modifier.xlsx`, `skill_system_enum.xlsx`
-  - Tower defense gameplay: `tower.xlsx`, `tower_level.xlsx`, `wave.xlsx`, `Wave/wave1.xlsx`, `map.xlsx`, `npc.xlsx`, `npc_drop.xlsx`, `item.xlsx`, `base.xlsx`
-- Runtime data loading goes through `Game.DataManager`.
-  - General tables are loaded from `Assets/Data/Bin/{table}.bytes`.
-  - Wave data is loaded separately per map through `DataManager.LoadWave(string waveLocation)`.
-  - `DataManager.MakeTowerLevelId(towerId, level)` is `towerId * 100 + level`.
+Data/Excel
+Data/Defines
+Assets/Data/Bin
+Assets/Data/Json
+Docs
+```
 
-## Code Layout
+## Read Only What You Need
 
-- Entry point: `Assets/Scripts/GameEntry.cs`
-  - Initializes `ResourceManager`, input, camera, map input, data, base, npc, tower, wave, ability, battle flow, map manager, tower build, target click, and UI.
-  - Main update loop only runs simulation when `BattleFlowManager.Instance.IsRunning`.
-- Framework:
-  - Resource/YooAsset wrapper: `Assets/Scripts/Framework/Resource`
-  - Message/event systems: `Assets/Scripts/Framework/Message`, `Assets/Scripts/Framework/Event`
-  - UI framework: `Assets/Scripts/Framework/UI`
-  - Input system: `Assets/Scripts/Framework/InputSystem`
-- Map editor:
-  - Runtime data: `Assets/Scripts/MapEditor/Runtime`
-  - Editor windows/generators: `Assets/Scripts/MapEditor/Editor`
-  - Notable files: `MapData.cs`, `MapTileData.cs`, `TileData.cs`, `MapTileType.cs`, `MapTilePrefabConfig.cs`, `MapEditorWindow.cs`, `SimpleMapEditorWindow.cs`, `ReferenceMapPrefabGenerator.cs`
-- Tower defense runtime:
-  - Battle state/settlement/selection: `Assets/Scripts/Game/Battle`
-  - Wave spawning: `Assets/Scripts/Game/Wave`
-  - Towers/building/upgrading/selling: `Assets/Scripts/Game/Tower`
-  - Map runtime/loading/path checks: `Assets/Scripts/Game/Map`
-  - NPCs: `Assets/Scripts/Game/Npc`
-  - Base: `Assets/Scripts/Game/Base`
-  - Items/drops: `Assets/Scripts/Game/Item`, `Assets/Scripts/Game/Drop`
-  - Ability integration layer: `Assets/Scripts/Game/AbilityAdapters`
-  - Tower defense UI: `Assets/Scripts/Game/UI/TowerDefense`
-- Ability systems:
-  - Newer ability core: `Assets/Scripts/Ability`
-  - Older skill system: `Assets/Scripts/Skill`
-  - Ability design doc: `Docs/AbilitySystem.md`
-- Script/module layout plan:
-  - Architecture document: `Docs/ScriptModuleLayout.md`
-  - `Assets/Arts` should not be moved during script/module cleanup.
-  - Current safe approach is to define the target structure first, then migrate scripts in batches while moving `.cs` and `.cs.meta` together so Unity GUID references remain stable.
-  - Recommended future top-level script folders: `Bootstrap`, `Framework`, `Game`, `MapEditor`, `Ability`, `Skill`, `Tools`, `Sandbox`.
-  - On 2026-06-01, the target script-folder skeleton was created with `.gitkeep` placeholder files only. No existing scripts were moved.
-  - On 2026-06-01, placeholder C# files were added for planned but not-yet-implemented systems: `BootFlowManager`, `GameMode`, `GameModeManager`, `GameClock`, `GameSession`, `BuildManager`, `BuildValidator`, `BuildPreview`, `BuildCommand`, `BuildCost`, `BuildInputController`, `StorageManager`, `SaveData`, `SaveVersion`, `StoryManager`, `QuestManager`, `DialogManager`, and `EventTriggerSystem`. These are compile-safe empty skeletons, not completed systems.
-  - On 2026-06-01, existing scripts were reorganized into the planned module folders while moving `.cs` and `.meta` together. Class names and namespaces were intentionally left unchanged.
-  - `GameEntry.cs` now lives in `Assets/Scripts/Bootstrap`.
-  - Shared map data/config/rendering/pathfinding now lives under `Assets/Scripts/Game/Map/{Data,Config,Runtime,Rendering,Pathfinding}`.
-  - Tower defense runtime now lives under `Assets/Scripts/Game/TowerDefense/{Battle,Wave,Tower,Enemy,Base,AbilityAdapters,Effects,Messages}`.
-  - Item/drop scripts now live under `Assets/Scripts/Game/Items`; entity/actor scripts now live under `Assets/Scripts/Game/Characters`; `CameraManager` now lives under `Assets/Scripts/Game/Camera`.
-  - `LubanTool.cs` now lives under `Assets/Scripts/Tools/Editor`; map editor Odin demo scripts and the old GameEntry patch example now live under `Assets/Scripts/Sandbox/Samples`.
-  - `dotnet build Cube.sln` passed after the reorganization with 0 warnings and 0 errors. `Assembly-CSharp.csproj` and `Assembly-CSharp-Editor.csproj` were updated to reflect moved paths for local build verification; Unity may regenerate them.
-  - `MapEditor` should now stay focused on editor windows/tools; shared runtime map code should remain under `Game/Map`.
-  - Island management systems should be added under `Game/Island` and shared construction rules under `Game/Build`.
-- Blender asset generation:
-  - Blender 5.1 is available at `C:\Program Files\Blender Foundation\Blender 5.1\blender.exe` and can be invoked in background mode from scripts.
-  - On 2026-06-01, a first procedural commercial-style grass tile prototype was generated through `Tools/Art/Blender/create_commercial_grass_tile.py`.
-  - Outputs: `Assets/Arts/Map/Tiles/Generated/CommercialGrassTilePrototype.blend`, `CommercialGrassTilePrototype.fbx`, and `CommercialGrassTilePrototype_preview.png`.
-  - Superseded historical exploration: earlier prototypes tried `TopicTop`, shader blend top planes, and model-sliced top patches. Do not continue those for the current production path.
-    - `Tools/Art/Blender/create_top_slice_concept.py` and `Tools/Art/Blender/create_project_tile_slice_render.py` are concept references only.
-  - Current tile-art direction: do not use `TopSurface`, `TopicTop`, shader blending, 5-slice, or 9-slice as the first production path. Use complete base tile prefabs that look good directly adjacent, plus automatic decoration prefabs for non-repeating detail.
-  - Top details such as flowers, stones, grass clumps, and paint spots should not be baked into the base tile model. They should be separate decoration prefabs placed automatically by tile/decoration rules. `ReferenceStyleGrassTile` was regenerated as a clean base tile without baked top details.
-  - Current tile-art production plan is documented in `Docs/TileArtProductionPlan.md`.
-  - Current direction: do not prioritize shader terrain blending or top slicing. First make high-quality base tile prefabs that look good when directly adjacent, then add automatic decoration prefabs by tile type, then only add edge/corner transition resources if needed.
-  - First practical target: import `ReferenceStyleGrassTile.fbx` into Unity, make a Grass test prefab/material, hook it into the map prefab config, generate a small Grass test map, and evaluate in Unity with auto decorations.
-  - On 2026-06-02, the first "base tile + automatic top decorations" prototype was wired into Unity:
-    - Runtime component: `Assets/Scripts/Game/Map/Rendering/TileAutoDecoration.cs`.
-    - One-shot editor auto-run helper: `Assets/Scripts/MapEditor/Editor/MapArtPrototypeAutoRunner.cs`, gated by `Temp/RunMapArtPrototype.flag`.
-    - Test tile prefab: `Assets/Arts/Map/Tiles/Generated/ReferenceStyleGrassTile_Test.prefab`.
-    - On 2026-06-02 this Grass prototype was corrected to remove the stale `TopSurface` object from `Tools/Art/Blender/create_reference_grass_tile.py`; the tile top is now a single `Topic/TopBody` mesh, matching the current "complete tile prefab, no slicing/blending" direction.
-    - On 2026-06-02, a first Grass top texture set was generated with the `imagegen` skill and locally processed for Unity testing:
-      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_Albedo_AI_1024.png` keeps the clean AI-generated top texture.
-      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_Albedo_Tileable_1024.png` is the edge-blended tileable test version.
-      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_Height_1024.png` is a subtle derived height map.
-      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_Normal_1024.png` is a subtle derived normal map.
-      - Processing script: `Tools/Art/Texture/BuildGrassTopTextures.ps1`.
-      - Principle: `TopBody` needs a strong base albedo/normal texture so it still looks good when all auto decorations are hidden. Decoration prefabs are only for sparse raised details, not for the base surface quality.
-    - The Grass top texture set now has a matching Unity shader/material:
-      - Shader: `Assets/Arts/Map/Tiles/Shaders/GrassTopSoftLit.shader` (`CubeTD/Map/GrassTopSoftLit`), a soft URP top-surface shader with BaseMap and NormalMap support.
-      - Material: `Assets/Arts/Map/Tiles/Materials/GrassTop_Stylized.mat`.
-      - Editor tool: `Assets/Scripts/MapEditor/Editor/GrassTopMaterialCreator.cs`.
-      - One-shot auto-run helper: `Assets/Scripts/MapEditor/Editor/GrassTopMaterialAutoRunner.cs`, gated by `Temp/RunGrassTopMaterial.flag`.
-      - `ReferenceStyleGrassTile_Test.prefab` has `GrassTop_Stylized.mat` assigned to its `TopBody` renderer.
-    - Grass top v2 optimization:
-      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_V2_Albedo_AI_1024.png`
-      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_V2_Albedo_Tileable_1024.png`
-      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_V2_Height_1024.png`
-      - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_V2_Normal_1024.png`
-      - `GrassTop_Stylized.mat` now uses the v2 albedo/normal. The v2 color is more olive/moss green and less neon yellow than v1.
-      - `GrassTopSoftLit.shader` now has subtle UV edge darkening/highlight controls to make the top feel more like a soft rounded tile surface without adding any slice/transition system.
-    - Snow/Road top material pass on 2026-06-02:
-      - Added generic shader `Assets/Arts/Map/Tiles/Shaders/TileTopSoftLit.shader` (`CubeTD/Map/TileTopSoftLit`) for non-water tile tops. It is the shared production-style top shader for Grass/Snow/Road/Hill, with albedo, normal, soft lighting, and subtle UV edge dark/highlight controls.
-      - Generated Snow top textures:
-        - `Assets/Arts/Map/Tiles/Textures/Generated/Snow_Top_V1_Albedo_AI_1024.png`
-        - `Assets/Arts/Map/Tiles/Textures/Generated/Snow_Top_V1_Albedo_Tileable_1024.png`
-        - `Assets/Arts/Map/Tiles/Textures/Generated/Snow_Top_V1_Height_1024.png`
-        - `Assets/Arts/Map/Tiles/Textures/Generated/Snow_Top_V1_Normal_1024.png`
-      - Generated Road/Sand top textures:
-        - `Assets/Arts/Map/Tiles/Textures/Generated/Road_Top_V1_Albedo_AI_1024.png`
-        - `Assets/Arts/Map/Tiles/Textures/Generated/Road_Top_V1_Albedo_Tileable_1024.png`
-        - `Assets/Arts/Map/Tiles/Textures/Generated/Road_Top_V1_Height_1024.png`
-        - `Assets/Arts/Map/Tiles/Textures/Generated/Road_Top_V1_Normal_1024.png`
-      - Generated materials:
-        - `Assets/Arts/Map/Tiles/Materials/SnowTop_Stylized.mat`
-        - `Assets/Arts/Map/Tiles/Materials/RoadTop_Stylized.mat`
-      - `GrassTop_Stylized.mat` was also moved to the generic `TileTopSoftLit` shader.
-    - Material tuning and preview pass:
-        - Grass: slightly brighter and warmer highlights.
-        - Snow: lower max brightness, more blue-gray tint, lower normal strength so detail is visible without washing out.
-        - Road/Sand: stronger normal and contrast, warmer base tint.
-      - The preview tool creates a 3x3 scene root named `TileTopMaterialPreview`, using `ReferenceStyleGrassTile_Test.prefab` with Grass/Snow/Road top materials assigned to `TopBody` for same-lighting comparison.
-    - DetailMap and low-density decoration preview pass:
-      - Added detail extraction script: `Tools/Art/Texture/BuildTileTopDetailOverlay.ps1`.
-      - Generated detail overlays:
-        - `Assets/Arts/Map/Tiles/Textures/Generated/Grass_Top_V2_DetailOverlay_1024.png`
-        - `Assets/Arts/Map/Tiles/Textures/Generated/Snow_Top_V1_DetailOverlay_1024.png`
-        - `Assets/Arts/Map/Tiles/Textures/Generated/Road_Top_V1_DetailOverlay_1024.png`
-      - `TileTopSoftLit.shader` now supports `_DetailMap`, `_DetailStrength`, and `_DetailScale`.
-      - `GrassTop_Stylized.mat`, `SnowTop_Stylized.mat`, and `RoadTop_Stylized.mat` all reference their detail overlays.
-      - Added low-density decoration preview tools:
-        - `Assets/Scripts/MapEditor/Editor/TileTopDecorationPreviewCreator.cs`
-        - `Assets/Scripts/MapEditor/Editor/TileTopDecorationPreviewAutoRunner.cs`
-      - The preview tool creates `TileTopDecorationPreview`: Grass uses generated grass clump/flower/pebble prefabs, Snow tests scaled `Snow1` plus sparse grass, and Road tests pebbles/grass plus scaled `Stone1`.
-    - Editor tool cleanup on 2026-06-02:
-      - User reported too many temporary Editor scripts and that decoration preview scatter was too large; decoration preview is paused.
-      - Removed one-shot auto-runners and obsolete/deprecated menu tools after backing them up to `Backups/EditorToolsCleanup_20260602_232540`.
-      - Removed obsolete one-shot art/material/preview editor scripts from active code.
-      - Active MapEditor editor scripts now focus on the map editor, scene export, and bounds gizmo tools. Obsolete map art menu scripts were removed.
-    - Tile top optimization pass on 2026-06-03:
-      - `Tools/Art/Blender/create_reference_grass_tile.py` now exposes clear model proportions for the reference tile. Current values keep the tile at `1 x 1 x 1`, use `Rock` height `0.26`, `Soil` height `0.40`, and `TopBody` height `0.36`; `TopBody` is slightly oversized at `1.04 x 1.04` with a softer bevel `0.068` and 8 bevel segments.
-      - Blender was run successfully and regenerated `Assets/Arts/Map/Tiles/Generated/ReferenceStyleGrassTile.blend`, `.fbx`, and `_preview.png`.
-      - Unity batchmode regeneration could not run during this pass because the project was already open in another Unity instance. The script and asset files are updated; Unity will import the regenerated FBX when the editor refreshes, and the standard preview menu can be run from the open editor.
-    - Water top pass on 2026-06-03:
-      - Generated a new stylized water albedo source through the built-in image generation tool and copied it into `Assets/Arts/Map/Tiles/Textures/Generated/Water_Top_V1_Albedo_Source_1024.png`.
-      - Processed the source through the existing tile texture scripts to produce:
-        - `Water_Top_V1_Albedo_AI_1024.png`
-        - `Water_Top_V1_Albedo_Tileable_1024.png`
-        - `Water_Top_V1_Height_1024.png`
-        - `Water_Top_V1_Normal_1024.png`
-        - `Water_Top_V1_DetailOverlay_1024.png`
-      - Added `Assets/Arts/Map/Tiles/Shaders/WaterTopSoftLit.shader` with shader name `CubeTD/Map/WaterTopSoftLit`. It is based on the earlier soft water shader behavior but lives in the formal Map/Tiles shader directory and includes subtle flow/ripple plus edge dark/highlight controls.
-      - Added `Assets/Arts/Map/Tiles/Materials/WaterTop_Stylized.mat`.
-      - `Assets/Arts/Map/Tiles/Water.prefab` was intentionally not replaced yet because it still uses the older `TopicTop` structure. First evaluate `WaterTop_Stylized` in the material preview; replace or rebuild the formal Water prefab only after the visual direction is accepted.
-    - Existing map decoration assets:
-      - Directory: `Assets/Arts/Map/Decoration`.
-      - Current folders include `Bridge`, `Snow1`, `Stair`, `Stone1`, and `Tree`.
-      - These are mostly larger map decorations, not all suitable for dense automatic top scatter. `Stone1` and `Snow1` can be tested as scaled-down sparse tile decorations; `Tree`, `Bridge`, and `Stair` should stay as intentional placed/overlay assets.
-      - Grass small details are still better handled by the generated small prefabs for now: `GrassClump_A`, `SmallFlower_A`, `Pebble_A`.
-    - Test decoration prefabs: `Assets/Arts/Map/Tiles/Generated/Decorations/GrassClump_A.prefab`, `SmallFlower_A.prefab`, `Pebble_A.prefab`.
-    - Obsolete map art Unity menu scripts were removed; do not rely on old one-click prototype/preview menu entries.
+```text
+UI framework work:
+  Docs/Architecture/UIFramework.md
 
-## Tower Defense Flow
+Management UI work:
+  Docs/Architecture/UIFramework.md
+  Docs/Modules/ManagementUI.md
 
-- `GameEntry.Initialize()` loads systems, then opens `Assets/Arts/UI/Pages/MainMenuPage.prefab`.
-- `MapManager.LoadMap(mapId)`:
-  - Reads map config from `DataManager.Map`.
-  - Clears previous battle runtime.
-  - Adds initial gold from `MapConfig.InitialGold`.
-  - Loads map json from `Assets/Data/Map/{mapId}.json`.
-  - Creates tile views using `Assets/Data/Cube/Configs/MapTilePrefabConfig.asset`.
-  - Shows battle HUD: `Assets/Arts/UI/TowerDefense/Prefabs/BattleHud.prefab`.
-  - Starts battle via `BattleFlowManager.BeginBattle(mapConfig)`.
-  - Loads base, switches input to battle mode, loads map-specific wave bytes from `mapConfig.WaveNormal`, then calls `WaveManager.StartWave()`.
-- `WaveManager`:
-  - Loads current wave table from `DataManager.Instance.Wave`.
-  - Sorts waves by config id.
-  - Spawns enemies through `NpcManager` using `WaveSpawnMode`.
-  - Supports auto chaining waves or waiting until enemies are cleared.
-  - Calls `BattleFlowManager.CompleteVictory()` when all waves are done and enemies are cleared.
-- `BattleFlowManager`:
-  - States: `None`, `Running`, `Victory`, `Defeat`, `Settled`.
-  - On end: stops waves, cancels tower selection/build, resets time scale, switches input to UI, builds reward on victory, and sends `BattleEnded` message.
-- `TowerManager`:
-  - Tracks active towers.
-  - Pulls per-level stats from `TowerLevelConfig`.
-  - Finds nearest enemy in range.
-  - Casts configured tower skill when `SkillId > 0`, otherwise plays projectile/hit effects and applies damage.
-- `MapManager` also owns runtime tile checks:
-  - `IsWalkable`, `IsBuildable`, `TryPlaceTower`, `RemoveTower`, `TryDestroyHill`, `TryPickTile`, `GetWalkableNeighbors`.
+Module tables / tools / related files:
+  Docs/Architecture/ModuleWorkMap.md
 
-## Art Asset Layout
+Island gameplay work:
+  Docs/Product/ManagementMode.md
+  Docs/Modules/Island.md
 
-- Map/tile art:
-  - `Assets/Arts/Map/Tiles`
-  - `Assets/Arts/Map/Prefabs/ReferenceMap_01.prefab`
-  - `Assets/Arts/Tile`
-- Tower art:
-  - `Assets/Arts/Tower/NormalTower.prefab`
-  - `Assets/Arts/Tower/kenney_tower-defense-kit`
-  - Tower FBX pieces include round/square builds, roofs, tops, weapons, and ammo.
-- Tower defense UI:
-  - `Assets/Arts/UI/TowerDefense/Prefabs`
-  - Important prefabs: `BattleHud.prefab`, `TowerBuildCard.prefab`, `TowerCard.prefab`, `Skill.prefab`, `Item.prefab`, `WorldHpBar.prefab`, `MiniMapIcon.prefab`, `SettingsDialog.prefab`, `SpeedButton.prefab`
-  - Shared art: `Assets/Arts/UI/TowerDefense/Common`
-  - Sprite atlas: `Assets/Arts/UI/Atlas/TowerDefense.spriteatlasv2`
+Quest / Story / Blueprint work:
+  Docs/Modules/QuestStoryBlueprint.md
+  Docs/Product/ProgressionAndQuests.md
 
-## Coding Notes / Caveats
+Story-only work:
+  Docs/Modules/Story.md
+  Docs/Product/ProgressionAndQuests.md
 
-- Map editor and related pathfinding files were normalized to UTF-8 without BOM and LF line endings on 2026-05-30. Avoid mass-converting generated Luban files unless explicitly requested.
-- Prefer existing singleton/manager style and current paths rather than introducing new architecture.
-- For config-driven gameplay changes, update Luban Excel/Defines first, then regenerate generated configs/bytes through the existing batch scripts in `Data`.
-- For UI work, use the existing `Framework/UI` manager and tower defense prefabs/assets.
-- For resource loading, prefer `ResourceManager` paths already used by the project, especially because YooAsset is in use.
+Data / Luban / localization work:
+  Docs/Architecture/DataPipeline.md
 
-## Recent Progress
+Map / minimap / tile art work:
+  Docs/Architecture/MapRuntime.md
+  Docs/Modules/MapAndTileArt.md
 
-- Reworked `Assets/Scripts/MapEditor/Editor/MapEditorWindow.cs` into a cleaner Odin `OdinEditorWindow`.
-  - Opens from `Tools/Map/Map Editor`.
-  - Uses Odin tabs: `Map`, `Paint`, `Points`, and `Decoration`. The old `Selection` and `IO` tabs were removed.
-  - JSON import/export/validation now lives inside the `Map` tab under `Map IO / 地图文件`.
-  - Creates grid maps from origin `(0,0,0)` extending in positive X/Y/Z. The editor no longer generates a `y = -1` `Soil` support layer; `y = 0` is the bottom layer.
-  - Scene View left-click selects a tile and shows editable tile data in the persistent right dock.
-  - Brush mode supports left-click/drag batch painting of tile types, plus `Raise`/`Lower` modes for building higher terrain after the first layer.
-  - The right dock has `Add Above` and `Remove Tile` for manual height editing.
-  - Tile prefabs under `Assets/Arts/Map/Tiles` were normalized by the user to `1x1x1`; the map editor no longer performs preview-time bounds fitting/scaling to avoid conflicting with authored prefab dimensions.
-  - Supports spawn/goal point editing and JSON import/export.
-- Extended `MapTileType` with special tile types `Road` and `Bridge`.
-- Updated `MapTileRule` so `Grass`, `Hill`, `Water`, `Snow` remain base tile types and `Road`/`Bridge` are walkable special tiles with default move cost `8`.
-- `dotnet build Cube.sln` passed after these map editor changes.
-- Added tile overlay editing:
-  - `MapTileData.Type` remains the base terrain type.
-  - Overlay choices are `None`, `Bridge`, `Stair`, and `Ramp`; Road is a real tile type, not an overlay.
-  - Map editor brush modes now separate `Type`, `Overlay`, `Raise`, and `Lower`.
-  - Base type buttons only expose `Grass`, `Hill`, `Snow`, `Water`; overlay buttons expose route/bridge/stair/ramp semantics.
-  - Paint and right-dock selection editors use clickable prefab preview cards for Type/Overlay choices. Map/Paint/Points/Decoration actions are compact fixed-width IMGUI buttons, not full-width Odin buttons. When brush is enabled, SceneView shows a translucent brush ghost over the hovered tile area, using the actual tile visual renderer bounds for alignment.
-  - Editor preview and runtime map loading instantiate base terrain first and overlay visuals second, so `Water + Bridge` preserves water while adding bridge logic/visuals.
-  - Runtime pathfinding now requires `Stair` or `Ramp` with matching `Direction` to traverse a height difference of 1; same-height movement remains normal.
-- Added map decoration data and editor support:
-  - Historical note: this originally used `MapData.Decorations` with `MapDecorationData`, but the current data model now uses `MapData.Objects` with `MapObjectData`.
-  - `MapEditorWindow` has a `Decoration` tab for choosing a prefab, setting local position/euler/scale, adding it to the selected tile, removing decorations on the selected tile, and clearing all decorations.
-  - Decoration source resources use `MapDecorationPrefabConfig.asset` (`MapDecorationPrefabConfig`) as the authoritative list. Map JSON decoration entries store only `DecorationId`; runtime resolves prefabs through the config.
-  - `MapDecorationPrefabConfig` itself uses Odin (`TableList`, preview/required fields, `NormalizeIds`) to manage the source decoration resource list in the asset Inspector.
-  - `MapDecorationPrefabConfig` uses Odin ordinary `ListDrawerSettings`, not `TableList`, because the Inspector is narrow and table columns make prefab fields unusable. Empty prefabs should not show a hard `Required` error while authoring.
-  - The Map Editor `Decoration` tab is for placement: left column is config/selection/local transform/actions; right column is a read-only source preview with Select buttons. Source-list add/delete stays only in the config asset Inspector.
-- Superseded terrain blending attempt:
-  - A shader/transition-texture pipeline was tested earlier, but it is not the current direction because the project now prioritizes complete, directly adjacent tile prefabs.
-  - Do not use `TopicTop`, `TopSurface`, neighbor shader blending, or transition texture rules for the first production tile-art pass unless the user explicitly reopens that direction.
-- On 2026-06-02, `ReferenceStyleGrassTile.fbx` was landed as the first Grass art test prefab.
-  - Added `Assets/Scripts/MapEditor/Editor/TileArtLandingUtility.cs` with menu `Tools/Map/Tile Art/Build Grass Reference Test` and shortcut `Ctrl+Shift+G`.
-  - The utility imports `Assets/Arts/Map/Tiles/Generated/ReferenceStyleGrassTile.fbx`, assigns existing Grass/Soil/Rock materials by renderer name, normalizes renderer bounds to approximately `1x1x1`, saves `Assets/Arts/Map/Tiles/Grass_ReferenceStyle_Test.prefab`, updates `Assets/Data/Cube/Configs/MapTilePrefabConfig.asset` so `Grass` points at that prefab, writes `Assets/Data/Map/GrassReferenceStyle_6x6.json`, and creates a 6x6 preview root named `GrassReferenceStyle_6x6_TestMap` in the active Unity scene.
-  - Unity confirmed the generated prefab bounds as approximately `1.0 x 1.0 x 1.0`; `dotnet build Cube.sln` passed with 0 warnings and 0 errors after the landing.
-  - After checking the 6x6 preview, earlier versions exposed confusing internal seams from stale top-layer experiments. Current correction: `Tools/Art/Blender/create_reference_grass_tile.py` now generates `Topic/TopBody` only, with no `TopSurface` and no top splitting.
-  - The preview then showed the FBX orientation was wrong: the Blender vertical stack was imported along Unity Z, causing the tile to lie on its side when repeated. `TileArtLandingUtility` now applies `Quaternion.Euler(-90, 0, 0)` to the imported FBX instance before bounds normalization; `Grass_ReferenceStyle_Test.prefab` was updated with that X-axis correction while keeping bounds near `1 x 1 x 1`.
-  - User clarified the main issue was orientation, not the fixed side detail itself. The production route remains: no wavy tile outlines or neighbor-dependent transition in the first phase; keep square-aligned complete tile prefabs, make each base tile visually strong, and use fixed tile-side styling plus later automatic top decorations. `create_reference_grass_tile.py` now restores `GrassSideScallop` as vertical fixed side fringe on all four sides while keeping the tile outline square. `Grass_ReferenceStyle_Test.prefab` keeps the FBX instance rotated X `-90` so grass is on top and the dirt/rock stack points downward.
-- On 2026-06-03, added a reference-style map layout pass:
-  - A temporary reference-style demo map creator existed in this phase and has since been removed from active tools.
-  - The tool writes `Assets/Data/Map/ReferenceStyleDemo.json` and creates a scene preview root named `ReferenceStyleDemoMap`.
-  - The layout uses only existing resources: grass/water/road/snow tile prefabs with robust fallback paths, plus existing tree/stone/bridge/stair decoration prefabs under `Assets/Arts/Map/Decoration`.
-  - The JSON is a 16x11x2 TD-style reference map with grass base, road tiles, water pools, snow patch, a small elevated plateau, bridge overlay, stair overlay, spawn points, and a goal point.
-  - Unity batch could not instantiate the scene preview because the project was already open in another Unity instance. Use the menu inside the open Unity editor to create the preview scene root. `dotnet build Cube.sln` passed with 0 warnings and 0 errors.
-- Added scene-to-map export support:
-  - `Assets/Scripts/MapEditor/Editor/SceneMapDataExporter.cs` adds menus `Tools/Map/Scene Export/Export Selected Root To Map JSON` and `Tools/Map/Scene Export/Export Whole Scene To Map JSON`.
-  - It scans placed scene tile prefabs, rounds world positions to map coords, normalizes the minimum coord to `(0,0,0)`, and exports a `MapData` JSON.
-  - Base tile prefabs become cell tile data. Road exports as a real tile type; Bridge/Stair/Ramp export as overlays with direction inferred from Y rotation.
-  - This exporter currently handles tiles/route overlays, not decoration JSON entries. Decoration reverse-export can be added later through `MapDecorationPrefabConfig` ids.
-- Road model changed back to a real tile type:
-  - `Road` is edited/exported as `MapTileData.Type = MapTileType.Road`, not as `MapTileData.Overlay = Road`.
-  - Map editor Type selectors now include Road; Overlay selectors expose `None`, `Bridge`, `Stair`, and `Ramp`.
-  - `SceneMapDataExporter` exports placed Road prefabs as `Type=Road`.
-  - `MapTileOverlay.Road` and its old compatibility branches were removed on 2026-06-05; old map JSON can be discarded/regenerated.
-- Tile picking was unified around `TileView + TileData`:
-  - `TileView` now has `HasData()` and `TryGetValidFrom(Transform, out TileView)`.
-  - Runtime `MapManager.TryPickTile` and editor `MapEditorWindow.TryPickTile` both use collider raycast plus `TileView.TryGetValidFrom`.
-  - The map editor no longer uses virtual grid Bounds or position inference for click picking. `GetGridTileBounds` remains only for brush ghost/visual drawing.
-  - Prefab child colliders, such as a collider on `Topic`, work as long as a parent object in the instantiated tile hierarchy has an initialized `TileView`.
-- Tile instance hierarchy was simplified:
-  - Tile prefabs are now expected to have `TileView` and `Collider` on the prefab root.
-  - Map editor/runtime instantiate the tile prefab itself as the map tile root and rename it like `Grass_None_0_0_0`; they no longer create an extra wrapper such as `Grass_None_0_0_0/Type_Grass`.
-  - `TileView.InitializeHierarchy` no longer adds missing `TileView`; it only initializes existing root/child `TileView` components with the generated `TileData`.
-  - Missing root `TileView` or root `Collider` now logs warnings instead of silently adding components.
-- Tile rotation data was unified:
-  - `MapTileData.Direction` was removed/replaced by `TypeDirection` and `OverlayDirection`.
-  - `TypeDirection` rotates the tile prefab root. `OverlayDirection` rotates overlay visuals such as Bridge/Stair/Ramp and is also used by height-connection pathfinding.
-  - Decorations already store free rotation through `MapDecorationData.LocalEuler`; keep decoration rotation as Euler instead of `MapDirection`.
-  - Old map JSON can be discarded/regenerated; this is the new clean data shape.
-- On 2026-06-05, path connection rules were modularized:
-  - Added `Assets/Scripts/Game/Map/Pathfinding/MapPathCellInfo.cs` as a shared pathfinding view over both serialized `MapCellData` and runtime `TileData`.
-  - Added `Assets/Scripts/Game/Map/Pathfinding/MapOverlayConnectionRules.cs`.
-  - `MapPathConnectionRules.CanConnect(...)` is now the shared connection entry used by editor/map-data A* and runtime A*.
-  - A* no longer hardcodes Stair/Ramp height rules directly; it asks the registered overlay connection rules.
-  - Default overlay rules: Stair and Ramp connect horizontal neighbor cells with height delta up to 1 when the overlay direction faces the other connected cell; the connection is bidirectional for pathfinding. Bridge is registered as a same-height overlay rule placeholder and currently mainly affects walkability through `MapTileRule`.
-  - `Direction` remains a generic visual/model orientation field. Each tile/overlay rule interprets that orientation for its own behavior.
-  - `MapPathConnectionRules.RegisterOverlayRule`, `UnregisterOverlayRule`, and `ResetDefaultOverlayRules` allow code-level replacement or hot-swapping of overlay connection rules.
-- On 2026-06-04, map JSON/data was moved to the cleaner layered model:
-  - `MapData.Cells` is the authoritative grid/cell list; each `MapCellData` stores coordinate, `Tile`, `Overlay`, and cell logic fields (`Walkable`, `Buildable`, `MoveCost`).
-  - `MapTileLayerData` stores tile `Type`, `Direction`, and `VariantId`.
-  - `MapOverlayLayerData` stores overlay `Type`, `Direction`, and `VariantId`.
-  - `MapData.Objects` is the authoritative global object list. `MapObjectData` stores object/config id, object type, coord, local position/euler/scale, and block flags. Decorations are currently represented as `MapObjectType.Decoration` with `ConfigId` resolved through `MapDecorationPrefabConfig`; `DecorationId` exists only on the obsolete `MapDecorationData` compatibility wrapper.
-  - Cells do not store object ids. Runtime `MapManager` and editor `MapEditorWindow` build transient `objectsByCoord` indexes so clicking/querying a cell can quickly find the objects on that coordinate.
-  - `TileData` now wraps `MapCellData` and reads runtime type/direction/overlay from `cell.Tile` and `cell.Overlay`.
-  - Old `MapTileData` and `MapDecorationData` remain only as obsolete compatibility wrappers while active editor/runtime code uses `MapCellData` and `MapObjectData`.
-  - `SceneMapDataExporter`, `MapEditorWindow`, runtime `MapManager`, and map A* pathfinding were updated to the new structure. `dotnet build Cube.sln` passed with 0 errors; remaining warnings are unrelated existing nullable/sample/async/member-hiding warnings.
-- On 2026-06-04/05, `MapEditorWindow` gained a right-dock persistent selected-cell panel outside the tabs:
-  - It shows the selected coord, tile type/direction, overlay type/direction, walk/build/move-cost logic, and the count/list of `MapObjectData` entries on the selected cell.
-  - Objects on the selected cell can be deleted from this panel, so small decoration objects do not need colliders just to be removable.
-  - The panel now lives in the right dock as a narrow vertical inspector instead of below the tab contents.
-  - A temporary right dock preview panel was also added for layout experiments. Decoration tab source preview is fixed-width (`500`) and the tab content width subtracts the right dock width, so the decoration source list no longer stretches under the dock or requires excessive window width.
+Tower defense / ability work:
+  Docs/Product/TowerDefenseMode.md
+  Docs/Modules/TowerDefense.md
+  Docs/Modules/AbilityAndSkill.md
+
+Naming or file movement:
+  Docs/Decisions/0001-naming-rules.md
+  Docs/Architecture/CodebaseOverview.md
+
+Project audit / cleanup:
+  Docs/Audits/ProjectMidpointAudit-2026-07-09.md
+```
+
+## Hard Rules
+
+- New code defaults to no `World` or `Game` prefix. Existing `World*` classes may stay because Prefabs and serialized data may reference them.
+- New Luban / Excel tables follow the same rule: do not add `World` or `Game` prefixes. Existing `world_*` tables are historical and should not be used as templates for new tables; use `tool.xlsx` / `ToolConfig` / `TbTool`, not `world_tool.xlsx` / `WorldToolConfig` / `TbWorldTool`.
+- Quest domain uses `Quest`, not `Task`, and not `WorldQuest`.
+- Production / crafting config uses `Blueprint`, not `Recipe` or `WorldRecipe`.
+- Story save model is `StorageManager.StoryData`, reached through `SaveData.Story`; do not recreate `Assets/Scripts/Game/Story/StoryData.cs`.
+- Bag domain uses `Bag`, not `Inventory`; do not create new bag code or UI folders named `Inventory`.
+- Regenerate data with `Data/gen_all.bat`; do not suggest running only `Data/gen_client.bat`.
+- Runtime config source is `Assets/Data/Bin/*.bytes`; JSON is for inspection and debugging.
+- Do not manually edit Luban generated code or generated data as a lasting solution.
+- Move Unity scripts with `.meta`; do not delete and recreate scripts that may be referenced by Prefabs.
+- UI nodes should be wired through serialized fields. Do not reintroduce runtime `Transform.Find` for stable HUD nodes.
+- Avoid changing Prefab layout from runtime code unless the script is explicitly responsible for generated lists, grids, or layout.
+- The current shell is Windows PowerShell 5.1. Prefer simple commands and single-quoted `rg` patterns; split complex searches instead of using dense quoted regex.
+
+## Current UI Agreements
+
+- UI framework identity is currently `prefabPath`; `Show`、`Hide`、`IsShown` all work by path.
+- `RightOutside` supports desktop right-click outside close. Mobile touch / click outside is mapped by the framework.
+- Common management panels should support `CloseButton | Back | RightOutside`.
+- Panel outside close is handled by the framework-created bottom `PanelOutsideBlocker` + `UIOutsideClickDetector` + `PanelManager`; Panel no longer creates outside mask objects.
+- A panel's visual `Overlay` must not receive raycasts or bind its own close handler. `PanelOutsideBlocker` is below every UI layer, so it catches blank space without blocking normal UI.
+- Outside close consumes the pointer for that frame through `UIManager`; world input must call `WorldPointerPicker.IsPointerOverUi()` so a right-click that closes Quest / TechTree does not also move or interact in the world.
+- BottomBar 入口状态图标目前只用于 Bag 的 Open / Close 箭头。Build / ToolKit 没有 Open / Close 状态图标设计，不要补。
+- Exclusive group is for same-level independent panels, currently Build / ToolKit / Production / Quest / TechTree / Menu. Bag is a BottomBar child node and is coordinated locally with those panels.
+- Stack group is for panel-level return history. Do not split ordinary child nodes into `UIPanel` just to use Stack.
+- Sound / Language / Save currently exist as independent UIPanel and can use Stack short term. Product-wise they are closer to Menu internal pages and can later become serialized child nodes under Menu.
+
+## Current Feature Status
+
+Data:
+
+```text
+Quest / Blueprint / Story 已接入正式 Luban 表
+Ability / Skill / Item / Localization / Map / Tower / Wave / Tech / World* 表也在 Tables 中
+```
+
+Management UI:
+
+```text
+WorldMainPanel 是常驻 HUD 容器
+TopBar / BottomBar / EntryBar / RightBar / BuildingDetail 是 prefab 上的 MonoBehaviour 子模块
+RightBar/BattleEntry 是经营到塔防的模式入口，当前调用 MapManager.Instance.LoadBattleMap(30950001)
+Build / ToolKit / Production / Quest / TechTree / Menu 入口由 WorldPanelEntryController 注册
+Bag 是 BottomBar 内部节点，由 WorldBottomBarPanel 开关；WorldMainPanel 协调它与独立浮动面板互斥
+独立浮动面板的互斥关闭交给 PanelManager Exclusive group
+浮动面板布局使用 WorldFloatingPanelLayout
+```
+
+Quest / Story / Blueprint:
+
+```text
+Story 可触发 QuestEvent
+Quest 支持多目标、前置、追踪、完成、领取、奖励发放、保存和消息
+Blueprint 完成可触发 QuestEventType.BlueprintCompleted
+当前开局链路是 Story 10001 -> 拾取 -> 建 House -> 做斧 -> 砍树 -> 做镐 -> 挖石 -> 建 Workbench
+任务奖励 Toast / 获得反馈仍需完善
+```
+
+Island opening resources:
+
+```text
+默认世界地图是 Assets/Data/Map/1001.json
+地图编辑器放置 Resource 时使用 resource.id
+30300008 Branch / 30300009 Loose Stone 是开局拾取物
+30300001 Tree 需要斧，30300002 Rock 需要镐
+ToolKit 新存档默认空槽，获得工具后自动放入；加载已有存档时会把已拥有的工具补入空槽；不要假设玩家开局已有斧/镐/锄
+开局基础工具 Blueprint 的 buildingId = 0，不需要 Workbench；QuestPanel 详情按钮直接“制作”
+Bag slot 0-9 是 HotBar，10+ 是 Bag；BottomBar 持有唯一 BagDragController，快捷栏和 Bag 子节点之间支持带跟随图标的拖动移动/交换，不拆堆，且不跨其它 Panel
+```
+
+Story:
+
+```text
+StoryManager 从 Story / StoryLine Luban 表加载配置
+StoryPanel 当前运行时创建 UI 节点，不要假设 prefab 内已有标题/正文/按钮节点
+DialogManager / EventTriggerSystem 目前只是占位
+```
+
+Map:
+
+```text
+地图由 MapData 运行时生成，不是整张场景 Prefab
+经营地图入口是 MapManager.Instance.LoadWorldMap(worldMapId)
+塔防地图入口是 MapManager.Instance.LoadBattleMap(mapConfigId)；不要重新增加含糊的 LoadMap
+两种入口共用同一个 MapManager、CurrentMap、LoadMapData 和 CreateMap，不维护双份地图运行时状态
+MapManager 用 partial 文件按 World / Battle / Loading / Persistence 组织；这只是代码分区，不是多个 Manager 实例
+塔防 UI 资源位于 Assets/Arts/UI/Panels/Battle；塔和技能图标分别位于 Assets/Arts/UI/Icons/Towers、Assets/Arts/UI/Icons/Skills
+MapData.Objects 是真实地图对象
+纯 UI 标记后续应进入 MapMarkerData 或等价结构
+寻路使用 MapPathFinder 格子 A*，不是 NavMesh；角色移动目标是可走格中心附近
+MapManager.IsWalkable / IsBuildable 看 objectsByCoord 和 BlocksMove / BlocksBuild，不看 view/collider 是否隐藏
+逻辑上消失的地图对象要 TryRemoveMapObject + MarkMapObjectRemoved；只隐藏 view 仍可能挡路
+拾取资源会移除 MapObject；采集资源 respawnSeconds <= 0 且耗尽后也会移除 MapObject，respawnSeconds > 0 则保留并等待刷新
+资源交互站位由 ResourceInteractionController 生成候选，NavigationController 选择可走、可到达、处于交互距离内的格子；不要把资源本体加入 path node
+地图编辑器放置资源默认使用 Excel / Luban 的 resource 阻挡属性；当前 MapObjectData 存最终值，不记录是否覆盖
+采集工具动作只使用 Assets/Arts/Character/Player 内的玩家动画资源；当前 UseTool 使用 Meshy_AI_Forestbound_Adventure_biped_Animation_Heavy_Hammer_Swing_withSkin.fbx，但必须通过 WorldPlayer.controller 的 UseTool Upper Body 层和 WorldPlayer_UseToolUpperBody.mask 播放，只影响手臂/手指，避免 Heavy_Hammer_Swing 的全身后撤姿态把角色视觉上弹出去。不要引用 Assets/Arts/FBX/CharacterFBX 的其他角色动作，也不要叠加额外程序化采集动作
+```
+
+## Documentation Rule
+
+如果发现文档与代码冲突，先读代码和 Prefab，再更新对应主题文档。重要框架规则、业务流程、命名约定、易踩坑细节或长期设计决策发生变化时，必须同步更新 Markdown 源文档，并重新生成 `Docs/Human/index.html`。不要把过时探索继续堆进 `CodexProjectMemory.md`，也不要只把长期规则写在聊天记录或 HTML 里。

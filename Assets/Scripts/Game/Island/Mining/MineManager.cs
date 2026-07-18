@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game
@@ -17,7 +17,7 @@ namespace Game
         {
         }
 
-        public bool TryBuildMine(WorldResourceView resourceView, WorldResourceConfig config)
+        public bool TryBuildMine(WorldResourceView resourceView, ResourceConfig config)
         {
             if (resourceView == null || resourceView.MapObject == null || config == null || !config.Enable)
             {
@@ -85,8 +85,8 @@ namespace Game
                 return true;
             }
 
-            IReadOnlyList<WorldItem> costs = costResolver.GetCostGroup(levelConfig.BuildCostGroupId);
-            return costs.Count > 0 && WorldItemManager.Instance.HasItems(costs);
+            IReadOnlyList<ItemStack> costs = costResolver.GetCostGroup(levelConfig.BuildCostGroupId);
+            return costs.Count > 0 && ItemManager.Instance.HasItems(costs);
         }
 
         public List<WorldBuilding> GetActiveMines()

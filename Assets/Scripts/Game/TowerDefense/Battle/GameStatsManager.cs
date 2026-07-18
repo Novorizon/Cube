@@ -3,7 +3,7 @@ using UnityEngine;
 
 /// <summary>
 /// 战斗状态管理。
-/// 注意：金币不在这里，金币由 ItemManager 管。
+/// 注意：金币不在这里，金币由 BattleItemManager 管。
 /// </summary>
 public class GameStatsManager
 {

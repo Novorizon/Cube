@@ -25,6 +25,7 @@ namespace Game.Ability
 
         private float intervalTimer;
         private float auraTimer;
+        private IPresentationHandle sustainedPresentation;
 
         internal Modifier(AbilitySystem engine, ModifierDefinition definition, IUnit caster, IUnit parent, Ability ability, ModifierScript script, ModifierApplyOptions options)
         {
@@ -43,6 +44,10 @@ namespace Game.Ability
             auraTimer = 0f;
             Script.Bind(this);
             Script.OnCreated(options);
+            if (!string.IsNullOrEmpty(definition.SustainedEffectName) && engine.Presentation != null)
+            {
+                sustainedPresentation = engine.Presentation.PlayPersistentEffect(definition.SustainedEffectName, parent);
+            }
         }
 
         public void SetStackCount(int value)
@@ -91,13 +96,22 @@ namespace Game.Ability
                 return;
             }
 
-            TickDuration(deltaTime);
+            // Interval actions that complete exactly on the expiry boundary still belong to
+            // the modifier's active lifetime. Limit catch-up to the remaining active time so
+            // a long frame cannot execute ticks after expiry, then remove the modifier.
+            float activeDeltaTime = deltaTime;
+            if (Duration > 0f && (Definition.Attributes & ModifierAttribute.Permanent) == 0)
+            {
+                activeDeltaTime = Mathf.Min(deltaTime, Mathf.Max(0f, RemainingTime));
+            }
+
+            TickInterval(activeDeltaTime);
             if (IsDestroyed)
             {
                 return;
             }
 
-            TickInterval(deltaTime);
+            TickDuration(deltaTime);
             if (IsDestroyed)
             {
                 return;
@@ -114,6 +128,8 @@ namespace Game.Ability
             }
 
             IsDestroyed = true;
+            sustainedPresentation?.Stop();
+            sustainedPresentation = null;
             Script.OnDestroy();
         }
 
@@ -149,13 +165,11 @@ namespace Game.Ability
             }
 
             intervalTimer -= deltaTime;
-            if (intervalTimer > 0f)
+            while (intervalTimer <= 0f && !IsDestroyed)
             {
-                return;
+                intervalTimer += Definition.Interval;
+                Script.OnIntervalThink();
             }
-
-            intervalTimer += Definition.Interval;
-            Script.OnIntervalThink();
         }
 
         private void TickAura(float deltaTime)

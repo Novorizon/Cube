@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="BlueprintTableConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="name" type="string" comment="client" />
+    <var name="buildingId" type="int" comment="client" />
+    <var name="unlockTechId" type="int" comment="client" />
+    <var name="unlockQuestId" type="int" comment="client" />
+    <var name="durationSeconds" type="int" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbBlueprint" value="BlueprintTableConfig" input="blueprint.xlsx" mode="map" index="id" />
+</module>

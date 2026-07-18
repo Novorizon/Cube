@@ -1,66 +1,120 @@
 using System;
-using Game.Framework;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game
 {
-    internal sealed class WorldBagPanel
+    /// <summary>
+    /// Controls the bag drawer embedded in WorldBottomBarPanel.
+    /// It is intentionally not registered as an independent UIPanel.
+    /// </summary>
+    public sealed class WorldBagPanel : MonoBehaviour
     {
-        private readonly List<BagSlotView> inventorySlotViews = new List<BagSlotView>();
-        private readonly List<BagSlotView> hotSlotViews = new List<BagSlotView>();
-        private ISubscription bagChangedSubscription;
+        [SerializeField] private Button closeButton;
+        [SerializeField] private RectTransform bagSlotRoot;
+        [SerializeField] private GameObject legacyHotBarRoot;
+
+        private readonly List<BagSlotView> bagSlotViews = new List<BagSlotView>();
+        private BagDragController dragController;
+        private Action closeClicked;
 
         public GameObject Root { get; private set; }
+        public bool IsOpen => Root != null && Root.activeSelf;
 
-        public bool Bind(Transform root, Action closeClicked)
+        internal void Initialize(BagDragController controller, Action onCloseClicked)
         {
             Dispose();
+            dragController = controller;
+            closeClicked = onCloseClicked;
+            Transform root = transform;
             Root = root != null ? root.gameObject : null;
             if (root == null)
             {
-                return false;
+                return;
             }
 
-            WorldPanelBindingUtility.BindButton(root.Find("Close"), () => closeClicked?.Invoke(), "Bag close");
-            BindSlots(root);
-            bagChangedSubscription = Messager.Instance.Subscribe<WorldMessageTopic, BagChangedMessage>(
-                WorldMessageTopic.BagChanged,
-                OnBagChanged);
+            BindCloseButton();
+            BindSlots();
             RefreshSlots();
-            return true;
+        }
+
+        public void SetOpen(bool isOpen)
+        {
+            if (!isOpen)
+            {
+                dragController?.Cancel();
+            }
+
+            if (Root != null)
+            {
+                Root.SetActive(isOpen);
+            }
+
+            if (isOpen)
+            {
+                RefreshSlots();
+            }
+        }
+
+        private void CloseSelf()
+        {
+            closeClicked?.Invoke();
         }
 
         public void RefreshSlots()
         {
-            RefreshSlotViews(inventorySlotViews);
-            RefreshSlotViews(hotSlotViews);
+            RefreshSlotViews(bagSlotViews);
         }
 
         public void Dispose()
         {
-            bagChangedSubscription?.Dispose();
-            bagChangedSubscription = null;
+            if (closeButton != null)
+            {
+                closeButton.onClick.RemoveListener(CloseSelf);
+            }
 
-            DisposeSlotViews(inventorySlotViews);
-            DisposeSlotViews(hotSlotViews);
-            inventorySlotViews.Clear();
-            hotSlotViews.Clear();
+            DisposeSlotViews(bagSlotViews);
+            bagSlotViews.Clear();
+            dragController?.Cancel();
+            dragController = null;
+            closeClicked = null;
             Root = null;
         }
 
-        private void BindSlots(Transform root)
+        private void BindCloseButton()
         {
-            Transform inventoryRoot =
-                FindChildByName(root, "Content") ??
-                FindChildByName(root, "InventoryScrollView");
-            Transform hotRoot = FindChildByName(root, "HotBarGrid");
+            if (closeButton == null)
+            {
+                Debug.LogError($"[{nameof(WorldBagPanel)}] Close button reference is missing.", this);
+                return;
+            }
 
-            BindSlotGroup(inventoryRoot, BagManager.QuickSlotCount, inventorySlotViews);
-            BindSlotGroup(hotRoot, 0, hotSlotViews);
+            closeButton.onClick.RemoveListener(CloseSelf);
+            closeButton.onClick.AddListener(CloseSelf);
         }
 
-        private static void BindSlotGroup(Transform root, int slotIndexOffset, List<BagSlotView> views)
+        private void BindSlots()
+        {
+            if (legacyHotBarRoot != null)
+            {
+                legacyHotBarRoot.SetActive(false);
+            }
+
+            if (bagSlotRoot == null)
+            {
+                Debug.LogError($"[{nameof(WorldBagPanel)}] Bag slot root reference is missing.", this);
+                return;
+            }
+
+            BindSlotGroup(bagSlotRoot, BagManager.QuickSlotCount, bagSlotViews, dragController);
+        }
+
+        private static void BindSlotGroup(
+            Transform root,
+            int slotIndexOffset,
+            List<BagSlotView> views,
+            BagDragController dragController)
         {
             if (root == null)
             {
@@ -71,15 +125,12 @@ namespace Game
             for (int i = 0; i < slots.Count; i++)
             {
                 int slotIndex = slotIndexOffset + i;
-                BagSlotView view = new BagSlotView(slotIndex, slots[i]);
-                view.Bind(slotIndex => BagManager.Instance.TryUseSlot(slotIndex));
+                BagSlotView view = new BagSlotView(slotIndex, slots[i], dragController);
+                view.Bind(
+                    slotIndex => BagManager.Instance.TryUseSlot(slotIndex),
+                    (fromSlotIndex, toSlotIndex) => BagManager.Instance.TryMoveOrSwapSlot(fromSlotIndex, toSlotIndex));
                 views.Add(view);
             }
-        }
-
-        private void OnBagChanged(BagChangedMessage message)
-        {
-            RefreshSlots();
         }
 
         private static void RefreshSlotViews(List<BagSlotView> views)
@@ -143,34 +194,9 @@ namespace Game
             return int.TryParse(name.Substring("Slot_".Length), out number);
         }
 
-        private static Transform FindChildByName(Transform root, string childName)
+        private void OnDestroy()
         {
-            if (root == null || string.IsNullOrEmpty(childName))
-            {
-                return null;
-            }
-
-            if (root.name == childName)
-            {
-                return root;
-            }
-
-            Transform direct = root.Find(childName);
-            if (direct != null)
-            {
-                return direct;
-            }
-
-            for (int i = 0; i < root.childCount; i++)
-            {
-                Transform child = FindChildByName(root.GetChild(i), childName);
-                if (child != null)
-                {
-                    return child;
-                }
-            }
-
-            return null;
+            Dispose();
         }
     }
 }

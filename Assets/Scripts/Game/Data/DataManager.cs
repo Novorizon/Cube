@@ -1,4 +1,4 @@
-using Game.Framework;
+﻿using Game.Framework;
 using Luban;
 using System;
 using System.Collections.Generic;
@@ -20,14 +20,20 @@ namespace Game
         public IReadOnlyDictionary<string, LocalizationConfig> Localization { get; private set; }
         public ConfigTableReader<StorageCapacityConfig> StorageCapacity { get; private set; }
         public ConfigTableReader<WorldCostConfig> WorldCost { get; private set; }
-        public ConfigTableReader<WorldGatherConfig> WorldGather { get; private set; }
-        public ConfigTableReader<WorldRewardConfig> WorldReward { get; private set; }
+        public ConfigTableReader<GatherConfig> Gather { get; private set; }
+        public ConfigTableReader<RewardConfig> Reward { get; private set; }
         public ConfigTableReader<WorldBuildingConfig> WorldBuilding { get; private set; }
         public ConfigTableReader<WorldBuildingLevelConfig> WorldBuildingLevel { get; private set; }
         public ConfigTableReader<WorldBuildingIncomeConfig> WorldBuildingIncome { get; private set; }
         public ConfigTableReader<WorldCropConfig> WorldCrop { get; private set; }
-        public ConfigTableReader<WorldResourceConfig> WorldResource { get; private set; }
+        public ConfigTableReader<ResourceConfig> Resource { get; private set; }
         public ConfigTableReader<TechNodeConfig> TechNode { get; private set; }
+        public ConfigTableReader<QuestTableConfig> Quest { get; private set; }
+        public ConfigTableReader<QuestObjectiveTableConfig> QuestObjective { get; private set; }
+        public ConfigTableReader<BlueprintTableConfig> Blueprint { get; private set; }
+        public ConfigTableReader<BlueprintItemTableConfig> BlueprintItem { get; private set; }
+        public ConfigTableReader<StoryTableConfig> Story { get; private set; }
+        public ConfigTableReader<StoryLineTableConfig> StoryLine { get; private set; }
         public ConfigTableReader<BaseConfig> Base { get; private set; }
         public ConfigTableReader<MapConfig> Map { get; private set; }
         public ConfigTableReader<SkillConfig> Skill { get; private set; }
@@ -36,9 +42,7 @@ namespace Game
         public ConfigTableReader<SkillSystemEnumConfig> SkillSystemEnum { get; private set; }
 
         /// <summary>
-        /// 当前已加载地图对应的波次表。
-        /// 注意：这不是所有地图的波次，只是当前地图的 wave bytes。
-        /// </summary>
+        /// 褰撳墠宸插姞杞藉湴鍥惧搴旂殑娉㈡琛ㄣ€?        /// 娉ㄦ剰锛氳繖涓嶆槸鎵€鏈夊湴鍥剧殑娉㈡锛屽彧鏄綋鍓嶅湴鍥剧殑 wave bytes銆?        /// </summary>
         public ConfigTableReader<WaveConfig> Wave { get; private set; }
 
         private Tables tables;
@@ -68,14 +72,20 @@ namespace Game
             Localization = tables.TbLocalization.DataMap;
             StorageCapacity = new ConfigTableReader<StorageCapacityConfig>("TbStorageCapacity", tables.TbStorageCapacity.DataMap);
             WorldCost = new ConfigTableReader<WorldCostConfig>("TbWorldCost", tables.TbWorldCost.DataMap);
-            WorldGather = new ConfigTableReader<WorldGatherConfig>("TbWorldGather", tables.TbWorldGather.DataMap);
-            WorldReward = new ConfigTableReader<WorldRewardConfig>("TbWorldReward", tables.TbWorldReward.DataMap);
+            Gather = new ConfigTableReader<GatherConfig>("TbGather", tables.TbGather.DataMap);
+            Reward = new ConfigTableReader<RewardConfig>("TbReward", tables.TbReward.DataMap);
             WorldBuilding = new ConfigTableReader<WorldBuildingConfig>("TbWorldBuilding", tables.TbWorldBuilding.DataMap);
             WorldBuildingLevel = new ConfigTableReader<WorldBuildingLevelConfig>("TbWorldBuildingLevel", tables.TbWorldBuildingLevel.DataMap);
             WorldBuildingIncome = new ConfigTableReader<WorldBuildingIncomeConfig>("TbWorldBuildingIncome", tables.TbWorldBuildingIncome.DataMap);
             WorldCrop = new ConfigTableReader<WorldCropConfig>("TbWorldCrop", tables.TbWorldCrop.DataMap);
-            WorldResource = new ConfigTableReader<WorldResourceConfig>("TbWorldResource", tables.TbWorldResource.DataMap);
+            Resource = new ConfigTableReader<ResourceConfig>("TbResource", tables.TbResource.DataMap);
             TechNode = new ConfigTableReader<TechNodeConfig>("TbTechNode", tables.TbTechNode.DataMap);
+            Quest = new ConfigTableReader<QuestTableConfig>("TbQuest", tables.TbQuest.DataMap);
+            QuestObjective = new ConfigTableReader<QuestObjectiveTableConfig>("TbQuestObjective", tables.TbQuestObjective.DataMap);
+            Blueprint = new ConfigTableReader<BlueprintTableConfig>("TbBlueprint", tables.TbBlueprint.DataMap);
+            BlueprintItem = new ConfigTableReader<BlueprintItemTableConfig>("TbBlueprintItem", tables.TbBlueprintItem.DataMap);
+            Story = new ConfigTableReader<StoryTableConfig>("TbStory", tables.TbStory.DataMap);
+            StoryLine = new ConfigTableReader<StoryLineTableConfig>("TbStoryLine", tables.TbStoryLine.DataMap);
             Base = new ConfigTableReader<BaseConfig>("TbBase", tables.TbBase.DataMap);
             Map = new ConfigTableReader<MapConfig>("TbMap", tables.TbMap.DataMap);
             Skill = new ConfigTableReader<SkillConfig>("TbSkill", tables.TbSkill.DataMap);

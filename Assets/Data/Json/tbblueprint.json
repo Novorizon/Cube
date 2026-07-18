@@ -1,0 +1,65 @@
+[
+  {
+    "id": 30600001,
+    "name": "Stone Axe",
+    "buildingId": 0,
+    "unlockTechId": 0,
+    "unlockQuestId": 0,
+    "durationSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 30600002,
+    "name": "Stone Pickaxe",
+    "buildingId": 0,
+    "unlockTechId": 0,
+    "unlockQuestId": 0,
+    "durationSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 30600003,
+    "name": "Stone Hoe",
+    "buildingId": 0,
+    "unlockTechId": 0,
+    "unlockQuestId": 0,
+    "durationSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 30601001,
+    "name": "Saw Planks",
+    "buildingId": 30000004,
+    "unlockTechId": 0,
+    "unlockQuestId": 0,
+    "durationSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 30601002,
+    "name": "Mill Wheat",
+    "buildingId": 30000007,
+    "unlockTechId": 0,
+    "unlockQuestId": 0,
+    "durationSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 30601003,
+    "name": "Smelt Copper",
+    "buildingId": 30000005,
+    "unlockTechId": 0,
+    "unlockQuestId": 0,
+    "durationSeconds": 0,
+    "enable": true
+  },
+  {
+    "id": 30601004,
+    "name": "Smelt Iron",
+    "buildingId": 30000005,
+    "unlockTechId": 0,
+    "unlockQuestId": 0,
+    "durationSeconds": 0,
+    "enable": true
+  }
+]

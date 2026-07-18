@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="StoryTableConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="title" type="string" comment="client" />
+    <var name="triggerMode" type="int" comment="client" />
+    <var name="triggerTargetId" type="int" comment="client" />
+    <var name="completeQuestEventType" type="int" comment="client" />
+    <var name="completeQuestTargetId" type="int" comment="client" />
+    <var name="nextStoryId" type="int" comment="client" />
+    <var name="repeatable" type="bool" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbStory" value="StoryTableConfig" input="story.xlsx" mode="map" index="id" />
+</module>

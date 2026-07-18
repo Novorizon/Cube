@@ -17,6 +17,13 @@ namespace Game.Ability
 
         public override void OnDestroy()
         {
+            // Runtime teardown must release the modifier without executing gameplay actions such
+            // as expiry damage, healing, or spawning another modifier after battle settlement.
+            if (Engine != null && Engine.IsClearingRuntime)
+            {
+                return;
+            }
+
             ActionRunner.Execute(Modifier.Definition.OnDestroyActions, CreateContext(Parent));
         }
 
@@ -37,14 +44,63 @@ namespace Game.Ability
                 return;
             }
 
+            if (!ShouldHandleEvent(modifierEvent))
+            {
+                return;
+            }
+
             // Trigger actions prefer the event target but fall back to the modifier parent.
             IUnit target = modifierEvent.Target ?? Parent;
             ActionRunner.Execute(Modifier.Definition.TriggerActions, CreateContext(target));
         }
 
+        private bool ShouldHandleEvent(ModifierEvent modifierEvent)
+        {
+            if (Modifier.Definition.TriggerEventScope == ModifierEventScope.Global)
+            {
+                return true;
+            }
+
+            switch (modifierEvent.EventType)
+            {
+                case ModifierEventType.DamageTaken:
+                case ModifierEventType.Healed:
+                case ModifierEventType.Death:
+                    return IsSameUnit(modifierEvent.Target, Parent);
+
+                case ModifierEventType.DamageDealt:
+                case ModifierEventType.AttackStart:
+                case ModifierEventType.AttackLanded:
+                case ModifierEventType.OrderIssued:
+                    return IsSameUnit(modifierEvent.Source, Parent);
+
+                case ModifierEventType.AbilityExecuted:
+                case ModifierEventType.AbilityFullyCast:
+                case ModifierEventType.ChannelFinished:
+                    return IsSameUnit(modifierEvent.Source, Parent) || IsSameUnit(modifierEvent.Source, Caster);
+
+                case ModifierEventType.DamageCalculated:
+                case ModifierEventType.ProjectileHit:
+                    return IsSameUnit(modifierEvent.Source, Parent) || IsSameUnit(modifierEvent.Target, Parent);
+
+                case ModifierEventType.ModifierAdded:
+                case ModifierEventType.ModifierRemoved:
+                    return modifierEvent.Modifier != null && IsSameUnit(modifierEvent.Modifier.Parent, Parent);
+
+                default:
+                    return false;
+            }
+        }
+
         private CastContext CreateContext(IUnit target)
         {
             return ActionRunner.CreateSingleTargetContext(Engine, Ability, Caster, target, Parent != null ? Parent.Position : UnityEngine.Vector3.zero);
+        }
+
+        private static bool IsSameUnit(IUnit left, IUnit right)
+        {
+            return left != null && right != null &&
+                   (ReferenceEquals(left, right) || left.EntityId == right.EntityId);
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Game
 {
     public sealed class WorldGmPanel : UIPanel
     {
-        public const string PrefabPath = "Assets/Arts/UI/Panels/GmPanel.prefab";
+        public const string PrefabPath = "Assets/Arts/UI/Panels/Gm/GmPanel.prefab";
 
         [SerializeField] private Button closeButton;
         [SerializeField] private Button refreshButton;
@@ -25,10 +25,16 @@ namespace Game
         [SerializeField] private Button addAllResourcesButton;
         [SerializeField] private Button addAllSeedsButton;
         [SerializeField] private Button addAllCropsButton;
+        [SerializeField] private Button timeScalePauseButton;
+        [SerializeField] private Button timeScaleNormalButton;
+        [SerializeField] private Button timeScaleFastButton;
+        [SerializeField] private Button timeScaleVeryFastButton;
         [SerializeField] private WorldGmItemRowView[] resourceRows;
         [SerializeField] private WorldGmItemRowView[] seedRows;
         [SerializeField] private WorldGmItemRowView[] cropRows;
         [SerializeField] private TMP_Text statusText;
+
+        public override UICloseTriggers CloseTriggers => UICloseTriggers.CloseButton | UICloseTriggers.Back | UICloseTriggers.RightOutside;
 
         protected override void OnCreate()
         {
@@ -45,6 +51,10 @@ namespace Game
             Bind(addAllResourcesButton, () => AddGroup(ResourceItems, 1000, "ui.gm.group.resources"), nameof(addAllResourcesButton));
             Bind(addAllSeedsButton, () => AddGroup(SeedItems, 100, "ui.gm.group.seeds"), nameof(addAllSeedsButton));
             Bind(addAllCropsButton, () => AddGroup(CropItems, 1000, "ui.gm.group.crops"), nameof(addAllCropsButton));
+            Bind(timeScalePauseButton, () => SetTimeScale(0f), nameof(timeScalePauseButton));
+            Bind(timeScaleNormalButton, () => SetTimeScale(1f), nameof(timeScaleNormalButton));
+            Bind(timeScaleFastButton, () => SetTimeScale(20f), nameof(timeScaleFastButton));
+            Bind(timeScaleVeryFastButton, () => SetTimeScale(120f), nameof(timeScaleVeryFastButton));
             BindRows(resourceRows);
             BindRows(seedRows);
             BindRows(cropRows);
@@ -168,7 +178,7 @@ namespace Game
             }
             else
             {
-                WorldItemManager.Instance.AddItem(itemId, amount);
+                ItemManager.Instance.AddItem(itemId, amount);
             }
 
             if (refresh)
@@ -193,6 +203,18 @@ namespace Game
 #else
             SetStatus(LocalizationManager.Get("ui.gm.status.dev_only"));
             return false;
+#endif
+        }
+
+        private void SetTimeScale(float scale)
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            CalendarManager.Instance.SetGameTimeScale(scale);
+            WorldMainPanel.Instance?.RefreshNow();
+            SetStatus($"Time x{scale:0.###}");
+            Toast.Info($"Time x{scale:0.###}");
+#else
+            SetStatus(LocalizationManager.Get("ui.gm.status.dev_only"));
 #endif
         }
 
@@ -264,7 +286,10 @@ namespace Game
 
         private void CloseSelf()
         {
-            UIManager.Instance.Panels.Hide(PrefabPath);
+            if (!UIManager.Instance.Panels.PopStack(WorldMenuPanel.SettingsStackGroupId))
+            {
+                UIManager.Instance.Panels.Hide(PrefabPath);
+            }
         }
 
         private readonly struct GmItem

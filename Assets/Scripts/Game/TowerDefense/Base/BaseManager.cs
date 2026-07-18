@@ -12,6 +12,9 @@ namespace Game
         private int defense;
         private bool initialized;
 
+        public event System.Action BaseLoaded;
+        public event System.Action BaseRemoving;
+
         public int MaxLife => maxLife;
 
         public int CurrentLife => currentLife;
@@ -25,6 +28,8 @@ namespace Game
         public bool IsDead => initialized && currentLife <= 0;
 
         public bool HasBaseObject => baseObject != null;
+
+        public Transform BaseTransform => baseObject != null ? baseObject.transform : null;
 
         public Vector3 BasePosition
         {
@@ -90,6 +95,7 @@ namespace Game
 
             Debug.Log($"Base initialized. Id: {config.Id}, Name: {config.Name}, Life: {currentLife}/{maxLife}, Defense: {defense}, GoalPoint: {goalPoint}, Position: {position}");
             NotifyBaseLifeChanged();
+            BaseLoaded?.Invoke();
 
             return true;
         }
@@ -101,6 +107,7 @@ namespace Game
                 return;
             }
 
+            BaseRemoving?.Invoke();
             GameObject.Destroy(baseObject);
             baseObject = null;
             config = null;

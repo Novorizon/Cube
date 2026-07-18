@@ -2,73 +2,144 @@ using System;
 using System.Collections.Generic;
 using Game.Framework;
 using TMPro;
+using UI;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Game
 {
-    internal sealed class WorldFarmPanel
+    public sealed class WorldFarmPanel : UIPanel
     {
-        private const string SeedPrefabPath = "Assets/Arts/UI/Panels/Seed.prefab";
+        public const string PrefabPath = "Assets/Arts/UI/Panels/Farm/FarmPanel.prefab";
 
-        private readonly List<GameObject> seedEntries = new List<GameObject>();
-        private readonly Dictionary<int, GameObject> seedEntriesByCropId = new Dictionary<int, GameObject>();
+        public static WorldFarmPanel Instance { get; private set; }
+
+        private readonly List<WorldFarmSeedView> seedEntries = new List<WorldFarmSeedView>();
+        private readonly Dictionary<int, WorldFarmSeedView> seedEntriesByCropId = new Dictionary<int, WorldFarmSeedView>();
         private static readonly HashSet<string> MissingCropIconWarnings = new HashSet<string>();
+
+        [SerializeField] private Button closeButton;
+        [SerializeField] private WorldFarmSeedView infoView;
+        [SerializeField] private TMP_Text infoText;
+        [SerializeField] private Transform seedContent;
+        [SerializeField] private WorldFarmSeedView seedPrefab;
+
         private GameObject root;
-        private TMP_Text infoText;
-        private Transform seedContent;
-        private GameObject seedPrefab;
         private Farm selectedFarm;
         private Func<int, bool> seedClicked;
+        private float nextRefreshTime;
 
         public GameObject Root => root;
+        public override UICloseTriggers CloseTriggers => UICloseTriggers.CloseButton | UICloseTriggers.Back | UICloseTriggers.RightOutside;
 
-        public bool Bind(Transform rootTransform, Action closeClicked, Func<int, bool> onSeedClicked)
+        private void Awake()
         {
-            ClearSeedEntries();
-            root = rootTransform != null ? rootTransform.gameObject : null;
-            selectedFarm = null;
-            seedClicked = onSeedClicked;
-
-            if (rootTransform == null)
-            {
-                infoText = null;
-                seedContent = null;
-                seedPrefab = null;
-                return false;
-            }
-
-            infoText = FindText(rootTransform, "Info");
-            seedContent = FindChild(rootTransform, "Content");
-            seedPrefab = GetSeedPrefab();
-            if (seedContent == null)
-            {
-                Debug.LogError("[WorldFarmPanel] Missing static Content node. Expected FarmPanel/Scroll View/Viewport/Content.");
-            }
-
-            WorldPanelBindingUtility.BindButton(rootTransform.Find("Close"), () => closeClicked?.Invoke(), "Farm close");
-            return infoText != null;
+            Instance = this;
         }
 
-        public void Show(Farm farm)
+        protected override void OnCreate()
         {
-            selectedFarm = farm;
-            if (root != null)
+            BindStaticLayout();
+        }
+
+        protected override void OnOpen(object args)
+        {
+            BindStaticLayout();
+            WorldFloatingPanelLayout.AlignBottomToHotBarGrid(GetComponent<RectTransform>());
+            selectedFarm = args as Farm ?? selectedFarm ?? GameplayController.Instance?.SelectedFarm;
+            RebuildSeeds();
+            RefreshNow();
+        }
+
+        protected override void OnClose()
+        {
+            selectedFarm = null;
+        }
+
+        protected override void OnDestroyed()
+        {
+            if (Instance == this)
             {
-                root.SetActive(true);
+                Instance = null;
             }
 
-            RebuildSeeds();
+            ClearSeedEntries();
+        }
+
+        public void SetSelectedFarm(Farm farm)
+        {
+            selectedFarm = farm;
+            if (IsOpen)
+            {
+                RefreshNow();
+            }
+        }
+
+        private void Update()
+        {
+            if (!IsOpen || Time.unscaledTime < nextRefreshTime)
+            {
+                return;
+            }
+
             Refresh();
         }
 
-        public void Hide()
+        private bool BindStaticLayout()
         {
-            selectedFarm = null;
-            if (root != null)
+            ClearSeedEntries();
+            root = gameObject;
+            seedClicked = cropId => GameplayController.Instance != null && GameplayController.Instance.TryPlantSelectedFarm(cropId);
+
+            if (root == null)
             {
-                root.SetActive(false);
+                return false;
             }
+
+            if (closeButton == null)
+            {
+                closeButton = FindChildByName(transform, "Close")?.GetComponent<Button>();
+            }
+
+            Transform infoRoot = FindDirectChildByName(transform, "Info") ?? FindChildByName(transform, "Info");
+            if (infoView == null)
+            {
+                infoView = infoRoot != null ? infoRoot.GetComponent<WorldFarmSeedView>() : null;
+            }
+
+            if (infoText == null)
+            {
+                infoText = FindTextByName(infoRoot, "Info") ?? FindTextByName(transform, "Info");
+            }
+
+            if (seedContent == null)
+            {
+                seedContent = FindChildByName(transform, "Content");
+            }
+
+            if (infoView == null && infoText == null)
+            {
+                Debug.LogError("[WorldFarmPanel] info view is not assigned on FarmPanel prefab.");
+            }
+
+            if (seedContent == null)
+            {
+                Debug.LogError("[WorldFarmPanel] seedContent is not assigned on FarmPanel prefab.");
+            }
+
+            if (seedPrefab == null)
+            {
+                Debug.LogError("[WorldFarmPanel] seedPrefab is not assigned on FarmPanel prefab.");
+            }
+
+            WorldPanelBindingUtility.BindButton(closeButton != null ? closeButton.transform : null, CloseSelf, "Farm close");
+            return (infoView != null || infoText != null) && seedContent != null && seedPrefab != null;
+        }
+
+        private void RefreshNow()
+        {
+            nextRefreshTime = 0f;
+            Refresh();
         }
 
         public void Refresh()
@@ -78,20 +149,22 @@ namespace Game
                 return;
             }
 
+            nextRefreshTime = Time.unscaledTime + 0.25f;
             RefreshInfo();
             RefreshSeeds();
         }
 
         private void RefreshInfo()
         {
-            if (infoText == null)
+            if (infoView == null && infoText == null)
             {
                 return;
             }
 
-            if (selectedFarm == null)
+            Farm farm = GetActiveFarm();
+            if (farm == null)
             {
-                infoText.text = LocalizationManager.Get("ui.main.selected_farm_none");
+                SetCropInfo(null, LocalizationManager.Get("ui.main.selected_farm_none"), string.Empty);
                 return;
             }
 
@@ -99,31 +172,67 @@ namespace Game
             string maturity = "-";
             string output = "-";
             string operation = LocalizationManager.Get("ui.farm.operation.choose_seed");
-            if (selectedFarm.HasCrop &&
-                FarmManager.Instance.Crops.TryGetValue(selectedFarm.CropId, out WorldCropDefinition crop) &&
+            Sprite cropIcon = null;
+            if (farm.HasCrop &&
+                FarmManager.Instance.Crops.TryGetValue(farm.CropId, out WorldCropDefinition crop) &&
                 crop != null)
             {
                 cropName = LocalizedConfigText.CropName(crop.Id);
-                maturity = FormatMaturity(selectedFarm.MatureAtUnixTime);
-                output = $"{crop.OutputCountPerSecond * selectedFarm.CellCount * 60}/min";
-                operation = IsMature(selectedFarm.MatureAtUnixTime)
+                maturity = FormatMaturity(farm.MatureAtUnixTime);
+                output = $"{crop.OutputCountPerSecond * farm.CellCount * 60}/min";
+                cropIcon = LoadCropIcon(crop);
+                operation = IsMature(farm.MatureAtUnixTime)
                     ? LocalizationManager.Get("ui.farm.operation.producing")
                     : LocalizationManager.Get("ui.farm.operation.growing");
             }
 
-            infoText.text = LocalizationManager.Format(
-                "ui.farm.info",
-                selectedFarm.FarmId,
-                selectedFarm.CellCount,
-                cropName,
-                maturity,
-                output,
-                operation);
+            if (infoView != null)
+            {
+                SetCropInfo(cropIcon, cropName, FormatOutputInfo(output));
+                return;
+            }
+
+            if (infoText != null)
+            {
+                infoText.text = LocalizationManager.Format(
+                    "ui.farm.info",
+                    farm.FarmId,
+                    farm.CellCount,
+                    cropName,
+                    maturity,
+                    output,
+                    operation);
+            }
+        }
+
+        private void SetCropInfo(Sprite icon, string cropName, string outputInfo)
+        {
+            Color textColor = new Color(0.18f, 0.13f, 0.07f, 1f);
+            if (infoView != null)
+            {
+                infoView.SetIcon(icon, Color.white);
+                infoView.SetName(cropName, textColor);
+                infoView.SetInfo(outputInfo, textColor);
+                infoView.SetClick(null, false);
+                infoView.SetBackgroundAlpha(0.96f);
+                return;
+            }
+
+            if (infoText != null)
+            {
+                infoText.text = string.IsNullOrEmpty(outputInfo) ? cropName : $"{cropName}\n{outputInfo}";
+            }
+        }
+
+        private static string FormatOutputInfo(string output)
+        {
+            string label = LocalizationManager.CurrentLanguage == LocalizationManager.English ? "Output" : "产量";
+            return $"{label}: {output}";
         }
 
         private void RefreshSeeds()
         {
-            if (seedContent == null || GetSeedPrefab() == null)
+            if (seedContent == null || seedPrefab == null)
             {
                 return;
             }
@@ -136,7 +245,7 @@ namespace Game
 
             foreach (KeyValuePair<int, WorldCropDefinition> pair in FarmManager.Instance.Crops)
             {
-                if (seedEntriesByCropId.TryGetValue(pair.Key, out GameObject entry))
+                if (seedEntriesByCropId.TryGetValue(pair.Key, out WorldFarmSeedView entry))
                 {
                     RefreshSeedEntry(pair.Value, entry);
                 }
@@ -146,7 +255,7 @@ namespace Game
         private void RebuildSeeds()
         {
             ClearSeedEntries();
-            if (seedContent == null || GetSeedPrefab() == null)
+            if (seedContent == null || seedPrefab == null)
             {
                 return;
             }
@@ -164,103 +273,91 @@ namespace Game
                 return;
             }
 
-            GameObject entry = UnityEngine.Object.Instantiate(GetSeedPrefab(), seedContent, false);
+            WorldFarmSeedView entry = UnityEngine.Object.Instantiate(seedPrefab, seedContent, false);
             entry.name = $"Seed_{crop.Id}";
-            entry.SetActive(true);
+            entry.gameObject.SetActive(true);
             seedEntries.Add(entry);
             seedEntriesByCropId[crop.Id] = entry;
 
             RefreshSeedEntry(crop, entry);
         }
 
-        private void RefreshSeedEntry(WorldCropDefinition crop, GameObject entry)
+        private void RefreshSeedEntry(WorldCropDefinition crop, WorldFarmSeedView entry)
         {
             if (crop == null || entry == null)
             {
                 return;
             }
 
-            Image background = entry.GetComponent<Image>();
-            if (background != null)
-            {
-                background.color = new Color(0.98f, 0.91f, 0.78f, 0.96f);
-            }
+            entry.SetBackground(new Color(0.98f, 0.91f, 0.78f, 0.96f));
 
-            Image icon = FindImage(entry.transform, "Icon");
-            TMP_Text nameText = FindText(entry.transform, "Name");
-            TMP_Text seedInfoText = FindText(entry.transform, "Info");
-            int cellCount = selectedFarm != null ? selectedFarm.CellCount : 0;
-            int need = Mathf.Max(0, crop.SeedCost) * cellCount;
-            int have = crop.SeedItemId > 0 ? WorldItemManager.Instance.GetCount(crop.SeedItemId) : 0;
+            Farm farm = GetActiveFarm();
+            int cellCount = farm != null ? farm.CellCount : 0;
+            int need = crop.SeedItemId > 0 ? GetSeedCostPerCell(crop) * cellCount : 0;
+            int have = crop.SeedItemId > 0 ? ItemManager.Instance.GetCount(crop.SeedItemId) : 0;
             bool enoughSeed = crop.SeedItemId <= 0 || need <= 0 || have >= need;
-            bool canPlant = selectedFarm != null && !selectedFarm.HasCrop && enoughSeed;
+            bool canPlant = farm != null && !farm.HasCrop && enoughSeed;
 
-            if (icon != null)
-            {
-                Sprite sprite = LoadCropIcon(crop);
-                icon.sprite = sprite;
-                icon.preserveAspect = true;
-                icon.gameObject.SetActive(sprite != null);
-                icon.color = canPlant ? Color.white : new Color(1f, 1f, 1f, 0.45f);
-            }
+            Color textColor = canPlant ? new Color(0.18f, 0.13f, 0.07f, 1f) : new Color(0.42f, 0.36f, 0.28f, 1f);
+            string seedCost = FormatSeedCost(crop.SeedItemId, have, need);
+            string output = crop.OutputCountPerSecond > 0 && cellCount > 0 ? $"\n{crop.OutputCountPerSecond * cellCount * 60}/min" : string.Empty;
+            string state = farm != null && farm.HasCrop
+                ? "\n" + LocalizationManager.Get("ui.farm.state.planted")
+                : enoughSeed
+                    ? string.Empty
+                    : "\n" + LocalizationManager.Get("ui.farm.state.not_enough");
 
-            if (nameText != null)
+            entry.SetIcon(LoadCropIcon(crop), canPlant ? Color.white : new Color(1f, 1f, 1f, 0.45f));
+            entry.SetName(LocalizedConfigText.CropName(crop.Id), textColor);
+            entry.SetInfo($"{seedCost}{output}{state}", textColor);
+            entry.SetClick(() =>
             {
-                nameText.text = LocalizedConfigText.CropName(crop.Id);
-                nameText.color = canPlant ? new Color(0.18f, 0.13f, 0.07f, 1f) : new Color(0.42f, 0.36f, 0.28f, 1f);
-            }
-
-            if (seedInfoText != null)
-            {
-                string seedCost = crop.SeedItemId > 0 && need > 0
-                    ? LocalizationManager.Format("ui.farm.seed_cost", have, need)
-                    : LocalizationManager.Get("ui.farm.no_seed_cost");
-                string output = crop.OutputCountPerSecond > 0 && cellCount > 0 ? $"\n{crop.OutputCountPerSecond * cellCount * 60}/min" : string.Empty;
-                string state = selectedFarm != null && selectedFarm.HasCrop
-                    ? "\n" + LocalizationManager.Get("ui.farm.state.planted")
-                    : enoughSeed
-                        ? string.Empty
-                        : "\n" + LocalizationManager.Get("ui.farm.state.not_enough");
-                seedInfoText.text = $"{seedCost}{output}{state}";
-                seedInfoText.color = canPlant ? new Color(0.18f, 0.13f, 0.07f, 1f) : new Color(0.42f, 0.36f, 0.28f, 1f);
-            }
-
-            Button button = entry.GetComponent<Button>();
-            if (button != null)
-            {
-                button.interactable = canPlant;
-                button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() =>
+                if (seedClicked != null && seedClicked(crop.Id))
                 {
-                    if (seedClicked != null && seedClicked(crop.Id))
-                    {
-                        Refresh();
-                    }
-                });
-            }
-
-            if (background != null)
-            {
-                Color color = background.color;
-                color.a = canPlant ? 0.96f : 0.58f;
-                background.color = color;
-            }
+                    Refresh();
+                    WorldMainPanel.Instance?.RefreshNow();
+                }
+            }, canPlant);
+            entry.SetBackgroundAlpha(canPlant ? 0.96f : 0.58f);
         }
 
-        private GameObject GetSeedPrefab()
+        private static string FormatSeedCost(int seedItemId, int have, int need)
         {
-            if (seedPrefab != null)
+            if (seedItemId <= 0)
             {
-                return seedPrefab;
+                return LocalizationManager.Get("ui.farm.no_seed_cost");
             }
 
-            seedPrefab = ResourceManager.Instance.LoadGameObject(SeedPrefabPath);
-            if (seedPrefab == null)
+            if (need > 0)
             {
-                Debug.LogError($"[WorldFarmPanel] Missing seed prefab: {SeedPrefabPath}");
+                return LocalizationManager.Format("ui.farm.seed_cost", have, need);
             }
 
-            return seedPrefab;
+            string label = LocalizationManager.CurrentLanguage == LocalizationManager.English ? "Seed" : "种子";
+            return $"{label} {have}";
+        }
+
+        private static int GetSeedCostPerCell(WorldCropDefinition crop)
+        {
+            if (crop == null || crop.SeedItemId <= 0)
+            {
+                return 0;
+            }
+
+            return Mathf.Max(1, crop.SeedCost);
+        }
+
+        private Farm GetActiveFarm()
+        {
+            return selectedFarm ?? GameplayController.Instance?.SelectedFarm;
+        }
+
+        private void CloseSelf()
+        {
+            if (CanCloseBy(UICloseReason.CloseButton))
+            {
+                UIManager.Instance.Panels.Hide(PrefabPath);
+            }
         }
 
         private static Sprite LoadCropIcon(WorldCropDefinition crop)
@@ -304,49 +401,12 @@ namespace Game
             {
                 if (seedEntries[i] != null)
                 {
-                    UnityEngine.Object.Destroy(seedEntries[i]);
+                    UnityEngine.Object.Destroy(seedEntries[i].gameObject);
                 }
             }
 
             seedEntries.Clear();
             seedEntriesByCropId.Clear();
-        }
-
-        private static TMP_Text FindText(Transform root, string childName)
-        {
-            Transform child = FindChild(root, childName);
-            return child != null ? child.GetComponent<TMP_Text>() : null;
-        }
-
-        private static Image FindImage(Transform root, string childName)
-        {
-            Transform child = FindChild(root, childName);
-            return child != null ? child.GetComponent<Image>() : null;
-        }
-
-        private static Transform FindChild(Transform root, string childName)
-        {
-            if (root == null || string.IsNullOrEmpty(childName))
-            {
-                return null;
-            }
-
-            Transform direct = root.Find(childName);
-            if (direct != null)
-            {
-                return direct;
-            }
-
-            for (int i = 0; i < root.childCount; i++)
-            {
-                Transform child = FindChild(root.GetChild(i), childName);
-                if (child != null)
-                {
-                    return child;
-                }
-            }
-
-            return null;
         }
 
         private static string FormatMaturity(long matureAtUnixTime)
@@ -388,6 +448,79 @@ namespace Game
             long hours = minutes / 60;
             long remainMinutes = minutes % 60;
             return remainMinutes > 0 ? $"{hours}h {remainMinutes}m" : $"{hours}h";
+        }
+
+        private static Transform FindChildByName(Transform root, string childName)
+        {
+            if (root == null || string.IsNullOrEmpty(childName))
+            {
+                return null;
+            }
+
+            if (root.name == childName)
+            {
+                return root;
+            }
+
+            Transform direct = root.Find(childName);
+            if (direct != null)
+            {
+                return direct;
+            }
+
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform found = FindChildByName(root.GetChild(i), childName);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
+        }
+
+        private static Transform FindDirectChildByName(Transform root, string childName)
+        {
+            if (root == null || string.IsNullOrEmpty(childName))
+            {
+                return null;
+            }
+
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform child = root.GetChild(i);
+                if (child.name == childName)
+                {
+                    return child;
+                }
+            }
+
+            return null;
+        }
+
+        private static TMP_Text FindTextByName(Transform root, string childName)
+        {
+            if (root == null || string.IsNullOrEmpty(childName))
+            {
+                return null;
+            }
+
+            if (root.name == childName && root.TryGetComponent(out TMP_Text rootText))
+            {
+                return rootText;
+            }
+
+            for (int i = 0; i < root.childCount; i++)
+            {
+                TMP_Text childText = FindTextByName(root.GetChild(i), childName);
+                if (childText != null)
+                {
+                    return childText;
+                }
+            }
+
+            return null;
         }
     }
 }

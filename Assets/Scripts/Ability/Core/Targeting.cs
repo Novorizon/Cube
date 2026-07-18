@@ -8,6 +8,7 @@ namespace Game.Ability
     /// </summary>
     public sealed class TargetQuery
     {
+        public AbilitySystem Engine;
         public IUnit Caster;
         public TargetTeam Team;
         public UnitType Types = UnitType.All;
@@ -38,12 +39,20 @@ namespace Game.Ability
                 return false;
             }
 
-            if (target.IsMagicImmune && (Flags & TargetFlags.MagicImmuneEnemies) == 0 && Caster != null && Caster.TeamId != target.TeamId)
+            bool magicImmune = Engine != null ? Engine.HasState(target, UnitState.MagicImmune) : target.IsMagicImmune;
+            if (magicImmune && (Flags & TargetFlags.MagicImmuneEnemies) == 0 && Caster != null && Caster.TeamId != target.TeamId)
             {
                 return false;
             }
 
-            if (target.IsInvulnerable && (Flags & TargetFlags.Invulnerable) == 0)
+            bool invulnerable = Engine != null ? Engine.HasState(target, UnitState.Invulnerable) : target.IsInvulnerable;
+            if (invulnerable && (Flags & TargetFlags.Invulnerable) == 0)
+            {
+                return false;
+            }
+
+            bool untargetable = Engine != null && Engine.HasState(target, UnitState.Untargetable);
+            if (untargetable && (Flags & TargetFlags.Untargetable) == 0)
             {
                 return false;
             }
@@ -202,6 +211,7 @@ namespace Game.Ability
             AbilityDefinition definition = ability.Definition;
             return new TargetQuery
             {
+                Engine = ability.Engine,
                 Caster = ability.Owner,
                 Team = definition.TargetTeam,
                 Types = definition.TargetType,

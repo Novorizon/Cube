@@ -10,14 +10,14 @@ namespace Game
 {
     public class BattleSettlementBuilder
     {
-        public BattleSettlementReward BuildReward(IReadOnlyDictionary<int, ItemData> battleItems)
+        public BattleSettlementReward BuildReward(IReadOnlyDictionary<int, BattleItemData> battleItems)
         {
             BattleSettlementReward reward = new BattleSettlementReward();
 
-            foreach (KeyValuePair<int, ItemData> pair in battleItems)
+            foreach (KeyValuePair<int, BattleItemData> pair in battleItems)
             {
                 int itemId = pair.Key;
-                ItemData itemData = pair.Value;
+                BattleItemData itemData = pair.Value;
 
                 ItemConfig config = DataManager.Instance.Item.Get(itemId);
 

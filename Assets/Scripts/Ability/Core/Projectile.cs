@@ -19,6 +19,7 @@ namespace Game.Ability
         public bool Destroyed { get; private set; }
 
         private float traveledDistance;
+        private readonly HashSet<int> hitUnitIds = new HashSet<int>();
 
         internal Projectile(ProjectileRequest request)
         {
@@ -47,6 +48,11 @@ namespace Game.Ability
             {
                 TickLinear(engine, deltaTime);
             }
+        }
+
+        internal void Destroy()
+        {
+            Destroyed = true;
         }
 
         private void TickTracking(AbilitySystem engine, float deltaTime)
@@ -78,6 +84,7 @@ namespace Game.Ability
             // Linear projectiles query a small area around their current position each tick.
             TargetQuery query = new TargetQuery
             {
+                Engine = engine,
                 Caster = Caster,
                 Team = Definition.TargetTeam,
                 Types = Definition.TargetType,
@@ -103,6 +110,11 @@ namespace Game.Ability
 
         private void Hit(AbilitySystem engine, IUnit target)
         {
+            if (target == null || !hitUnitIds.Add(target.EntityId))
+            {
+                return;
+            }
+
             // AbilityScript decides custom hit behavior and can force projectile deletion.
             bool destroy = Definition.DeleteOnHit;
             if (Ability != null && Ability.Script != null)

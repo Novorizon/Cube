@@ -23,9 +23,121 @@ namespace Game.Ability
 
         public IWorld World { get; private set; }
         public IPresentation Presentation { get; private set; }
+        public bool IsClearingRuntime { get; private set; }
         public IReadOnlyList<Modifier> Modifiers => modifiers;
         public IReadOnlyList<Projectile> Projectiles => projectiles;
         public IReadOnlyList<Thinker> Thinkers => thinkers;
+
+        public AbilityRuntimeSnapshot CreateRuntimeSnapshot()
+        {
+            AbilityRuntimeSnapshot snapshot = new AbilityRuntimeSnapshot();
+            foreach (KeyValuePair<int, List<Ability>> pair in abilitiesByUnit)
+            {
+                List<Ability> abilities = pair.Value;
+                AbilityUnitRuntimeSnapshot unitSnapshot = new AbilityUnitRuntimeSnapshot { EntityId = pair.Key };
+                if (abilities != null && abilities.Count > 0 && abilities[0]?.Owner != null)
+                {
+                    IUnit owner = abilities[0].Owner;
+                    unitSnapshot.TeamId = owner.TeamId;
+                    unitSnapshot.Position = owner.Position;
+                    unitSnapshot.IsAlive = owner.IsAlive;
+                }
+
+                if (abilities != null)
+                {
+                    for (int i = 0; i < abilities.Count; i++)
+                    {
+                        Ability ability = abilities[i];
+                        if (ability == null) continue;
+                        unitSnapshot.Abilities.Add(new AbilityInstanceRuntimeSnapshot
+                        {
+                            Name = ability.Definition?.Name,
+                            Level = ability.Level,
+                            Phase = ability.Phase,
+                            Activated = ability.Activated,
+                            ToggleEnabled = ability.ToggleEnabled,
+                            CooldownRemaining = ability.CooldownRemaining,
+                            Charges = ability.Charges
+                        });
+                    }
+                }
+
+                snapshot.Units.Add(unitSnapshot);
+            }
+
+            for (int i = 0; i < modifiers.Count; i++)
+            {
+                Modifier modifier = modifiers[i];
+                if (modifier == null) continue;
+                ModifierRuntimeSnapshot modifierSnapshot = new ModifierRuntimeSnapshot
+                {
+                    Name = modifier.Name,
+                    ParentEntityId = modifier.Parent != null ? modifier.Parent.EntityId : 0,
+                    CasterEntityId = modifier.Caster != null ? modifier.Caster.EntityId : 0,
+                    AbilityName = modifier.Ability?.Definition?.Name,
+                    Stacks = modifier.StackCount,
+                    Duration = modifier.Duration,
+                    RemainingTime = modifier.RemainingTime,
+                    States = modifier.Definition != null ? modifier.Definition.States : UnitState.None
+                };
+                if (modifier.Definition != null)
+                {
+                    foreach (KeyValuePair<ModifierProperty, float> property in modifier.Definition.Properties)
+                    {
+                        modifierSnapshot.Properties.Add(new ModifierPropertyRuntimeSnapshot
+                        {
+                            Property = property.Key,
+                            Value = modifier.GetProperty(property.Key, new ModifierPropertyContext
+                            {
+                                Engine = this,
+                                Unit = modifier.Parent,
+                                Ability = modifier.Ability
+                            })
+                        });
+                    }
+                }
+                snapshot.Modifiers.Add(modifierSnapshot);
+            }
+
+            for (int i = 0; i < projectiles.Count; i++)
+            {
+                Projectile projectile = projectiles[i];
+                if (projectile == null) continue;
+                snapshot.Projectiles.Add(new ProjectileRuntimeSnapshot
+                {
+                    Name = projectile.Definition?.Name,
+                    AbilityName = projectile.Ability?.Definition?.Name,
+                    CasterEntityId = projectile.Caster != null ? projectile.Caster.EntityId : 0,
+                    TargetEntityId = projectile.Target != null ? projectile.Target.EntityId : 0,
+                    Position = projectile.Position,
+                    Tracking = projectile.Tracking,
+                    Destroyed = projectile.Destroyed
+                });
+            }
+
+            for (int i = 0; i < thinkers.Count; i++)
+            {
+                Thinker thinker = thinkers[i];
+                if (thinker == null) continue;
+                snapshot.Thinkers.Add(new ThinkerRuntimeSnapshot
+                {
+                    AbilityName = thinker.Ability?.Definition?.Name,
+                    CasterEntityId = thinker.Caster != null ? thinker.Caster.EntityId : 0,
+                    Position = thinker.Position,
+                    Duration = thinker.Duration,
+                    Interval = thinker.Interval,
+                    Radius = thinker.Radius,
+                    Destroyed = thinker.IsDestroyed
+                });
+            }
+
+            if (Presentation is ITrackedPresentation trackedPresentation)
+            {
+                trackedPresentation.GetActivePresentationHandles(snapshot.PresentationHandles);
+            }
+
+            return snapshot;
+        }
         public event Action<RuntimeEvent> EventRaised;
 
         /// <summary>
@@ -43,30 +155,43 @@ namespace Game.Ability
         /// </summary>
         public void ClearRuntime()
         {
-            for (int i = modifiers.Count - 1; i >= 0; i--)
+            if (IsClearingRuntime)
             {
-                modifiers[i].Destroy();
+                return;
             }
 
-            modifiers.Clear();
-            projectiles.Clear();
-
-            for (int i = thinkers.Count - 1; i >= 0; i--)
+            IsClearingRuntime = true;
+            try
             {
-                thinkers[i].Destroy();
-            }
-
-            thinkers.Clear();
-
-            foreach (List<Ability> abilities in abilitiesByUnit.Values)
-            {
-                for (int i = 0; i < abilities.Count; i++)
+                for (int i = modifiers.Count - 1; i >= 0; i--)
                 {
-                    abilities[i].Remove();
+                    modifiers[i].Destroy();
                 }
-            }
 
-            abilitiesByUnit.Clear();
+                modifiers.Clear();
+                projectiles.Clear();
+
+                for (int i = thinkers.Count - 1; i >= 0; i--)
+                {
+                    thinkers[i].Destroy();
+                }
+
+                thinkers.Clear();
+
+                foreach (List<Ability> abilities in abilitiesByUnit.Values)
+                {
+                    for (int i = 0; i < abilities.Count; i++)
+                    {
+                        abilities[i].Remove();
+                    }
+                }
+
+                abilitiesByUnit.Clear();
+            }
+            finally
+            {
+                IsClearingRuntime = false;
+            }
         }
 
         public void RegisterAbilityDefinition(AbilityDefinition definition)
@@ -160,6 +285,82 @@ namespace Game.Ability
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Removes all runtime state that keeps a unit alive in the ability engine. Integration
+        /// layers call this before releasing or replacing a dynamic business object.
+        /// </summary>
+        public void RemoveUnit(IUnit unit)
+        {
+            if (unit == null)
+            {
+                return;
+            }
+
+            NotifyAbilitiesUnitRemoved(unit);
+
+            // Stop runtime objects first while their source ability and scripts are still valid.
+            Projectile[] projectileSnapshot = projectiles.ToArray();
+            for (int i = 0; i < projectileSnapshot.Length; i++)
+            {
+                Projectile projectile = projectileSnapshot[i];
+                if (projectile == null || !ReferencesUnit(projectile, unit) || !projectiles.Remove(projectile))
+                {
+                    continue;
+                }
+
+                projectile.Destroy();
+                RaiseEvent(new RuntimeEvent
+                {
+                    EventType = RuntimeEventType.ProjectileDestroyed,
+                    Projectile = projectile,
+                    Ability = projectile.Ability,
+                    Caster = projectile.Caster,
+                    Position = projectile.Position
+                });
+            }
+
+            Thinker[] thinkerSnapshot = thinkers.ToArray();
+            for (int i = 0; i < thinkerSnapshot.Length; i++)
+            {
+                Thinker thinker = thinkerSnapshot[i];
+                if (thinker != null && ReferencesUnit(thinker, unit))
+                {
+                    RemoveThinker(thinker);
+                }
+            }
+
+            Modifier[] modifierSnapshot = modifiers.ToArray();
+            for (int i = 0; i < modifierSnapshot.Length; i++)
+            {
+                Modifier modifier = modifierSnapshot[i];
+                if (modifier != null && ReferencesUnit(modifier, unit))
+                {
+                    RemoveModifier(modifier);
+                }
+            }
+
+            if (!abilitiesByUnit.TryGetValue(unit.EntityId, out List<Ability> abilities))
+            {
+                return;
+            }
+
+            // Remove the bucket first so callbacks cannot rediscover an ability whose owner is
+            // already leaving the business world.
+            abilitiesByUnit.Remove(unit.EntityId);
+            Ability[] abilitySnapshot = abilities.ToArray();
+            for (int i = 0; i < abilitySnapshot.Length; i++)
+            {
+                Ability ability = abilitySnapshot[i];
+                if (ability == null)
+                {
+                    continue;
+                }
+
+                ability.Remove();
+                RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.AbilityRemoved, Ability = ability, Caster = unit });
+            }
         }
 
         public Ability FindAbility(IUnit owner, string abilityName)
@@ -457,14 +658,14 @@ namespace Game.Ability
                 return result;
             }
 
-            if (damageInfo.Victim.IsInvulnerable && (damageInfo.Flags & DamageFlags.IgnoreInvulnerable) == 0)
+            if (HasState(damageInfo.Victim, UnitState.Invulnerable) && (damageInfo.Flags & DamageFlags.IgnoreInvulnerable) == 0)
             {
                 result.Blocked = true;
                 result.BlockReason = "Victim is invulnerable.";
                 return result;
             }
 
-            if (damageInfo.DamageType == DamageType.Magical && damageInfo.Victim.IsMagicImmune && (damageInfo.Flags & DamageFlags.PiercesSpellImmunity) == 0)
+            if (damageInfo.DamageType == DamageType.Magical && HasState(damageInfo.Victim, UnitState.MagicImmune) && (damageInfo.Flags & DamageFlags.PiercesSpellImmunity) == 0)
             {
                 result.Blocked = true;
                 result.BlockReason = "Victim is magic immune.";
@@ -577,7 +778,7 @@ namespace Game.Ability
 
             // Aura effects are represented as short-lived child modifiers refreshed by the source.
             ModifierDefinition definition = aura.Definition;
-            TargetQuery query = new TargetQuery { Caster = aura.Parent, Team = definition.AuraTargetTeam, Types = definition.AuraTargetType, Flags = definition.AuraTargetFlags };
+            TargetQuery query = new TargetQuery { Engine = this, Caster = aura.Parent, Team = definition.AuraTargetTeam, Types = definition.AuraTargetType, Flags = definition.AuraTargetFlags };
             List<IUnit> units = new List<IUnit>();
             FindUnits(aura.Parent.Position, definition.AuraRadius, query, units);
             for (int i = 0; i < units.Count; i++)
@@ -671,6 +872,58 @@ namespace Game.Ability
         private bool IsAbilityRegistered(Ability ability)
         {
             return ability != null && ability.Owner != null && abilitiesByUnit.TryGetValue(ability.Owner.EntityId, out List<Ability> abilities) && abilities.Contains(ability);
+        }
+
+        private static bool ReferencesUnit(Projectile projectile, IUnit unit)
+        {
+            return IsSameUnit(projectile.Caster, unit) ||
+                   IsSameUnit(projectile.Source, unit) ||
+                   IsSameUnit(projectile.Target, unit) ||
+                   IsSameUnit(projectile.Ability != null ? projectile.Ability.Owner : null, unit);
+        }
+
+        private static bool ReferencesUnit(Thinker thinker, IUnit unit)
+        {
+            return IsSameUnit(thinker.Caster, unit) ||
+                   IsSameUnit(thinker.Ability != null ? thinker.Ability.Owner : null, unit);
+        }
+
+        private static bool ReferencesUnit(Modifier modifier, IUnit unit)
+        {
+            if (IsSameUnit(modifier.Caster, unit) ||
+                IsSameUnit(modifier.Parent, unit) ||
+                IsSameUnit(modifier.Ability != null ? modifier.Ability.Owner : null, unit))
+            {
+                return true;
+            }
+
+            Modifier sourceAura = modifier.SourceAura;
+            return sourceAura != null &&
+                   (IsSameUnit(sourceAura.Caster, unit) || IsSameUnit(sourceAura.Parent, unit));
+        }
+
+        private static bool IsSameUnit(IUnit left, IUnit right)
+        {
+            return left != null && right != null &&
+                   (ReferenceEquals(left, right) || left.EntityId == right.EntityId);
+        }
+
+        private void NotifyAbilitiesUnitRemoved(IUnit unit)
+        {
+            List<Ability> snapshot = new List<Ability>();
+            foreach (List<Ability> abilities in abilitiesByUnit.Values)
+            {
+                snapshot.AddRange(abilities);
+            }
+
+            for (int i = 0; i < snapshot.Count; i++)
+            {
+                Ability ability = snapshot[i];
+                if (ability != null && !IsSameUnit(ability.Owner, unit))
+                {
+                    ability.OnUnitRemoved(unit);
+                }
+            }
         }
     }
 }

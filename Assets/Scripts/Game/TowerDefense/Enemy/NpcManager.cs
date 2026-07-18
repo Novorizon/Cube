@@ -1,6 +1,5 @@
 using Game.Framework;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -8,20 +7,14 @@ namespace Game
 {
     public sealed class NpcManager : Singleton<NpcManager>
     {
-        public static readonly int WalkHash = Animator.StringToHash("Walk");
-        public static readonly int PunchHash = Animator.StringToHash("Punch");
-        public static readonly int DieHash = Animator.StringToHash("Die");
-
-        public const string IdleStateName = "Idle";
-        public const string WalkStateName = "Walk";
-        public const string PunchStateName = "Punch";
-        public const string DieStateName = "Die";
-
         private readonly List<Npc> activeNpcs = new List<Npc>();
         private readonly MapPathFinder pathFinder = new MapPathFinder();
 
         private Transform npcRoot;
         private bool initialized;
+
+        public event System.Action<Npc> NpcRegistered;
+        public event System.Action<Npc> NpcUnregistered;
 
         public IReadOnlyList<Npc> ActiveNpcs
         {
@@ -190,6 +183,7 @@ namespace Game
             }
 
             activeNpcs.Add(npc);
+            NpcRegistered?.Invoke(npc);
         }
 
         public void Unregister(Npc npc)
@@ -199,7 +193,10 @@ namespace Game
                 return;
             }
 
-            activeNpcs.Remove(npc);
+            if (activeNpcs.Remove(npc))
+            {
+                NpcUnregistered?.Invoke(npc);
+            }
         }
 
         public void Remove(Npc npc)
@@ -221,11 +218,14 @@ namespace Game
 
                 if (npc != null)
                 {
+                    Unregister(npc);
                     GameObject.Destroy(npc.gameObject);
                 }
+                else
+                {
+                    activeNpcs.RemoveAt(i);
+                }
             }
-
-            activeNpcs.Clear();
         }
 
         public bool TakeDamage(Npc npc, int damage)
@@ -261,7 +261,7 @@ namespace Game
                 return true;
             }
 
-            KillNpcAsync(npc);
+            _ = KillNpcAsync(npc);
             return true;
         }
 
@@ -286,7 +286,11 @@ namespace Game
             SetWalk(npc, false);
 
             Animator animator = GetAnimator(npc);
-            await AnimatorManager.Instance.PlayTriggerAnimator(animator, DieHash, DieStateName, 2f);
+            await NpcAnimationController.PlayDeathAsync(animator, npc.destroyCancellationToken, 2f);
+            if (npc == null || npc.Data != data)
+            {
+                return;
+            }
 
             Debug.Log($"Npc killed. Id: {npc.Config?.Id}, RewardGold: {data.RewardGold}");
 
@@ -296,7 +300,7 @@ namespace Game
             DropNpcItems(npcConfigId, deathPosition);
             Remove(npc);
 
-            ItemManager.Instance.AddItem(ItemIds.Gold, data.RewardGold);
+            BattleItemManager.Instance.AddItem(ItemIds.Gold, data.RewardGold);
             NotifyGoldFly(deathPosition, data.RewardGold);
             WaveManager.Instance.NotifyEnemyKilled(npc);
 
@@ -514,7 +518,7 @@ namespace Game
             }
 
             FaceToPosition(npc, BaseManager.Instance.BasePosition);
-            PlayPunch(npc);
+            PlayAttack(npc);
 
 
             int damage = npc.Data.DamageToBase;
@@ -621,13 +625,14 @@ namespace Game
         }
         public void SetWalk(Npc npc, bool value)
         {
-            Animator animator= GetAnimator(npc);
-            AnimatorManager.Instance.PlayBoolAnimator(animator, WalkHash, value);
+            Animator animator = GetAnimator(npc);
+            NpcAnimationController.SetWalking(animator, value);
         }
-        public void PlayPunch(Npc npc)
+
+        public void PlayAttack(Npc npc)
         {
             Animator animator = GetAnimator(npc);
-            AnimatorManager.Instance.PlayTriggerAnimator(animator, PunchHash);
+            NpcAnimationController.PlayAttack(animator);
         }
     }
 }

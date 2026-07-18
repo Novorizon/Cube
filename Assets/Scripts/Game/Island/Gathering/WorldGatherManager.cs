@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,7 +9,7 @@ namespace Game
         public static WorldGatherManager Instance { get; } = new WorldGatherManager();
 
         private readonly Dictionary<int, WorldGatherNodeState> nodeStates = new Dictionary<int, WorldGatherNodeState>();
-        private WorldRewardResolver rewardResolver;
+        private RewardResolver rewardResolver;
 
         private WorldGatherManager()
         {
@@ -18,21 +18,21 @@ namespace Game
         public void Initialize()
         {
             nodeStates.Clear();
-            rewardResolver = new WorldRewardResolver(DataManager.Instance.WorldReward);
+            rewardResolver = new RewardResolver(DataManager.Instance.Reward);
         }
 
-        public bool TryGather(MapObjectData mapObject, out IReadOnlyList<WorldItem> rewards)
+        public bool TryGather(MapObjectData mapObject, out IReadOnlyList<ItemStack> rewards)
         {
-            rewards = Array.Empty<WorldItem>();
+            rewards = Array.Empty<ItemStack>();
 
             if (mapObject == null || mapObject.ObjectType != MapObjectType.Resource)
             {
                 return false;
             }
 
-            if (!TryGetGatherConfig(mapObject.ConfigId, out WorldGatherConfig config))
+            if (!TryGetGatherConfig(mapObject.ConfigId, out GatherConfig config))
             {
-                Debug.LogWarning($"Gather failed. Missing world resource or gather config: {mapObject.ConfigId}");
+                Debug.LogWarning($"Gather failed. Missing resource or gather config: {mapObject.ConfigId}");
                 return false;
             }
 
@@ -44,7 +44,7 @@ namespace Game
                 return false;
             }
 
-            rewardResolver ??= new WorldRewardResolver(DataManager.Instance.WorldReward);
+            rewardResolver ??= new RewardResolver(DataManager.Instance.Reward);
             rewards = rewardResolver.GetRewardGroup(config.RewardGroupId);
             if (rewards.Count == 0)
             {
@@ -71,7 +71,7 @@ namespace Game
                 return false;
             }
 
-            if (!TryGetGatherConfig(mapObject.ConfigId, out WorldGatherConfig config))
+            if (!TryGetGatherConfig(mapObject.ConfigId, out GatherConfig config))
             {
                 return false;
             }
@@ -89,12 +89,31 @@ namespace Game
             return true;
         }
 
+        public bool ShouldRemoveDepletedMapObject(MapObjectData mapObject)
+        {
+            if (mapObject == null || mapObject.ObjectType != MapObjectType.Resource)
+            {
+                return false;
+            }
+
+            if (!TryGetGatherConfig(mapObject.ConfigId, out GatherConfig config) ||
+                config.RespawnSeconds > 0)
+            {
+                return false;
+            }
+
+            int objectId = GetObjectId(mapObject);
+            return nodeStates.TryGetValue(objectId, out WorldGatherNodeState state) &&
+                   state != null &&
+                   state.IsDepleted;
+        }
+
         public void Clear()
         {
             nodeStates.Clear();
         }
 
-        private WorldGatherNodeState GetOrCreateState(int objectId, WorldGatherConfig config)
+        private WorldGatherNodeState GetOrCreateState(int objectId, GatherConfig config)
         {
             if (!nodeStates.TryGetValue(objectId, out WorldGatherNodeState state))
             {
@@ -105,12 +124,12 @@ namespace Game
             return state;
         }
 
-        private bool TryGetGatherConfig(int worldResourceId, out WorldGatherConfig config)
+        private bool TryGetGatherConfig(int worldResourceId, out GatherConfig config)
         {
             config = null;
 
-            if (DataManager.Instance.WorldResource != null &&
-                DataManager.Instance.WorldResource.TryGet(worldResourceId, out WorldResourceConfig resourceConfig) &&
+            if (DataManager.Instance.Resource != null &&
+                DataManager.Instance.Resource.TryGet(worldResourceId, out ResourceConfig resourceConfig) &&
                 resourceConfig != null &&
                 resourceConfig.Enable)
             {
@@ -119,10 +138,10 @@ namespace Game
                     return false;
                 }
 
-                return DataManager.Instance.WorldGather.TryGet(resourceConfig.GatherConfigId, out config) && config != null && config.Enable;
+                return DataManager.Instance.Gather.TryGet(resourceConfig.GatherConfigId, out config) && config != null && config.Enable;
             }
 
-            return DataManager.Instance.WorldGather.TryGet(worldResourceId, out config) && config != null && config.Enable;
+            return DataManager.Instance.Gather.TryGet(worldResourceId, out config) && config != null && config.Enable;
         }
 
         private static int GetObjectId(MapObjectData mapObject)

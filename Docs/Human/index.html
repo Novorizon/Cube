@@ -1,0 +1,1411 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cube 项目文档</title>
+  <style>
+    :root {
+      --bg: #f6f4ef;
+      --panel: #ffffff;
+      --panel-soft: #fbfaf7;
+      --text: #202124;
+      --muted: #667085;
+      --line: #ded8cb;
+      --blue: #315fbd;
+      --teal: #0f766e;
+      --amber: #b45309;
+      --shadow: 0 18px 40px rgba(32, 33, 36, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background: var(--bg);
+      font-family: "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+      line-height: 1.65;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--line);
+      background: #fdfcf9;
+    }
+
+    .brand {
+      padding: 22px 22px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .search-area {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .search-input {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--text);
+      background: var(--panel);
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(49, 95, 189, .13);
+    }
+
+    .nav-scroll {
+      flex: 1;
+      overflow: auto;
+      padding: 10px 12px 18px;
+    }
+
+    .nav-group {
+      margin: 10px 0 16px;
+    }
+
+    .nav-group-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 40px;
+      margin: 0 4px 8px;
+      border-left: 4px solid var(--teal);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: var(--text);
+      background: #f1ede4;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .nav-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 25px;
+      height: 22px;
+      border: 1px solid #d8d0c2;
+      border-radius: 11px;
+      padding: 0 7px;
+      color: var(--muted);
+      background: var(--panel);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .doc-button {
+      display: block;
+      width: 100%;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 10px;
+      margin: 3px 0;
+      text-align: left;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .doc-nav-entry {
+      position: relative;
+    }
+
+    .doc-nav-entry.has-outline .doc-button {
+      padding-right: 42px;
+    }
+
+    .doc-outline-toggle {
+      position: absolute;
+      z-index: 1;
+      top: 7px;
+      right: 5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border: 0;
+      border-radius: 6px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      transform: rotate(0deg);
+      transition: transform .16s ease, background .16s ease;
+    }
+
+    .doc-outline-toggle:hover {
+      color: var(--blue);
+      background: rgba(49, 95, 189, .1);
+    }
+
+    .doc-nav-entry.outline-expanded .doc-outline-toggle {
+      transform: rotate(90deg);
+    }
+
+    .doc-outline {
+      display: none;
+      margin: 2px 8px 8px 17px;
+      border-left: 1px solid #d8d0c2;
+      padding: 2px 0 3px 10px;
+    }
+
+    .doc-nav-entry.outline-expanded .doc-outline {
+      display: block;
+    }
+
+    .doc-heading-button {
+      display: block;
+      width: 100%;
+      border: 0;
+      border-radius: 5px;
+      padding: 5px 7px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 12px;
+      line-height: 1.35;
+      letter-spacing: 0;
+      text-align: left;
+      overflow-wrap: anywhere;
+      cursor: pointer;
+    }
+
+    .doc-heading-button:hover {
+      color: var(--text);
+      background: #f1ede4;
+    }
+
+    .doc-heading-button.active {
+      color: #173b82;
+      background: #eaf0ff;
+      font-weight: 700;
+    }
+
+    .doc-button:hover {
+      background: #f1ede4;
+    }
+
+    .doc-button.active {
+      background: #eaf0ff;
+      color: #173b82;
+      box-shadow: inset 3px 0 0 var(--blue);
+    }
+
+    .doc-button strong {
+      display: block;
+      font-size: 14px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    .doc-button span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .main {
+      min-width: 0;
+      padding: 24px clamp(20px, 4vw, 52px) 60px;
+    }
+
+    .mobile-topbar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .menu-button,
+    .small-button {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      min-height: 36px;
+      padding: 7px 12px;
+      cursor: pointer;
+    }
+
+    .menu-button:hover,
+    .small-button:hover {
+      border-color: #b8b0a2;
+      background: #fdfaf3;
+    }
+
+    .doc-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: start;
+      margin: 0 auto 18px;
+      max-width: 1120px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .doc-title {
+      margin: 4px 0 8px;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .doc-summary {
+      margin: 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .source-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .source-path {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: var(--muted);
+      background: rgba(255,255,255,.7);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .content-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 860px) minmax(190px, 240px);
+      gap: 28px;
+      align-items: start;
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    .reader {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: clamp(22px, 3vw, 36px);
+    }
+
+    .toc {
+      position: sticky;
+      top: 22px;
+      max-height: calc(100vh - 44px);
+      overflow: auto;
+      border-left: 2px solid var(--line);
+      padding-left: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toc-title {
+      margin: 0 0 8px;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .toc a {
+      display: block;
+      padding: 4px 0;
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      color: var(--blue);
+    }
+
+    .toc a.level-3 {
+      padding-left: 12px;
+      font-size: 12px;
+    }
+
+    .reader h1,
+    .reader h2,
+    .reader h3,
+    .reader h4 {
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    .reader h1 {
+      margin: 0 0 18px;
+      font-size: 32px;
+    }
+
+    .reader h2 {
+      margin: 34px 0 12px;
+      padding-top: 4px;
+      font-size: 24px;
+      border-top: 1px solid #eee8db;
+    }
+
+    .reader h3 {
+      margin: 26px 0 10px;
+      font-size: 19px;
+    }
+
+    .reader h4 {
+      margin: 22px 0 8px;
+      font-size: 16px;
+    }
+
+    .table-index {
+      margin: 18px 0 28px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }
+
+    .table-index-header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .table-index-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .table-index-note {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .table-index-table-wrap {
+      overflow-x: auto;
+    }
+
+    .table-index-table {
+      min-width: 560px;
+      border-collapse: collapse;
+      background: var(--panel);
+    }
+
+    .table-index-table thead th {
+      color: var(--text);
+      background: #eae4d8;
+      font-size: 13px;
+    }
+
+    .table-index-table tbody th {
+      width: 180px;
+      color: var(--text);
+      background: #f7f3eb;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .table-index-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px 14px;
+    }
+
+    .reader .table-index-link {
+      display: inline-block;
+      border-bottom: 0;
+      color: var(--blue);
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .reader .table-index-link:hover {
+      border-bottom: 0;
+      text-decoration: underline;
+    }
+
+    .table-section {
+      margin: 18px 0 22px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--teal);
+      border-radius: 8px;
+      background: var(--panel);
+      scroll-margin-top: 18px;
+    }
+
+    .table-section > summary {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 12px 15px;
+      cursor: pointer;
+      list-style: none;
+      background: #f4efe5;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .table-section > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .table-section > summary::before {
+      content: "›";
+      flex: 0 0 auto;
+      color: var(--teal);
+      font-size: 25px;
+      line-height: 1;
+      transform: rotate(0deg);
+      transition: transform .16s ease;
+    }
+
+    .table-section[open] > summary {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .table-section[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    .table-section-title {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .table-section-hint {
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .table-section-hint::after {
+      content: "展开";
+    }
+
+    .table-section[open] .table-section-hint::after {
+      content: "收起";
+    }
+
+    .table-section-body {
+      padding: 8px 16px 12px;
+    }
+
+    .table-section-body > p:first-child {
+      margin-top: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee8db;
+    }
+
+    .table-section-body > p:first-child::before {
+      content: "说明";
+      display: inline-block;
+      margin-right: 8px;
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .reader p {
+      margin: 10px 0;
+    }
+
+    .reader .definition {
+      margin: -6px 0 14px 0;
+      color: var(--muted);
+    }
+
+    .reader ul,
+    .reader ol {
+      padding-left: 1.25rem;
+      margin: 10px 0 14px;
+    }
+
+    .reader li {
+      margin: 4px 0;
+    }
+
+    .reader a {
+      color: var(--blue);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(49, 95, 189, .25);
+    }
+
+    .reader a:hover {
+      border-bottom-color: var(--blue);
+    }
+
+    .reader code {
+      border-radius: 5px;
+      padding: 2px 5px;
+      background: #f2eee6;
+      color: #5d3b00;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: .92em;
+    }
+
+    .reader pre {
+      overflow: auto;
+      border: 1px solid #e1d8c8;
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: #f2eee6;
+      color: #5d3b00;
+      line-height: 1.55;
+    }
+
+    .reader pre code {
+      padding: 0;
+      color: inherit;
+      background: transparent;
+      font-size: 13px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin: 14px 0 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 560px;
+      background: var(--panel);
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #ebe4d8;
+      padding: 9px 11px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f4efe5;
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td.merged-group-cell {
+      width: 150px;
+      vertical-align: middle;
+      color: var(--text);
+      background: #faf7f1;
+      font-weight: 700;
+    }
+
+    blockquote {
+      margin: 16px 0;
+      border-left: 4px solid var(--amber);
+      padding: 8px 14px;
+      color: #5f4b32;
+      background: #fff7e7;
+    }
+
+    mark {
+      background: #fde68a;
+      color: inherit;
+      padding: 0 2px;
+      border-radius: 3px;
+    }
+
+    .empty-state {
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        z-index: 20;
+        inset: 0 auto 0 0;
+        width: min(86vw, 340px);
+        transform: translateX(-105%);
+        transition: transform .2s ease;
+        box-shadow: 20px 0 40px rgba(0,0,0,.16);
+      }
+
+      body.nav-open .sidebar {
+        transform: translateX(0);
+      }
+
+      .mobile-topbar {
+        display: flex;
+      }
+
+      .main {
+        padding-top: 16px;
+      }
+
+      .doc-header {
+        grid-template-columns: 1fr;
+      }
+
+      .source-actions {
+        justify-content: flex-start;
+      }
+
+      .content-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        position: static;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+        padding: 14px 0 0;
+        order: -1;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .table-section > summary {
+        align-items: flex-start;
+      }
+
+      .table-section-body {
+        padding-inline: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="文档导航">
+      <div class="brand">
+        <h1>Cube 项目文档</h1>
+        <p>Markdown 作为数据源，HTML 提供阅读界面。</p>
+      </div>
+      <div class="search-area">
+        <input id="searchInput" class="search-input" type="search" placeholder="搜索文档标题、路径和内容" autocomplete="off">
+      </div>
+      <nav id="navList" class="nav-scroll"></nav>
+    </aside>
+
+    <main class="main">
+      <div class="mobile-topbar">
+        <button id="openNavButton" class="menu-button" type="button">目录</button>
+        <span class="source-path">Docs/Human/index.html</span>
+      </div>
+
+      <header class="doc-header">
+        <div>
+          <div id="docGroup" class="eyebrow"></div>
+          <h2 id="docTitle" class="doc-title"></h2>
+          <p id="docSummary" class="doc-summary"></p>
+        </div>
+        <div class="source-actions">
+          <span id="docPath" class="source-path"></span>
+          <a id="rawLink" class="small-button" href="#" target="_blank" rel="noreferrer">Markdown 源文件</a>
+        </div>
+      </header>
+
+      <section class="content-layout">
+        <article id="reader" class="reader"></article>
+        <aside id="toc" class="toc" aria-label="本文目录"></aside>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const docs = [
+    {
+        "id":  "readme-md",
+        "group":  "入口",
+        "title":  "文档总入口",
+        "path":  "README.md",
+        "summary":  "项目文档总入口和按任务选读指南。",
+        "content":  "# Cube Docs\n\n本目录是项目文档入口。新对话不要默认阅读所有文档；先按任务选入口，只读必要模块。\n\n## Codex 快速入口\n\n先读：\n\n```text\nDocs/CodexProjectMemory.md\n```\n\n然后按任务继续：\n\n| 任务 | 继续阅读 |\n| --- | --- |\n| UI 框架、关闭规则、Stack、Exclusive | `Architecture/UIFramework.md` |\n| 不确定模块该看哪些表、工具、文件 | `Architecture/ModuleWorkMap.md` |\n| 经营主界面、Bag、Build、ToolKit、Quest、TechTree | `Modules/ManagementUI.md` |\n| 岛屿经营业务、资源、工具、农田、建筑 | `Product/ManagementMode.md`、`Modules/Island.md` |\n| Story 剧情播放和触发 | `Modules/Story.md`、`Product/ProgressionAndQuests.md` |\n| Quest / Blueprint | `Modules/QuestStoryBlueprint.md`、`Product/ProgressionAndQuests.md` |\n| 数据表、Luban、本地化 | `Architecture/DataPipeline.md`、`Architecture/ExcelDataDictionary.md` |\n| 地图运行时、小地图标记 | `Architecture/MapRuntime.md`、`Decisions/0003-map-object-vs-marker.md` |\n| 地块美术 | `Modules/MapAndTileArt.md` |\n| 塔防和技能 | `Product/TowerDefenseMode.md`、`Modules/TowerDefense.md`、`Modules/AbilityAndSkill.md` |\n| 命名、移动脚本、Prefab 安全 | `Decisions/0001-naming-rules.md`、`Architecture/CodebaseOverview.md` |\n| 项目中期审核、风险清单 | `Audits/ProjectMidpointAudit-2026-07-09.md` |\n\n## 文档结构\n\n```text\nDocs\n  Architecture   底层框架、数据、地图、存档、消息\n  Product        游戏整体和产品流程\n  Modules        具体业务模块\n  Decisions      需要反复引用的决策\n  Audits         阶段性审核、风险清单、整理记录\n  Human          人类阅读入口 HTML\n```\n\n`Docs/Human/index.html` 是人类阅读入口，Markdown 仍是源文档。HTML 页面由 `Docs/Human/build-human-docs.ps1` 读取 Markdown 后生成，不要把长期内容只改在 HTML 里。\n\n刷新人类阅读页面：\n\n```text\npowershell.exe -ExecutionPolicy Bypass -File Docs/Human/build-human-docs.ps1\n```\n\n## 当前开发重点\n\n当前重点是岛屿经营主循环：\n\n```text\nStory -\u003e Quest -\u003e 采集 -\u003e Blueprint -\u003e 建造 / 农田 / 科技 -\u003e 更多内容\n```\n\n塔防模式保留为独立战斗模式，结算后通过明确奖励流程回写经营长期数据。\n\n## 全局硬规则\n\n- 新代码默认不要加 `World` 或 `Game` 前缀；已有 `World*` 类名短期保留。\n- 新增 Luban / Excel 表同样不要加 `World` 或 `Game` 前缀；已有 `world_*` 表是历史命名，短期保留，不作为新表命名模板。\n- 任务域使用 `Quest`，不要改成 `Task`。\n- 制作 / 生产配置使用 `Blueprint`，不要新增 `Recipe` 或 `WorldRecipe`。\n- 重新生成配置统一执行 `Data/gen_all.bat`，不要单独建议执行 `Data/gen_client.bat`。\n- UI 节点优先通过 prefab 序列化字段绑定，不运行时按名字动态 `Find` 常驻节点。\n- 移动 Unity 脚本必须保留 `.meta`，不要为了整理随意重命名已挂 Prefab 的脚本。\n- 重要框架规则、业务流程、命名约定、易踩坑细节或长期设计决策发生变化时，必须同步更新对应 Markdown 源文档；改完后重新生成 `Docs/Human/index.html`。不要只把长期规则写在聊天记录或 HTML 里。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "codexprojectmemory-md",
+        "group":  "入口",
+        "title":  "Codex 项目记忆",
+        "path":  "CodexProjectMemory.md",
+        "summary":  "给 Codex 新对话使用的最小项目记忆。",
+        "content":  "# Codex Project Memory\n\n这是给 Codex 新对话的最小入口，不是完整设计文档。读完本文件后，只按当前任务继续读相关模块。\n\n## Project Basics\n\n```text\nWorkspace: D:\\Cube\nEngine: Unity 2022\nUser language: Chinese\nMain direction: island survival / island management, with separate tower-defense combat mode\nCurrent focus: management UI, Story -\u003e Quest flow, Blueprint production, data-driven configuration\n```\n\n重要路径：\n\n```text\nAssets/Scripts/Framework\nAssets/Scripts/Game\nAssets/Scripts/Game/UI/Management\nAssets/Scripts/Game/Island\nAssets/Scripts/Game/Quests\nAssets/Scripts/Game/Story\nAssets/Scripts/Game/Blueprints\nAssets/Scripts/Game/Data/Generated\n\nAssets/Arts/UI/Panels\nAssets/Arts/UI/Icons\nAssets/Arts/Map\n\nData/Excel\nData/Defines\nAssets/Data/Bin\nAssets/Data/Json\nDocs\n```\n\n## Read Only What You Need\n\n```text\nUI framework work:\n  Docs/Architecture/UIFramework.md\n\nManagement UI work:\n  Docs/Architecture/UIFramework.md\n  Docs/Modules/ManagementUI.md\n\nModule tables / tools / related files:\n  Docs/Architecture/ModuleWorkMap.md\n\nIsland gameplay work:\n  Docs/Product/ManagementMode.md\n  Docs/Modules/Island.md\n\nQuest / Story / Blueprint work:\n  Docs/Modules/QuestStoryBlueprint.md\n  Docs/Product/ProgressionAndQuests.md\n\nStory-only work:\n  Docs/Modules/Story.md\n  Docs/Product/ProgressionAndQuests.md\n\nData / Luban / localization work:\n  Docs/Architecture/DataPipeline.md\n\nMap / minimap / tile art work:\n  Docs/Architecture/MapRuntime.md\n  Docs/Modules/MapAndTileArt.md\n\nTower defense / ability work:\n  Docs/Product/TowerDefenseMode.md\n  Docs/Modules/TowerDefense.md\n  Docs/Modules/AbilityAndSkill.md\n\nNaming or file movement:\n  Docs/Decisions/0001-naming-rules.md\n  Docs/Architecture/CodebaseOverview.md\n\nProject audit / cleanup:\n  Docs/Audits/ProjectMidpointAudit-2026-07-09.md\n```\n\n## Hard Rules\n\n- New code defaults to no `World` or `Game` prefix. Existing `World*` classes may stay because Prefabs and serialized data may reference them.\n- New Luban / Excel tables follow the same rule: do not add `World` or `Game` prefixes. Existing `world_*` tables are historical and should not be used as templates for new tables; use `tool.xlsx` / `ToolConfig` / `TbTool`, not `world_tool.xlsx` / `WorldToolConfig` / `TbWorldTool`.\n- Quest domain uses `Quest`, not `Task`, and not `WorldQuest`.\n- Production / crafting config uses `Blueprint`, not `Recipe` or `WorldRecipe`.\n- Story save model is `StorageManager.StoryData`, reached through `SaveData.Story`; do not recreate `Assets/Scripts/Game/Story/StoryData.cs`.\n- Bag domain uses `Bag`, not `Inventory`; do not create new bag code or UI folders named `Inventory`.\n- Regenerate data with `Data/gen_all.bat`; do not suggest running only `Data/gen_client.bat`.\n- Runtime config source is `Assets/Data/Bin/*.bytes`; JSON is for inspection and debugging.\n- Do not manually edit Luban generated code or generated data as a lasting solution.\n- Move Unity scripts with `.meta`; do not delete and recreate scripts that may be referenced by Prefabs.\n- UI nodes should be wired through serialized fields. Do not reintroduce runtime `Transform.Find` for stable HUD nodes.\n- Avoid changing Prefab layout from runtime code unless the script is explicitly responsible for generated lists, grids, or layout.\n- The current shell is Windows PowerShell 5.1. Prefer simple commands and single-quoted `rg` patterns; split complex searches instead of using dense quoted regex.\n\n## Current UI Agreements\n\n- UI framework identity is currently `prefabPath`; `Show`、`Hide`、`IsShown` all work by path.\n- `RightOutside` supports desktop right-click outside close. Mobile touch / click outside is mapped by the framework.\n- Common management panels should support `CloseButton | Back | RightOutside`.\n- Panel outside close is handled by the framework-created bottom `PanelOutsideBlocker` + `UIOutsideClickDetector` + `PanelManager`; Panel no longer creates outside mask objects.\n- A panel\u0027s visual `Overlay` must not receive raycasts or bind its own close handler. `PanelOutsideBlocker` is below every UI layer, so it catches blank space without blocking normal UI.\n- Outside close consumes the pointer for that frame through `UIManager`; world input must call `WorldPointerPicker.IsPointerOverUi()` so a right-click that closes Quest / TechTree does not also move or interact in the world.\n- BottomBar 入口状态图标目前只用于 Bag 的 Open / Close 箭头。Build / ToolKit 没有 Open / Close 状态图标设计，不要补。\n- Exclusive group is for same-level independent panels, currently Build / ToolKit / Production / Quest / TechTree / Menu. Bag is a BottomBar child node and is coordinated locally with those panels.\n- Stack group is for panel-level return history. Do not split ordinary child nodes into `UIPanel` just to use Stack.\n- Sound / Language / Save currently exist as independent UIPanel and can use Stack short term. Product-wise they are closer to Menu internal pages and can later become serialized child nodes under Menu.\n\n## Current Feature Status\n\nData:\n\n```text\nQuest / Blueprint / Story 已接入正式 Luban 表\nAbility / Skill / Item / Localization / Map / Tower / Wave / Tech / World* 表也在 Tables 中\n```\n\nManagement UI:\n\n```text\nWorldMainPanel 是常驻 HUD 容器\nTopBar / BottomBar / EntryBar / RightBar / BuildingDetail 是 prefab 上的 MonoBehaviour 子模块\nRightBar/BattleEntry 是经营到塔防的模式入口，当前调用 MapManager.Instance.LoadBattleMap(30950001)\nBuild / ToolKit / Production / Quest / TechTree / Menu 入口由 WorldPanelEntryController 注册\nBag 是 BottomBar 内部节点，由 WorldBottomBarPanel 开关；WorldMainPanel 协调它与独立浮动面板互斥\n独立浮动面板的互斥关闭交给 PanelManager Exclusive group\n浮动面板布局使用 WorldFloatingPanelLayout\n```\n\nQuest / Story / Blueprint:\n\n```text\nStory 可触发 QuestEvent\nQuest 支持多目标、前置、追踪、完成、领取、奖励发放、保存和消息\nBlueprint 完成可触发 QuestEventType.BlueprintCompleted\n当前开局链路是 Story 10001 -\u003e 拾取 -\u003e 建 House -\u003e 做斧 -\u003e 砍树 -\u003e 做镐 -\u003e 挖石 -\u003e 建 Workbench\n任务奖励 Toast / 获得反馈仍需完善\n```\n\nIsland opening resources:\n\n```text\n默认世界地图是 Assets/Data/Map/1001.json\n地图编辑器放置 Resource 时使用 resource.id\n30300008 Branch / 30300009 Loose Stone 是开局拾取物\n30300001 Tree 需要斧，30300002 Rock 需要镐\nToolKit 新存档默认空槽，获得工具后自动放入；加载已有存档时会把已拥有的工具补入空槽；不要假设玩家开局已有斧/镐/锄\n开局基础工具 Blueprint 的 buildingId = 0，不需要 Workbench；QuestPanel 详情按钮直接“制作”\nBag slot 0-9 是 HotBar，10+ 是 Bag；BottomBar 持有唯一 BagDragController，快捷栏和 Bag 子节点之间支持带跟随图标的拖动移动/交换，不拆堆，且不跨其它 Panel\n```\n\nStory:\n\n```text\nStoryManager 从 Story / StoryLine Luban 表加载配置\nStoryPanel 当前运行时创建 UI 节点，不要假设 prefab 内已有标题/正文/按钮节点\nDialogManager / EventTriggerSystem 目前只是占位\n```\n\nMap:\n\n```text\n地图由 MapData 运行时生成，不是整张场景 Prefab\n经营地图入口是 MapManager.Instance.LoadWorldMap(worldMapId)\n塔防地图入口是 MapManager.Instance.LoadBattleMap(mapConfigId)；不要重新增加含糊的 LoadMap\n两种入口共用同一个 MapManager、CurrentMap、LoadMapData 和 CreateMap，不维护双份地图运行时状态\nMapManager 用 partial 文件按 World / Battle / Loading / Persistence 组织；这只是代码分区，不是多个 Manager 实例\n塔防 UI 资源位于 Assets/Arts/UI/Panels/Battle；塔和技能图标分别位于 Assets/Arts/UI/Icons/Towers、Assets/Arts/UI/Icons/Skills\nMapData.Objects 是真实地图对象\n纯 UI 标记后续应进入 MapMarkerData 或等价结构\n寻路使用 MapPathFinder 格子 A*，不是 NavMesh；角色移动目标是可走格中心附近\nMapManager.IsWalkable / IsBuildable 看 objectsByCoord 和 BlocksMove / BlocksBuild，不看 view/collider 是否隐藏\n逻辑上消失的地图对象要 TryRemoveMapObject + MarkMapObjectRemoved；只隐藏 view 仍可能挡路\n拾取资源会移除 MapObject；采集资源 respawnSeconds \u003c= 0 且耗尽后也会移除 MapObject，respawnSeconds \u003e 0 则保留并等待刷新\n资源交互站位由 ResourceInteractionController 生成候选，NavigationController 选择可走、可到达、处于交互距离内的格子；不要把资源本体加入 path node\n地图编辑器放置资源默认使用 Excel / Luban 的 resource 阻挡属性；当前 MapObjectData 存最终值，不记录是否覆盖\n采集工具动作只使用 Assets/Arts/Character/Player 内的玩家动画资源；当前 UseTool 使用 Meshy_AI_Forestbound_Adventure_biped_Animation_Heavy_Hammer_Swing_withSkin.fbx，但必须通过 WorldPlayer.controller 的 UseTool Upper Body 层和 WorldPlayer_UseToolUpperBody.mask 播放，只影响手臂/手指，避免 Heavy_Hammer_Swing 的全身后撤姿态把角色视觉上弹出去。不要引用 Assets/Arts/FBX/CharacterFBX 的其他角色动作，也不要叠加额外程序化采集动作\n```\n\n## Documentation Rule\n\n如果发现文档与代码冲突，先读代码和 Prefab，再更新对应主题文档。重要框架规则、业务流程、命名约定、易踩坑细节或长期设计决策发生变化时，必须同步更新 Markdown 源文档，并重新生成 `Docs/Human/index.html`。不要把过时探索继续堆进 `CodexProjectMemory.md`，也不要只把长期规则写在聊天记录或 HTML 里。\n"
+    },
+    {
+        "id":  "architecture-codebaseoverview-md",
+        "group":  "架构",
+        "title":  "代码库概览",
+        "path":  "Architecture/CodebaseOverview.md",
+        "summary":  "代码分层、目录边界和 Unity 安全规则。",
+        "content":  "# Codebase Overview\n\n本文记录项目代码分层和主要目录。新对话如果只改某个业务模块，不需要读完整文档树；从 `Docs/README.md` 的任务入口跳到对应模块即可。\n\n## 顶层结构\n\n```text\nAssets/Scripts\n  Bootstrap\n  Framework\n  Game\n  MapEditor\n  Ability\n  Skill\n  Tools\n  Sandbox\n```\n\n## Bootstrap\n\n```text\nAssets/Scripts/Bootstrap/GameEntry.cs\n```\n\n职责是初始化资源、数据、管理器和主流程。不要让 `GameEntry` 继续膨胀；复杂流程应下沉到明确的 manager。\n\n## Framework\n\n跨玩法基础设施放在 `Assets/Scripts/Framework`：\n\n```text\nEffect\nEvent\nInputSystem\nLogging\nMessage\nResource\nSingleton\nTask        C# async helper，不是游戏任务系统\nThreading\nUI\nLogger.cs\nNetLogger.cs\n```\n\nFramework 不写具体经营、任务、塔防规则。UI 框架细节见 `Docs/Architecture/UIFramework.md`。\n\n## Game\n\n正式游戏运行时代码放在 `Assets/Scripts/Game`：\n\n```text\nAbilityAdapters\nAnimator\nBase\nBattle\nBlueprints\nBuild\nCamera\nCharacters\nCore\nData\nDebug\nDrop\nEffect\nEffects\nEntity\nInput\nIsland\nItem\nItems\nLocalization\nMap\nMessage\nNpc\nPathFinding\nQuests\nSave\nStory\nTower\nTowerDefense\nUI\nWave\n```\n\n业务文档按主题拆分：\n\n```text\nDocs/Modules/Island.md\nDocs/Modules/ManagementUI.md\nDocs/Modules/QuestStoryBlueprint.md\nDocs/Modules/AbilityAndSkill.md\nDocs/Modules/TowerDefense.md\nDocs/Modules/MapAndTileArt.md\n```\n\n## Game/Data\n\n```text\nAssets/Scripts/Game/Data\nAssets/Scripts/Game/Data/Generated\n```\n\n`Generated` 由 Luban 生成，不手动修改。数据流水线见 `Docs/Architecture/DataPipeline.md`。\n\n## Game/UI\n\n业务 UI 放在 `Assets/Scripts/Game/UI`，通用 UI 能力放在 `Assets/Scripts/Framework/UI`。\n\n当前经营 UI 主要在：\n\n```text\nAssets/Scripts/Game/UI/Management\nAssets/Arts/UI/Panels\nAssets/Arts/UI/Icons\n```\n\n## MapEditor / Tools / Sandbox\n\n`MapEditor` 只放地图编辑器窗口和编辑器工具。运行时地图逻辑放 `Game/Map`。\n\n`Tools` 放编辑器工具、一次性工具和 prefab 绑定工具。如果只在编辑器用，必须放在 `Editor` 子目录。\n\n`Sandbox` 只用于实验和样例，正式玩法不要依赖 Sandbox。\n\n游戏任务系统使用 `Quests`。不要重新创建 `Tasks` 作为业务任务目录，避免和 C# async `Task` 混淆。\n\n## Unity 安全规则\n\n- 不为了目录整洁随意移动已经挂在 Prefab 或 Scene 上的脚本。\n- 移动 `.cs` 必须同时移动 `.meta`，保持 Unity GUID。\n- 不删除再新建同名脚本，否则 Prefab 可能 Missing Script。\n- 改序列化字段名要考虑 `[FormerlySerializedAs]`。\n- Runtime 代码不要放进 `Editor` 目录。\n- Luban 生成代码和生成数据不手动改。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "architecture-moduleworkmap-md",
+        "group":  "架构",
+        "title":  "模块工作索引",
+        "path":  "Architecture/ModuleWorkMap.md",
+        "summary":  "模块对应的文档、代码、配置表、工具和生成物总览。",
+        "content":  "# Module Work Map\n\n本文是“更高一级”的工作索引，用来回答：改某个模块时，需要读哪些文档、看哪些代码、改哪些表、用哪些工具、检查哪些生成物。\n\n具体设计细节仍放在各模块文档里；本文只做总览和入口。\n\n## 使用方式\n\n1. 先在本文找到模块。\n2. 按“先读文档”进入细节文档。\n3. 修改表时按“配置表”和“生成工具”执行。\n4. 修改代码或 prefab 前按“相关文件”确认边界。\n5. 如果本文和代码冲突，以代码和实际 prefab 为准，然后更新本文。\n\n## 通用数据工具\n\n配置生成：\n\n```text\nData/gen_all.bat\n```\n\nUnity 菜单：\n\n```text\nLuban/Update All\n```\n\n对应工具代码：\n\n```text\nAssets/Scripts/Tools/Editor/LubanTool.cs\n```\n\n规则：\n\n- 只改表内容时，通常跑 `Data/gen_all.bat`。\n- 新增字段或改字段结构时，可用 `Luban/Update All`，它会根据 Excel 前三行更新 `Data/Defines/*.xml`，再执行 `gen_all.bat`。\n- 不要单独建议执行 `Data/gen_client.bat`，除非明确只调试 client 生成脚本本身。\n\n通用生成物：\n\n```text\nAssets/Scripts/Game/Data/Generated\nAssets/Data/Bin\nAssets/Data/Json\n```\n\n## 模块总表\n\n| 模块 | 先读文档 | 代码入口 | 配置表 | 工具 / 生成 | 备注 |\n| --- | --- | --- | --- | --- | --- |\n| Story | `Modules/Story.md`、`Product/ProgressionAndQuests.md` | `Assets/Scripts/Game/Story` | `story.xlsx`、`story_line.xlsx` | `gen_all.bat`、`Luban/Update All` | 当前没有专门 Story 编辑器或校验器 |\n| Quest | `Modules/QuestStoryBlueprint.md`、`Product/ProgressionAndQuests.md` | `Assets/Scripts/Game/Quests`、`Assets/Scripts/Game/UI/Management/QuestPanel.cs` | `quest.xlsx`、`quest_objective.xlsx`、`reward.xlsx` | `gen_all.bat`、`Luban/Update All` | 奖励发放已走 BagManager；Toast / 获得反馈继续打磨 |\n| Blueprint | `Modules/QuestStoryBlueprint.md`、`Modules/Island.md` | `Assets/Scripts/Game/Blueprints` | `blueprint.xlsx`、`blueprint_item.xlsx` | `gen_all.bat`、`Luban/Update All` | 不要新增 `Recipe` 同义概念 |\n| Management UI | `Architecture/UIFramework.md`、`Modules/ManagementUI.md` | `Assets/Scripts/Game/UI/Management` | 通常不直接改表；文本走 `localization.xlsx` | Prefab + Inspector 绑定；必要时用 `WorldSystemMenuPrefabBuilder` / `WorldLocalizationPrefabBinder` | 不要把稳定 HUD 节点改回运行时 `Find` |\n| UI Framework | `Architecture/UIFramework.md`、`Decisions/0002-ui-kind-usage.md` | `Assets/Scripts/Framework/UI` | 无 | 代码验证为主 | Stack / Exclusive / outside close 属框架能力 |\n| Island Resources / Tools | `Modules/Island.md` | `Assets/Scripts/Game/Island/Resources`、`Assets/Scripts/Game/Island/Tools` | `item.xlsx`、`resource.xlsx`、`gather.xlsx` | `gen_all.bat` | ToolKit UI 另读 `Modules/ManagementUI.md` |\n| Farming | `Modules/Island.md`、`Product/ManagementMode.md` | `Assets/Scripts/Game/Island/Farming`、`WorldFarmPanel.cs` | `world_crop.xlsx` | `gen_all.bat` | 种子消耗和成熟规则继续打磨 |\n| Buildings / Production | `Modules/Island.md`、`Product/ManagementMode.md` | `Assets/Scripts/Game/Island/Buildings`、`WorldBuildingDetailPanel.cs` | `world_building.xlsx`、`world_building_level.xlsx`、`world_building_income.xlsx`、`world_cost.xlsx`、`reward.xlsx` | `gen_all.bat`、`WorldConfigValidator` | `WorldConfigValidator` 主要校验建筑 / 科技关系 |\n| Tech | `Modules/Island.md`、`Modules/ManagementUI.md` | `Assets/Scripts/Game/Island/Tech`、`TechTreePanel.cs` | `tech_node.xlsx` | `gen_all.bat`、`WorldConfigValidator` | TechUnlock 后续更适合 Popup |\n| Calendar / Save | `Architecture/SaveSystem.md`、`Modules/Island.md` | `CalendarManager.cs`、`StorageManager.cs`、`SaveData.cs` | 无主要表 | `WorldSaveDevTool` 可辅助存档测试 | 存档字段变更要注意兼容 |\n| Map Runtime | `Architecture/MapRuntime.md`、`Decisions/0003-map-object-vs-marker.md` | `Assets/Scripts/Game/Map` | `map.xlsx` 及 `Assets/Data/Map/*.json` | MapEditor 工具、`SceneMapDataExporter` | `MapData.Objects` 不是 UI 标记表 |\n| Tile Art | `Modules/MapAndTileArt.md` | `Tools/Art`、`Assets/Arts/Map` | 通常无 Luban 表 | Blender / PowerShell 美术脚本 | 第一阶段不做复杂邻接融合 |\n| Tower Defense | `Product/TowerDefenseMode.md`、`Modules/TowerDefense.md` | `Assets/Scripts/Game/TowerDefense` | `tower.xlsx`、`tower_level.xlsx`、`wave.xlsx` 等 | `gen_all.bat`、`gen_wave_all_no_overwrite.bat` | 单局状态不要混入经营长期状态 |\n| Ability / Skill | `Modules/AbilityAndSkill.md` | `Assets/Scripts/Ability`、`Assets/Scripts/Skill`、`Assets/Scripts/Game/AbilityAdapters` | `Ability*.xlsx`、`skill*.xlsx` | `gen_all.bat` | 新塔防技能优先走 Ability |\n| Localization | `Architecture/DataPipeline.md` | `Assets/Scripts/Game/Localization` | `localization.xlsx` | `gen_all.bat` | 新 UI 文本不要写代码 fallback |\n\n## 工具索引\n\n数据生成：\n\n```text\nData/gen_all.bat\nData/gen_client.bat\nData/gen_wave_all_no_overwrite.bat\nAssets/Scripts/Tools/Editor/LubanTool.cs\n```\n\n配置校验：\n\n```text\nAssets/Scripts/Game/Data/Editor/WorldConfigValidator.cs\n```\n\nPrefab / UI 辅助：\n\n```text\nAssets/Scripts/Tools/Editor/WorldSystemMenuPrefabBuilder.cs\nAssets/Scripts/Tools/Editor/WorldLocalizationPrefabBinder.cs\n```\n\n地图编辑：\n\n```text\nAssets/Scripts/MapEditor/Editor/MapEditorWindow.cs\nAssets/Scripts/MapEditor/Editor/WorldMapEditorWindow.cs\nAssets/Scripts/MapEditor/Editor/TowerDefenseMapEditorWindow.cs\nAssets/Scripts/MapEditor/Editor/SceneMapDataExporter.cs\nAssets/Scripts/MapEditor/Editor/MapJsonService.cs\nAssets/Scripts/MapEditor/Editor/MapEditorValidator.cs\n```\n\n存档辅助：\n\n```text\nAssets/Scripts/Game/Save/Editor/WorldSaveDevTool.cs\n```\n\n美术生成：\n\n```text\nTools/Art\nTools/Art/Blender\nTools/Art/Texture\n```\n\n## 每个模块文档应包含\n\n后续新增或整理模块文档时，尽量包含这些段落：\n\n```text\n定位\n当前文件\nPrefab / UI\n配置表\n如何配表\n生成工具\n运行时链路\n存档 / 消息\n当前缺口\n```\n\n不是每个模块都必须有每一项。例如 UI Framework 没有配置表，Tile Art 不一定有 Luban 表，但文档里要明确“没有”或“当前不覆盖”，避免下次误找。\n\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "architecture-uiframework-md",
+        "group":  "架构",
+        "title":  "UI 框架",
+        "path":  "Architecture/UIFramework.md",
+        "summary":  "UI 类型、关闭规则、Stack、Exclusive 和 prefabPath 语义。",
+        "content":  "# UI Framework\n\n本文记录 UI 框架当前约定。只改业务 UI 时，通常还需要读 `Docs/Modules/ManagementUI.md`；只改框架时优先读本文。\n\n## UI 类型\n\nPage\n: 全屏大流程，例如登录、主菜单、经营主界面、塔防主界面、加载流程。当前 `WorldMainPanel` 概念上接近经营主 Page，但短期不为命名重构。\n\nPanel\n: 当前 Page 上的浮动功能面板，例如 Build、ToolKit、Production、Quest、TechTree、Menu。当前 Bag 是 BottomBar 内部抽屉节点，不属于框架 Panel。\n\nPopup\n: 必须先处理的小确认或详情层，例如 Confirm、ItemDetail、TechUnlock。`TechUnlockPanel` 后续更适合迁到 Popup，使用 `PopupManager` blocker，不再自己创建遮罩。\n\nOverlay\n: 全局 Loading、转场黑屏、网络等待、强制输入阻塞。不要用业务 panel 反复自造全屏遮罩替代 Overlay。\n\nToast\n: 自动消失、不中断操作的小提示，例如保存成功、资源不足、获得物品、科技解锁成功。Sound、Language、Save 这类设置界面不是 Toast。\n\n### Page 内嵌 Panel\n\n一个全屏 Page 可以由多个职责独立的 `UIPanel` 组成。例如塔防采用：\n\n```text\nBattlePage : UIPage\n  TopPanel : UIPanel\n  BuildTowerPanel : UIPanel\n  ItemPanel : UIPanel\n  InfoPanel : UIPanel\n  SkillPanel : UIPanel\n  BattleControlPanel : UIPanel\n  MiniMapPanel : UIPanel（当前禁用）\n```\n\n这些 Panel 与 Page 位于同一个 prefab，由 Page 通过 `UIEmbeddedPanelGroup` 显式传递 `Create / Open / Close` 生命周期，不注册为 `PanelManager` 的独立窗口。Panel 内负责按钮、条目和局部表现的叶子组件使用普通 `MonoBehaviour`。\n\n内嵌 Panel 必须由序列化引用组成，不允许运行时使用 `GetComponentInChildren`、递归名称查找或遍历 Transform 自动发现。独立浮动 Panel 仍由 `PanelManager` 管理，两种所有权不要混用。\n\n## 身份和路径\n\n当前 UI 框架以 `prefabPath` 作为运行时身份，`Show`、`Hide`、`IsShown` 都按路径工作。\n\n这不是明显性能问题：运行时主要是字典查找和少量字符串 key，比加载 prefab 和实例化 UI 的成本低很多。相比改成脚本类名，`prefabPath` 更能区分同脚本不同 prefab、不同皮肤、不同入口实例。后续如果需要更强管理能力，可以在业务层增加枚举或配置表映射到 `prefabPath`，不建议直接把框架身份改成脚本类名。\n\n## 关闭方式\n\n框架关闭枚举：\n\n```text\nCloseButton\nLeftOutside\nRightOutside\nBack\n```\n\n常见经营浮动面板推荐：\n\n```csharp\nUICloseTriggers.CloseButton |\nUICloseTriggers.Back |\nUICloseTriggers.RightOutside\n```\n\n规则：\n\n- 桌面端右键 panel 外部区域关闭支持 `RightOutside` 的面板。\n- 移动端没有右键，触摸或点击 panel 外部区域会由框架映射为可用的 outside 关闭原因。\n- Panel outside close 统一由 `UIOutsideClickDetector` + `PanelManager` 处理，不再为 Panel 创建外部遮罩节点。\n- `UIManager` 会统一创建透明的 `PanelOutsideBlocker`，它是 `UICanvasRoot` 的底层 UI，排序低于所有 UI layer。它只接没有命中其它 UI 的空白点击，不挡住任何正常 UI。\n- `PanelOutsideBlocker` 只负责让空白处成为 UI raycast 命中和阻止世界输入；真正关闭哪个 panel、是否允许右键/触摸关闭，仍由 `UIOutsideClickDetector` + `PanelManager` 按 top outside target 和 `UICloseTriggers` 判断。\n- outside close 会被 `UIManager` 标记为本帧 UI 指针消费；世界输入通过 `WorldPointerPicker.IsPointerOverUi()` 查询时必须把这类点击当作 UI 输入，不能同一帧再触发移动、建造、采集等场景操作。\n- 业务 panel 内的 `Overlay` 只作为视觉遮罩，`Image.raycastTarget` 必须为 `false`，不要在 panel 内再接一套遮罩点击关闭。\n- Quest、TechTree、Menu、Sound、Language、Save、GM 等大面板应支持空白或遮罩关闭。\n\n## Exclusive Group\n\nExclusive 表示同级互斥，不保留返回历史。适合主界面入口：\n\n```text\nBuild\nToolKit\nProduction\nQuest\nTechTree\nMenu\n```\n\nAPI：\n\n```csharp\nRegisterExclusivePanel(groupId, prefabPath)\nShowExclusiveAsync(groupId, prefabPath)\nHideExclusiveGroup(groupId)\n```\n\n一个 group 可以注册多个面板。项目也可以同时存在多个互斥 group，例如经营主界面浮动面板一组、某个编辑器工具局部面板一组。业务层负责决定 `groupId`，框架负责关闭同组其它面板。\n\nBottomBar 内部 Bag 节点不注册 Exclusive group。`WorldMainPanel` 在业务层协调 Bag 与独立浮动面板的互斥：打开一方时关闭另一方。\n\n## Stack Group\n\nStack 表示 panel 级返回栈。Push 新 panel 时隐藏旧 top，Pop 当前 top 时恢复上一个 top。适合真正独立 prefab、独立生命周期、需要返回历史的流程。\n\nAPI：\n\n```csharp\nPushStackAsync(groupId, prefabPath)\nPopStack(groupId)\nHideStack(groupId)\n```\n\n`PanelOptions.GroupId` 是旧兼容入口，语义按 Stack 处理。新代码优先写 `StackGroupId` 或直接调用 Stack API。\n\nStack 和 Exclusive 不冲突：Stack 解决“返回上一个 panel”，Exclusive 解决“同级只能开一个”。同一个 panel 是否同时参与两种管理，要由业务明确设计，避免用户看见一个入口组和一个返回栈互相抢状态。\n\n## Panel 内部子节点\n\n框架当前管理的是 `UIPanel` / prefab，不全局管理不带脚本的普通子节点。\n\n如果 Sound、Language、Save 只是 Menu 内部设置页，更合理做法是：\n\n```text\nMenuPanel\n  Sound node\n  Language node\n  Save node\n  GM node\n```\n\n由 `MenuPanel` 通过序列化字段切换 `SetActive`，或在本地维护一个 node stack。不要为了使用框架 Stack 强行把普通子节点拆成多个 `UIPanel`。\n\n当前 Bag 采用同一规则：\n\n```text\nWorldMainPanel\n  BottomBar\n    HotBarGrid\n    BagPanel node\n```\n\n`WorldBottomBarPanel` 负责 Bag 节点的开关、消息订阅和 HotBar/Bag 共享拖拽控制器；`WorldBagPanel` 只是该节点的本地控制组件。\n\n如果多个 panel 都反复需要“内部节点互斥”或“内部节点返回栈”，再考虑抽 `UINodeExclusive` / `UINodeStack` 这类轻量组件。\n\n## 业务层配置位置\n\n框架提供能力，业务层配置分组。\n\n经营主界面的独立 Panel 入口当前由 `WorldPanelEntryController` 注册 entry：\n\n```text\nid\ngroupId\nprefabPath\n入口开关状态刷新回调（可选）\n```\n\nBag 入口不在该表中，由 `WorldBottomBarPanel` 本地处理。\n\n节点位置优先在 prefab 里调；需要运行时对齐时使用业务自己的布局工具和序列化引用，不写死某个分辨率像素。\n\n## 当前系统设置\n\n当前代码结构中 Menu、Sound、Language、Save、GM 是独立 `UIPanel`，短期可以走 `WorldMenuPanel.SettingsStackGroupId` 的 Stack。\n\n从产品结构看，Sound、Language、Save 更像 Menu 内部子页面。后续如果要整理，优先改成 Menu 内部节点，由 Menu 脚本统一管理；GM 如果仍是调试大面板，可以保留独立 Panel。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "architecture-datapipeline-md",
+        "group":  "架构",
+        "title":  "数据流水线",
+        "path":  "Architecture/DataPipeline.md",
+        "summary":  "Luban、Excel、本地化和生成数据规则。",
+        "content":  "# Data Pipeline\n\n本文记录配置数据的当前来源和生成规则。\n\n## 正式流水线\n\n```text\nData/Excel/*.xlsx\n  -\u003e Luban\n  -\u003e Assets/Scripts/Game/Data/Generated\n  -\u003e Assets/Data/Bin/*.bytes\n  -\u003e Assets/Data/Json/*.json\n```\n\n运行时以 `Assets/Data/Bin/*.bytes` 为准。`Assets/Data/Json/*.json` 主要用于查看和调试，不作为长期正式运行来源。\n\n## 生成命令\n\n重新生成配置时统一执行：\n\n```text\nData/gen_all.bat\n```\n\n不要单独建议执行 `Data/gen_client.bat`。`gen_all.bat` 会串起 client 数据和 Wave 数据生成。\n\nUnity 菜单：\n\n```text\nLuban/Update All\n```\n\n`Assets/Scripts/Tools/Editor/LubanTool.cs` 会从 Unity project root 推导 `Data` 路径，不应硬编码本机盘符。\n\n生成后重点检查：\n\n```text\nAssets/Scripts/Game/Data/Generated\nAssets/Data/Bin\nAssets/Data/Json\nAssets/Data/Bin/Wave\nAssets/Data/Json/Wave\n```\n\n## 当前重要表\n\n`Tables` 当前包含 Ability、Skill、Item、Localization、Map、Npc、Tower、Wave、TechNode、WorldBuilding、WorldCost、WorldCrop、Gather、Resource、Reward、Quest、QuestObjective、Blueprint、BlueprintItem、Story、StoryLine 等表。\n\n每个 Excel 的用途、全部字段、关联关系和当前代码接入状态见：\n\n```text\nDocs/Architecture/ExcelDataDictionary.md\n```\n\n注意：`tech_node.xml` 当前没有被 `Data/Defines/__root__.xml` include。虽然仓库里仍有生成代码和运行时读取代码，但再次完整生成可能使 TechNode 产物消失；应先修复根配置。\n\n命名规则：\n\n- 新增 Luban 表、Excel 文件、生成配置类和表访问名默认不要加 `World` 或 `Game` 前缀。\n- `resource.xlsx`、`gather.xlsx`、`reward.xlsx` 已经从旧 `world_*` 表名迁移为无前缀命名。\n- 仍保留的 `world_*` Excel 和 `World*Config` 表是历史命名，短期不要因为命名规则单独迁移。\n- 新增工具配置应使用 `tool.xlsx` / `ToolConfig` / `TbTool`，不是 `world_tool.xlsx` / `WorldToolConfig` / `TbWorldTool`。\n\nQuest / Blueprint / Story 已接入正式 Luban 表：\n\n```text\nData/Excel/quest.xlsx\nData/Excel/quest_objective.xlsx\nData/Excel/blueprint.xlsx\nData/Excel/blueprint_item.xlsx\nData/Excel/story.xlsx\nData/Excel/story_line.xlsx\n```\n\n## 本地化\n\n本地化正式来源：\n\n```text\nData/Excel/localization.xlsx\nAssets/Data/Bin/tblocalization.bytes\nAssets/Data/Json/tblocalization.json\n```\n\n规则：\n\n- 新 UI 文本先写入 `localization.xlsx`。\n- 代码使用 `LocalizationManager.Get(key)` 或格式化 helper。\n- 不为新 UI 文本在代码里写临时中英文 fallback。\n- 运行时以 `tblocalization.bytes` 为准。\n\n当前 Quest UI 已补的 key：\n\n```text\nui.quest.main_title\nui.quest.current_goals\nui.quest.none\nui.quest.tracker_title\nui.quest.track\nui.quest.tracking\nui.quest.incomplete\nui.quest.not_started\nui.quest.claim\nui.quest.claimed\n```\n\n## 生成文件规则\n\n- 不手动改 `Assets/Scripts/Game/Data/Generated`。\n- 不手动改由 Luban 生成的 `.bytes` 作为长期方案。\n- 表结构变更要同步 `Data/Defines/*.xml`、`Data/Excel/*.xlsx` 和生成结果。\n\n\n\n\n\n\n\n\n"
+    },
+    {
+        "id":  "architecture-exceldatadictionary-md",
+        "group":  "架构",
+        "title":  "Excel 数据字典",
+        "path":  "Architecture/ExcelDataDictionary.md",
+        "summary":  "每个 Excel、每个字段、表间关系和当前接入状态。",
+        "content":  "# Excel Data Dictionary\n\n本文是 `Data/Excel` 的人类数据字典，说明每个 Excel 的用途、每个字段的含义、表间关系和当前代码接入状态。\n\n## 先看结论\n\n- 正式配置源是 `Data/Excel/*.xlsx`，表结构源是 `Data/Defines/*.xml`。\n- 统一执行 `Data/gen_all.bat`；运行时读取 `.bytes`，JSON 只用于查看和排错。\n- Excel 字段名和大小写必须与对应 XML 一致，不要直接修改生成的 C#、`.bytes` 或 JSON。\n- `id` 通常是全局唯一行 Id；`groupId` 是把多行组成一组的业务 Id，两者不要混用。\n- `itemId`、`buildingId`、`questId` 等字段都填写目标表的 `id`，不是 Excel 行号。\n- `*Location` 必须是 `Assets/` 开头的 Unity 资源路径；`*Seconds` 单位为秒。\n- `enable = false` 通常表示保留配置但不参与运行；并非所有旧模块都统一检查此字段，修改后仍需验证调用点。\n\n## 特殊文件状态\n\n`Data/Defines/__root__.xml` 当前正式包含 35 个根目录工作簿，具体文件已经列在页面顶部的“表目录”中。下面只说明不属于普通根表输入或存在异常的文件。\n\n### `tech_node.xlsx`\n\n配置异常。已有 schema、生成代码和运行时代码，但 `tech_node.xml` 当前没有被 `__root__.xml` include。再次完整生成可能让科技表从新生成结果中消失，修复根配置前不要把当前产物当成稳定状态。\n\n### `Wave/wave1.xlsx`\n\n正式的关卡独立波次输入。由 `gen_wave_all_no_overwrite.bat` 生成 `Assets/Data/Bin/Wave/wave1.bytes` 和对应 JSON，不覆盖根目录 `wave.xlsx`；字段与 `wave.xlsx` 相同。\n\n### `skill_luban_excels_fixed/`\n\n该目录下的 `skill.xlsx`、`skill_action.xlsx`、`skill_modifier.xlsx`、`skill_system_enum.xlsx` 都是历史修复/备份副本，不在当前 Luban 输入路径中，不要在这里修改正式技能配置。\n\n## 物品\n\n### `item.xlsx`\n\n物品主表，同时服务塔防临时背包、经营背包、掉落表现和塔防结算转换。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 物品 Id，供奖励、消耗、蓝图、任务等表引用。 |\n| `name` | string | 配置名或回退显示名；正式显示优先走 `item.{id}.name` 本地化。 |\n| `description` | string | 配置描述或回退描述；正式显示优先走 `item.{id}.description`。 |\n| `itemType` | int | 行为分类，见 `ItemType`。它只表示大类，不自动实现使用效果。 |\n| `useScope` | int | 塔防结算适用范围，见 `ItemUseScope`；当前不控制经营背包点击使用。 |\n| `iconLocation` | string | UI 图标资源完整路径。 |\n| `dropPrefabLocation` | string | 地面掉落物 prefab 完整路径，`ItemDropManager` 使用。 |\n| `autoPick` | bool | 生成地面掉落后是否立即自动拾取。 |\n| `maxStack` | int | 设计上的单格堆叠上限；当前 `BagManager` 尚未执行该上限。 |\n| `settlementItemId` | int | 塔防结算时转换成的经营物品 Id；`\u003c= 0` 表示不转换。 |\n| `settlementCountPerItem` | int | 每个塔防物品换算出的经营物品数量。 |\n\n#### 枚举值\n\n| 字段 | 数值 | 名称 | 说明 |\n| --- | ---: | --- | --- |\n| `itemType` | 0 | None | 未分类。 |\n| `itemType` | 1 | Currency | 货币。 |\n| `itemType` | 2 | Consumable | 消耗品；仍需具体效果实现。 |\n| `itemType` | 3 | Blueprint | 蓝图类物品。 |\n| `itemType` | 4 | Seed | 种子。 |\n| `itemType` | 5 | Material | 材料。 |\n| `itemType` | 6 | Tool | 工具。 |\n| `useScope` | 0 | None | 不参与塔防结算转换。 |\n| `useScope` | 1 | BattleOnly | 仅塔防内使用。 |\n| `useScope` | 2 | Settlement | 可结算到经营模式。 |\n| `useScope` | 3 | Both | 两种范围都适用。 |\n\n`useScope` 当前只控制塔防结算时是否转换为经营物品，不等同于“背包里能否点击使用”。\n\n当前点击使用状态：工具可被选中，并在采集/耕作等动作成功后确认一次实际使用和发送任务完成事件；工具本身不会因此被消耗。普通消耗品尚无 Excel 效果定义，只有 `itemType = Consumable` 不会自动产生效果。\n\n## 本地化\n\n### `localization.xlsx`\n\n界面文本和配置名称的多语言来源。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `key` | string | 唯一本地化键，例如 `ui.quest.main_title`、`item.20300001.name`。 |\n| `zhCn` | string | 简体中文文本。 |\n| `en` | string | 英文文本。 |\n\n## 仓库容量\n\n### `storage_capacity.xlsx`\n\n按物品定义不同仓库等级的容量。表已加载到 `DataManager`，当前没有业务代码读取，属于已建表未接入。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `itemId` | int | 物品 Id，同时作为本表主键。 |\n| `level1` | int | 1 级仓库对该物品的容量。 |\n| `level2` | int | 2 级仓库对该物品的容量。 |\n| `level3` | int | 3 级仓库对该物品的容量。 |\n| `level4` | int | 4 级仓库对该物品的容量。 |\n| `enable` | bool | 是否启用该物品的容量配置。 |\n\n## 地图资源\n\n### `resource.xlsx`\n\n地图资源对象的玩法配置。地图 JSON 中资源对象的 `ConfigId` 应填写这里的 `id`。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 资源配置 Id。 |\n| `name` | string | 资源名称。 |\n| `resourceType` | int | 资源类别，决定采集动作需要的工具类型。 |\n| `interactionType` | int | 交互方式：直接拾取、重复采集或建矿目标。 |\n| `gatherConfigId` | int | `gather.id`；仅 `Gather` 交互需要。 |\n| `pickupRewardGroupId` | int | `reward.groupId`；`Pickup` 交互完成时发放。 |\n| `mineBuildingId` | int | `world_building.id`；`MineTarget` 完成时创建的矿建筑。 |\n| `prefabLocation` | string | 资源对象 prefab 完整路径。 |\n| `iconLocation` | string | 资源图标完整路径。 |\n| `blocksBuild` | bool | 是否阻止所在格建造。 |\n| `blocksMove` | bool | 是否阻止寻路通过。 |\n| `enable` | bool | 是否允许加载和交互。 |\n\n#### 枚举值\n\n| 字段 | 数值 | 名称 | 说明 |\n| --- | ---: | --- | --- |\n| `resourceType` | 0 | None | 未分类资源。 |\n| `resourceType` | 1 | Tree | 树木，通常使用斧。 |\n| `resourceType` | 2 | Stone | 石头，通常使用镐。 |\n| `resourceType` | 3 | Ore | 矿石。 |\n| `resourceType` | 4 | Plant | 植物。 |\n| `interactionType` | 0 | None | 不支持资源交互。 |\n| `interactionType` | 1 | Pickup | 播放拾取动作后一次性获得奖励。 |\n| `interactionType` | 2 | Gather | 按 `gather.xlsx` 重复采集。 |\n| `interactionType` | 3 | MineTarget | 使用建矿工具创建矿建筑。 |\n\n## 采集\n\n### `gather.xlsx`\n\n定义可重复采集节点的次数、单次奖励和刷新。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 采集配置 Id，由 `resource.gatherConfigId` 引用。 |\n| `name` | string | 配置名称。 |\n| `rewardGroupId` | int | 每次成功采集发放的 `reward.groupId`。 |\n| `depleteAfterTimes` | int | 节点耗尽前可成功采集的次数；`\u003c= 0` 表示不按次数耗尽。树配 3 即砍 3 次。 |\n| `respawnSeconds` | int | 耗尽后恢复等待秒数；`\u003c= 0` 表示不刷新并可移除地图对象。 |\n| `enable` | bool | 是否启用。 |\n\n## 奖励\n\n### `reward.xlsx`\n\n通用奖励组。一个 `groupId` 可以有多行，解析时当前会把该组所有有效行都发放一次。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 奖励明细行 Id。 |\n| `groupId` | int | 奖励组 Id，供采集、拾取、任务、建筑产出等引用。 |\n| `itemId` | int | 发放的 `item.id`。 |\n| `minCount` | int | 随机数量下限，包含该值。 |\n| `maxCount` | int | 随机数量上限，包含该值；必须大于 0。树木头 3-5 就在这里配置。 |\n| `weight` | int | 预留权重；当前 `RewardResolver` 不读取，不能用它实现多选一。 |\n\n## 成本\n\n### `world_cost.xlsx`\n\n经营系统通用成本组，历史命名保留。一个组的所有有效明细都会被消耗。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 成本明细行 Id。 |\n| `groupId` | int | 成本组 Id，供建筑等级、科技等引用。 |\n| `itemId` | int | 要消耗的 `item.id`。 |\n| `count` | int | 要消耗的数量。 |\n\n## 建筑\n\n### `world_building.xlsx`\n\n经营建筑主表，历史命名保留。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 建筑配置 Id。 |\n| `name` | string | 配置名或本地化回退名称。 |\n| `buildingType` | int | 建筑主类型，见 `BuildingType`。 |\n| `subType` | int | 主类型内细分；农田和矿的枚举不同。 |\n| `buildCategory` | int | 建造面板页签分类，见 `BuildCategory`。 |\n| `sortOrder` | int | 同一建造分类内排序，越小越靠前。 |\n| `sizeX` | int | 建筑占地 X 格数，非正数按 1。 |\n| `sizeZ` | int | 建筑占地 Z 格数，非正数按 1。 |\n| `prefabLocation` | string | 建筑 prefab 完整路径。 |\n| `iconLocation` | string | 建造 UI 图标完整路径。 |\n| `desc` | string | 描述或本地化回退文本。 |\n| `maxCount` | int | 当前地图允许建造的最大数量；非正数通常表示不限制。 |\n| `unlockHouseLevel` | int | 所需住宅最高等级；`\u003c= 0` 表示无此要求。 |\n| `unlockBuildingId` | int | 前置建筑 Id。 |\n| `unlockBuildingLevel` | int | 前置建筑要求等级。 |\n| `enable` | bool | 是否启用。 |\n| `showInBuildPanel` | bool | 是否显示在建造面板。 |\n| `defaultUnlocked` | bool | 新档是否默认解锁；需与 `unlockSourceType = Default` 一致。 |\n| `unlockSourceType` | int | 解锁来源，见 `UnlockSourceType`。Tech 类型必须有科技节点指向该建筑。 |\n\n#### 枚举值\n\n| 字段 | 数值 | 名称 | 说明 |\n| --- | ---: | --- | --- |\n| `buildingType` | 0 | None | 未分类。 |\n| `buildingType` | 1 | House | 住宅。 |\n| `buildingType` | 2 | Warehouse | 仓库。 |\n| `buildingType` | 3 | Workbench | 工作台。 |\n| `buildingType` | 4 | CarpentryBench | 木工台。 |\n| `buildingType` | 5 | Furnace | 熔炉。 |\n| `buildingType` | 6 | Blacksmith | 铁匠台。 |\n| `buildingType` | 7 | Mill | 磨坊。 |\n| `buildingType` | 8 | FarmPlot | 农田。 |\n| `buildingType` | 9 | Mine | 矿场。 |\n| `buildCategory` | 0 | All | UI 查询全部分类使用。 |\n| `buildCategory` | 1 | Building | 基础建筑。 |\n| `buildCategory` | 2 | Production | 生产建筑。 |\n| `buildCategory` | 3 | Resource | 资源建筑。 |\n| `buildCategory` | 4 | Farm | 农业建筑。 |\n| `buildCategory` | 5 | Decoration | 装饰。 |\n| `buildCategory` | 6 | Special | 特殊建筑。 |\n| `unlockSourceType` | 0 | None | 未指定解锁来源。 |\n| `unlockSourceType` | 1 | Default | 新档默认解锁。 |\n| `unlockSourceType` | 2 | Tech | 由科技解锁。 |\n| `unlockSourceType` | 3 | Runtime | 由运行时业务解锁。 |\n| `subType`（FarmPlot） | 0 | None | 未分类农田。 |\n| `subType`（FarmPlot） | 1 | Crop | 作物田。 |\n| `subType`（FarmPlot） | 2 | Flower | 花田。 |\n| `subType`（FarmPlot） | 3 | Herb | 草药田。 |\n| `subType`（Mine） | 0 | None | 未分类矿场。 |\n| `subType`（Mine） | 1 | Stone | 石矿。 |\n| `subType`（Mine） | 2 | Copper | 铜矿。 |\n| `subType`（Mine） | 3 | Iron | 铁矿。 |\n\n### `world_building_level.xlsx`\n\n每个建筑每一级的成本和建造时间。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 等级配置行 Id。 |\n| `buildingId` | int | `world_building.id`。 |\n| `level` | int | 建筑等级，从 1 开始。 |\n| `buildCostGroupId` | int | 本级建造或升级消耗的 `world_cost.groupId`。 |\n| `buildSeconds` | int | 建造/升级完成等待秒数；`\u003c= 0` 立即完成。 |\n| `enable` | bool | 是否启用该等级。 |\n\n### `world_building_income.xlsx`\n\n建筑按周期自动产出。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 产出配置行 Id。 |\n| `buildingId` | int | `world_building.id`。 |\n| `level` | int | 对应建筑等级。 |\n| `outputRewardGroupId` | int | 每周期发放的 `reward.groupId`。 |\n| `cycleSeconds` | int | 产出周期秒数，必须大于 0。 |\n| `enable` | bool | 是否启用该等级产出。 |\n\n## 科技\n\n### `tech_node.xlsx`\n\n科技树节点。**当前必须先修复 `Data/Defines/__root__.xml` 的 include 缺失，再把它视为可稳定重新生成的正式表。**\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 科技节点 Id。 |\n| `branch` | int | 科技分支，见 `TechBranch`。 |\n| `name` | string | 节点名称或本地化回退文本。 |\n| `iconLocation` | string | 科技图标完整路径。 |\n| `sortOrder` | int | 分支内排序。 |\n| `preTechId` | int | 前置科技 Id；`0` 表示没有。代码会沿此字段检查整条前置链。 |\n| `unlockBuildingId` | int | 研究后解锁的 `world_building.id`。 |\n| `unlockSystem` | string | 预留的系统解锁标识；当前科技业务未读取。 |\n| `costGroupId` | int | 研究消耗的 `world_cost.groupId`。 |\n| `desc` | string | 节点说明或本地化回退文本。 |\n| `enable` | bool | 是否启用。 |\n| `defaultUnlocked` | bool | 新档是否默认已研究/解锁。 |\n\n#### `branch` 枚举值\n\n| 数值 | 名称 | 说明 |\n| ---: | --- | --- |\n| 0 | None | 未分支。 |\n| 1 | Building | 建筑科技。 |\n| 2 | Farm | 农业科技。 |\n| 3 | Production | 生产科技。 |\n| 4 | Resource | 资源科技。 |\n| 5 | Special | 特殊科技。 |\n\n## 农田作物\n\n### `world_crop.xlsx`\n\n农田作物定义，历史命名保留。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 作物配置 Id。 |\n| `name` | string | 作物名称。 |\n| `seedItemId` | int | 播种使用的 `item.id`。 |\n| `seedCost` | int | 每个农田格播种消耗的种子数量。 |\n| `outputItemId` | int | 成熟后持续产出的 `item.id`。 |\n| `growSeconds` | int | 从播种到成熟的秒数。 |\n| `outputCountPerSecond` | int | 每格每秒产量，离线结算和每分钟 UI 都据此计算。 |\n| `plotColor` | string | 地块颜色字符串，支持 Unity 可解析的十六进制颜色。 |\n| `cropColor` | string | 作物表现颜色；未成熟时会与灰色混合。 |\n| `enable` | bool | 是否启用。 |\n\n## 蓝图\n\n### `blueprint.xlsx`\n\n制作/生产主表。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 蓝图 Id。 |\n| `name` | string | 蓝图名称。 |\n| `buildingId` | int | 所需生产建筑 Id；`0` 表示可直接制作。 |\n| `unlockTechId` | int | 所需已研究科技 Id；`0` 表示无要求。 |\n| `unlockQuestId` | int | 所需任务 Id；`0` 表示无要求。 |\n| `durationSeconds` | int | 设计上的制作时长；当前 `BlueprintManager.TryComplete` 为立即完成，字段尚未接入计时队列。 |\n| `enable` | bool | 是否启用。 |\n\n### `blueprint_item.xlsx`\n\n蓝图输入和输出明细。一张蓝图通常配置多条输入和至少一条输出。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 明细行 Id。 |\n| `blueprintId` | int | 所属 `blueprint.id`。 |\n| `itemKind` | int | 明细方向：当前代码按 `1 = Input`、`2 = Output` 解释。 |\n| `itemId` | int | 输入或输出的 `item.id`。 |\n| `count` | int | 输入消耗量或输出获得量。 |\n| `sortOrder` | int | UI/处理排序。 |\n| `enable` | bool | 是否启用该明细。 |\n\n## 任务\n\n### `quest.xlsx`\n\n任务主表。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | Quest Id。 |\n| `name` | string | 任务名或本地化回退文本。 |\n| `description` | string | 任务描述或本地化回退文本。 |\n| `questType` | string | 策划分类标签；当前核心状态机不按该字符串分支。 |\n| `rewardGroupId` | int | 领取时发放的 `reward.groupId`；`\u003c= 0` 表示无奖励。 |\n| `preQuestId1` | int | 前置任务 1；`0` 表示空。 |\n| `preQuestId2` | int | 前置任务 2；`0` 表示空。 |\n| `preQuestId3` | int | 前置任务 3；`0` 表示空。 |\n| `acceptMode` | int | 接取方式，见 `QuestAcceptMode`。 |\n| `acceptEventType` | int | Event 接取时匹配的 `QuestEventType`。 |\n| `acceptTargetId` | int | Event 接取时匹配的事件目标 Id。 |\n| `autoAccept` | bool | 历史兼容字段；当前接取逻辑以 `acceptMode` 为主，新增配置不要只依赖此字段。 |\n| `enable` | bool | 是否启用任务。 |\n\n#### `acceptMode` 枚举值\n\n| 数值 | 名称 | 说明 |\n| ---: | --- | --- |\n| 0 | Auto | 前置满足后自动接取。 |\n| 1 | Manual | 由 UI、NPC 或任务板手动接取。 |\n| 2 | Event | 匹配 `acceptEventType` 和 `acceptTargetId` 后接取。 |\n\n### `quest_objective.xlsx`\n\n任务目标明细，一项任务可以有多个目标。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 目标明细行 Id。 |\n| `questId` | int | 所属 `quest.id`。 |\n| `objectiveId` | int | 任务内目标 Id，用于存档和事件进度定位；同一任务内应唯一。 |\n| `type` | int | 目标类型，见 `QuestObjectiveType`。 |\n| `targetId` | int | 目标对象 Id；按类型解释为物品、蓝图、建筑、科技、NPC、区域或 flag Id。 |\n| `targetCount` | int | 完成所需数量，通常至少为 1。 |\n| `text` | string | 目标显示文本或回退文本。 |\n| `sortOrder` | int | 任务详情中的目标排序。 |\n| `enable` | bool | 是否启用该目标。 |\n\n#### `type` 枚举值\n\n| 数值 | 名称 | 说明 |\n| ---: | --- | --- |\n| 0 | None | 无目标。 |\n| 1 | ItemCount | 当前持有物品数量。 |\n| 2 | ItemGainCount | 累计获得物品数量。 |\n| 3 | ItemUseCount | 累计实际使用物品次数。 |\n| 4 | Blueprint | 完成指定蓝图。 |\n| 5 | BuildBuilding | 建造指定建筑。 |\n| 6 | BuildBuildingType | 建造指定类型建筑。 |\n| 7 | UpgradeBuilding | 升级建筑。 |\n| 8 | FarmCount | 当前农田数量。 |\n| 9 | PlantCrop | 播种作物。 |\n| 10 | HarvestCrop | 收获作物。 |\n| 11 | TechResearched | 研究指定科技。 |\n| 12 | TalkNpc | 与指定 NPC 对话。 |\n| 13 | EnterArea | 进入指定区域。 |\n| 14 | CustomFlag | 收到自定义标记。 |\n\n#### Quest 事件值\n\n任务接取的 `acceptEventType` 和剧情完成事件共同使用以下数值：\n\n| 数值 | 名称 | 说明 |\n| ---: | --- | --- |\n| 0 | None | 无事件。 |\n| 1 | StartQuest | 开始指定任务。 |\n| 2 | CustomFlag | 自定义标记。 |\n| 3 | TalkNpc | 与 NPC 对话。 |\n| 4 | EnterArea | 进入区域。 |\n| 5 | UseItem | 物品效果或业务动作已成功完成。 |\n| 6 | GainItem | 获得物品。 |\n| 7 | BlueprintCompleted | 完成蓝图。 |\n| 8 | BuildBuilding | 建造建筑。 |\n| 9 | UpgradeBuilding | 升级建筑。 |\n| 10 | PlantCrop | 播种作物。 |\n| 11 | HarvestCrop | 收获作物。 |\n\n## 剧情\n\n### `story.xlsx`\n\n简单文字剧情主表。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | Story Id。 |\n| `title` | string | 剧情标题，当前直接显示。 |\n| `triggerMode` | int | 触发方式，见 `StoryTriggerMode`。 |\n| `triggerTargetId` | int | 触发目标；任务完成模式填 quest Id，事件模式填相应目标 Id。 |\n| `completeQuestEventType` | int | 剧情结束后发送给 Quest 的 `QuestEventType`；`0` 不发送。 |\n| `completeQuestTargetId` | int | 上述 Quest 事件的目标 Id。 |\n| `nextStoryId` | int | 完成后自动尝试播放的下一段 Story Id；`0` 表示没有。 |\n| `repeatable` | bool | 是否允许重复播放。 |\n| `enable` | bool | 是否启用。 |\n\n#### `triggerMode` 枚举值\n\n| 数值 | 名称 | 说明 |\n| ---: | --- | --- |\n| 0 | Manual | 由代码显式开始。 |\n| 1 | AutoOnNewGame | 新游戏加载地图后自动尝试播放。 |\n| 2 | QuestCompleted | 指定任务完成后触发。 |\n| 3 | CustomFlag | 自定义标记触发。 |\n| 4 | EnterArea | 进入区域触发。 |\n| 5 | TalkNpc | 与 NPC 对话触发。 |\n\n### `story_line.xlsx`\n\n剧情正文行。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 台词行 Id。 |\n| `storyId` | int | 所属 `story.id`。 |\n| `lineIndex` | int | 播放顺序，越小越先；相同时按 `id`。 |\n| `text` | string | 当前行正文，目前直接显示，尚未明确改成本地化 key。 |\n| `enable` | bool | 是否启用该行。 |\n\n## 塔防基地\n\n### `base.xlsx`\n\n塔防基地配置。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 基地配置 Id。 |\n| `name` | string | 基地名称。 |\n| `description` | string | 基地描述。 |\n| `hp` | int | 最大生命值，运行时至少按 1。 |\n| `defense` | int | 防御值，运行时至少按 0。 |\n| `prefabLocation` | string | 基地 prefab 完整路径。 |\n| `iconLocation` | string | 基地图标完整路径。 |\n| `hitEffect` | string | 受击特效资源标识/路径。 |\n| `deadEffect` | string | 摧毁特效资源标识/路径。 |\n| `enable` | bool | 是否启用。 |\n\n## 塔防关卡\n\n### `map.xlsx`\n\n塔防关卡入口配置。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 地图配置 Id，UI 和战斗流程使用。 |\n| `name` | string | 地图名或本地化回退文本。 |\n| `description` | string | 地图描述或本地化回退文本。 |\n| `mapId` | int | 地图 JSON 文件号，加载 `Assets/Data/Map/{mapId}.json`。 |\n| `initialGold` | int | 进入关卡时加入塔防临时背包的初始金币。 |\n| `baseId` | int | `base.id`。 |\n| `waveEasy` | string | 简单难度波次 `.bytes` 完整资源路径。 |\n| `waveNormal` | string | 普通难度波次 `.bytes` 完整资源路径；当前默认加载此字段。 |\n| `waveHard` | string | 困难难度波次 `.bytes` 完整资源路径。 |\n\n## 塔防单位\n\n### `npc.xlsx`\n\n塔防单位配置。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | NPC 配置 Id。 |\n| `name` | string | 名称。 |\n| `description` | string | 描述。 |\n| `kind` | int | 实体大类，塔防生成 NPC 要填 `GameEntityKind.Actor = 100`。 |\n| `actorType` | int | Actor 细分，敌人填 `ActorType.Enemy = 1`。 |\n| `prefabLocation` | string | 单位 prefab 完整路径。 |\n| `moveSpeed` | float | 每秒移动速度。 |\n| `damageToBase` | int | 对基地单次攻击伤害。 |\n| `modelScale` | float | 实例模型统一缩放；非正数通常回退为 1。 |\n| `attackRange` | float | 攻击目标判定距离。 |\n| `attackInterval` | float | 两次攻击之间的秒数。 |\n| `maxHp` | int | 最大生命值。 |\n| `rewardGold` | int | 击杀后直接加入塔防金币的数量。 |\n\n#### 枚举值\n\n| 字段 | 数值 | 名称 | 说明 |\n| --- | ---: | --- | --- |\n| `kind` | 0 | None | 未分类实体。 |\n| `kind` | 100 | Actor | 角色实体；塔防 NPC 应使用此值。 |\n| `kind` | 200 | Structure | 建筑实体。 |\n| `kind` | 300 | Prop | 场景道具。 |\n| `kind` | 400 | ItemDrop | 物品掉落。 |\n| `kind` | 500 | Projectile | 投射物。 |\n| `kind` | 600 | AreaObject | 区域对象。 |\n| `kind` | 700 | ResourceNode | 资源节点。 |\n| `actorType` | 0 | None | 未分类角色。 |\n| `actorType` | 1 | Enemy | 敌人。 |\n| `actorType` | 2 | Hero | 英雄。 |\n| `actorType` | 3 | Worker | 工人。 |\n| `actorType` | 4 | Merchant | 商人。 |\n| `actorType` | 5 | QuestNpc | 任务 NPC。 |\n| `actorType` | 6 | TrialNpc | 试炼 NPC。 |\n| `actorType` | 7 | Resident | 居民。 |\n\n### `npc_drop.xlsx`\n\nNPC 死亡物品掉落。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 掉落明细行 Id。 |\n| `npcId` | int | 所属 `npc.id`。 |\n| `itemId` | int | 掉落的 `item.id`。 |\n| `minCount` | int | 掉落数量下限，包含该值。 |\n| `maxCount` | int | 掉落数量上限，包含该值。 |\n| `chancePermyriad` | int | 万分比概率，`10000 = 100%`。 |\n\n## 防御塔\n\n### `tower.xlsx`\n\n防御塔主表。名称、类型、图标仍来自本表；战斗数值和 prefab 应优先配置在 `tower_level.xlsx`。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 防御塔 Id。 |\n| `name` | string | 名称或本地化回退文本。 |\n| `description` | string | 描述或本地化回退文本。 |\n| `towerType` | int | 塔类别，见 `TowerType`。 |\n| `prefabLocation` | string | 旧版主表 prefab；当前建造优先使用等级表。 |\n| `costItemId` | int | 旧版建造消耗物品；当前建造优先使用等级表。 |\n| `costCount` | int | 旧版建造数量；UI 在等级配置缺失时可能回退使用。 |\n| `range` | float | 旧版攻击范围；当前战斗使用等级表。 |\n| `damage` | int | 旧版攻击伤害；当前战斗使用等级表。 |\n| `attackInterval` | float | 旧版攻击间隔；当前战斗使用等级表。 |\n| `unlockLevel` | int | 解锁等级预留/旧逻辑字段。 |\n| `enable` | bool | 是否在建造列表和流程中启用。 |\n| `attackEffect` | string | 旧版攻击特效；当前战斗使用等级表。 |\n| `hitEffect` | string | 旧版命中特效；当前战斗使用等级表。 |\n| `upgradeCost` | int | 旧版升级成本；当前升级使用等级表。 |\n| `SellGoldRate` | float | 旧版出售返还比例；字段首字母大写是当前 schema 的历史格式。 |\n| `canUpgrade` | bool | 旧版是否可升级；当前主要由下一等级是否存在决定。 |\n| `iconLocation` | string | 防御塔 UI 图标完整路径。 |\n\n#### `towerType` 枚举值\n\n| 数值 | 名称 | 说明 |\n| ---: | --- | --- |\n| 0 | Normal | 普通塔。 |\n| 1 | Arrow | 箭塔。 |\n| 2 | Cannon | 炮塔。 |\n| 3 | Ice | 冰塔。 |\n\n当前 Excel 中存在 `towerType = 4`，它不在代码枚举中，属于待修正配置。\n\n### `tower_level.xlsx`\n\n防御塔逐级数值，是当前建造、攻击、升级、出售的主要数据源。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 等级配置行 Id。 |\n| `towerId` | int | 所属 `tower.id`。 |\n| `level` | int | 塔等级，从 1 开始。 |\n| `prefabLocation` | string | 本等级 prefab 完整路径。升级时路径变化会替换实例。 |\n| `costItemId` | int | 本等级建造消耗物品；非正数回退金币。 |\n| `buildCost` | int | 建造 1 级塔的消耗数量。 |\n| `upgradeCostItemId` | int | 升到本等级的消耗物品；非正数回退金币，当前升级流程已读取。 |\n| `upgradeCost` | int | 从上一级升到本级的成本。 |\n| `sellGoldRate` | float | 出售时按累计成本返还的比例，例如 `0.7`。 |\n| `range` | float | 攻击范围。 |\n| `damage` | int | 每次普通攻击伤害。 |\n| `attackInterval` | float | 普攻间隔秒数。 |\n| `attackEffect` | string | 投射物/攻击特效资源标识或路径。 |\n| `hitEffect` | string | 命中特效资源标识或路径。 |\n| `skillId` | int | 本等级使用的 `skill.id`；`0` 表示只普通攻击。 |\n| `enable` | bool | 是否启用该等级。 |\n\n## 塔防波次\n\n### `wave.xlsx` / `Wave/wave1.xlsx`\n\n根 `wave.xlsx` 会随主 `Tables` 生成，但 `DataManager.Initialize` 随后把 `Wave` 置空，当前战斗不会使用它。`Wave/wave1.xlsx` 这类文件才是按 `map.wave*` 完整路径独立加载的实际关卡波次数据。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 波次行 Id，也决定行顺序。 |\n| `npcConfigId` | int | 本行生成的 `npc.id`。 |\n| `count` | int | 生成数量。 |\n| `interval` | float | 同一行相邻单位生成间隔秒数。 |\n| `startDelay` | float | 开始该行前等待秒数。 |\n| `spawnMode` | int | 出生点选择方式，见 `WaveSpawnMode`。 |\n| `description` | string | 策划备注/波次描述，不参与生成逻辑。 |\n\n#### `spawnMode` 枚举值\n\n| 数值 | 名称 | 说明 |\n| ---: | --- | --- |\n| 0 | None | 未指定；运行时回退到第一个出生点。 |\n| 1 | FirstSpawnPoint | 使用第一个出生点。 |\n| 2 | RandomSpawnPoint | 每次随机选择出生点。 |\n\n## Skill 兼容配置\n\n当前塔防业务实际通过 `AbilityConfigConverter` 把这些 Skill 表转换成 Ability 运行时定义。`skill_luban_excels_fixed` 下同名文件不是正式输入。\n\n### `skill.xlsx`\n\n当前可运行的塔防技能主表，加载后转换为 Ability 运行时定义。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | Skill Id，由 `tower_level.skillId` 等引用。 |\n| `name` | string | 名称或本地化回退文本。 |\n| `description` | string | 描述或本地化回退文本。 |\n| `iconLocation` | string | 技能图标完整路径。 |\n| `behavior` | int | 位标记：1 NoTarget、2 UnitTarget、4 PointTarget、8 Passive、16 Toggle、32 Channel、64 Aoe，可相加。 |\n| `targetTeam` | int | 目标阵营：0 None、1 Friendly、2 Enemy、3 Both。 |\n| `castRange` | float | 施法距离。 |\n| `aoeRadius` | float | 范围半径。 |\n| `castPoint` | float | 前摇秒数。 |\n| `channelTime` | float | 持续施法秒数。 |\n| `cooldown` | float | 冷却秒数。 |\n| `costResourceId` | int | 消耗资源/物品 Id；技能 UI 用它查可释放次数。 |\n| `costCount` | int | 单次消耗数量，也映射为 Ability 的 ManaCost。 |\n| `abilityActionGroupId` | int | 释放时执行的 `skill_action.groupId`。 |\n| `intrinsicModifierId` | int | 常驻被动 `skill_modifier.id`；`0` 表示无。 |\n| `enable` | bool | 是否启用。 |\n\n### `skill_action.xlsx`\n\n定义技能和 Modifier 回调执行的动作组。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 动作行 Id。 |\n| `groupId` | int | 动作组 Id，一次技能或 Modifier 回调可执行组内多行。 |\n| `order` | int | 组内执行顺序，相同时按 `id`。 |\n| `actionType` | int | 0 None、1 Damage、2 Heal、3 ApplyModifier、4 FireEvent；当前 FireEvent 未映射为有效动作。 |\n| `targetType` | int | 0 None、1 Caster、2 Unit、3 Point、4 Area、5 CurrentTargets。 |\n| `value` | float | 伤害、治疗等动作主数值。 |\n| `radius` | float | 设计范围半径；当前兼容转换器没有读取。 |\n| `duration` | float | 添加 Modifier 时的覆盖持续时间；0 当前按未指定处理。 |\n| `modifierId` | int | 要添加的 `skill_modifier.id`。 |\n| `damageType` | int | 0 None、1 Physical、2 Magical、3 Pure。 |\n| `effectLocation` | string | 动作完成时自动播放的一次性特效路径；同一动作组不要在多行重复填写相同路径。没有逻辑动作时可单独转成播放特效。 |\n| `soundLocation` | string | 动作音效路径；没有逻辑动作时可单独转成播放音效。 |\n\n### `skill_modifier.xlsx`\n\n定义 Buff、Debuff、周期效果、属性修改和单位状态。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | Modifier Id。 |\n| `name` | string | 配置名或本地化回退名。 |\n| `modifierType` | int | 0 None、1 Property、2 Periodic、3 State、4 Aura；当前转换主要依赖具体字段。 |\n| `isDebuff` | bool | 是否负面效果。 |\n| `isHidden` | bool | 是否在 Modifier UI 中隐藏。 |\n| `isPurgable` | bool | 是否可驱散。 |\n| `removeOnDeath` | bool | 单位死亡时是否移除。 |\n| `duration` | float | 默认持续秒数。 |\n| `interval` | float | 周期触发间隔秒数。 |\n| `maxStack` | int | 最大层数；非正数在转换时按 1。 |\n| `propertyType` | int | 属性类型，具体值见 `skill_system_enum.xlsx` 的 `SkillModifierPropertyType`。 |\n| `propertyValue` | float | 属性修改值。百分比字段按 Ability 运行时约定解释。 |\n| `state` | int | 单位状态：0 None、1 Stunned、2 Silenced、3 Rooted、4 Invulnerable。 |\n| `triggerEventType` | int | 触发事件，见枚举表 `SkillTriggerEventType`。 |\n| `triggerActionGroupId` | int | 事件触发时执行的 `skill_action.groupId`。 |\n| `periodicActionGroupId` | int | 每个 interval 执行的动作组。 |\n| `onCreatedActionGroupId` | int | Modifier 创建时执行的动作组。 |\n| `onDestroyActionGroupId` | int | Modifier 销毁时执行的动作组。 |\n| `effectLocation` | string | Modifier 持续表现特效路径；转换为 `SustainedEffectName`，由 Modifier 持有可停止表现句柄，并在 Modifier 移除、对象注销或战斗清理时停止。不会转换成一次性 `OnCreated PlayEffect`。 |\n\n### `skill_system_enum.xlsx`\n\nSkill 配表枚举说明表，本身主要供人和工具查值，运行时转换器仍使用显式数字映射。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 枚举说明行 Id。 |\n| `group` | string | 枚举组名，例如 `SkillActionType`。 |\n| `name` | string | 枚举项名称。 |\n| `value` | int | Excel 实际填写的整数值；位标记组可按位组合。 |\n| `description` | string | 枚举项说明。 |\n\n## Ability 新配置\n\n这 7 张表是更完整的 Ability 数据模型，但当前 Excel/JSON 为空，业务侧也没有读取这些配置建立运行时定义。现阶段新增可用塔防技能仍应先走 `skill*.xlsx`；不要因为表已经生成就认为 Ability Excel 链路已完成。\n\n字符串数值字段用于表达逐等级值或特殊值引用，格式必须与未来 Ability 配置转换器约定一致；当前没有已接入的解析流程可作为稳定格式保证。\n\n### `AbilityConfig.xlsx`\n\n新 Ability 数据模型的技能主表；当前尚未接入业务转换。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | Ability Id。 |\n| `name` | string | 内部唯一名。 |\n| `displayName` | string | 显示名称或本地化标识。 |\n| `description` | string | 描述或本地化标识。 |\n| `icon` | string | 图标资源路径。 |\n| `maxLevel` | int | 最大等级。 |\n| `behavior` | int | Ability 行为位标记。 |\n| `targetTeam` | int | 可选目标阵营。 |\n| `targetType` | int | 可选目标单位类型。 |\n| `targetFlags` | int | 额外目标过滤位标记。 |\n| `castRange` | string | 各等级施法距离。 |\n| `aoeRadius` | string | 各等级范围半径。 |\n| `castPoint` | string | 各等级前摇秒数。 |\n| `castBackswing` | string | 各等级后摇秒数。 |\n| `channelTime` | string | 各等级持续施法秒数。 |\n| `cooldown` | string | 各等级冷却秒数。 |\n| `manaCost` | string | 各等级资源消耗。 |\n| `maxCharges` | int | 最大充能数。 |\n| `chargeRestoreTime` | float | 单次充能恢复秒数。 |\n| `startFullCharges` | bool | 初始是否满充能。 |\n| `chargeUsesCooldown` | bool | 充能恢复是否复用冷却规则。 |\n| `actionGroupId` | int | 释放时执行的 `AbilityAction.groupId`。 |\n| `intrinsicModifierId` | int | 常驻 `AbilityModifier.id`。 |\n| `scriptName` | string | 自定义脚本扩展名。 |\n| `enable` | bool | 是否启用。 |\n\n### `AbilityAction.xlsx`\n\n新 Ability 数据模型的动作组明细；当前尚未接入业务转换。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 动作行 Id。 |\n| `groupId` | int | 动作组 Id。 |\n| `order` | int | 组内执行顺序。 |\n| `actionType` | int | 动作类型。 |\n| `target` | int | 动作目标来源。 |\n| `value` | string | 各等级主数值。 |\n| `valueSpecialName` | string | 主数值引用的 `AbilitySpecialValue.name`。 |\n| `duration` | string | 各等级持续时间。 |\n| `durationSpecialName` | string | 持续时间引用的特殊值名称。 |\n| `damageType` | int | 伤害类型。 |\n| `damageFlags` | int | 伤害额外标记。 |\n| `modifierId` | int | 要添加/移除的 `AbilityModifier.id`。 |\n| `projectileId` | int | 要创建的 `AbilityProjectile.id`。 |\n| `purgePositiveBuffs` | bool | 驱散动作是否移除正面 Buff。 |\n| `purgeDebuffs` | bool | 驱散动作是否移除 Debuff。 |\n| `purgeOnlyPurgable` | bool | 是否只移除标记为可驱散的 Modifier。 |\n| `effectName` | string | 表现特效资源名/路径。 |\n| `soundName` | string | 音效资源名/路径。 |\n\n### `AbilityModifier.xlsx`\n\n新 Ability 数据模型的 Modifier 主表；当前尚未接入业务转换。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | Modifier Id。 |\n| `name` | string | 内部唯一名。 |\n| `displayName` | string | 显示名称。 |\n| `isHidden` | bool | 是否在 UI 中隐藏。 |\n| `isDebuff` | bool | 是否为负面效果。 |\n| `isPurgable` | bool | 是否可驱散。 |\n| `removeOnDeath` | bool | 死亡时是否移除。 |\n| `duration` | float | 默认持续秒数。 |\n| `interval` | float | 周期触发间隔秒数。 |\n| `maxStack` | int | 最大叠加层数。 |\n| `attributes` | int | Modifier 属性位标记。 |\n| `states` | int | 施加的单位状态位标记。 |\n| `propertyGroupId` | int | `AbilityModifierProperty.groupId`。 |\n| `onCreatedActionGroupId` | int | 创建时动作组。 |\n| `onRefreshActionGroupId` | int | 刷新/叠层时动作组。 |\n| `onDestroyActionGroupId` | int | 销毁时动作组。 |\n| `intervalActionGroupId` | int | 周期动作组。 |\n| `triggerEventType` | int | 监听的战斗事件类型。 |\n| `triggerActionGroupId` | int | 事件触发动作组。 |\n| `auraModifierId` | int | 光环向目标施加的 Modifier Id。 |\n| `auraRadius` | float | 光环半径。 |\n| `auraDuration` | float | 光环子 Modifier 持续时间。 |\n| `auraThinkInterval` | float | 光环扫描间隔。 |\n| `auraTargetTeam` | int | 光环目标阵营。 |\n| `auraTargetType` | int | 光环目标类型。 |\n| `auraTargetFlags` | int | 光环额外过滤标记。 |\n| `scriptName` | string | 自定义脚本扩展名。 |\n\n### `AbilityModifierProperty.xlsx`\n\n把多条属性修改组成 Modifier 可引用的属性组；当前尚未接入业务转换。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 属性明细行 Id。 |\n| `groupId` | int | 属性组 Id，由 `AbilityModifier.propertyGroupId` 引用。 |\n| `property` | int | 要修改的属性枚举值。 |\n| `value` | string | 各等级属性修改值。 |\n\n### `AbilityProjectile.xlsx`\n\n新 Ability 数据模型的投射物参数；当前尚未接入业务转换。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 投射物 Id。 |\n| `name` | string | 内部名称。 |\n| `speed` | float | 飞行速度。 |\n| `radius` | float | 碰撞/命中半径。 |\n| `distance` | float | 最大飞行距离。 |\n| `deleteOnHit` | bool | 首次命中后是否销毁。 |\n| `providesVision` | bool | 是否提供视野。 |\n| `visionRadius` | float | 视野半径。 |\n| `targetTeam` | int | 可命中阵营。 |\n| `targetType` | int | 可命中单位类型。 |\n| `targetFlags` | int | 额外目标过滤标记。 |\n| `effectName` | string | 投射物特效资源名/路径。 |\n| `soundName` | string | 飞行/创建音效资源名/路径。 |\n\n### `AbilitySpecialValue.xlsx`\n\n保存 Ability 可按名称引用的逐等级特殊数值；当前尚未接入业务转换。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 特殊值行 Id。 |\n| `abilityId` | int | 所属 `AbilityConfig.id`。 |\n| `name` | string | 特殊值名称，供 Action 等按名引用。 |\n| `values` | string | 各等级数值序列。 |\n\n### `AbilitySystemEnum.xlsx`\n\n新 Ability 配表使用的枚举说明表；当前数据为空。\n\n| 字段 | 类型 | 含义 |\n| --- | --- | --- |\n| `id` | int | 枚举说明行 Id。 |\n| `group` | string | 枚举组名。 |\n| `name` | string | 枚举项名称。 |\n| `value` | int | Excel 中实际填写的数值。 |\n| `description` | string | 枚举项说明。 |\n\n## 配表关系速查\n\n| 分类 | 来源字段 | 关联目标 |\n| --- | --- | --- |\n| 地图资源与采集 | `resource.gatherConfigId` | `gather.id` |\n|  | `gather.rewardGroupId` | `reward.groupId` → `item.id` |\n|  | `resource.pickupRewardGroupId` | `reward.groupId` → `item.id` |\n|  | `resource.mineBuildingId` | `world_building.id` |\n| 建筑与科技 | `world_building.id` | `world_building_level.buildingId` |\n|  | `world_building.id` | `world_building_income.buildingId` |\n|  | `world_building_level.buildCostGroupId` | `world_cost.groupId` → `item.id` |\n|  | `tech_node.costGroupId` | `world_cost.groupId` |\n|  | `tech_node.unlockBuildingId` | `world_building.id` |\n| 蓝图、任务与剧情 | `blueprint.id` | `blueprint_item.blueprintId` → `item.id` |\n|  | `quest.id` | `quest_objective.questId` |\n|  | `quest.rewardGroupId` | `reward.groupId` |\n|  | `story.id` | `story_line.storyId` |\n| 塔防与技能 | `map.baseId` | `base.id` |\n|  | `wave.npcConfigId` | `npc.id` |\n|  | `npc.id` | `npc_drop.npcId` → `item.id` |\n|  | `tower.id` | `tower_level.towerId` |\n|  | `tower_level.skillId` | `skill.id` |\n|  | `skill.abilityActionGroupId` | `skill_action.groupId` |\n|  | `skill.intrinsicModifierId` | `skill_modifier.id` |\n\n## 当前配置风险\n\n1. `tech_node.xml` 未被根 schema include，完整重新生成存在删除科技表产物的风险。\n2. `reward.weight` 当前未实现，所有同组奖励行都会发放，不能配置权重池。\n3. `item.maxStack` 和 `storage_capacity.xlsx` 当前没有落实到背包/仓库容量逻辑。\n4. `item.xlsx` 没有“使用动作/效果/消耗数量”字段，普通 Consumable 仍无法仅靠配表使用。\n5. `tower.xlsx` 与 `tower_level.xlsx` 有重复战斗字段，当前应以等级表为准，长期应收敛旧字段。\n6. Ability 新表目前为空且未接业务转换；Skill 表才是当前可运行输入。\n7. `skill_luban_excels_fixed` 是重复副本，容易被误改；确认无需保留后应移出正式数据目录或明确归档。\n8. 当前 `tower.xlsx` 存在 `towerType = 4`，但代码 `TowerType` 只定义到 `3 Ice`；应补枚举或改回合法值。\n9. 根 `wave.xlsx` 当前生成但不被战斗加载，继续保留会让策划误以为修改它能改变关卡波次。\n"
+    },
+    {
+        "id":  "architecture-mapruntime-md",
+        "group":  "架构",
+        "title":  "地图运行时",
+        "path":  "Architecture/MapRuntime.md",
+        "summary":  "地图运行时生成、MapData.Objects 和地图标记边界。",
+        "content":  "# Map Runtime\n\n本文记录地图运行时、地图对象、寻路、交互站位、资源移除和存档边界。地图美术见 `Docs/Modules/MapAndTileArt.md`，地图对象和 UI 标记边界见 `Docs/Decisions/0003-map-object-vs-marker.md`。\n\n## 运行时链路\n\n当前地图不是整张场景 Prefab，也不是把完整地图作为一个 Prefab 绑定到 UI 或场景中。\n\n```text\nAssets/Data/Map/{mapId}.json\n  -\u003e MapData\n  -\u003e MapManager.LoadWorldMap(mapId)\n     或 MapManager.LoadBattleMap(mapConfigId)\n  -\u003e MapManager.LoadMapData(...)\n  -\u003e ApplyRemovedMapObjects(...)\n  -\u003e RebuildTileIndex()\n  -\u003e RebuildObjectIndex()\n  -\u003e WorldBuildingManager.RegisterMapObjects()\n  -\u003e MapManager.CreateMap()\n  -\u003e 根据 Cells / Objects / SpawnPoints / GoalPoint 动态生成地图视图\n```\n\n相关代码：\n\n```text\nAssets/Scripts/Game/Map/Runtime/MapManager.cs                # shared state, creation, indexes, queries\nAssets/Scripts/Game/Map/Runtime/MapManager.World.cs          # LoadWorldMap and world post-load flow\nAssets/Scripts/Game/Map/Runtime/MapManager.Battle.cs         # LoadBattleMap and battle flow/UI/navigation\nAssets/Scripts/Game/Map/Runtime/MapManager.Loading.cs        # shared JSON loading pipeline\nAssets/Scripts/Game/Map/Runtime/MapManager.Persistence.cs    # removed-map-object save state\nAssets/Scripts/Game/Map/Data/MapData.cs\nAssets/Scripts/Game/Map/Data/MapCellData.cs\nAssets/Scripts/Game/Map/Data/MapObjectData.cs\nAssets/Scripts/Game/Map/Pathfinding/MapPathFinder.cs\nAssets/Scripts/Game/Island/Exploration/GameplayController.cs\nAssets/Scripts/Game/Island/Exploration/NavigationController.cs\nAssets/Scripts/Game/Island/Exploration/ActionController.cs\nAssets/Scripts/Game/Island/Exploration/ResourceInteractionController.cs\n```\n\n## 数据分层\n\n地图相关数据分三层：\n\n```text\n静态地图数据\n  MapData.Cells\n  MapData.Objects\n  SpawnPoints / GoalPoint\n\n运行时索引和视图\n  tileDataMap / topLogicTileDataMap\n  objectsByCoord\n  TileView / WorldResourceView / building views\n\n长期存档状态\n  SaveRemovedMapObjectData\n  SaveGatherNodeData\n  SaveWorldBuildingData\n  SaveFarmData / SaveWorldFarmPlotData\n  SavePlayerData\n```\n\n`Renderer.enabled = false`、`Collider.enabled = false`、`GameObject.SetActive(false)` 只影响 Unity 视图和物理碰撞。当前寻路、建造占用和地图对象查询主要看 `MapManager` 的运行时索引，不看 view 是否隐藏。\n\n## MapData.Cells\n\n`Cells` 表示地形格子和逻辑属性：\n\n```text\n地形\n覆盖层\n是否可走\n是否可建\n移动成本\n高度 / 逻辑层\n```\n\n`MapManager.CreateMap()` 遍历 `Cells`，根据 `MapTilePrefabConfig` 找到地块资源并实例化运行时 `TileView`。\n\n当前 `MapManager.IsWalkable(coord)` 判断：\n\n```text\ncoord 在 tileDataMap 中\n是逻辑地块\n是 exposed 顶层逻辑格\n没有 BlocksMove 的地图对象\ntileData.IsRuntimeWalkable == true\n```\n\n当前 `MapManager.IsBuildable(coord)` 判断：\n\n```text\ncoord 在 tileDataMap 中\n是逻辑地块\n是 exposed 顶层逻辑格\n没有 BlocksBuild 的地图对象\ntileData.IsRuntimeBuildable == true\n```\n\n`GetMoveCost(coord)` 会先要求 `IsWalkable(coord)`，不可走时返回 `int.MaxValue`。\n\n## MapData.Objects\n\n`Objects` 表示地图上真实存在、需要生成视图或影响占用和交互的对象：\n\n```text\nDecoration\nResource\nBuilding\nInteractable\n```\n\n字段边界：\n\n```text\nObjectId      地图对象实例 id，同一张地图内应稳定唯一\nObjectType    Decoration / Resource / Building / Interactable\nConfigId      业务配置 id，例如 Resource 使用 resource.id\nX/Y/Z         对象所在逻辑格\nLocalPosition 对象相对格子的局部偏移\nLocalEuler    对象局部旋转\nLocalScale    对象局部缩放\nBlocksBuild   是否阻挡建造\nBlocksMove    是否阻挡移动\n```\n\n对象类别默认值：\n\n```text\n资源类别默认属性来自 Excel / Luban 配置，例如 resource.blocksBuild / resource.blocksMove。\n地图编辑器放置资源时默认使用 Excel 属性，只有需要单个对象特殊处理时才在编辑器里单独修改。\n当前 MapObjectData 保存的是最终 BlocksBuild / BlocksMove 值，不保存“是否覆盖”的三态信息。\n如果以后要求已放置对象自动跟随 Excel 默认值变化，需要新增覆盖标记或提供地图迁移工具。\n```\n\n`RebuildObjectIndex()` 会把 `MapData.Objects` 注册到 `objectsByCoord`。建筑等多格对象会按 footprint 注册到多个 coord。\n\n重要规则：\n\n```text\nobjectsByCoord 是当前寻路 / 建造 / 对象查询的主要占用索引\n隐藏 view 不会自动从 objectsByCoord 删除对象\n只有 MapManager.TryRemoveMapObject 会从 currentMap.Objects 和 objectsByCoord 移除对象\n```\n\n## 寻路规则\n\n当前经营模式角色移动使用格子 A*，不是 Unity NavMesh，也不是 Collider-based 寻路。\n\n```text\nNavigationController\n  -\u003e MapPathFinder.TryFindPath(startCoord, goalCoord)\n  -\u003e MapManager.GetMoveCost(toCoord)\n  -\u003e MapManager.IsWalkable(toCoord)\n```\n\n当前 `MapPathFinder` 规则：\n\n```text\n四方向邻居：+X / -X / +Z / -Z\n不直接走对角\n邻居必须是 top logic tile\n邻居必须通过 MapPathConnectionRules.CanConnect\n邻居必须通过 MapManager.IsWalkable\n上坡额外消耗 UphillExtraCost = 5\n启发式使用 x/z/y 曼哈顿距离\n```\n\n路径平滑：\n\n```text\nNavigationController.UsePathSmoothing = true 时\nMapPathSmoother.SmoothBySupercoverLineOfSight 会减少中间路径点\nLine of sight 只允许同一 y 层\n沿线所有经过格仍必须通过 MapManager.IsWalkable\n```\n\n移动终点：\n\n```text\n普通移动：\n  点击地块时记录 raycast / 数学拾取的 world point\n  A* 仍以点击点所在 top logic tile 为 goal\n  最后一段移动终点使用点击 world point 的 X/Z，加角色站立高度\n\n格子回退移动：\n  SetPlayerDestination(coord)\n    -\u003e MapManager.GetTileWorldPosition(coord)\n    -\u003e 加角色高度偏移\n```\n\n也就是说，寻路目标仍是格子坐标，但最终移动点不一定是格中心。普通移动可以落到鼠标点击点；资源交互可以落到候选格内的动作站位。寻路系统本身不把“物体边缘外一点”作为 path node；物体边缘、交互距离、站位选择属于交互系统职责。\n\n## 交互站位\n\n点击资源时当前流程：\n\n```text\nResourceInteractionController.TryStartAtPointer\n  -\u003e Start\n  -\u003e TryMoveNearTarget\n  -\u003e NavigationController.TryMoveToBestApproach\n  -\u003e ActionController.TryStart(ActionRequest, ActionCallbacks)\n  -\u003e OnMarker 结算拾取 / 采集 / 建矿\n  -\u003e OnCompleted 结束动作或开始下一次采集\n```\n\n这里的 `OnMarker` 是 `ActionController` 根据 Animator `normalizedTime` 触发的一次性阶段回调，不是动画文件里的 `Animation Event`。完整定义、取消语义、当前 Marker 和 timeout 数值见 `Docs/Modules/Island.md` 的“动作阶段点”。\n\n`GetResourceInteractionPosition` 优先使用资源 Collider 的 `ClosestPoint`，否则使用地图对象坐标和局部偏移。这个点用于距离判断和转向，不是寻路算法的节点。\n\n当前交互距离：\n\n```text\nInteractionDistance = 1.35f\n```\n\n当前已实现的行为：\n\n```text\n如果点击时已经在交互距离内，立即停下并执行交互\n如果不在距离内，先从资源对象周围扫描可站立格\n候选格必须可走、可寻路到达，并且站在该格时处于 InteractionDistance 内\n在半径 MoveTargetSearchRadius 内选择路径成本较低的候选格作为 goal\n资源交互最终移动点可以是候选格内的自定义 world position，不强制走到格中心\n有自定义资源动作站位时，不因为刚进入最大 InteractionDistance 就提前执行，会继续走到站位附近\n没有自定义动作站位时，移动过程中一旦进入交互距离，会提前停下并执行交互\n每帧移动前也会先判断交互距离，避免已到交互范围后又被继续拉向格中心\n如果一直没提前进入距离，走到格子路径终点后再尝试执行\n```\n\n当前站位规则：\n\n```text\n不要把交互物体本身加入 path node\n物体通过 BlocksMove / BlocksBuild 参与阻挡\n交互系统从目标对象周围找可站立格\n对候选可站立格运行现有 MapPathFinder\n选择路径成本最低的格子作为 goal\n走到可站立格或中途进入交互距离后，转向目标并执行动作\n```\n\n当前候选站位以对象所在格为中心扫描外圈。以后资源支持多格 footprint 时，应改为取 footprint 外圈。\n\n## 资源生命周期\n\n当前资源分两类。\n\n拾取资源：\n\n```text\nBranch / Loose Stone 等\ninteractionType = Pickup\nPickupResource\n  -\u003e BagManager.TryAddItems\n  -\u003e RemoveResourceView\n  -\u003e MapManager.TryRemoveMapObject\n  -\u003e MapManager.MarkMapObjectRemoved\n  -\u003e Destroy(resourceView.gameObject)\n```\n\n拾取后会从 `currentMap.Objects` 和 `objectsByCoord` 移除，并保存到 `SaveRemovedMapObjectData`。寻路、建造、点击查询都会认为它不存在。\n\n采集资源：\n\n```text\nTree / Rock 等\ninteractionType = Gather\nWorldGatherManager.TryGather\n  -\u003e WorldGatherNodeState.Consume\n  -\u003e RemainingTimes--\n  -\u003e respawnSeconds \u003c= 0 且耗尽：RemoveResourceView\n       -\u003e MapManager.TryRemoveMapObject\n       -\u003e MapManager.MarkMapObjectRemoved\n       -\u003e Destroy(resourceView.gameObject)\n  -\u003e respawnSeconds \u003e 0 或未耗尽：resourceView.RefreshNow\n```\n\n当前规则：\n\n```text\nrespawnSeconds \u003c= 0 的采集资源耗尽后，移除 MapObject 并保存 RemovedMapObjects\nrespawnSeconds \u003e 0 的采集资源耗尽后，可以保留 MapObject，用 GatherNode 状态等待刷新\n```\n\n如果未来需要“资源耗尽后隐藏且未来刷新，同时耗尽期间不挡路”，需要新增运行时资源状态参与 `IsWalkable / IsBuildable`，例如：\n\n```text\nStage = Normal / Depleted / Growing / Hidden\nVisible\nCanInteract\nBlocksMove\nBlocksBuild\nRespawnAtUnixTime\n```\n\n这类状态应存在运行时动态数据里，需要跨存档恢复的字段进入存档。不要把这种运行时状态写回静态地图 JSON 或静态配置表。\n\n## 移除和隐藏规则\n\n逻辑上已经不存在的对象，应从地图对象数据和运行时索引移除：\n\n```text\n拾取后的树枝 / 散石 / 掉落物\n不刷新的树 / 石头 / 矿耗尽后\n拆除后的建筑\n清理后的障碍物\n一次性剧情物件\n玩家移除的装饰或地表物\n```\n\n移除流程：\n\n```text\nMapManager.TryRemoveMapObject(objectId)\nMapManager.MarkMapObjectRemoved(objectId)\nDestroy 或隐藏对应 view\nStorageManager.Save 时写入 SaveRemovedMapObjectData\n读档 LoadMapData 时 ApplyRemovedMapObjects\n```\n\n逻辑上暂时不可见但以后会回来，或仍要保留占用的对象，可以只隐藏 view，但必须明确其运行时状态：\n\n```text\n会刷新 / 再生的资源\n季节性显示对象\n成长阶段中的农作物\n剧情阶段暂时隐藏但以后还会出现的对象\n树桩 / 矿坑 / 废墟等仍需占地的残留物\n雾隐 / 视野隐藏的对象\n```\n\n只隐藏 view 时，要确认 `BlocksMove / BlocksBuild` 是否仍然符合产品规则。当前代码没有动态 BlocksMove 状态；只要 MapObject 仍在且阻挡字段为 true，就会继续阻挡。\n\n## 存档边界\n\n当前和地图相关的长期存档：\n\n```text\nSaveRemovedMapObjectData\n  MapId\n  ObjectId\n\nSaveGatherNodeData\n  ObjectId\n  GatherConfigId\n  RemainingTimes\n  AvailableAtUnixTime\n\nSaveWorldBuildingData\nSaveFarmData\nSaveWorldFarmPlotData\nSavePlayerData\n```\n\n边界：\n\n```text\nRemovedMapObjects 记录“这个地图对象已经被移除，不应从静态地图 JSON 恢复”\nGatherNodes 记录“这个采集节点仍在地图里，但采集次数 / 刷新时间改变”\nWorldBuildings 记录玩家建造的建筑运行时状态\nFarms / WorldFarmPlots 记录农田范围和作物状态\nPlayer 记录玩家位置和朝向\n```\n\n不要把普通运行时状态直接写回 `Assets/Data/Map/{mapId}.json`。静态地图 JSON 是地图初始状态；运行中变化通过 SaveData 表达。\n\n## 小地图和地图标记\n\n经营小地图应绑定 `MapManager.CurrentMap` 和运行时管理器数据。\n\n建议分层：\n\n```text\n底图层：由 MapData.Cells 生成，或使用预烘焙底图图片\n静态点层：商店、固定建筑、任务点、传送点等，加载地图时生成一次\n低频动态层：玩家建造建筑、任务状态变化后增删或换状态\n动态点层：玩家、NPC 等运行时位置，按帧或低频刷新坐标\n```\n\n后续如果需要大量纯标记点，新增 `MapMarkerData`：\n\n```text\nMarkerId\nType: Shop / Building / Quest / NpcSpawn / Teleport / Custom\nCoord 或 X/Y/Z\nIcon\nVisibleDefault\nRelatedQuestId\nRelatedNpcId\n```\n\n边界：\n\n```text\nMapData.Objects：真实存在、需要实例化或影响占用 / 交互 / 存档的对象\nMapMarkerData：地图 UI 标记、导航、任务提示、商店图标等表现数据\n```\n"
+    },
+    {
+        "id":  "architecture-savesystem-md",
+        "group":  "架构",
+        "title":  "存档系统",
+        "path":  "Architecture/SaveSystem.md",
+        "summary":  "存档边界和 Calendar 存档规则。",
+        "content":  "# Save System\n\n本文记录当前存档边界。需要改具体存档字段时，先读代码。\n\n## 主要代码\n\n```text\nAssets/Scripts/Game/Save/SaveData.cs\nAssets/Scripts/Game/Save/StorageManager.cs\n```\n\n## Calendar 存档\n\n游戏内日历由 `CalendarManager` 管理：\n\n```text\nAssets/Scripts/Game/Island/Calendar/CalendarManager.cs\nAssets/Scripts/Game/Island/Calendar/Season.cs\n```\n\n相关存档字段：\n\n```text\nSaveData.SavedAtUnixTime\nSaveCalendarData.Year\nSaveCalendarData.Month\nSaveCalendarData.Day\nSaveCalendarData.Hour\nSaveCalendarData.Minute\nSaveCalendarData.AccumulatedRealSeconds\n```\n\n规则：\n\n- `SavedAtUnixTime` 记录真实保存时间。\n- `SaveCalendarData` 记录游戏内时间和残余累计秒。\n- `StorageManager.Load()` 读档后根据离线真实时间推进 `CalendarManager`。\n- UI 不维护独立时间，统一从 `CalendarManager` 读取。\n\n## 注意\n\n新增长期系统状态时，要明确它属于经营长期存档、塔防单局状态，还是纯 UI 临时状态。塔防单局金币、临时 Buff、波次进度不要直接混入长期经营库存。\n\n## 地图对象存档\n\n静态地图 JSON 表示地图初始状态。运行中被移除或状态改变的地图对象不要写回 `Assets/Data/Map/{mapId}.json`，应写入存档。\n\n当前地图相关字段：\n\n```text\nSaveData.RemovedMapObjects\nSaveData.GatherNodes\nSaveData.WorldBuildings\nSaveData.Farms\nSaveData.WorldFarmPlots\nSaveData.Player\n```\n\n边界：\n\n```text\nSaveRemovedMapObjectData\n  表示某张地图上的某个 MapObject 已经逻辑消失，读档时 ApplyRemovedMapObjects 会从 MapData.Objects 过滤掉。\n\nSaveGatherNodeData\n  表示采集节点仍在地图对象里，但 RemainingTimes / AvailableAtUnixTime 改变。\n\nSaveWorldBuildingData\n  表示玩家建造建筑的运行时状态。\n\nSaveFarmData / SaveWorldFarmPlotData\n  表示农田范围、地块和作物状态。\n\nSavePlayerData\n  表示玩家在地图中的位置和朝向。\n```\n\n规则：\n\n```text\n逻辑上已经不存在的对象：使用 MapManager.TryRemoveMapObject + MarkMapObjectRemoved，进入 RemovedMapObjects。\n仍在地图上、只是采集次数或刷新时间变化的资源：进入 GatherNodes。\n只隐藏 view 不等于从地图逻辑移除；寻路 / 建造仍看 MapManager 的对象索引。\n```\n\n## Story 存档\n\nStory 存档挂在：\n\n```text\nSaveData.Story\nStorageManager.StoryData\n```\n\n当前字段：\n\n```text\nCurrentStoryId\nCompletedStoryIds\n```\n\n注意：当前不支持剧情中途读档续播。后续如果要支持，需要补充当前行索引和恢复 StoryPanel 的流程；如果不支持中途续播，则保存时不应长期保留未完成 Story 的 `CurrentStoryId`。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "architecture-messaging-md",
+        "group":  "架构",
+        "title":  "消息系统",
+        "path":  "Architecture/Messaging.md",
+        "summary":  "消息系统使用边界和 Quest 消息。",
+        "content":  "# Messaging\n\n本文记录消息系统的使用边界。\n\n## 框架位置\n\n```text\nAssets/Scripts/Framework/Message\nAssets/Scripts/Game/Message\n```\n\nFramework 负责通用消息能力，Game 层定义业务消息和 topic。\n\n## Quest 相关消息\n\n任务系统当前重要消息：\n\n```text\nQuestAcceptedMessage\nQuestChangedMessage\nQuestCompletedMessage\n```\n\n`QuestManager` 负责发消息，UI、Toast、Story、引导、音频等系统按需要订阅。Toast 应该是监听器，不要写死在任务目标逻辑里。\n\n当前 topic 仍在 `WorldMessageTopic`，这是历史共享枚举；不要因此把 Quest 域类改成 `WorldQuest*`。\n\n## 使用原则\n\n- 消息用于跨模块通知，不用于替代清晰的同步 API。\n- 任务、剧情、UI 提示这类松耦合联动可以用消息。\n- 同一模块内部的直接状态变更优先用 manager 方法。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "product-gameoverview-md",
+        "group":  "产品",
+        "title":  "游戏概览",
+        "path":  "Product/GameOverview.md",
+        "summary":  "项目整体方向和经营 / 塔防模式关系。",
+        "content":  "# Game Overview\n\n本文记录项目整体方向，适合先了解“这个游戏要做什么”。\n\n## 核心方向\n\n玩家漂流到岛上后，进入长期岛屿经营和生存建设。项目同时保留独立塔防战斗模式，两者通过资源、奖励、剧情和进度连接，但运行时状态分开。\n\n岛屿经营负责：\n\n```text\n长期资源和背包\n工具和采集\n农田和生产\n建筑建造 / 升级 / 产出\n科技树\n任务和剧情入口\n进入塔防前后的数据交换\n```\n\n塔防模式负责：\n\n```text\n单局波次\n敌人\n基地\n防御塔\n战斗内金币\n塔防内建塔 / 升级 / 出售\n结算奖励\n```\n\n## 当前开发重点\n\n当前重点不是塔防战斗本身，而是岛屿经营主循环：\n\n```text\n开场 Story\n  -\u003e 接取第一个 Quest\n  -\u003e 采集资源\n  -\u003e 制作 Blueprint\n  -\u003e 建造 / 农田 / 工具 / 科技\n  -\u003e 解锁更多内容\n```\n\n## 设计边界\n\n- 经营长期库存和塔防单局资源要分开。\n- 配置可共享，但运行时状态不要混用。\n- UI 类型按 `Docs/Architecture/UIFramework.md` 的 Page / Panel / Popup / Overlay / Toast 选择。\n- 命名按 `Docs/Decisions/0001-naming-rules.md`，新代码默认不要加 `World` 或 `Game` 前缀。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "product-managementmode-md",
+        "group":  "产品",
+        "title":  "经营模式",
+        "path":  "Product/ManagementMode.md",
+        "summary":  "岛屿经营模式的产品范围和当前缺口。",
+        "content":  "# Management Mode\n\n本文记录岛屿经营模式的产品和业务边界。\n\n## 范围\n\n岛屿经营模式负责长期局外进度：\n\n```text\n资源和背包\n工具\n采集\n农田\n建筑建造 / 升级 / 生产\n科技树\n任务和剧情入口\n塔防战斗前后的奖励和消耗\n```\n\n## 当前系统\n\n物品和资源：\n\n```text\nAssets/Scripts/Game/Island/Resources\nAssets/Scripts/Game/Items\nData/Excel/item.xlsx\n```\n\n工具和采集：\n\n```text\nAssets/Scripts/Game/Island/Tools\nAssets/Scripts/Game/Island/Exploration\nData/Excel/gather.xlsx\nData/Excel/resource.xlsx\n```\n\n农田：\n\n```text\nAssets/Scripts/Game/Island/Farming\nData/Excel/world_crop.xlsx\n```\n\n建筑和生产：\n\n```text\nAssets/Scripts/Game/Island/Buildings\nAssets/Scripts/Game/Blueprints\nData/Excel/world_building.xlsx\nData/Excel/world_building_level.xlsx\nData/Excel/world_building_income.xlsx\nData/Excel/world_cost.xlsx\nData/Excel/reward.xlsx\n```\n\n科技：\n\n```text\nAssets/Scripts/Game/Island/Tech\nData/Excel/tech_node.xlsx\n```\n\n## 当前缺口\n\n```text\n任务奖励 Toast / 获得反馈\n新手开局完整体验打磨\n更多工具等级：石斧 -\u003e 铜斧 -\u003e 铁斧等\n农田产出、成熟、补种等长期规则打磨\n科技树和生产链的内容扩展\n```\n\n## UI\n\n经营 UI 见 `Docs/Modules/ManagementUI.md`。UI 互斥、返回栈和关闭规则见 `Docs/Architecture/UIFramework.md`。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "product-towerdefensemode-md",
+        "group":  "产品",
+        "title":  "塔防模式",
+        "path":  "Product/TowerDefenseMode.md",
+        "summary":  "塔防模式范围和与经营模式的边界。",
+        "content":  "# Tower Defense Mode\n\n本文记录塔防模式边界。\n\n## 范围\n\n塔防模式负责单局战斗：\n\n```text\n波次\n敌人\n基地\n防御塔\n战斗内金币\n塔防内建塔 / 升级 / 出售\n技能和效果\n结算\n```\n\n## 代码位置\n\n```text\nAssets/Scripts/Game/TowerDefense\nAssets/Scripts/Game/Tower\nAssets/Scripts/Game/Wave\nAssets/Scripts/Game/Battle\nAssets/Scripts/Game/AbilityAdapters\nAssets/Scripts/Ability\nAssets/Scripts/Skill\n```\n\n## 进入战斗\n\n塔防关卡统一通过实例入口加载：\n\n```csharp\nMapManager.Instance.LoadBattleMap(mapConfigId);\n```\n\n`mapConfigId` 是 `map.xlsx` 的配置 id。经营大地图使用 `MapManager.Instance.LoadWorldMap(worldMapId)`，不要用无模式语义的 `LoadMap` 混用两种流程。\n\n经营主界面通过 `RightBar/BattleEntry` 进入战斗，当前入口加载默认关卡配置 `30950001`。战斗 UI 位于 `Assets/Arts/UI/Panels/Battle`。\n\n战斗主界面是 `BattlePage`。其内部功能区是由 Page 统一管理生命周期的多个 Panel；设置和战斗结算作为模态 Popup 打开。当前小地图入口保留但默认关闭，其余战斗 HUD 模块进入正式功能闭环。\n\n## 与经营模式的边界\n\n- 塔防单局金币不直接等于长期经营库存。\n- 塔防内建塔不直接复用经营建筑管理器。\n- 结算奖励需要通过明确接口写回经营长期资源。\n- 技能系统优先走 Ability，旧 Skill 作为兼容层保留一段时间。\n\nAbility 细节见 `Docs/Modules/AbilityAndSkill.md`。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "product-progressionandquests-md",
+        "group":  "产品",
+        "title":  "成长与任务",
+        "path":  "Product/ProgressionAndQuests.md",
+        "summary":  "开局、任务、剧情和奖励流程。",
+        "content":  "# Progression And Quests\n\n本文记录剧情、任务和制作在产品流程中的位置。Story 实现细节见 `Docs/Modules/Story.md`，Quest / Blueprint 实现细节见 `Docs/Modules/QuestStoryBlueprint.md`。\n\n## 推荐开局链路\n\n```text\n玩家新开局\n  -\u003e StoryManager 自动开始开场 Story\n  -\u003e 玩家点击继续\n  -\u003e Story 完成\n  -\u003e StoryManager 发送 QuestEventType.CustomFlag + StoryFlags.OpeningFinished\n  -\u003e QuestManager 接取匹配配置的第一个任务\n  -\u003e 玩家拾取开局散落资源\n  -\u003e BlueprintManager 完成制作\n  -\u003e QuestManager 更新任务\n```\n\n第一个正式任务建议由开场剧情结束触发，而不是直接监听建造 House。\n\n当前第一版开局链路：\n\n```text\n60000001 Scavenge the Shore      ItemGainCount Wood 6 + Stone 4\n60000002 Build a House           BuildBuildingType House\n60000003 Craft a Basic Axe       Blueprint 30600001\n60000004 Chop Down a Tree        ItemGainCount Wood 6\n60000005 Craft a Basic Pickaxe   Blueprint 30600002\n60000006 Break Rocks             ItemGainCount Stone 4\n60000007 Build a Workbench       BuildBuildingType Workbench\n```\n\n开局地图对应：\n\n```text\nAssets/Data/Map/1001.json 是 GameEntry 当前默认世界地图。\n地图对象使用 MapObjectData.ObjectType = Resource + ConfigId = resource.id。\n30300008 Branch      -\u003e pickupRewardGroupId 30902015 -\u003e Wood\n30300009 Loose Stone -\u003e pickupRewardGroupId 30902016 -\u003e Stone\n30300001 Tree        -\u003e gatherConfigId 30400001 -\u003e Wood，需要斧\n30300002 Rock        -\u003e gatherConfigId 30400002 -\u003e Stone，需要镐\n```\n\n`ItemGainCount` 统计的是获得物品事件，不绑定地图对象实例。只要地图编辑器放的是对应 `resource.id`，任务就能推进。\n\n开局工具制作：\n\n```text\n30600001 Stone Axe     buildingId = 0，不需要 Workbench\n30600002 Stone Pickaxe buildingId = 0，不需要 Workbench\n```\n\n这类 `buildingId = 0` 的基础工具用于开局教学，直接在 QuestPanel 详情按钮点击“制作”完成。后续需要建筑参与的生产蓝图，再通过对应建筑详情面板制作。\n\n## 任务顺序\n\n不要设计通用的“开始下一个任务”作为核心 API。任务顺序由配置的 `preQuestIds` 和触发条件控制。\n\n## 奖励\n\n任务奖励当前通过 `quest.rewardGroupId` 指向 `reward.groupId`。\n\n领取流程：\n\n```text\nQuestManager.TryClaim\n  -\u003e RewardResolver.GetRewardGroup\n  -\u003e BagManager.TryAddItems\n  -\u003e 成功后改为 Claimed\n```\n\n当前规则：\n\n- 没有奖励组的任务可以直接领取。\n- 配了奖励组但找不到奖励，领取失败。\n- 背包容量不足时领取失败，不会提前改为 `Claimed`。\n\n后续仍需继续打磨：\n\n```text\nToast / UI 反馈\n奖励配置规范\n是否需要任务奖励专用弹窗\n```\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "modules-island-md",
+        "group":  "模块",
+        "title":  "岛屿经营模块",
+        "path":  "Modules/Island.md",
+        "summary":  "岛屿经营业务模块、工具、农田、建筑和 Calendar。",
+        "content":  "# Island Module\n\n本文记录岛屿经营业务模块。\n\n## 目录\n\n```text\nAssets/Scripts/Game/Island\n  Buildings\n  Calendar\n  Exploration\n  Farming\n  Gathering\n  Income\n  Mining\n  Production\n  Resources\n  Tech\n  Tools\n  Workers\n  WorldMessage.cs\n```\n\n## 资源和背包\n\n长期经营库存使用：\n\n```text\nAssets/Scripts/Game/Items/ItemManager.cs\nAssets/Scripts/Game/Items/ItemStack.cs\n```\n\n全项目物品定义：\n\n```text\nData/Excel/item.xlsx\nAssets/Scripts/Game/Items/ItemIds.cs\n```\n\n塔防单局物品或金币由 `BattleItemManager` 保存，不要直接复用为长期库存。塔防结算时应通过明确奖励流程写回 `ItemManager`。\n\n物品使用规则：\n\n```text\nBag / HotBar 点击 -\u003e BagManager.TryUseSlot -\u003e ItemManager.Use\n工具点击只完成选择，不算真实使用\n未配置效果的食物、消耗品或其它物品返回失败\n采集、建矿、开垦、种植成功后，由业务完成点调用 ItemManager.NotifyUseCompleted\nQuestEventType.UseItem 只记录已经完成的使用，不负责执行物品效果\n```\n\n## 采集和工具\n\n采集相关：\n\n```text\nAssets/Scripts/Game/Island/Exploration/GameplayController.cs\nAssets/Scripts/Game/Island/Exploration/NavigationController.cs\nAssets/Scripts/Game/Island/Exploration/ActionController.cs\nAssets/Scripts/Game/Island/Exploration/ResourceInteractionController.cs\nAssets/Scripts/Game/Island/Exploration/PlacementController.cs\nAssets/Scripts/Game/Island/Tools/ActionToolResolver.cs\nAssets/Scripts/Game/Island/Tools/ToolKitDefinitions.cs\nAssets/Scripts/Game/Island/Tools/ToolKitManager.cs\n```\n\n当前工具规则：\n\n```text\n树 -\u003e 斧\n石头 / 矿 -\u003e 镐\n农田开垦 -\u003e 锄\n钓鱼 -\u003e 鱼竿\n```\n\nToolKit 当前能力：\n\n```text\n默认 10 个格子\n新存档默认工具槽为空\n获得工具时自动放入 ToolKit 并选中；加载已有存档时，也会把已拥有的工具补入空槽\n只允许使用玩家实际拥有的工具；旧存档里只有槽位但没有对应物品时不能使用\n可点击选择工具\n可拖动到空格\n可拖动到另一个工具上交换\n```\n\n开局地图资源和任务对应：\n\n```text\nMapObjectData.ObjectType = Resource\nMapObjectData.ConfigId = resource.id\n\n30300008 Branch      -\u003e 拾取 -\u003e Wood\n30300009 Loose Stone -\u003e 拾取 -\u003e Stone\n30300001 Tree        -\u003e 斧采集 -\u003e Wood\n30300002 Rock        -\u003e 镐采集 -\u003e Stone\n```\n\n资源生命周期和寻路关系见 `Docs/Architecture/MapRuntime.md`。当前关键规则：\n\n```text\n寻路 / 建造占用看 MapManager 的 objectsByCoord，不看 WorldResourceView 是否隐藏\n拾取资源成功后会 TryRemoveMapObject + MarkMapObjectRemoved\n采集资源 respawnSeconds \u003c= 0 且耗尽后会 TryRemoveMapObject + MarkMapObjectRemoved\n采集资源 respawnSeconds \u003e 0 耗尽后保留 MapObject，用 GatherNode 等待刷新\n资源交互会先从目标周围选择可走、可到达、在交互距离内的站位，再移动执行动作\nGameplayController 只路由输入和生命周期；NavigationController 负责移动，ActionController 负责动作阶段，ResourceInteractionController 负责资源结算\n采集工具动作只使用 Assets/Arts/Character/Player 内的玩家动画资源；当前 UseTool 使用 Meshy_AI_Forestbound_Adventure_biped_Animation_Heavy_Hammer_Swing_withSkin.fbx，但必须通过 WorldPlayer.controller 的 UseTool Upper Body 层和 WorldPlayer_UseToolUpperBody.mask 播放，只影响手臂/手指，避免 Heavy_Hammer_Swing 的全身后撤姿态把角色视觉上弹出去。不要引用 Assets/Arts/FBX/CharacterFBX 的其他角色动作，也不要叠加额外程序化采集动作\n```\n\n`ActionController` 的上层入口统一为：\n\n```csharp\nbool TryStart(ActionRequest request, ActionCallbacks callbacks = default);\nbool Stop(ActionStopReason reason, ActionExitMode exitMode);\n```\n\n规则：\n\n```text\nTryStart 表示动作可能因已有动作、无效请求或表现层未就绪而失败\nStop 是幂等命令；无当前动作时仍可通过 ToIdle / ToMove 修正表现状态\nTryStart 只有在 Animator 参数、State、Layer 和所需工具模型都准备好时才返回 true\nOnMarker 用于拾取、采集、建矿、开垦、命中、投放等一次性业务结算\nOnCompleted 表示 Animator 动作达到 normalizedTime \u003e= 1 或已经退出动作状态；只有动画未进入或未结束时才使用 timeout 兜底\n拾取、资源交互和农田动作统一通过 ActionController 播放或停止，不直接调用 WorldPlayerView 的动作 API\n移动是连续 locomotion，由 NavigationController 更新 WorldPlayerView.SetMoveSpeed，不作为离散动作进入 ActionController\n工具拥有与业务条件由上层检查，ActionController 只管理播放、阶段、完成和停止\nWorldPlayerView 是 Animator 和工具模型的低层适配器，不维护独立的动作完成计时\n```\n\n## 动作阶段点\n\n代码中的 `Marker` 表示一次动作里的业务阶段点，不是 Animation Clip 时间轴上的 `Animation Event`。\n\n`ActionRequest.MarkerNormalizedTime` 使用 Animator 的归一化进度，取值范围是 `0..1`。例如 `0.55` 表示动作播放到约 55% 时触发，不是第 55 帧，也不是 0.55 秒。动画状态速度改变后，Marker 对应的真实时间会一起改变。\n\n当前流程：\n\n```text\nTryStart\n  -\u003e WorldPlayerView 触发 Animator 状态\n  -\u003e ActionController 每帧读取 normalizedTime\n  -\u003e normalizedTime \u003e= MarkerNormalizedTime\n  -\u003e OnMarker 触发一次业务结算\n  -\u003e 动作达到 normalizedTime \u003e= 1 或退出状态\n  -\u003e OnCompleted 触发动作完成\n```\n\nMarker 的语义：\n\n| 情况 | 结果 |\n| --- | --- |\n| 到达 Marker | `OnMarker` 只触发一次 |\n| Marker 前调用 `Stop` | 不触发 `OnMarker`，不结算 |\n| Marker 后调用 `Stop` | 已完成的结算不回滚 |\n| 动画提前退出或超过 timeout | 触发 Marker 作为兜底，然后完成动作 |\n\n当前用途：\n\n| 动作 | Marker 结算内容 | Marker | timeout |\n| --- | --- | ---: | ---: |\n| 拾取 | 物品进入背包、移除地图资源 | `0.55` | `0.75s` |\n| 采集 | 扣减采集次数、发放奖励、记录工具使用 | `0.55` | `1.25s` |\n| 建矿 | 创建矿场、记录工具使用 | `0.55` | `1.25s` |\n| 开垦 | 创建农田、记录工具使用 | `0.55` | `1.25s` |\n\n这些值当前是代码常量：\n\n```text\nResourceInteractionController\n  PickupCollectNormalizedTime\n  PickupTimeoutSeconds\n  ToolActionMarkerNormalizedTime\n  ToolActionTimeoutSeconds\n\nPlacementController\n  CultivateMarkerNormalizedTime\n  CultivateTimeoutSeconds\n```\n\n当前实现不要求在动画资源上逐个添加事件，适合同类动作共用统一阶段比例。以后如果需要精确到斧头接触树木的具体帧、一个动作内多个命中点，或动作片段速度变化很大，再改为 Animation Event 或 StateMachineBehaviour 向 `ActionController` 报告阶段事件。\n\n如果后续做会刷新的资源，不能只靠隐藏 view 表示状态，需要显式运行时状态控制：\n\n```text\nRemainingTimes\nRespawnAtUnixTime\nVisible\nCanInteract\nBlocksMove / BlocksBuild\nStage\n```\n\n## 农田\n\n```text\nAssets/Scripts/Game/Island/Farming\nAssets/Scripts/Game/UI/Management/WorldFarmPanel.cs\nAssets/Scripts/Game/UI/Management/WorldFarmPanelView.cs\nAssets/Scripts/Game/UI/Management/WorldFarmSeedView.cs\nData/Excel/world_crop.xlsx\n```\n\n当前规则：\n\n```text\nFarmPanel 是独立 UIPanel\n打开时贴 BottomBar 快捷栏上方\n左侧 Info 显示作物图标、名称、产量\n种子消耗 = 地块数量 * 作物种子系数\n种子系数应配置在作物数据里\n```\n\n## 建筑和生产\n\n经营建筑不复用塔防 `TowerConfig`，经营建造不直接复用塔防 `TowerBuildManager`。\n\n相关配置：\n\n```text\nData/Excel/world_building.xlsx\nData/Excel/world_building_level.xlsx\nData/Excel/world_building_income.xlsx\nData/Excel/world_cost.xlsx\nData/Excel/reward.xlsx\n```\n\n生产/制作配置使用 `Blueprint`，见 `Docs/Modules/QuestStoryBlueprint.md`。\n\n## Calendar\n\n```text\nAssets/Scripts/Game/Island/Calendar/CalendarManager.cs\nAssets/Scripts/Game/Island/Calendar/Season.cs\n```\n\n规则：\n\n```text\n一年 4 个月\n每月 28 天\n每个月对应一个季节\n默认 600 秒真实时间 = 1 游戏日\n```\n\n`CalendarManager` 提供 `SetTimeOfDay`、`SetDateTime`、`AdvanceMinutes/Hours/Days`、`SetGameTimeScale`。UI 不自己维护独立时间，统一从 `CalendarManager` 取值。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "modules-managementui-md",
+        "group":  "模块",
+        "title":  "经营 UI",
+        "path":  "Modules/ManagementUI.md",
+        "summary":  "经营主界面、浮动面板、入口互斥和布局规则。",
+        "content":  "# Management UI\n\n本文记录经营主界面和浮动面板。框架能力见 `Docs/Architecture/UIFramework.md`。\n\n## 常驻 HUD\n\n常驻 HUD 在 `WorldMainPanel`：\n\n```text\nTopBar\nBottomBar\nRightBar\nMiniMap\nLeftBar / entry buttons\n```\n\n当前子模块：\n\n```text\nWorldTopBarPanel.cs\nWorldBottomBarPanel.cs\nWorldEntryBarPanel.cs\nWorldRightBarPanel.cs\nWorldBuildingDetailPanel.cs\nWorldBagPanel.cs（BottomBar 内部 Bag 抽屉）\n```\n\n规则：\n\n- 这些子模块都是挂在 prefab 上的 `MonoBehaviour`。\n- `WorldMainPanel` 通过 `[SerializeField]` 引用，不在代码里 `new World*Panel()`。\n- 子模块内部按钮、文本、图标、slot 用 prefab 序列化字段绑定。\n- 不运行时 `Find(\"TopBar\")`、`Find(\"Resources\")`、`Find(\"HotPanel\")`、`Find(\"Bag\")` 等节点。\n- `WorldTopBarView` 已合并回 `WorldTopBarPanel`，后续不要再新增同类只转发的 View 包装层。\n- `RightBar/BattleEntry` 由 `WorldRightBarPanel` 绑定，点击后由 `WorldMainPanel` 调用 `MapManager.Instance.LoadBattleMap(30950001)` 进入当前默认塔防关卡；它是模式切换入口，不注册到 `ManagementFloating` 浮层组。\n\nBagPanel prefab 当前作为 `BottomBar` 的子节点嵌在 `WorldMainPanel` 中。`WorldBagPanel` 是本地节点控制组件，不是独立 `UIPanel`。\n\n## 独立浮动面板\n\n```text\nBuildPanel\nToolKitPanel\nFarmPanel\nProductionPanel\nQuestPanel\nTechTreePanel\nMenuPanel\n```\n\nPrefab 当前按模块放在：\n\n```text\nAssets/Arts/UI/Panels/Bag\nAssets/Arts/UI/Panels/Build\nAssets/Arts/UI/Panels/ToolKit\nAssets/Arts/UI/Panels/Farm\nAssets/Arts/UI/Panels/Production\nAssets/Arts/UI/Panels/Quest\nAssets/Arts/UI/Panels/TechTree\nAssets/Arts/UI/Panels/Menu\n```\n\n## 入口互斥\n\n入口统一注册到 `WorldPanelEntryController`：\n\n```text\nBuild\nToolKit\nProduction\nQuest\nTechTree\nMenu\n```\n\n这些独立 Panel 入口当前注册到同一个 `ManagementFloating` Exclusive group。Bag 入口由 `WorldBottomBarPanel` 本地处理，不注册 `WorldPanelEntry`。\n\n行为：\n\n- 点击已打开入口会关闭自己。\n- 点击未打开入口会先关闭同组其它面板，再打开自己。\n- 入口状态读取 `UIManager.Instance.Panels.IsShown(prefabPath)`，不要额外记 bool。\n- 新增“等等”面板时注册新的 entry 和 group，不写点对点互相关闭逻辑。\n- Panel outside close 不会拦截入口按钮射线。点击 Build / ToolKit / Quest / TechTree / Menu 入口时，按钮自身仍能进入同一套 toggle / Exclusive 逻辑。\n- 打开 Bag 会先关闭 `ManagementFloating` 组、Farm 和 BuildingDetail；打开这些独立浮层也会关闭 Bag，以保持界面互斥。\n\n## Bag Toggle\n\nBottomBar 的 Bag 展开/收起统一由 Bag 根按钮触发。Bag 是 BottomBar 内部抽屉，通过节点 `SetActive` 开关。\n\n规则：\n\n- `Open` / `Close` 三角图标只显示状态，不接独立点击逻辑。\n- `Open` / `Close` 图标的 `Image.raycastTarget` 必须为 `false`。\n- `WorldBottomBarPanel.SetBagOpen()` 同时切换 Bag 节点和 Open / Close 图标，不通过 `UIManager.Panels.Show/Hide`。\n- `WorldBagPanel` 只负责内部背包格和 Close 按钮；BagChanged 订阅、开关状态和共享拖拽控制器由 `WorldBottomBarPanel` 持有。\n- 旧 Bag prefab 内如果仍有 HotBarGrid，由 `WorldBagPanel` 隐藏；实际快捷栏只使用 BottomBar 自身的一份节点。\n- Build / ToolKit 当前没有 Open / Close 状态图标设计，不要给它们补图标状态切换。\n\n## Bag / HotBar Slots\n\nBag 和 HotBar 共用 `BagManager` 的 slot：\n\n```text\n0-9   HotBar / 快捷栏\n10+   Bag / 背包\n```\n\n规则：\n\n- 快捷栏和背包 slot 可以互相拖动。\n- BottomBar 持有唯一 `BagDragController`，只绑定自身 HotBar 与 Bag 子节点的 slots，因此拖拽不会跨到其它 Panel。\n- 拖拽时显示跟随鼠标的物品图标和数量，源格图标暂时变淡；结束、关闭 Bag 或销毁 BottomBar 时必须清理拖拽状态。\n- 拖到空格是移动，拖到已有物品格是交换。\n- slot 只保存 `itemId`；物品数量由 `ItemManager` 统一保存。\n- 点击 slot 走 `BagManager.TryUseSlot -\u003e ItemManager.Use`；UI 不按物品类型分支。\n- 工具点击只选择或装入 ToolKit，不立即累计 `UseItem` 任务进度。\n- 未配置使用效果的物品返回失败，不扣数量，也不发送任务事件。\n- 任务 `UseItem` 只在采集、开垦、种植或消耗效果真正完成后累计。\n- 不拆堆；当前同一种物品只占一个 slot。\n\n## 布局\n\n布局规则：\n\n```text\nBuild / ToolKit / Farm / Production：下边贴 BottomBar 快捷栏上边\nBag：作为 BottomBar 子节点，位置直接由 prefab 布局决定\nTechTree：居中\nQuestPanel：居中，大面板，左列表右详情\n```\n\n运行时对齐工具：\n\n```text\nAssets/Scripts/Game/UI/Management/WorldFloatingPanelLayout.cs\n```\n\n位置优先通过 prefab 节点和序列化引用调整，不写死单分辨率像素。\n\n## TopBar\n\nPrefab：\n\n```text\nAssets/Arts/UI/Panels/World/TopBar.prefab\n```\n\n绑定脚本：`WorldTopBarPanel`。日期、时间、天气、季节图、日夜图、菜单按钮都通过序列化字段引用。\n\n显示规则：\n\n```text\n日期：第N年 / 季节 / M月D日\n英文日期：Year N / Season / M/D\n天气：天气 / 晴朗 22C\n日夜圆图：12:00 为初始外观\n季节横图：随年内进度平滑横移\n```\n\n## 系统设置\n\n当前代码中 Menu、Sound、Language、Save、GM 是独立 `UIPanel`，短期可用 Stack 保持 Menu -\u003e 子面板 -\u003e 返回 Menu。\n\n后续更推荐：\n\n```text\nMenuPanel\n  Sound\n  Language\n  Save\n  GM\n```\n\n如果 Sound、Language、Save 只是设置页，就作为 Menu 内部节点由 `WorldMenuPanel` 通过序列化字段切换。不要为了 Stack 强行拆 panel。\n\n## 关闭规则\n\n独立经营大面板默认支持：\n\n```text\nCloseButton\nBack\nRightOutside\n```\n\nQuest、TechTree、Menu、Sound、Language、Save、GM 等有空白或遮罩的大面板，右键外部区域应关闭。移动端点击外部区域即可，不要求右键。\n\n经营 panel 的 outside close 统一走框架创建的 `PanelOutsideBlocker` + `UIOutsideClickDetector` + `PanelManager`。Panel prefab 内如果有半透明 `Overlay`，它只负责视觉变暗，`Image.raycastTarget` 必须关闭，脚本里不要再 `Find(\"Overlay\")` 绑定点击关闭。\n\nBag 不是独立 Panel，不参与框架 outside / Back close；通过 BottomBar 的 Bag 按钮、Bag 内 Close 按钮，或打开其它互斥业务浮层时关闭。\n\n`PanelOutsideBlocker` 是 `UICanvasRoot` 的底层 UI，排序低于所有 UI layer，不挡住任何正常 UI。它只让空白处命中 UI 并阻止世界输入，点击后仍由 `PanelManager` 关闭最上层可 outside close 的 panel。世界输入必须通过 `WorldPointerPicker.IsPointerOverUi()` 过滤，避免右键关闭 Quest / TechTree 等面板时同一帧又让玩家移动到鼠标位置。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "modules-story-md",
+        "group":  "模块",
+        "title":  "剧情模块",
+        "path":  "Modules/Story.md",
+        "summary":  "剧情播放、触发、存档和 StoryPanel 当前实现。",
+        "content":  "# Story Module\n\n本文记录 Story 模块当前实现。只改剧情播放、剧情触发、剧情存档或 StoryPanel 时，优先读本文。\n\n## 定位\n\nStory 当前是简单文字剧情系统，不是视频系统，也不是复杂 cutscene 系统。\n\n主要用途：\n\n```text\n开场漂流到岛上\n教程步骤\n短剧情过渡\n触发第一个任务\nQuest 完成后的后续剧情\n```\n\n## 当前文件\n\n```text\nAssets/Scripts/Game/Story/StoryManager.cs\nAssets/Scripts/Game/Story/StoryPresenter.cs\nAssets/Scripts/Game/Story/StoryPanel.cs\nAssets/Scripts/Game/Story/StoryConfig.cs\nAssets/Scripts/Game/Story/StoryEnums.cs\nAssets/Scripts/Game/Story/StoryFlags.cs\n```\n\n占位文件：\n\n```text\nAssets/Scripts/Game/Story/DialogManager.cs\nAssets/Scripts/Game/Story/EventTriggerSystem.cs\n```\n\n`DialogManager` 和 `EventTriggerSystem` 当前基本为空，不要误认为已有完整对话或事件触发系统。\n\n## Prefab\n\n```text\nAssets/Arts/UI/Panels/Story/StoryPanel.prefab\n```\n\n`StoryPanel.PrefabPath` 指向这个 prefab。\n\n当前 `StoryPanel` 会在 `BuildIfNeeded()` 里运行时创建遮罩、卡片、标题、正文、进度和 Continue 按钮。也就是说，当前不要假设 prefab 内已经有 `Title`、`Body`、`ContinueButton` 等固定节点。\n\n后续 UI 打磨时更合理的方向是把 StoryPanel 需要的节点做进 prefab，并用序列化字段绑定；这样更符合经营 UI 的整体规则，也方便美术和布局调整。\n\n## 数据表\n\n正式表：\n\n```text\nData/Defines/story.xml\nData/Defines/story_line.xml\nData/Excel/story.xlsx\nData/Excel/story_line.xlsx\nAssets/Data/Bin/tbstory.bytes\nAssets/Data/Bin/tbstoryline.bytes\nAssets/Data/Json/tbstory.json\nAssets/Data/Json/tbstoryline.json\n```\n\n运行时代码读取：\n\n```text\nDataManager.Instance.Story\nDataManager.Instance.StoryLine\n```\n\n`story.xlsx` 字段：\n\n```text\nid\ntitle\ntriggerMode\ntriggerTargetId\ncompleteQuestEventType\ncompleteQuestTargetId\nnextStoryId\nrepeatable\nenable\n```\n\n`story_line.xlsx` 字段：\n\n```text\nid\nstoryId\nlineIndex\ntext\nenable\n```\n\nStory lines 会按 `lineIndex` 排序；如果 `lineIndex` 一样，再按 `id` 排序。\n\n## 如何配表\n\n新增一段剧情通常改两个表：\n\n1. 在 `Data/Excel/story.xlsx` 新增一行 Story 主配置。\n2. 在 `Data/Excel/story_line.xlsx` 新增多行文本。\n3. 运行 `Data/gen_all.bat` 或 Unity 菜单 `Luban/Update All`。\n4. 检查生成结果：\n\n```text\nAssets/Scripts/Game/Data/Generated/StoryTableConfig.cs\nAssets/Scripts/Game/Data/Generated/StoryLineTableConfig.cs\nAssets/Data/Bin/tbstory.bytes\nAssets/Data/Bin/tbstoryline.bytes\nAssets/Data/Json/tbstory.json\nAssets/Data/Json/tbstoryline.json\n```\n\n`story.xlsx` 配法：\n\n```text\nid                      StoryId，唯一\ntitle                   标题，目前直接显示文本\ntriggerMode             StoryTriggerMode 整数\ntriggerTargetId         触发目标；AutoOnNewGame 可填 0\ncompleteQuestEventType  Story 完成后通知 Quest 的 QuestEventType 整数；不通知填 0\ncompleteQuestTargetId   QuestEvent 的 targetId；不通知填 0\nnextStoryId             播完后自动接下一段 Story；没有填 0\nrepeatable              是否可重复播放\nenable                  是否启用\n```\n\n`story_line.xlsx` 配法：\n\n```text\nid          行 Id，唯一；当前示例用 1000101 / 1000102 这种格式\nstoryId     所属 StoryId\nlineIndex   行顺序，从 1 开始\ntext        当前行文本，目前直接显示文本\nenable      是否启用\n```\n\n当前开场示例：\n\n```text\nstory.xlsx:\n10001, Ashore, AutoOnNewGame, 0, CustomFlag, 10001, 0, false, true\n\nstory_line.xlsx:\n1000101, 10001, 1, You wake to the sound of waves., true\n1000102, 10001, 2, The ship is gone. Broken planks are scattered across the beach., true\n1000103, 10001, 3, Gather wood and stone. You need shelter before night., true\n```\n\n表里实际填写的是整数，不是枚举名。\n\n## 触发方式\n\n```csharp\npublic enum StoryTriggerMode\n{\n    Manual = 0,\n    AutoOnNewGame = 1,\n    QuestCompleted = 2,\n    CustomFlag = 3,\n    EnterArea = 4,\n    TalkNpc = 5,\n}\n```\n\n当前已接入：\n\n```text\nAutoOnNewGame：GameEntry 在 LoadWorldMap 成功后调用 TryStartAutoStories()\nQuestCompleted：StoryManager 订阅 QuestCompletedMessage 后触发\nManual：可通过 StoryManager.TryStart(storyId) 手动开始\n```\n\n`NotifyEvent(triggerMode, targetId)` 可以支持 CustomFlag、EnterArea、TalkNpc 等事件型触发，但具体业务触发点需要调用它。\n\nStoryTriggerMode 数值：\n\n```text\n0 Manual\n1 AutoOnNewGame\n2 QuestCompleted\n3 CustomFlag\n4 EnterArea\n5 TalkNpc\n```\n\nQuestEventType 常用数值：\n\n```text\n0 None\n1 StartQuest\n2 CustomFlag\n3 TalkNpc\n4 EnterArea\n5 UseItem\n6 GainItem\n7 BlueprintCompleted\n8 BuildBuilding\n9 UpgradeBuilding\n10 PlantCrop\n11 HarvestCrop\n```\n\n如果要让 Story 完成后触发任务接取，常见配置是：\n\n```text\ncompleteQuestEventType = 2\ncompleteQuestTargetId = StoryFlags.OpeningFinished 或其它约定 flag id\n```\n\n## 播放流程\n\n```text\nStoryManager.LoadConfigs()\n  -\u003e 从 DataManager 读取 Story / StoryLine\n  -\u003e 构建 StoryConfig\n  -\u003e TryStartAutoStories / TryStart / NotifyEvent\n  -\u003e StoryPresenter.Present(...)\n  -\u003e UIManager.Instance.Panels.ShowAsync(StoryPanel.PrefabPath, StoryPanel.Args)\n  -\u003e StoryPanel 点击 Continue 逐行推进\n  -\u003e 最后一行点击 Continue 后关闭面板并回调完成\n```\n\n`StoryPresenter` 打开面板时使用：\n\n```text\nUseOutsideClickDetector = false\nCacheOnClose = false\n```\n\n`StoryPanel.HideOnBack` 当前为 `false`，避免剧情被返回键直接关掉。\n\n## 完成逻辑\n\nStory 完成后：\n\n```text\n非 repeatable 的 StoryId 进入 completedStoryIds\ncurrentStoryId 置 0\n如果配置了 completeQuestEventType / completeQuestTargetId，通知 QuestManager\n标记存档 dirty\n如果 nextStoryId \u003e 0，尝试继续播放下一段 Story\n```\n\n当前开场 Story：\n\n```text\nId: 10001\nTitle: Ashore\nTriggerMode: AutoOnNewGame\nCompleteQuestEventType: CustomFlag\nCompleteQuestTargetId: 10001\nStoryFlags.OpeningFinished = 10001\n```\n\n这条链路用于：\n\n```text\n开场 Story 完成\n  -\u003e QuestManager.NotifyEvent(QuestEventType.CustomFlag, 10001)\n  -\u003e 匹配配置的第一个 Quest 可被接取\n```\n\n## 存档\n\n```text\nSaveData.Story\nStorageManager.StoryData.CurrentStoryId\nStorageManager.StoryData.CompletedStoryIds\n```\n\n`StoryManager.LoadSaveData()` 会恢复当前 StoryId 和已完成 StoryId。`CreateSaveData()` 会把已完成列表排序后写入存档。\n\n注意：当前保存 `CurrentStoryId`，但读档后不会自动恢复到剧情面板中继续播放当前行；它只会阻止其它 Story 在 `currentStoryId != 0` 时开始。后续如果要支持剧情中途读档续播，需要补充当前行索引和恢复播放逻辑。\n\n## 当前缺口\n\n```text\nStoryPanel 仍是运行时构建 UI，后续应改为 prefab 节点 + 序列化字段\nStory 文本当前直接来自 story_line 表，还没有明确本地化 key 方案\nDialogManager / EventTriggerSystem 只是占位\nEnterArea / TalkNpc / CustomFlag 的具体业务触发点还需要逐步接入\n剧情中途读档续播未完成\n更复杂的头像、角色名、选项、分支、镜头控制都不属于当前实现\n```\n\n## 工具和相关文件\n\n已有工具：\n\n```text\nData/gen_all.bat\nData/gen_client.bat\nAssets/Scripts/Tools/Editor/LubanTool.cs\n```\n\n推荐优先用：\n\n```text\nData/gen_all.bat\n```\n\nUnity 菜单：\n\n```text\nLuban/Update All\n```\n\n`Luban/Update All` 会先根据 Excel 前三行更新 `Data/Defines/*.xml`，再执行 `Data/gen_all.bat` 并刷新 AssetDatabase。它适合新增字段或调整字段时使用。\n\n如果只是改 Story 内容、增删 Story 行或 StoryLine 行，不改字段结构，通常直接跑 `Data/gen_all.bat` 即可。\n\n注意：\n\n```text\nData/Defines/__root__.xml 已 include story.xml 和 story_line.xml\nAssets/Scripts/Game/Data/DataManager.cs 已注册 Story 和 StoryLine\nWorldConfigValidator 当前校验的是世界建筑 / 科技配置，不覆盖 Story\n当前没有专门的 Story 表编辑器或 Story 配表校验器\n```\n\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "modules-queststoryblueprint-md",
+        "group":  "模块",
+        "title":  "任务与蓝图",
+        "path":  "Modules/QuestStoryBlueprint.md",
+        "summary":  "任务、蓝图、Quest UI 以及和 Story 的衔接。",
+        "content":  "# Quest / Blueprint\n\n本文记录任务、蓝图以及它们和剧情的衔接。Story 模块自身实现见 `Docs/Modules/Story.md`。\n\n## 核心结论\n\n- 任务系统叫 `Quest`，不要改成 `Task`。\n- Quest 域新代码默认不要加 `World` 或 `Game` 前缀。\n- 制作/生产配置叫 `Blueprint`，不要再叫 `Recipe`。\n- Quest / Blueprint / Story 已接入正式 Excel / Luban 表，运行时从 `DataManager` 读取。\n- JSON 只是导出查看，正式运行以 `.bytes` 为准。\n\n## 数据来源\n\n当前正式表：\n\n```text\nData/Defines/quest.xml\nData/Defines/quest_objective.xml\nData/Defines/blueprint.xml\nData/Defines/blueprint_item.xml\nData/Defines/story.xml\nData/Defines/story_line.xml\n\nData/Excel/quest.xlsx\nData/Excel/quest_objective.xlsx\nData/Excel/blueprint.xlsx\nData/Excel/blueprint_item.xlsx\nData/Excel/story.xlsx\nData/Excel/story_line.xlsx\n\nAssets/Data/Bin/tbquest.bytes\nAssets/Data/Bin/tbquestobjective.bytes\nAssets/Data/Bin/tbblueprint.bytes\nAssets/Data/Bin/tbblueprintitem.bytes\nAssets/Data/Bin/tbstory.bytes\nAssets/Data/Bin/tbstoryline.bytes\n```\n\n运行时代码：\n\n```text\nQuestManager      DataManager.Instance.Quest + QuestObjective\nBlueprintManager  DataManager.Instance.Blueprint + BlueprintItem\nStoryManager      DataManager.Instance.Story + StoryLine\n```\n\n## 当前文件\n\n```text\nAssets/Scripts/Game/Quests/QuestManager.cs\nAssets/Scripts/Game/Quests/QuestToastListener.cs\nAssets/Scripts/Game/Blueprints/BlueprintManager.cs\nAssets/Scripts/Game/Story/StoryManager.cs\nAssets/Scripts/Game/Story/StoryPresenter.cs\nAssets/Scripts/Game/Story/StoryPanel.cs\nAssets/Scripts/Game/UI/Management/QuestPanel.cs\nAssets/Scripts/Game/UI/Management/QuestSlotView.cs\n```\n\nPrefab：\n\n```text\nAssets/Arts/UI/Panels/Quest/QuestPanel.prefab\nAssets/Arts/UI/Panels/Quest/QuestSlot.prefab\nAssets/Arts/UI/Panels/Story/StoryPanel.prefab\n```\n\n## Quest 状态\n\n```csharp\npublic enum QuestState\n{\n    Locked = 0,\n    Available = 1,\n    Accepted = 2,\n    Completed = 3,\n    Claimed = 4,\n}\n```\n\n显示规则：\n\n```text\nLocked 隐藏\nEvent-only Available 隐藏\nAccepted 显示\nCompleted 显示\nClaimed 领奖后隐藏\n```\n\n## QuestData\n\n使用 `QuestData`，不要新增 `QuestRuntimeData` 作为同义概念。\n\n```csharp\npublic sealed class QuestData\n{\n    public int QuestId;\n    public QuestState State;\n    public QuestObjectiveData[] Objectives;\n}\n```\n\n只有事件型目标需要保存进度。查询型目标从当前系统实时计算。\n\n## 接取方式\n\n```csharp\npublic enum QuestAcceptMode\n{\n    Auto = 0,\n    Manual = 1,\n    Event = 2,\n}\n```\n\n建议：\n\n```text\nAuto    前置满足后自动接取\nManual  UI / NPC / 任务板接取\nEvent   剧情 / 对话 / 区域 / 自定义事件触发\n```\n\n开局链路见 `Docs/Product/ProgressionAndQuests.md`。\n\n## 目标类型\n\n```csharp\npublic enum QuestObjectiveType\n{\n    None = 0,\n    ItemCount = 1,\n    ItemGainCount = 2,\n    ItemUseCount = 3,\n    Blueprint = 4,\n    BuildBuilding = 5,\n    BuildBuildingType = 6,\n    UpgradeBuilding = 7,\n    FarmCount = 8,\n    PlantCrop = 9,\n    HarvestCrop = 10,\n    TechResearched = 11,\n    TalkNpc = 12,\n    EnterArea = 13,\n    CustomFlag = 14,\n}\n```\n\n查询型目标：\n\n```text\nItemCount\nBuildBuilding\nBuildBuildingType\nFarmCount\nTechResearched\n```\n\n事件型目标：\n\n```text\nItemGainCount\nItemUseCount\nBlueprint\nUpgradeBuilding\nPlantCrop\nHarvestCrop\nTalkNpc\nEnterArea\nCustomFlag\n```\n\n## QuestEvent\n\n统一入口示例：\n\n```csharp\nQuestManager.Instance.StartQuest(questId);\nQuestManager.Instance.NotifyEvent(QuestEventType.CustomFlag, flagId);\nQuestManager.Instance.NotifyEvent(QuestEventType.TalkNpc, npcId);\nItemManager.Instance.NotifyUseCompleted(itemId, count);\nQuestManager.Instance.NotifyEvent(QuestEventType.GainItem, itemId, count);\nQuestManager.Instance.NotifyEvent(QuestEventType.BlueprintCompleted, blueprintId);\n```\n\n`UseItem` 是完成通知，不是物品效果处理入口。UI 点击、工具选择、种子选择、进入目标模式都不能直接累计；只有效果或对应业务动作提交成功后才调用 `ItemManager.NotifyUseCompleted`。\n\n不要设计“开始下一个任务”作为核心 API。任务顺序由配置的 `preQuestIds` 和触发条件控制。\n\n## Blueprint\n\n`Blueprint` 有两个含义：\n\n```text\n制作 / 生产定义\n任务目标类型，表示完成某个蓝图\n```\n\n当前 `BlueprintManager` 支持：\n\n```text\nInputs\nOutputs\nBuildingId\nUnlockTechId\nUnlockQuestId\nCanComplete\nTryComplete\n完成后发送 QuestEventType.BlueprintCompleted\n```\n\n开局基础工具蓝图：\n\n```text\n30600001 Stone Axe     buildingId = 0\n30600002 Stone Pickaxe buildingId = 0\n```\n\n`buildingId = 0` 表示不需要建筑。当前用于开局教学，QuestPanel 详情按钮会在任务存在未完成 Blueprint 目标时显示“制作”，点击后直接调用 `BlueprintManager.TryComplete`。建筑生产蓝图仍通过 `WorldBuildingDetailPanel` 的制作按钮完成。\n\n## Quest 奖励\n\n任务表字段：\n\n```text\nquest.rewardGroupId -\u003e reward.groupId\n```\n\n领取流程：\n\n```text\nQuestManager.TryClaim\n  -\u003e RewardResolver.GetRewardGroup\n  -\u003e BagManager.TryAddItems\n  -\u003e 成功后状态改为 Claimed\n```\n\n规则：\n\n- `rewardGroupId \u003c= 0` 表示没有奖励，可以直接领取完成。\n- `rewardGroupId \u003e 0` 但奖励组为空时，领取失败，不改 `Claimed`。\n- 背包容量不足时，`BagManager.TryAddItems` 返回失败，不改 `Claimed`。\n- Quest UI 详情奖励行从 `reward` 读取，显示固定数量或 `min-max` 范围。\n\n当前开局任务奖励：\n\n```text\n60000001 Scavenge the Shore      -\u003e 60090001 -\u003e Food x3\n60000002 Build a House           -\u003e 60090002 -\u003e Wheat Seed x5\n60000003 Craft a Basic Axe       -\u003e 60090003 -\u003e Food x2\n60000004 Chop Down a Tree        -\u003e 60090004 -\u003e Food x2\n60000005 Craft a Basic Pickaxe   -\u003e 60090005 -\u003e Food x2\n60000006 Break Rocks             -\u003e 60090006 -\u003e Stone x2\n60000007 Build a Workbench       -\u003e 60090007 -\u003e Plank x2\n```\n\n示例蓝图：\n\n```text\n30600001  Stone Axe       Wood x1 + Stone x1 -\u003e Stone Axe x1\n30600002  Stone Pickaxe   Wood x1 + Stone x1 -\u003e Stone Pickaxe x1\n30600003  Stone Hoe       Wood x2 + Stone x1 -\u003e Stone Hoe x1\n30601001  Saw Planks      Wood x5            -\u003e Plank x1\n30601002  Mill Wheat      Wheat x5           -\u003e Food x1\n30601003  Smelt Copper    CopperOre x5       -\u003e CopperIngot x1\n30601004  Smelt Iron      IronOre x5         -\u003e IronIngot x1\n```\n\n当前开局任务链：\n\n```text\n开场 Story 10001\n  -\u003e 60000001 Scavenge the Shore\n  -\u003e 60000002 Build a House\n  -\u003e 60000003 Craft a Basic Axe\n  -\u003e 60000004 Chop Down a Tree\n  -\u003e 60000005 Craft a Basic Pickaxe\n  -\u003e 60000006 Break Rocks\n  -\u003e 60000007 Build a Workbench\n```\n\n地图对象对应：\n\n```text\n任务目标用 ItemGainCount / Blueprint / BuildBuildingType，不直接绑定地图对象实例。\n地图编辑器放置 Resource 对象时，ConfigId 应填写 resource.id：\n\n30300008 Branch      -\u003e 拾取后获得 Wood\n30300009 Loose Stone -\u003e 拾取后获得 Stone\n30300001 Tree        -\u003e 斧采集后获得 Wood\n30300002 Rock        -\u003e 镐采集后获得 Stone\n\n当前默认世界地图 Assets/Data/Map/1001.json 已放置开局资源：\nBranch x3、Loose Stone x2、Tree x1、Rock x1 在地图中心附近。\n```\n\n## Story 衔接\n\n当前 Story 是简单文字剧情系统，不是视频系统或复杂 cutscene 系统。更完整的 Story 实现细节见 `Docs/Modules/Story.md`。\n\n流程：\n\n```text\nStoryManager 加载 StoryConfig\nStoryPresenter 打开 StoryPanel\nStoryPanel 显示几行文字\n玩家点击继续\nStory 完成\nStory 完成后可通知 QuestManager\n```\n\n当前正式开场 Story：\n\n```text\nId: 10001\nTitle: Ashore\nTriggerMode: AutoOnNewGame\n完成事件: QuestEventType.CustomFlag + 10001\n```\n\n## Quest UI\n\n```text\nAssets/Arts/UI/Panels/Quest/QuestPanel.prefab\nAssets/Arts/UI/Panels/Quest/QuestSlot.prefab\nAssets/Scripts/Game/UI/Management/QuestPanel.cs\nAssets/Scripts/Game/UI/Management/QuestSlotView.cs\n```\n\n行为：\n\n```text\n左侧显示当前可见任务\n点击左侧 slot，右侧显示任务详情\nTrack 按钮根据是否当前追踪改变文字\n右侧目标行显示图标和数量，不显示目标类型名\n右侧按钮根据任务状态改变文字\n领奖后任务从列表隐藏\n```\n\n注意：`QuestSlotView` 不应在运行时强改 slot 子节点布局。Prefab 布局、`LayoutElement`、`VerticalLayoutGroup` 负责尺寸和排列；代码只绑定数据、进度、选中态和按钮回调。\n\n## 当前状态\n\n已完成：\n\n```text\nQuest 多目标 snapshot\nQuest state / save / event / message\nQuest 前置任务判断\nQuest 追踪任务\nQuest 完成和领取状态\nQuest 完成消息与 Toast 监听器\nStory 简单文字流程\nStory 完成触发 QuestEvent\nBlueprint 完成触发 QuestEvent\nQuestPanel 左列表右详情\nQuestSlot 点击切换详情\nTrack / Tracking 文本状态\n右侧按钮状态文本\nClaimed 任务隐藏\nQuest 领取奖励发放到 BagManager / ItemManager\nQuest UI 详情奖励行读取 reward\nQuest / Blueprint / Story 正式 Luban 表读取\n```\n\n仍需完善：\n\n```text\n任务配置编辑规范\n更多目标类型接入具体玩法\nQuest / Blueprint / Story 的多语言内容继续补进 localization.xlsx\n任务奖励 Toast / 获得反馈继续打磨\n```\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "modules-abilityandskill-md",
+        "group":  "模块",
+        "title":  "Ability 与 Skill",
+        "path":  "Modules/AbilityAndSkill.md",
+        "summary":  "技能、Buff、投射物和兼容配置的当前状态。",
+        "content":  "# Ability And Skill\n\n本文记录 Ability / Skill 系统当前状态。\n\n## 定位\n\nAbility 系统主要服务塔防战斗中的技能、Buff、投射物和效果。岛屿经营当前不是 Ability 系统的重点。\n\n## 目录\n\n```text\nAssets/Scripts/Ability\nAssets/Scripts/Skill\nAssets/Scripts/Game/TowerDefense/AbilityAdapters\nAssets/Scripts/Game/TowerDefense\n```\n\n## 当前数据\n\n正式 Luban 表包括：\n\n```text\nData/Excel/AbilityConfig.xlsx\nData/Excel/AbilityAction.xlsx\nData/Excel/AbilityModifier.xlsx\nData/Excel/AbilityModifierProperty.xlsx\nData/Excel/AbilityProjectile.xlsx\nData/Excel/AbilitySpecialValue.xlsx\nData/Excel/AbilitySystemEnum.xlsx\n\nData/Excel/skill.xlsx\nData/Excel/skill_action.xlsx\nData/Excel/skill_modifier.xlsx\nData/Excel/skill_system_enum.xlsx\n```\n\n生成代码：\n\n```text\nAssets/Scripts/Game/Data/Generated\n```\n\n当前 `Tables` 同时包含 Ability 表和旧 Skill 表。\n\n当前接入状态不是对等的：`Ability*.xlsx` 目前为空，`DataManager` 也没有把这些表转换成 Ability 运行时定义；现有可运行技能来自 `skill.xlsx`、`skill_action.xlsx`、`skill_modifier.xlsx`，再由 `AbilityConfigConverter` 转入 Ability core。完整字段说明见 `Docs/Architecture/ExcelDataDictionary.md`。\n\n## 当前结构\n\n```text\nAbility core\n  -\u003e 通用技能运行时\n\nSkill legacy\n  -\u003e 较旧技能配置和兼容\n\nGame/TowerDefense/AbilityAdapters\n  -\u003e 把基地、防御塔、敌人、地图等业务对象适配到 Ability core\n```\n\n## 当前中间层\n\n项目已经存在 Ability 与塔防业务之间的中间层，不需要重新编写一套平行系统：\n\n```text\nAbilityManager\n  -\u003e 中间层入口；初始化 AbilitySystem、注册配置定义、缓存业务对象适配器并转发施法/战斗请求\n\nTdUnit\n  -\u003e 把 Npc、Tower、Base 包装为 Ability core 的 IUnit\n\nTdWorld\n  -\u003e 把塔防场景中的动态对象提供给 Ability core 做范围和目标查询\n\nTdResourceOwner\n  -\u003e 把业务资源映射为技能消耗资源\n\nTdPresentation\n  -\u003e 把技能框架的特效和音效请求映射到业务表现系统\n\nAbilityConfigConverter\n  -\u003e 把当前 Excel/Luban 数据转换为 AbilityDefinition、ModifierDefinition 等运行时定义\n```\n\n当前绑定由两条路径共同完成：`NpcManager`、`TowerManager` 和 `BaseManager` 发布不包含 Ability 类型的业务生命周期事件，中间层订阅事件后立即注册或注销对应适配器；`AbilityManager.GetUnit(...)` 的延迟绑定和每帧同步继续作为兼容与异常销毁兜底。适配器使用战斗内稳定实体 ID，注销时由 Ability core 统一清理关联技能、Modifier、投射物、Thinker 和持续表现句柄。`BattleFlowManager` 在结算完成后发布业务中立的战斗结束事件，中间层随即清空 Ability Runtime、适配器缓存和实体 ID；统一清理期间不会执行配置型 Modifier 的销毁伤害、治疗或派生动作。状态与现有移动/攻击属性已经通过中间层回传；以后增加新的业务属性时仍须沿用同一边界补充映射。\n\n第二阶段在现有中间层上增量修改，不推倒重写，也不再建立另一套重复的适配系统。只有当现有单个适配器确实无法继续扩展时，才在保持现有接口和调用兼容的前提下拆分实现。\n\n## 解耦与接入原则\n\n以下三条是 Ability 系统后续设计、实现和代码审查必须遵守的边界：\n\n1. **技能框架不能耦合业务层代码。** `Game.Ability` 不得引用 `Npc`、`Tower`、`BaseManager`、`DataManager`、业务单例、业务配置类型或具体资源/表现实现。框架只依赖自身定义和抽象接口。\n2. **业务对象不能以耦合方式直接传入技能框架。** `Npc`、`Tower`、`Base`、召唤物、陷阱和其他动态目标不直接实现或持有 Ability 框架类型。它们由中间层注册或绑定，中间层使用适配器将业务对象转换为 `IUnit`、`IResourceOwner`、`IWorld`、`IPresentation` 等框架接口后再交给 Ability core。增加新的业务目标类型时，应增加或注册适配器，不应修改 Ability core 以认识该业务类型。\n3. **技能框架产生的属性、状态和表现必须在业务对象上形成闭环。** 中间层负责把业务对象的阵营、类型、位置、存活、基础属性和基础状态提供给框架；再把框架计算出的伤害、治疗、Modifier 属性、眩晕/沉默/魔免等最终状态，以及特效、音效、投射物和持续表现请求，正确应用或映射回对应的业务对象。对象死亡、销毁、出售、升级替换或战斗结束时，中间层必须清理相关技能实例、Modifier、目标引用和持续表现。\n\n依赖方向固定为：\n\n```text\n业务对象\n  -\u003e 业务中立的战斗调用/生命周期通知\n  -\u003e Ability 中间层（注册、绑定、转换、回传）\n  -\u003e Ability core\n\nAbility core\n  -\u003e 抽象结果和表现请求\n  -\u003e Ability 中间层\n  -\u003e 业务属性、状态和表现\n```\n\n## 使用原则\n\n- 新塔防技能的运行时优先走 Ability core；在原生 Ability Excel 转换链完成前，配置仍写入当前已接通的 `skill*.xlsx`。\n- 旧 Skill 表和转换器可保留一段时间作为兼容层。\n- 不要把 Ability core 写死到塔防具体类里。\n- 优先扩展现有 Ability 中间层，不在业务代码中复制技能规则，也不建立第二套平行适配层。\n- 经营系统需要技能或工具效果时，先评估是否真的复用 Ability，不要强行耦合。\n\n## 阶段编号基准\n\n后续阶段沿用最初评审规划的编号，不重新合并或改名：\n\n```text\n第二阶段：修复当前会触发的问题\n第三阶段：修复 Ability Core\n第四阶段：配置验证器\n第五阶段：为 JSON 复杂技能预留 Provider\n第六阶段：技能编辑器\n```\n\n动态业务对象注册/注销、中间层生命周期和战斗结束清理属于第二阶段的补充工作，不替代也不改变第三阶段。\n\n## 第二阶段：已完成的当前问题修复\n\n- `ActionRunner` 不再使用静态共享目标列表；每次动作执行租用独立列表并在 `finally` 归还，嵌套 Modifier/Action 不会覆盖外层目标。\n- Poison Cloud 的周期组现在对 Modifier Parent 每秒造成 15 点魔法伤害。首次伤害在 1 秒后发生，持续 6 秒共 6 跳；大帧会补齐已完成周期，但不会执行过期后的额外跳数。\n- 战斗 HUD 采用 `BattlePage + UIEmbeddedPanelGroup`，由父页面完整下发嵌入面板的 Create/Open/Close；Skill、Item、Build、Info、Status、Control 和 MiniMap 不再依赖未触发的子 `UIPanel.OnCreate`。\n- 技能塔以 `TowerLevelConfig` 作为范围、基础伤害、攻击间隔和弹道表现的唯一来源；Ability 只附加冻结、分裂、眩晕等额外行为。技能失败时普通攻击继续，只有实际攻击后才重置攻击计时；Tower Level 会同步到 Ability Level。\n- 同一 Action Group 不再重复配置相同自动特效。`skill_modifier.effectLocation` 不再错误转换为一次性 `OnCreated PlayEffect`，而是映射到由 Modifier 生命周期持有的持续表现句柄。\n- 正式修改只写入 `Data/Excel/skill*.xlsx`，随后使用 Luban 同步生成 JSON/Bin；`skill_luban_excels_fixed` 仍只是历史备份。\n\n## 第三阶段：已完成的 Ability Core 修复\n\n第三阶段处理当前简单数据不容易触发、但复杂技能会立即遇到的 Core 语义问题。\n\n### Modifier 事件作用域\n\n- `DamageTaken` 默认只允许事件目标为 Modifier Parent。\n- `DamageDealt` 默认只允许事件来源为 Modifier Parent。\n- `AbilityExecuted`、`AbilityFullyCast` 默认要求施法者为 Parent 或 Caster。\n- 只有显式声明的特殊情况才允许全局事件。\n- 配置型 Modifier 不得仅按事件类型接收全局广播后直接执行动作；自定义 C# ModifierScript 仍可自行处理全局事件。\n\n### 统一单位最终状态\n\n`AbilitySystem.HasState` 作为技能框架内唯一最终状态来源，合并业务适配器提供的基础状态与 Modifier 状态。伤害、选目标、施法和业务查询都必须通过统一状态检查：\n\n```text\nInvulnerable\nMagicImmune\nUntargetable\nStunned\nSilenced\nRooted\nCommandRestricted\n```\n\n### 施法前摇与中断\n\n前摇结束时重新检查施法者存活、眩晕/沉默、Ability Activated、冷却与资源、目标存活、距离、视野及自定义 `CastFilter`。目标注销时取消仍锁定该目标的前摇或引导；失败不得消耗资源、充能或冷却。\n\n### 其他已记录 Core 缺陷\n\n- 非删除型线性投射物对同一目标只能命中一次。\n- 充能恢复从实际消耗充能后开始，并按完整恢复周期逐层恢复。\n\n### 第三阶段验收\n\n- 对应五项 KnownDefect 测试已全部解除 `Ignore`，并补充前摇结束重跑 `CastFilter`、Modifier 授予 `Untargetable`、显式全局事件、充能大帧补期和 `RootDisables` 行为测试。\n- 复杂事件链、Modifier 嵌套、目标中途失效和穿透投射物行为可预测。\n- Core 仍只依赖抽象接口，不引入任何塔防业务类型。\n\n实现结果：配置型 Modifier 事件默认按 Parent/Caster 关系过滤，只有 `TriggerEventScope = Global` 才接收无关对象事件；伤害、目标过滤、施法和业务适配查询统一通过 `AbilitySystem.HasState` 合并业务基础状态与 Modifier 状态；施法前摇及引导期间会响应死亡、眩晕、沉默、RootDisables 和 CommandRestricted，前摇结束重新验证冷却、资源、目标、距离、视野和自定义过滤；单位注销会中止仍引用该单位的前摇或引导；非删除投射物记录已命中的实体 ID；充能从首次实际消耗开始计时并保留大帧跨周期余量。自动寻敌也改为使用当前 Ability Level、脚本修正后的 CastRange 和 Modifier CastRangeBonus，不再固定读取 1 级配置。\n\n## 第四阶段：已完成的配置验证器\n\n继续使用 Excel，但技能生成前必须完成语义验证：\n\n```text\nID、内部名称及配置来源重复\nAction、Modifier、Projectile、资源和特效引用缺失\nUnitTarget 技能缺少合法目标类型\n周期 Modifier 没有周期动作\n被动技能缺少 Intrinsic Modifier\n未使用技能和孤立 Modifier\n直接或间接循环引用\n塔攻击间隔与技能冷却冲突\n同一特效被自动和显式重复播放\n配置声明了运行时尚不支持的属性\nExcel、生成 JSON/Bin 之间的版本与内容不一致\n```\n\n错误分级：`Error` 禁止生成；`Warning` 允许生成但必须在编辑器显示；`Info` 用于未使用配置和样例数据。验证器同时提供生成流程结果和 Unity Editor 可读报告，并能定位引用链。\n\n实现结果：`AbilityConfigurationValidator` 位于 Ability 配置层，只接收来源无关的配置目录和 Source 元数据，不依赖塔防业务类型；Excel 适配器读取当前权威 `skill*.xlsx`、道具/资源表和塔等级绑定，把问题定位到文件、Sheet、行号、字段与引用链。当前规则覆盖重复 ID/名称/Action 顺序、缺失 Action Group/Modifier/Projectile/资源/特效、UnitTarget 目标、周期动作 Parent 语义、被动 Intrinsic、Modifier 直接/循环引用、塔攻速与技能冷却冲突、重复特效、无效枚举/运行时不支持字段、未引用技能/Modifier/Action Group。空的 `Ability*.xlsx` 仍是未接入脚手架，一旦误填数据会按 Error 阻止生成，避免出现“配置成功但运行时完全不读取”。\n\nUnity 菜单 `Luban/Validate Ability Excel` 可独立校验并把 Error/Warning/Info 输出到 Console；`Luban/Update All` 在修改 XML 或生成前先校验。命令行 `Data/gen_client.bat` 调用同一套验证代码，Error 返回非零退出码并停止 Luban；`gen_all.bat` 也会传播失败，不再带错继续生成 Wave。当前正式 Excel 实测结果为 0 Error、0 Warning、6 Info，Info 均为“未发现配置绑定，可能由 UI/代码显式调用”。\n\n## 第五阶段：已完成的 JSON 复杂技能 Provider 基础\n\nExcel 和 JSON 只负责提供数据，核心继续接收统一的 Ability 定义：\n\n```text\nExcelAbilityDefinitionProvider ┐\n                               ├─ AbilityRegistry\nJsonAbilityDefinitionProvider  ┘\n```\n\n- 一个技能只能来自 Excel 或 JSON 中的一个权威来源。\n- 重复 ID 或名称直接报错，不按加载顺序覆盖。\n- JSON 源目录与 Excel 生成 JSON/Bin 目录分开。\n- 注册记录保留 `SourceType` 和源文件位置，便于报错定位。\n- JSON 技能可以引用全局公共 Modifier；私有 Modifier 建议使用技能命名空间。\n- Excel 和 JSON 都转换为同一套 `AbilityDefinition`、`ModifierDefinition`、`ActionDefinition`，Runtime 不判断来源。\n- 该阶段只建立 Provider 接口、校验和少量复杂技能样例，不急于迁移现有 Excel 技能。\n\n实现结果：Ability core 新增 `IAbilityDefinitionProvider`、`AbilityDefinitionBundle`、`AbilityDefinitionOrigin` 和 `AbilityDefinitionRegistry`。Registry 按技能、Modifier、Projectile 分别检查稳定 ID 与内部名称；Excel/JSON 任一来源发生冲突都会报 Error，保留两侧 SourceType、源文件和引用链，且 `ApplyTo(AbilitySystem)` 直接拒绝整个无效 Registry，不存在“后加载覆盖先加载”。合并后再次验证 Intrinsic、Aura、AddModifier 和 Projectile 引用。\n\n当前 Luban `skill*.xlsx` 由中间层 `ExcelAbilityDefinitionProvider` 转换，不再由 `AbilityManager` 直接逐表写入 Core 注册表；`AbilityManager.AddDefinitionProvider` 可在初始化前追加 JSON 等来源，之后统一合并、校验并一次性应用。JSON 由 `JsonAbilityDefinitionProvider` 转换为相同的 `AbilityDefinition`、`ModifierDefinition`、`ProjectileDefinition` 和 `ActionDefinition`，支持等级数值、Special Value、充能、生命周期动作、事件作用域、属性/状态、Aura、嵌套动作及本地 Projectile。JSON 可以按精确名称引用 Excel 或其他 Provider 的公共 Modifier；私有 Modifier/Projectile 未使用文档 namespace 前缀时会产生 Warning。\n\n手写 JSON 源目录为 `Data/AbilityJsonSources`，与 Luban 生成目录 `Assets/Data/Json` 完全分开；样例 `Samples/chain_reaction.sample.json` 只作为格式和测试数据，不会自动迁移或覆盖现有 Excel 技能。现阶段仍以 Excel Provider 为默认来源，只有显式在初始化前注册的 JSON Provider 才参与运行时。\n\n## 第六阶段：技能编辑器（基础能力已完成）\n\n编辑器分多次实施，不直接从完整节点编辑器开始：\n\n1. 先制作技能配置检查器：搜索、筛选、引用关系、错误定位和只读预览。\n2. 再制作普通字段表单和 JSON 树形编辑，支持复制子效果、折叠嵌套和局部校验。\n3. 实际复杂技能数量和重复维护成本足够高时，再扩展完整节点编辑器。\n\n编辑器必须修改权威源文件并复用第四、第五阶段的校验和 Provider 管线，不得直接修改生成 JSON/Bin。\n\n同时提供只读运行时调试窗口，查看中间层注册对象、稳定实体 ID、技能阶段/冷却/充能、Modifier 状态与属性贡献、目标过滤与 Action 链、投射物/Thinker/持续表现，以及注销或战斗结束后的残留对象。\n\n第六阶段完成标准：配置人员可以追踪任意技能的引用链；复杂 JSON 技能经过项目级合并校验后可以安全编辑；运行时调试窗口可以证明对象注销后没有残留技能、Modifier、投射物、Thinker 和表现句柄。是否继续扩大完整图编辑器，由实际技能样本决定。当前只完成单文件 JSON 表单和单 Provider 校验，项目级 Excel + 全部 JSON 合并校验仍列入下方 TODO。\n\n第一轮实现位于 Unity 菜单 `Tools/Ability/Workbench`，包含三个页签：\n\n- **Excel 检查器**：复用第四阶段验证器，显示 Error/Warning/Info 数量，支持搜索、严重级别筛选、源文件定位、技能只读字段、Action Group 及其 Modifier 引用关系。它只读取权威 Excel，不修改 Luban 生成 JSON/Bin。\n- **JSON 编辑**：打开或新建 `Data/AbilityJsonSources` 下的文档，以 Unity SerializedProperty 树形表单折叠编辑 Ability、Modifier、Projectile、Special Value 和 Action 数组；数组元素可使用 Unity 标准数组菜单复制。保存前把当前内存文档交给 `JsonAbilityDefinitionProvider + AbilityDefinitionRegistry` 做单文件校验，存在 Error 时拒绝写盘。当前不会同时加载 Excel 和其他 JSON，因此不能在这里最终证明跨来源引用、名称和 Stable ID 没有冲突。保存会格式化 JSON，不保留注释和未知字段，窗口中已明确提示。\n- **运行时调试**：Play Mode 下每 0.25 秒显示中间层业务对象 ID 到稳定 Runtime EntityId 的绑定，以及技能 Level/Phase/Cooldown/Charges、Modifier 剩余时间/状态/属性贡献、Projectile、Thinker 和持续表现句柄。`AbilitySystem.CreateRuntimeSnapshot` 只返回框架中立快照；业务对象名称和绑定信息仍由中间层补充。对象注销或战斗结束后，列表应归零，已有回归测试覆盖快照和表现句柄在 `RemoveUnit` 后清空。\n\n持续表现现在通过 `IPresentationHandle` 建立可停止生命周期：Modifier 创建时请求句柄，移除、对象注销和战斗清理时统一停止；`TdPresentation` 即使异步资源在停止后才加载，也会立即销毁实例，避免结算后“迟到特效”；调试快照可枚举活动句柄。至此第六阶段的 Excel 检查、单文件 JSON 表单和只读运行时证明链已经具备。完整节点图编辑器仍按原计划暂不制作，它是根据真实复杂技能数量决定的可选扩展，不是当前完成条件。\n\n## 完整检查后的 TODO（2026-07-18）\n\n本节来自对 Ability Core、配置/Provider、塔防适配层、Npc/Tower/Base 实际调用链、当前 7 个技能及现有测试的完整检查。它是原第二至第六阶段之后的修正和补强清单，不改变前面的阶段编号。当前结论是：简单 Excel 技能的基础链路可继续使用；JSON 只完成定义层基础，尚未端到端接入业务；复杂 Dota 式事件技能还不能直接投产。\n\n### P1：复杂技能投入前必须完成\n\n- [ ] **Action 与事件递归保护**：为一次施法/事件链增加最大嵌套深度、最大 Action 数和可诊断的中止原因；为 Modifier 周期补偿增加单帧最大触发数，防止 `DamageTaken -\u003e Damage -\u003e DamageTaken`、ModifierAdded 链和极小 Interval 卡死主线程。\n- [ ] **战斗事件入口**：在 Core 提供受控的业务事件通知 API，由中间层接入 `AttackStart`、`AttackLanded` 和 `Death`；当前这些事件可以配置和通过验证，但业务从未广播它们。\n- [ ] **点目标空放规则**：`CastAbilityAtBestTarget` 找不到目标时不能默认向 Caster 位置成功释放 Frost Nova、Poison Cloud 等技能并消耗资源。需要返回 `InvalidTarget`，或为允许空地释放的技能增加明确配置。\n- [ ] **运行时能力矩阵**：逐项确认并实现或禁用 `ArmorBonus`、`HealthRegen`、`CooldownReductionPercent`、`Disarmed`、`Muted`、`Hexed`、`OutOfGame`、`NoUnitCollision`、`NonLethal/HpLoss/IgnoreBlock`、`CastBackswing`、`AutoCast`、`Immediate`、`Queue` 和 Projectile Vision。未实现能力必须由 Excel/JSON 验证器按 Error 阻止，不能静默加载。\n- [ ] **独立 Modifier 动作**：修复 `AddModifierToNpc/Tower/Base` 产生的无 Ability Modifier。当前 `ActionRunner` 要求 `context.Ability != null`，导致这类 Modifier 的 OnCreated、Interval、Trigger 和 OnDestroy 配置动作静默不执行。\n- [ ] **自定义脚本清理重入**：战斗清理期间禁止或安全处理自定义 `AbilityScript/ModifierScript.OnRemoved/OnDestroy` 再创建 Ability、Modifier、Thinker 或表现句柄，确保新建对象不会被容器直接丢弃。\n\n### P1：JSON 真正接入业务\n\n- [ ] **Provider 加载清单**：建立明确的 JSON 源清单和启动加载器，在 `AbilityManager.Initialize` 之前注册批准的 JSON Provider；示例目录继续不自动加载。\n- [ ] **来源无关的技能键**：业务门面不能只接收 Excel `int skillId`。建立可同时表示 Excel ID 和 JSON Stable ID/Name 的 Ability Key，并提供不泄漏 `IUnit`、Core `CastResult` 的 Npc/Tower/Base 添加与释放接口。\n- [ ] **资源和业务绑定**：定义 JSON 技能如何选择业务资源、进入技能栏、绑定 TowerLevel/单位模板，以及如何显示本地化名称、描述和图标。完成之前，JSON Ability 即使进入 Registry 也无法通过正常业务入口使用。\n- [ ] **项目级合并校验**：Workbench 和命令行校验必须一次加载权威 Excel、全部启用 JSON 和业务绑定，检查跨来源公共 Modifier 引用、名称/Stable ID 冲突、资源及表现引用。单文件 Provider 校验只能作为局部反馈。\n- [ ] **严格 JSON 语义校验**：补 Behavior/Target/State/Attribute/Event/DamageType/DamageFlags、LevelValue、Charges、持续时间、Projectile 参数、被动 Intrinsic、Toggle 行为、Modifier 环和事件反馈环检查；未知字段和拼写错误不能由 JsonUtility 静默忽略。\n- [ ] **真实复杂技能验收**：至少制作两个实际由业务加载的 JSON 技能，一个覆盖 Projectile Hit/事件链，一个覆盖 Aura/Thinker/周期区域；不能只使用“创建投射物后立即对原目标伤害”的样例证明投射物技能完成。\n\n### P1：当前业务表现与技能语义\n\n- [ ] **实际音效适配**：`TdPresentation.PlaySound` 当前只输出日志。接入正式音频服务，并统一 Excel 数字声音 ID 与 JSON 资源名的解析规则。\n- [ ] **Modifier 表现字段拆分**：将单一 `effectLocation` 拆为 `onApplyEffect`、`loopEffect`、`onRemoveEffect`。当前 Modifier 使用非循环 `IceHitEffect.prefab` 作为持续句柄，粒子结束后空对象会保留到 Modifier 销毁；Action 命中特效与 Modifier 特效还可能重复播放。\n- [ ] **Projectile 逻辑与表现绑定**：投射物表现必须跟随 Core Projectile 位置并在销毁时停止；线性投射物改为线段/扫掠检测，避免低帧率或高速穿透；Tracking Projectile 增加最大距离或寿命；处理战斗结束后异步加载的一次性特效。\n- [ ] **Poison Cloud 设计确认**：当前实现是“释放瞬间给范围内单位添加 6 秒 DoT”，不是持续地面云，后来进入范围的单位不会中毒。若设计要求真正毒云，应使用 Thinker/区域 Modifier；否则修改名称和说明，避免配置语义误解。\n- [ ] **Attack Speed Aura 设计确认**：`50001001` 当前没有业务绑定，也不是真正 Aura，只是拥有者自身的 Intrinsic AttackSpeed Buff。决定是实现范围 Aura，还是更名为 Self Buff 并明确绑定对象。\n- [ ] **塔技能等级**：Legacy Excel 转换需要明确等级策略。当前 `AbilityDefinition.MaxLevel` 默认为 1，Tower Level 2/3 虽传入 Ability，最终仍会 Clamp 为 1；在加入等级技能前必须修复或明确全部附加行为保持常量。\n\n### P2：中间层边界与扩展性\n\n- [ ] **收紧业务门面**：减少公开 `AbilityManager.Engine`、`IUnit`、Core `CastResult`、`AbilityScript` 等类型；MapManager、TowerManager 等业务代码使用中间层自己的结果 DTO 和失败原因，避免 Core 类型继续扩散。\n- [ ] **通用动态对象绑定**：把 Npc、Tower、Base 三套硬编码字典和 `TdUnitKind` switch 收敛为适配器/绑定注册表，使召唤物、陷阱和其他动态目标只注册新适配器，不修改多处分支。\n- [ ] **统一单位身份语义**：Core 中状态、属性、Purge、Modifier 刷新等路径统一按稳定 EntityId 或明确的身份比较器判断同一单位，不能一部分按引用、一部分按 EntityId。当前 TdUnit 缓存只能保证已有三类对象不触发问题。\n- [ ] **移出塔防专属验证**：`TowerAbilityBindingRecord` 和塔攻击间隔规则从 `Game.Ability.Configuration` 移到塔防/Editor 验证扩展，保持 Core 配置层的业务中立。\n- [ ] **定义重载/重初始化**：明确 `AbilitySystem.Initialize` 是否清空定义和脚本工厂。当前只清运行时，删除或禁用的定义可能留在 Engine；若支持重新加载配置，需要原子替换 Definition Registry。\n- [ ] **死亡和治疗闭环**：死亡事件应在 HP 首次降为 0 时立即进入技能事件链，而不是等待异步死亡动画结束后注销；治疗通过业务 Manager/事件更新，而不是由 TdUnit 直接修改 NpcData，确保 UI、统计和任务系统收到一致通知。\n\n### P2：规模与性能\n\n- [ ] Modifier 按 Parent EntityId 建索引，避免每个单位每帧查询状态/属性时扫描全局 Modifier。\n- [ ] `IWorld` 接入空间索引；Projectile、Aura、AOE 不再每次扫描全部 Npc/Tower/Base。\n- [ ] 复用 Targeting、FindUnits、Projectile 和 Ability Update 的临时集合，减少战斗帧 GC。\n- [ ] 统一 Modifier、Thinker、Charge 在大帧下的周期补偿语义，并为补偿次数设置上限。\n\n### 测试与验收 TODO\n\n- [ ] 为事件递归预算、AttackLanded/Death、独立 Modifier、点目标空放、扫掠投射物、Tracking Projectile 生命周期和自定义清理重入增加 Core 回归测试。\n- [ ] 建立 `AbilityManager + TdUnit + TdWorld + TdPresentation` 的中间层测试，覆盖注册、对象替换、死亡、出售、升级替换、Base 清理和战斗结束。\n- [ ] 对 Fireball、Frost Nova、Ice Tower Shot、Heal、Poison Cloud、Stun Bolt、Attack Speed Aura 建立数据到业务结果的端到端验收，不能只验证表行和转换结果。\n- [ ] JSON 测试必须覆盖 Excel + 多 JSON 同时加载、跨来源引用/冲突、业务资源消耗、UI/Tower 绑定和 Release 后零残留。\n- [ ] 当前相关测试源码共有 44 个，项目编译与配置验证通过；按此前约定尚未执行 Unity Test Runner。正式发布前仍需在 Unity 中实际执行 EditMode/Integration 测试并保存结果。\n\n### 延后事项\n\n- [ ] 完整节点技能编辑器继续延后。先完成运行时安全、JSON 业务接入和项目级校验，再根据真实复杂技能数量决定是否制作。\n- [ ] `Assets/Scripts/Skill` 旧框架当前没有业务调用。待 Ability 端到端测试稳定并确认没有外部反射/资源引用后，再标记 Obsolete、迁移文档并最终删除，避免两套技能概念重新进入业务。\n"
+    },
+    {
+        "id":  "modules-mapandtileart-md",
+        "group":  "模块",
+        "title":  "地图与地块美术",
+        "path":  "Modules/MapAndTileArt.md",
+        "summary":  "地图地块美术当前方向和不继续的旧方案。",
+        "content":  "# Map And Tile Art\n\n本文记录地图美术当前方向。地图运行时数据见 `Docs/Architecture/MapRuntime.md`。\n\n## 当前结论\n\n第一阶段不要做复杂邻接融合。\n\n当前方向：\n\n```text\n完整基础地块 prefab\n+ 自动顶部装饰 prefab\n+ 统一材质和柔和光照\n```\n\n目标：\n\n```text\n单个地块好看\n直接相邻也能接受\n不依赖邻居规则才好看\n先完成可用美术资源，再考虑过渡系统\n```\n\n## 暂不继续的旧方案\n\n第一阶段不要继续：\n\n```text\nTopSurface\nTopicTop\nShader 邻接融合\n5-slice / 9-slice 地块切片\n按邻居动态换边缘\n大量一次性生成菜单工具\n```\n\n## 地块结构\n\n推荐结构：\n\n```text\nTileRoot\n  Topic\n    TopBody\n  Base\n    Soil\n    Rock\n```\n\n规则：\n\n```text\n尺寸：1 x 1 x 1\n外轮廓：规则方形，保证稳定拼接\n顶部：可以圆角、柔和、有固定风格\n细节：靠自动装饰补，不烤进基础模型\n```\n\n## 顶部装饰\n\n顶部装饰使用独立 prefab：\n\n```text\nGrass -\u003e grass clump / flower / pebble\nWater -\u003e lily pad / reed / stone\nSnow -\u003e snow lump / dead grass\nHill -\u003e pebble / dry grass\nRoad -\u003e pebble / footprint / crack\n```\n\n当前测试资源：\n\n```text\nAssets/Arts/Map/Tiles/Generated/Decorations/GrassClump_A.prefab\nAssets/Arts/Map/Tiles/Generated/Decorations/SmallFlower_A.prefab\nAssets/Arts/Map/Tiles/Generated/Decorations/Pebble_A.prefab\n```\n\n## Grass 原型\n\n```text\nAssets/Arts/Map/Tiles/Generated/ReferenceStyleGrassTile.blend\nAssets/Arts/Map/Tiles/Generated/ReferenceStyleGrassTile.fbx\nAssets/Arts/Map/Tiles/Generated/ReferenceStyleGrassTile_preview.png\nAssets/Arts/Map/Tiles/Generated/ReferenceStyleGrassTile_Test.prefab\n```\n\n生成脚本：\n\n```text\nTools/Art/Blender/create_reference_grass_tile.py\n```\n\n`ReferenceStyleGrassTile_Test.prefab` 是测试 prefab，不是最终 Grass prefab。\n\n## 材质方向\n\n```text\nTileTopSoftLit.shader\nGrassTop_Stylized.mat\nSnowTop_Stylized.mat\nRoadTop_Stylized.mat\nWaterTop_Stylized.mat\n```\n\n目标：\n\n```text\n柔和\n卡通\n商业化\n不要过度写实\n不要强烈噪声\n不同地块颜色要区分，不要一片单调绿\n```\n\n## 注意\n\n- 自动装饰要低密度，不能遮住地块本体。\n- 基础 tile 本身必须好看，装饰只是加分。\n- 地图编辑器和运行时都应以当前正式 prefab 为准。\n- 不要为了测试资源直接覆盖正式地块，先做预览确认。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "modules-towerdefense-md",
+        "group":  "模块",
+        "title":  "塔防模块",
+        "path":  "Modules/TowerDefense.md",
+        "summary":  "塔防业务模块入口。",
+        "content":  "# Tower Defense Module\n\n本文记录塔防业务模块入口。产品边界见 `Docs/Product/TowerDefenseMode.md`。\n\n## 目录\n\n```text\nAssets/Scripts/Game/TowerDefense\n  AbilityAdapters\n  Base\n  Battle\n  Effects\n  Enemy\n  Messages\n  Settlement\n  Targeting\n  Tower\n  Wave\n```\n\n相关旧目录仍存在：\n\n```text\nAssets/Scripts/Game/Tower\nAssets/Scripts/Game/Wave\nAssets/Scripts/Game/Battle\n```\n\n## 地图入口\n\n经营大地图和塔防战斗地图统一由 `MapManager.Instance` 加载，但使用两个语义明确的入口：\n\n```csharp\nMapManager.Instance.LoadWorldMap(worldMapId);\nMapManager.Instance.LoadBattleMap(mapConfigId);\n```\n\n- 经营主界面的正式入口是 `WorldMainPanel/RightBar/BattleEntry`，当前默认加载 `map.xlsx` 的 `30950001`。\n- `LoadWorldMap` 接收世界地图 id，加载 `Assets/Data/Map/{worldMapId}.json`，创建经营运行时并显示 `WorldMainPanel`。\n- `LoadBattleMap` 接收 `map.xlsx` 的配置 id，通过 `MapConfig.MapId` 定位地图 JSON，初始化战斗金币、基地、波次和 `BattlePage`。\n- 战斗内重开和下一关分别使用 `RestartCurrentBattleMap`、`LoadNextBattleMap`；相关 API 保留 `Battle` 语义。\n- 两个入口继续复用 `MapManager.LoadMapData`、地图索引和 `CreateMap`。不要新增含糊的 `LoadMap` 入口。\n- 当前只维护一个 `MapManager.CurrentMap`。不要把 World / Battle 拆成两套同时存在的地图运行时状态；如果以后确实需要双地图常驻，再提取共享的 `MapRuntimeContext`。\n- `MapManager` 使用 `partial` 按职责组织：`MapManager.World.cs` 放经营地图入口与后处理，`MapManager.Battle.cs` 放塔防入口、HUD 和关卡导航，`MapManager.Loading.cs` 放共用数据加载，`MapManager.Persistence.cs` 放地图移除物存档；`MapManager.cs` 保留共享状态、地图生成、索引和查询。\n\n## UI 资源\n\n```text\nAssets/Arts/UI/Panels/Battle        BattlePage、战斗 Popup、子 Prefab 和模块图片\nAssets/Arts/UI/Icons/Towers         防御塔图标\nAssets/Arts/UI/Icons/Skills         战斗技能图标\n```\n\n旧路径 `Assets/Arts/UI/TowerDefense` 已停用。Prefab 运行时路径、本地化绑定工具、AssetBundle 收集配置以及 `tower.xlsx` / `skill.xlsx` 必须使用上面的新路径。\n\n## 战斗 UI 结构\n\n`BattlePage.prefab` 是完整战斗流程的 `UIPage`。`TopPanel`、建塔、道具、目标信息、技能、战斗控制和小地图分别是内嵌 `UIPanel`，由 `UIEmbeddedPanelGroup` 统一传递生命周期；Panel 内的 Slot、进度条、卡片和模型描述组件使用 `MonoBehaviour`。`TopPanel` 按当前 Prefab 的 `Base/Hp`、`Coin`、`Wave`、`Enemy` 层级显式绑定，避免依赖同名节点扫描。\n\n`BattleControlPanel/SystemButton` 复用经营大地图的系统菜单 `WorldMenuPanel.prefab`，通过 `PanelManager` 打开；语言和音量继续进入同一套 Menu 子面板与共享设置 API。结算仍是独立 Popup：\n\n```text\nAssets/Arts/UI/Panels/Menu/MenuPanel.prefab\nBattleResultPopup.prefab\n```\n\n战斗 UI 的运行时节点引用必须全部来自 Prefab 序列化。`BattleUiPrefabBinder` 负责一次性绑定和校验 Prefab；运行时代码不得用名称或层级扫描兜底。\n\n当前已接入暂停、倍速、音量持久化、语言切换、自动下一波、技能冷却、目标信息、道具执行器入口和世界血条。暂停控制在运行时显示 `PauseButton`，暂停后切换为 `PlayButton`，恢复时回到暂停图标。小地图仍保持禁用，不属于当前实现范围。目标模型预览使用 `BattleTargetPreviewDescriptor` 显式声明 Renderer、Animator 和需要禁用的运行时组件，并使用独立 Layer/Camera/Light culling mask。\n\n当前数据约束：\n\n- `tbitem.json` 的 27 项物品目前全部是 `useScope = 0`，因此战斗道具栏已具备校验、扣除和处理器注册链路，但还没有可实际释放的战斗道具；新增战斗物品时必须同时配置使用范围并注册对应处理器。\n- `tbnpc.json` 仍有 NPC 引用 `Assets/Arts/Character/Pirate/Pirate_Male.prefab`，仓库当前没有该 Prefab。NPC 数据修复前，目标模型预览会回退到图标，且使用该 NPC 的战斗生成也需要资源侧补齐。\n- `NotoSansSC-Regular SDF` 使用动态 atlas；`BattleUiPrefabBinder` 会保证 atlas 纹理可读，避免战斗 Popup 新增中文字符时生成失败。\n\n## NPC 动画\n\n塔防 NPC 动画由 `Assets/Scripts/Game/TowerDefense/Enemy/NpcAnimationController.cs` 管理，不复用经营玩家的 `ActionController`。\n\n```text\nWalk   Bool     控制移动循环\nAttack Trigger  播放攻击动作\nDie    Trigger  播放死亡动作\n```\n\n死亡动作通过 Animator 状态进度等待完成，超时使用 `Time.unscaledTime`，NPC 销毁时通过 cancellation token 终止等待。Animator 生成工具和运行时代码必须使用相同的 `Walk / Attack / Die` 参数名。\n\n## 与 Ability\n\n新塔防技能优先走 Ability 系统，塔防对象通过 `Assets/Scripts/Game/AbilityAdapters` 适配到 Ability core。\n\n## 与经营\n\n- 塔防结算奖励写回经营长期系统。\n- 塔防单局状态不要直接混进经营存档。\n- 经营建筑和塔防防御塔可以共享配置概念，但 manager 和运行时状态要分开。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "decisions-0001-naming-rules-md",
+        "group":  "决策",
+        "title":  "0001 命名规则",
+        "path":  "Decisions/0001-naming-rules.md",
+        "summary":  "命名规则：新代码默认不加 World / Game。",
+        "content":  "# 0001 Naming Rules\n\n## 结论\n\n新代码默认不要加 `World` 或 `Game` 前缀。\n\n只有在确实需要和塔防单局、框架通用能力、存档数据等概念区分时，才使用更明确的业务前缀。\n\n## 旧名字\n\n已有类名短期保留，不因为命名规则单独重命名：\n\n```text\nWorldMainPanel\nWorldBagPanel\nWorldBuildPanel\nWorldFarmPanel\nWorldProductionPanel\nWorldToolKitPanel\nWorldTopBarPanel\nWorldBottomBarPanel\nWorldEntryBarPanel\nWorldRightBarPanel\nWorldBuildingDetailPanel\nWorldBuildingManager\nWorldFloatingPanelLayout\n```\n\n这些类可能被 Prefab、存档或其它引用绑定。不要为了命名洁癖移动、重命名或删 `.meta`。\n\n原 `WorldGameplayController` 已在职责拆分时迁移为无前缀结构：\n\n```text\nGameplayController\nNavigationController\nActionController\nResourceInteractionController\nPlacementController\nCameraController\nBuildingPreview\nFarmAreaPreview\n```\n\n物品管理已完成职责迁移：\n\n```text\n原塔防 ItemManager      -\u003e BattleItemManager\n原 WorldItemManager     -\u003e ItemManager\n原 WorldItem            -\u003e ItemStack\n```\n\n`ItemManager` 表示跨场景持久物品；`BattleItemManager` 只保存单场塔防资源。不要新增 `ItemUseManager`，物品使用入口由 `ItemManager.Use` 统一提供。\n\n`GameplayController` 只负责 Unity 生命周期、输入优先级和公开接口转发；不要再把寻路、动作时序、资源结算或预览对象状态写回入口类。\n\n## Luban / Excel\n\n新增 Luban 表、Excel 文件、生成配置类和表访问名也默认不要加 `World` 或 `Game` 前缀。\n\n`resource`、`gather`、`reward` 已经从旧 `world_*` 表名迁移为无前缀命名：\n\n```text\nresource.xlsx\ngather.xlsx\nreward.xlsx\nResourceConfig\nGatherConfig\nRewardConfig\nTbResource\nTbGather\nTbReward\n```\n\n仍保留的 `world_*` Excel 和 `World*Config` 表是历史命名，短期不要因为命名规则单独迁移：\n\n```text\nworld_building.xlsx\nWorldBuildingConfig\n```\n\n新增工具配置不要照着旧历史表名写成：\n\n```text\nworld_tool.xlsx\nWorldToolConfig\nTbWorldTool\n```\n\n应使用：\n\n```text\ntool.xlsx\nToolConfig\nTbTool\n```\n\n如果后续要覆盖刀剑、弓、盾、护甲等完整装备，不要命名为 `WorldEquipment`，优先使用：\n\n```text\nequipment.xlsx\nEquipmentConfig\nTbEquipment\n```\n\n## Quest\n\n任务域使用 `Quest`，不要改成 `Task`，也不要加 `World`：\n\n```text\nQuestManager\nQuestConfig\nQuestData\nQuestState\nQuestEvent\nQuestCompletedMessage\nQuestToastListener\n```\n\n避免：\n\n```text\nWorldQuestManager\nGameQuestManager\nTaskManager\nWorldTaskManager\n```\n\n## Blueprint\n\n制作和生产配置使用 `Blueprint`：\n\n```text\nBlueprintManager\nBlueprintConfig\nBlueprintItem\nQuestObjectiveType.Blueprint\n```\n\n不要新增 `Recipe` 或 `WorldRecipe` 作为同义概念。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "decisions-0002-ui-kind-usage-md",
+        "group":  "决策",
+        "title":  "0002 UI 类型使用",
+        "path":  "Decisions/0002-ui-kind-usage.md",
+        "summary":  "Page、Panel、Popup、Overlay、Toast 的使用决策。",
+        "content":  "# 0002 UI Kind Usage\n\n## 结论\n\nUI 类型按功能语义选择，不按当前文件名硬套。\n\n```text\nPage     全屏大流程\nPanel    当前流程上的浮动功能面板\nPopup    必须先处理的小确认或详情\nOverlay  全局覆盖、阻塞或转场\nToast    自动消失的小提示\n```\n\n## 当前归类\n\nPage：\n\n```text\n经营主界面\n塔防主界面\n登录 / 主菜单 / 加载\n```\n\nPanel：\n\n```text\nBuild\nToolKit\nFarm\nProduction\nQuest\nTechTree\nMenu\n```\n\nPopup：\n\n```text\nConfirm\nItemDetail\nTechUnlock\n```\n\nOverlay：\n\n```text\nLoading\n转场黑屏\n网络等待\n强制输入阻塞\n```\n\nToast：\n\n```text\n保存成功\n资源不足\n获得物品\n科技解锁成功\n```\n\nSound、Language、Save 不是 Toast。\n\nPage 内部子节点：\n\n```text\nBottomBar / Bag\n```\n\n## Stack 与 Exclusive\n\nStack 用于 panel 级返回历史。Exclusive 用于同级互斥。两者不等价。\n\n主界面 Build、ToolKit、Production、Quest、TechTree、Menu 使用 Exclusive。Bag 是 BottomBar 内部节点，由经营 UI 业务层在打开其它浮层时协调关闭，不注册框架 Exclusive。\n\nMenu -\u003e Sound -\u003e 返回 Menu 这类，如果 Sound 是独立 `UIPanel`，可以短期使用 Stack。如果 Sound 只是 Menu 内部设置页，应该作为 Menu 内部子节点，由 Menu 脚本控制。\n\n## 子节点\n\n不要为了 Stack 强行把普通子节点拆成多个 `UIPanel`。如果多个 panel 都稳定需要内部节点栈或内部节点互斥，再抽轻量组件。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "decisions-0003-map-object-vs-marker-md",
+        "group":  "决策",
+        "title":  "0003 地图对象与标记",
+        "path":  "Decisions/0003-map-object-vs-marker.md",
+        "summary":  "地图真实对象与 UI 标记的边界。",
+        "content":  "# 0003 Map Object Vs Marker\n\n## 结论\n\n`MapData.Objects` 表示地图上真实存在、需要实例化或影响占用和交互的对象。\n\n纯 UI 标记、导航、任务提示、商店图标等表现数据，后续应进入 `MapMarkerData` 或等价结构，不要塞进 `MapData.Objects`。\n\n## MapData.Objects\n\n适合：\n\n```text\nDecoration\nResource\nBuilding\nInteractable\n```\n\n这些对象可能需要：\n\n```text\n创建场景视图\n注册地图占用\n参与采集或交互\n存档同步\n```\n\n运行时规则：\n\n```text\nMapData.Objects 会进入 MapManager 的 objectsByCoord 索引\n寻路和建造占用看 objectsByCoord，不看 view 是否隐藏\n逻辑上消失的对象应 TryRemoveMapObject + MarkMapObjectRemoved\n只是 UI 提示或导航点的内容不要放入 MapData.Objects\n```\n\n如果对象以后会回来，或只是阶段性隐藏，应使用运行时状态和存档状态表达，不要把纯显示隐藏当成地图逻辑删除。\n\n## MapMarkerData\n\n建议字段：\n\n```text\nMarkerId\nType: Shop / Building / Quest / NpcSpawn / Teleport / Custom\nCoord 或 X/Y/Z\nIcon\nVisibleDefault\nRelatedQuestId\nRelatedNpcId\n```\n\n它服务小地图、大地图、导航和任务提示，不一定生成场景对象。\n\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n"
+    },
+    {
+        "id":  "audits-projectmidpointaudit-2026-07-09-md",
+        "group":  "审核",
+        "title":  "项目中期审核",
+        "path":  "Audits/ProjectMidpointAudit-2026-07-09.md",
+        "summary":  "2026-07-09 中期代码、文档、配置和工具审核。",
+        "content":  "# Project Midpoint Audit - 2026-07-09\n\n本文记录项目中期审核结果。目标是帮助后续开发知道当前哪些链路已经闭合，哪些只是能编译但产品规则还没完成，哪些文档或旧代码会误导新对话。\n\n## 审核范围\n\n本次检查覆盖：\n\n```text\nDocs\nAssets/Scripts/Framework/UI\nAssets/Scripts/Game/UI/Management\nAssets/Scripts/Game/Story\nAssets/Scripts/Game/Quests\nAssets/Scripts/Game/Blueprints\nAssets/Scripts/Game/Island\nAssets/Scripts/Tools/Editor\nAssets/Scripts/Game/Data/Editor\nData/Excel\nData/Defines\nAssets/Data/Bin\nAssets/Data/Json\n```\n\n验证命令：\n\n```text\ndotnet build Cube.sln\n```\n\n结果：构建通过，0 个错误，5 个警告。\n\n## 总体结论\n\n项目当前处于“核心方向已经成形，但若干玩法闭环还没完成”的阶段。\n\n已经比较稳定的部分：\n\n- 文档入口已经按 Codex / 人类阅读拆分。\n- Quest / Blueprint / Story 已接入正式 Luban 表。\n- UI 框架的 outside close、Exclusive group、Stack group 当前代码和文档基本一致。\n- WorldMainPanel 的 Top / Bottom / Entry / Right / BuildingDetail 子模块已改为 prefab 上的 MonoBehaviour 引用，不再由 `WorldMainPanel` 手动 `new`。\n- Bag / Build / ToolKit / Production / Quest / TechTree / Menu 已进入同一个经营浮动互斥组。\n\n需要优先补齐的部分：\n\n- Story 中途存档恢复逻辑不完整。\n- Quest / Story / Blueprint 缺少配置校验工具。\n- 部分 UI 面板仍靠运行时 `Transform.Find` 绑定稳定节点，后续 UI 打磨时应继续改成序列化字段。\n\n## Findings\n\n### P1\n\n当前没有发现阻塞构建或明显会让主流程无法启动的 P1 问题。\n\n### Fixed - Quest 领取奖励\n\n原问题：\n\n```text\nAssets/Scripts/Game/Quests/QuestManager.cs:76     QuestConfig.RewardGroupId\nTryClaim 只把任务改成 Claimed，没有发放 RewardGroupId\nQuest UI 奖励数量固定显示 \"x1\"\n```\n\n处理结果：\n\n- `QuestManager.TryClaim` 使用 `RewardResolver` 解析 `RewardGroupId`。\n- 有奖励组时走 `BagManager.TryAddItems`，背包容量不足不会改为 `Claimed`。\n- 奖励组为空时领取失败，避免误把任务标记为已领取。\n- Quest UI 详情奖励行读取 `reward`，显示固定数量或 `min-max` 范围。\n\n剩余：\n\n- 任务奖励 Toast / 获得反馈还需要产品表现设计。\n\n### P2 - Story 中途读档会恢复 currentStoryId，但不会恢复面板和行号\n\n证据：\n\n```text\nAssets/Scripts/Game/Story/StoryManager.cs:49   currentStoryId = data.CurrentStoryId\nAssets/Scripts/Game/Story/StoryManager.cs:252  CanStart 要求 currentStoryId == 0\nAssets/Scripts/Game/Story/StoryPanel.cs:114    当前 UI 运行时创建，没有存行号\n```\n\n影响：\n\n- 如果保存时 `currentStoryId != 0`，读档后不会自动重新打开 StoryPanel，也没有当前行索引。\n- 同时 `currentStoryId != 0` 会阻止其它 Story 开始。\n\n建议：\n\n- 短期方案：如果不支持剧情中途保存，就不要把未完成 Story 写入存档，读档时置 0。\n- 完整方案：保存 `CurrentLineIndex`，读档后通过 `StoryPresenter` 恢复 UI。\n\n### P2 - Quest / Story / Blueprint 缺少配置校验\n\n证据：\n\n```text\nAssets/Scripts/Game/Data/Editor/WorldConfigValidator.cs  当前主要校验世界建筑 / 科技关系\nDocs/Architecture/ModuleWorkMap.md                     Story 备注为没有专门编辑器或校验器\nDocs/Modules/QuestStoryBlueprint.md                    奖励和配置规范仍需完善\n```\n\n影响：\n\n- 当前表已经数据驱动，但跨表引用错误更容易进入运行时才发现。\n- 比如 Quest Objective 指向不存在的 Blueprint、Story 触发事件 target 不存在、RewardGroupId 没有奖励项。\n\n建议：\n\n- 增加轻量 `ProgressionConfigValidator` 或扩展现有 validator。\n- 至少校验：Quest 前置、Objective target、RewardGroupId、Blueprint inputs / outputs、Story nextStoryId、Story 完成事件。\n\n### Fixed - Luban 编辑器工具硬编码本机路径\n\n原证据：\n\n```text\nLubanTool 使用本机 D 盘绝对路径定位 Data / Excel / Defines / gen_all.bat\n```\n\n原影响：\n\n- 当前机器可用，但换目录、换电脑或 CI 会失败。\n- 文档建议使用 `Luban/Update All`，工具本身应该能从 Unity project root 推导路径。\n\n处理结果：\n\n- `LubanTool` 已从 `Application.dataPath` 推导 project root。\n- `Data`、`Excel`、`Defines`、`gen_all.bat` 都按项目相对路径组合。\n\n### P3 - 管理 UI 面板仍有运行时 Transform.Find\n\n证据示例：\n\n```text\nAssets/Scripts/Game/UI/Management/QuestPanel.cs:50\nAssets/Scripts/Game/UI/Management/QuestPanel.cs:64\nAssets/Scripts/Game/UI/Management/WorldBuildPanel.cs:71\nAssets/Scripts/Game/UI/Management/WorldToolKitPanel.cs:71\nAssets/Scripts/Game/UI/Management/WorldProductionPanel.cs:68\nAssets/Scripts/Game/UI/Management/WorldBagPanel.cs:57\n```\n\n影响：\n\n- 当前不一定是 bug，但和“稳定 UI 节点用 prefab 序列化字段绑定”的方向不一致。\n- Prefab 节点改名会在运行时才失败。\n\n建议：\n\n- 区分两类节点：\n  - 稳定按钮、标题、根节点：改成 `[SerializeField]`。\n  - 动态生成列表、slot 内部兼容旧 prefab 的临时适配：可以先保留。\n- 后续改某个 panel UI 时顺手收敛，不必一次性大改全部。\n\n### P3 - Menu 子页面当前能走 Stack，但长期结构要再决定\n\n当前代码：\n\n```text\nMenu -\u003e Sound\nMenu -\u003e Language\nMenu -\u003e Save\nMenu -\u003e GM\n```\n\n实现方式：\n\n```text\nWorldMenuPanel.PushStackAsync(SettingsStackGroupId, MenuPanel)\nWorldMenuPanel.PushStackAsync(SettingsStackGroupId, childPanel)\nSound / Language / Save / GM close 时 PopStack\n```\n\n判断：\n\n- 作为短期方案可运行，符合当前 UI 框架的 panel-level Stack 语义。\n- 如果 Sound / Language / Save 只是 Menu 的内部设置页，长期更适合做成 Menu prefab 内序列化子节点，由 Menu 脚本维护本地 node stack。\n- GM 如果仍是调试大面板，可以继续保留独立 Panel。\n\n### P3 - StoryPanel 仍是运行时构建 UI\n\n证据：\n\n```text\nAssets/Scripts/Game/Story/StoryPanel.cs:114  BuildIfNeeded\nAssets/Scripts/Game/Story/StoryPanel.cs:145  CreateText(\"Title\")\nAssets/Scripts/Game/Story/StoryPanel.cs:153  CreateText(\"Body\")\nAssets/Scripts/Game/Story/StoryPanel.cs:168  CreateButton(\"ContinueButton\")\n```\n\n判断：\n\n- 当前功能可用，文档已经说明不要假设 prefab 内有固定节点。\n- 后续如果要做正式剧情 UI，应迁移为 prefab 节点 + 序列化字段。\n\n### P3 - 构建警告\n\n`dotnet build Cube.sln` 通过，但有 5 个警告：\n\n```text\nAssets/Scripts/Framework/UI/Samples/Example/Scripts/SettingsPopup.cs:8  nullable annotation context\nAssets/Scripts/Framework/UI/Samples/Example/Scripts/SidePanel.cs:8      nullable annotation context\nAssets/Scripts/Game/TowerDefense/Tower/TowerBuildInputController.cs:13  hides MonoSingleton.Initialize()\nAssets/Scripts/Game/TowerDefense/Enemy/NpcManager.cs:264               call is not awaited\nAssets/Scripts/Framework/Event/Samples/EventView.cs:20                 assigned but unused\n```\n\n建议：\n\n- Samples 警告低优先。\n- `TowerBuildInputController.Initialize()` 如果是有意隐藏，显式加 `new`；否则改名或调整继承。\n- `NpcManager.cs:264` 需要确认是否故意 fire-and-forget，若是则用 `.Forget()` 或显式注释。\n\n## 本次已整理\n\n删除未引用旧代码：\n\n```text\nAssets/Scripts/Game/UI/Management/WorldQuestPanel.cs\nAssets/Scripts/Game/UI/Management/WorldQuestPanel.cs.meta\nAssets/Scripts/Game/Story/StoryData.cs\nAssets/Scripts/Game/Story/StoryData.cs.meta\nAssets/Scripts/Game/Tasks\nAssets/Scripts/Game/Tasks.meta\n```\n\n理由：\n\n- `WorldQuestPanel` 没有调用方，也没有 prefab 引用；当前主任务面板是 `QuestPanel`。\n- 旧 `Game/Story/StoryData.cs` 没有调用方；实际存档模型是 `StorageManager.StoryData`，通过 `SaveData.Story` 使用。\n- `Assets/Scripts/Game/Tasks` 是空旧目录，和当前 `Quests` 业务目录冲突。\n\n更新文档：\n\n```text\nDocs/Modules/Story.md\nDocs/Architecture/CodebaseOverview.md\nDocs/README.md\nDocs/CodexProjectMemory.md\nDocs/Human/build-human-docs.ps1\n```\n\n本轮继续修正：\n\n```text\nAssets/Scripts/Game/Save/SaveData.cs\nAssets/Scripts/Game/Story/StoryManager.cs\nAssets/Scripts/Game/Quests/QuestManager.cs\nAssets/Scripts/Game/UI/Management/QuestSlotView.cs\nAssets/Scripts/Tools/Editor/LubanTool.cs\nDocs/Modules/QuestStoryBlueprint.md\nDocs/Product/ProgressionAndQuests.md\nDocs/Architecture/DataPipeline.md\nDocs/Architecture/SaveSystem.md\n```\n\n## 文档一致性检查\n\n已经对齐：\n\n- 新代码默认不加 `World` / `Game` 前缀，旧 `World*` 可保留。\n- 游戏任务系统使用 `Quest`，不是 `Task`。\n- 制作 / 生产配置使用 `Blueprint`，不是 `Recipe`。\n- Quest / Blueprint / Story 的 Excel、Defines、Bin、Json、Generated 代码均存在。\n- UI Framework 文档和当前 `PanelManager` 的 Stack / Exclusive 实现基本一致。\n\n仍需注意：\n\n- `Framework/Task` 是 C# async helper，不是业务任务系统。\n- 不要重新创建 `Assets/Scripts/Game/Tasks` 作为游戏任务系统入口。\n- 新 UI 文本规则要求进入 `localization.xlsx`，但当前 Quest / Story 内容仍有部分配置文本 fallback，这是阶段性过渡。\n- 当前 shell 是 Windows PowerShell 5.1；复杂 `rg` 正则优先拆开或用单引号，避免双引号内反斜杠和管道被 PowerShell 预解析。\n\n## 建议的下一轮顺序\n\n1. 先规划 Story 中途保存策略：不保存未完成 Story，或完整恢复当前行。\n2. 增加 Progression 配置校验，覆盖 Quest / Story / Blueprint / Reward。\n3. 补任务奖励 Toast / 获得反馈。\n4. 后续每次改某个管理 UI panel 时，把该 panel 的稳定节点从 `Transform.Find` 收敛到序列化字段。\n\n\r\n\r\n"
+    }
+];
+
+    const navList = document.getElementById('navList');
+    const searchInput = document.getElementById('searchInput');
+    const reader = document.getElementById('reader');
+    const toc = document.getElementById('toc');
+    const docGroup = document.getElementById('docGroup');
+    const docTitle = document.getElementById('docTitle');
+    const docSummary = document.getElementById('docSummary');
+    const docPath = document.getElementById('docPath');
+    const rawLink = document.getElementById('rawLink');
+    const openNavButton = document.getElementById('openNavButton');
+
+    let activeDoc = docs[0];
+    let activeHeading = '';
+    const expandedDocOutlines = new Set();
+    const docHeadingCache = new Map();
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/`/g, '&#96;');
+    }
+
+    function renderInline(text) {
+      let html = escapeHtml(text);
+      html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
+        return `<a href="${escapeAttr(href)}">${label}</a>`;
+      });
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      return html;
+    }
+
+    function isTableLine(line) {
+      const trimmed = line.trim();
+      return trimmed.startsWith('|') && trimmed.endsWith('|');
+    }
+
+    function isSeparatorRow(line) {
+      return /^\|?[\s:-]+\|[\s|:-]*$/.test(line.trim());
+    }
+
+    function splitTableRow(line) {
+      return line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(cell => cell.trim());
+    }
+
+    function markdownToHtml(markdown, options = {}) {
+      const lines = markdown.replace(/\r\n/g, '\n').split('\n');
+      const html = [];
+      const headings = [];
+      const collapsibleLevel3 = Boolean(options.collapsibleLevel3);
+      let paragraph = [];
+      let listType = '';
+      let tableRows = [];
+      let inCode = false;
+      let codeLines = [];
+      let codeLang = '';
+      let detailsOpen = false;
+      let currentSection = '';
+
+      function flushParagraph() {
+        if (!paragraph.length) return;
+        html.push(`<p>${renderInline(paragraph.join(' '))}</p>`);
+        paragraph = [];
+      }
+
+      function closeList() {
+        if (!listType) return;
+        html.push(`</${listType}>`);
+        listType = '';
+      }
+
+      function flushTable() {
+        if (!tableRows.length) return;
+        const rows = tableRows.filter(row => !isSeparatorRow(row)).map(splitTableRow);
+        tableRows = [];
+        if (!rows.length) return;
+        const head = rows[0];
+        const body = rows.slice(1);
+        const thead = `<thead><tr>${head.map(cell => `<th>${renderInline(cell)}</th>`).join('')}</tr></thead>`;
+        const mergeFirstColumn = head.length === 3 &&
+          head[0] === '分类' &&
+          head[1] === '来源字段' &&
+          head[2] === '关联目标';
+        let bodyHtml = '';
+
+        if (mergeFirstColumn) {
+          for (let rowIndex = 0; rowIndex < body.length; rowIndex += 1) {
+            const row = body[rowIndex];
+            let firstCell = '';
+            if (row[0]) {
+              let rowSpan = 1;
+              while (rowIndex + rowSpan < body.length && !body[rowIndex + rowSpan][0]) rowSpan += 1;
+              firstCell = `<td class="merged-group-cell" rowspan="${rowSpan}">${renderInline(row[0])}</td>`;
+            }
+
+            bodyHtml += `<tr>${firstCell}<td>${renderInline(row[1] || '')}</td><td>${renderInline(row[2] || '')}</td></tr>`;
+          }
+        } else {
+          bodyHtml = body.map(row => `<tr>${row.map(cell => `<td>${renderInline(cell)}</td>`).join('')}</tr>`).join('');
+        }
+
+        const tbody = `<tbody>${bodyHtml}</tbody>`;
+        html.push(`<div class="table-wrap"><table>${thead}${tbody}</table></div>`);
+      }
+
+      function closeDetails() {
+        if (!detailsOpen) return;
+        html.push('</div></details>');
+        detailsOpen = false;
+      }
+
+      for (let index = 0; index < lines.length; index += 1) {
+        const line = lines[index];
+        const trimmed = line.trim();
+
+        if (trimmed.startsWith('```')) {
+          if (inCode) {
+            html.push(`<pre><code>${escapeHtml(codeLines.join('\n'))}</code></pre>`);
+            inCode = false;
+            codeLines = [];
+            codeLang = '';
+          } else {
+            flushParagraph();
+            closeList();
+            flushTable();
+            inCode = true;
+            codeLang = trimmed.slice(3).trim();
+          }
+          continue;
+        }
+
+        if (inCode) {
+          codeLines.push(line);
+          continue;
+        }
+
+        if (!trimmed) {
+          flushParagraph();
+          closeList();
+          flushTable();
+          continue;
+        }
+
+        if (isTableLine(line)) {
+          flushParagraph();
+          closeList();
+          tableRows.push(line);
+          const next = lines[index + 1] || '';
+          if (!isTableLine(next)) flushTable();
+          continue;
+        }
+
+        const heading = line.match(/^(#{1,6})\s+(.+)$/);
+        if (heading) {
+          flushParagraph();
+          closeList();
+          flushTable();
+          const level = heading[1].length;
+          const text = heading[2].trim();
+          const id = `heading-${headings.length + 1}`;
+          if (level <= 3) closeDetails();
+          if (level === 2) currentSection = text;
+          if (level <= 3) headings.push({ id, level, text, section: currentSection });
+
+          if (collapsibleLevel3 && level === 3) {
+            html.push(`<details class="table-section" id="${id}"><summary><span class="table-section-title">${renderInline(text)}</span><span class="table-section-hint" aria-hidden="true"></span></summary><div class="table-section-body">`);
+            detailsOpen = true;
+            continue;
+          }
+
+          html.push(`<h${level} id="${id}">${renderInline(text)}</h${level}>`);
+          continue;
+        }
+
+        const bullet = line.match(/^\s*-\s+(.+)$/);
+        const numbered = line.match(/^\s*\d+\.\s+(.+)$/);
+        if (bullet || numbered) {
+          flushParagraph();
+          flushTable();
+          const type = bullet ? 'ul' : 'ol';
+          if (listType && listType !== type) closeList();
+          if (!listType) {
+            listType = type;
+            html.push(`<${type}>`);
+          }
+          html.push(`<li>${renderInline((bullet || numbered)[1])}</li>`);
+          continue;
+        }
+
+        const quote = line.match(/^\s*>\s+(.+)$/);
+        if (quote) {
+          flushParagraph();
+          closeList();
+          flushTable();
+          html.push(`<blockquote>${renderInline(quote[1])}</blockquote>`);
+          continue;
+        }
+
+        const definition = line.match(/^:\s+(.+)$/);
+        if (definition) {
+          flushParagraph();
+          closeList();
+          flushTable();
+          html.push(`<p class="definition">${renderInline(definition[1])}</p>`);
+          continue;
+        }
+
+        paragraph.push(trimmed);
+      }
+
+      if (inCode) html.push(`<pre><code>${escapeHtml(codeLines.join('\n'))}</code></pre>`);
+      flushParagraph();
+      closeList();
+      flushTable();
+      closeDetails();
+
+      return { html: html.join('\n'), headings };
+    }
+
+    function renderTableIndex(headings) {
+      const tableHeadings = headings.filter(item => item.level === 3);
+      if (!tableHeadings.length) return '';
+
+      const groups = tableHeadings.reduce((result, item) => {
+        const section = item.section || '其他';
+        if (!result.has(section)) result.set(section, []);
+        result.get(section).push(item);
+        return result;
+      }, new Map());
+
+      return `
+        <nav class="table-index" aria-label="Excel 表目录">
+          <div class="table-index-header">
+            <p class="table-index-title">表目录</p>
+            <p class="table-index-note">按业务查找配置表，点击表名后自动展开。</p>
+          </div>
+          <div class="table-index-table-wrap">
+            <table class="table-index-table">
+              <thead>
+                <tr><th>分类</th><th>具体配置表</th></tr>
+              </thead>
+              <tbody>
+                ${Array.from(groups.entries()).map(([section, items]) => `
+                  <tr>
+                    <th scope="row">${renderInline(section)}</th>
+                    <td><div class="table-index-links">
+                      ${items.map(item => `<a class="table-index-link" href="#${activeDoc.id}:${item.id}">${renderInline(item.text)}</a>`).join('')}
+                    </div></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </nav>
+      `;
+    }
+
+    function groupDocs(items) {
+      return items.reduce((groups, doc) => {
+        if (!groups.has(doc.group)) groups.set(doc.group, []);
+        groups.get(doc.group).push(doc);
+        return groups;
+      }, new Map());
+    }
+
+    function matchesQuery(doc, query) {
+      if (!query) return true;
+      const haystack = `${doc.title}\n${doc.path}\n${doc.summary}\n${doc.content}`.toLowerCase();
+      return haystack.includes(query.toLowerCase());
+    }
+
+    function getDocumentHeadings(doc) {
+      if (!docHeadingCache.has(doc.id)) {
+        docHeadingCache.set(doc.id, markdownToHtml(doc.content).headings);
+      }
+
+      return docHeadingCache.get(doc.id).filter(item => item.level === 2);
+    }
+
+    function renderNav() {
+      const query = searchInput.value.trim();
+      const filtered = docs.filter(doc => matchesQuery(doc, query));
+      const groups = groupDocs(filtered);
+
+      if (!filtered.length) {
+        navList.innerHTML = '<div class="empty-state">没有匹配的文档</div>';
+        return;
+      }
+
+      navList.innerHTML = Array.from(groups.entries()).map(([group, items]) => `
+        <section class="nav-group">
+          <div class="nav-group-title">${escapeHtml(group)} <span class="nav-count">${items.length}</span></div>
+          <div class="nav-group-items">
+            ${items.map(doc => {
+              const headings = getDocumentHeadings(doc);
+              const expanded = expandedDocOutlines.has(doc.id);
+              return `
+            <div class="doc-nav-entry ${headings.length ? 'has-outline' : ''} ${expanded ? 'outline-expanded' : ''}">
+              <button class="doc-button ${doc.id === activeDoc.id ? 'active' : ''}" type="button" data-doc-id="${doc.id}">
+                <strong>${escapeHtml(doc.title)}</strong>
+                <span>${escapeHtml(doc.summary)}</span>
+              </button>
+              ${headings.length ? `
+                <button class="doc-outline-toggle" type="button" data-doc-outline-toggle="${doc.id}" aria-label="${expanded ? '收起' : '展开'} ${escapeAttr(doc.title)} 的标题" aria-expanded="${String(expanded)}" title="${expanded ? '收起标题' : '展开标题'}">›</button>
+                <div class="doc-outline">
+                  ${headings.map(heading => `
+                    <button class="doc-heading-button level-${heading.level} ${doc.id === activeDoc.id && heading.id === activeHeading ? 'active' : ''}" type="button" data-doc-id="${doc.id}" data-heading-id="${heading.id}">${escapeHtml(heading.text)}</button>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+            `;
+            }).join('')}
+          </div>
+        </section>
+      `).join('');
+    }
+
+    function renderToc(headings) {
+      if (!headings.length) {
+        toc.innerHTML = '<p class="toc-title">本文目录</p><p>没有可用标题</p>';
+        return;
+      }
+
+      toc.innerHTML = `
+        <p class="toc-title">本文目录</p>
+        ${headings.map(item => `<a class="level-${item.level}" href="#${activeDoc.id}:${item.id}">${escapeHtml(item.text)}</a>`).join('')}
+      `;
+    }
+
+    function renderDocument(doc, headingId = '') {
+      activeDoc = doc;
+      activeHeading = headingId;
+      expandedDocOutlines.add(doc.id);
+      const isExcelDictionary = doc.path === 'Architecture/ExcelDataDictionary.md';
+      const result = markdownToHtml(doc.content, { collapsibleLevel3: isExcelDictionary });
+      docHeadingCache.set(doc.id, result.headings);
+      docGroup.textContent = `${doc.group} / ${doc.path}`;
+      docTitle.textContent = doc.title;
+      docSummary.textContent = doc.summary;
+      docPath.textContent = doc.path;
+      rawLink.href = `../${doc.path}`;
+      reader.innerHTML = result.html;
+      if (isExcelDictionary) {
+        const firstSection = reader.querySelector('h2');
+        if (firstSection) firstSection.insertAdjacentHTML('beforebegin', renderTableIndex(result.headings));
+      }
+      renderToc(isExcelDictionary ? result.headings.filter(item => item.level <= 2) : result.headings);
+      renderNav();
+
+      if (headingId) {
+        requestAnimationFrame(() => {
+          const target = document.getElementById(headingId);
+          if (target) {
+            if (target.matches('details')) target.open = true;
+            const parentDetails = target.closest('details');
+            if (parentDetails) parentDetails.open = true;
+            target.scrollIntoView({ block: 'start' });
+          }
+        });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      }
+    }
+
+    function findDoc(id) {
+      return docs.find(doc => doc.id === id) || docs[0];
+    }
+
+    function parseHash() {
+      const raw = decodeURIComponent(location.hash.replace(/^#/, ''));
+      const [docId, headingId] = raw.split(':');
+      return { docId, headingId };
+    }
+
+    navList.addEventListener('click', event => {
+      const outlineButton = event.target.closest('[data-doc-outline-toggle]');
+      if (outlineButton) {
+        const docId = outlineButton.dataset.docOutlineToggle;
+        const entry = outlineButton.closest('.doc-nav-entry');
+        const expanded = entry.classList.toggle('outline-expanded');
+        outlineButton.setAttribute('aria-expanded', String(expanded));
+        outlineButton.setAttribute('aria-label', `${expanded ? '收起' : '展开'}标题`);
+        outlineButton.title = expanded ? '收起标题' : '展开标题';
+        if (expanded) expandedDocOutlines.add(docId);
+        else expandedDocOutlines.delete(docId);
+        return;
+      }
+
+      const button = event.target.closest('[data-doc-id]');
+      if (!button) return;
+      const headingId = button.dataset.headingId || '';
+      const hash = headingId ? `${button.dataset.docId}:${headingId}` : button.dataset.docId;
+      if (decodeURIComponent(location.hash.replace(/^#/, '')) === hash) {
+        renderDocument(findDoc(button.dataset.docId), headingId);
+      } else {
+        location.hash = hash;
+      }
+      document.body.classList.remove('nav-open');
+    });
+
+    searchInput.addEventListener('input', renderNav);
+
+    openNavButton.addEventListener('click', () => {
+      document.body.classList.add('nav-open');
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') document.body.classList.remove('nav-open');
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        searchInput.focus();
+      }
+    });
+
+    window.addEventListener('hashchange', () => {
+      const { docId, headingId } = parseHash();
+      renderDocument(findDoc(docId), headingId || '');
+    });
+
+    const initial = parseHash();
+    renderDocument(findDoc(initial.docId), initial.headingId || '');
+  </script>
+</body>
+</html>

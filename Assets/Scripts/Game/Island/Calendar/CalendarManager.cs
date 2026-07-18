@@ -13,6 +13,7 @@ namespace Game
         public const int MonthsPerYear = MonthsPerSeason * SeasonsPerYear;
         public const int DayStartHour = 6;
         public const int NightStartHour = 18;
+        public const int DayNightDiskZeroHour = 12;
         public const float RealSecondsPerDay = 600f;
 
         public static CalendarManager Instance { get; } = new CalendarManager();
@@ -22,6 +23,7 @@ namespace Game
         private const int MinutesPerYear = MonthsPerYear * MinutesPerMonth;
 
         private float accumulatedRealSeconds;
+        private int lastUpdateFrame = -1;
         private bool initialized;
         private bool loading;
 
@@ -44,6 +46,7 @@ namespace Game
         public int Minute { get; private set; }
         public bool IsPaused { get; private set; }
         public float GameTimeScale { get; private set; } = 1f;
+        public bool IsInitialized => initialized;
 
         public Season Season => GetSeason(Month);
         public int DayOfYear => (Month - 1) * DaysPerMonth + Day;
@@ -51,6 +54,8 @@ namespace Game
         public bool IsDay => Hour >= DayStartHour && Hour < NightStartHour;
         public bool IsNight => !IsDay;
         public float DayNightProgress => TimeOfDay;
+        public float DayNightDiskRotationZ => GetDayNightDiskRotationZ(Hour, Minute);
+        public float SmoothDayNightDiskRotationZ => GetDayNightDiskRotationZ(GetSmoothMinuteOfDay());
         public long AbsoluteMinutes => ToAbsoluteMinutes(Year, Month, Day, Hour, Minute);
         public float RealSecondsPerGameMinute => RealSecondsPerDay / MinutesPerDay;
 
@@ -72,6 +77,13 @@ namespace Game
                 return;
             }
 
+            int frame = Time.frameCount;
+            if (lastUpdateFrame == frame)
+            {
+                return;
+            }
+
+            lastUpdateFrame = frame;
             accumulatedRealSeconds += deltaTime * GameTimeScale;
             if (accumulatedRealSeconds < RealSecondsPerGameMinute)
             {
@@ -220,6 +232,18 @@ namespace Game
             }
         }
 
+        public static float GetDayNightDiskRotationZ(int hour, int minute)
+        {
+            float minuteOfDay = GetMinuteOfDay(hour, minute);
+            return GetDayNightDiskRotationZ(minuteOfDay);
+        }
+
+        private static float GetDayNightDiskRotationZ(float minuteOfDay)
+        {
+            int zeroMinuteOfDay = DayNightDiskZeroHour * MinutesPerHour;
+            return ((minuteOfDay - zeroMinuteOfDay) / MinutesPerDay) * 360f;
+        }
+
         private bool AdvanceMinutesInternal(int minutes, bool forceDirty)
         {
             if (minutes == 0)
@@ -326,6 +350,14 @@ namespace Game
         private int GetMinuteOfDay()
         {
             return GetMinuteOfDay(Hour, Minute);
+        }
+
+        private float GetSmoothMinuteOfDay()
+        {
+            float minuteFraction = RealSecondsPerGameMinute > 0f
+                ? Mathf.Clamp01(accumulatedRealSeconds / RealSecondsPerGameMinute)
+                : 0f;
+            return (GetMinuteOfDay() + minuteFraction) % MinutesPerDay;
         }
 
         private static int GetMinuteOfDay(int hour, int minute)

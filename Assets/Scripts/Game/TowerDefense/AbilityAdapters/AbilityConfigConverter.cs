@@ -103,7 +103,8 @@ namespace Game
                 Interval = config.Interval,
                 MaxStack = config.MaxStack > 0 ? config.MaxStack : 1,
                 States = MapState(config.State),
-                TriggerEventType = MapTriggerEvent(config.TriggerEventType)
+                TriggerEventType = MapTriggerEvent(config.TriggerEventType),
+                SustainedEffectName = config.EffectLocation
             };
 
             ModifierProperty property = MapProperty(config.PropertyType);
@@ -117,15 +118,8 @@ namespace Game
             AddActions(definition.OnDestroyActions, config.OnDestroyActionGroupId, actionGroups);
             AddActions(definition.TriggerActions, config.TriggerActionGroupId, actionGroups);
 
-            if (!config.IsHidden && !string.IsNullOrEmpty(config.EffectLocation))
-            {
-                definition.OnCreatedActions.Add(new ActionDefinition
-                {
-                    ActionType = ActionType.PlayEffect,
-                    Target = ActionTarget.PrimaryTarget,
-                    EffectName = config.EffectLocation
-                });
-            }
+            // EffectLocation is a sustained Modifier presentation owned by its runtime handle. It
+            // is intentionally not converted into a one-shot OnCreated PlayEffect.
 
             return definition;
         }

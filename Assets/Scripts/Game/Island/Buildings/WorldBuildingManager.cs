@@ -91,14 +91,14 @@ namespace Game
                 return false;
             }
 
-            IReadOnlyList<WorldItem> costs = GetBuildCosts(levelConfig.BuildCostGroupId);
+            IReadOnlyList<ItemStack> costs = GetBuildCosts(levelConfig.BuildCostGroupId);
             if (levelConfig.BuildCostGroupId > 0 && costs.Count == 0)
             {
                 Debug.LogWarning($"World building failed. Empty build cost group. buildingId: {buildingId}, costGroupId: {levelConfig.BuildCostGroupId}");
                 return false;
             }
 
-            if (!WorldItemManager.Instance.TryConsumeItems(costs))
+            if (!ItemManager.Instance.TryConsumeItems(costs))
             {
                 Debug.Log($"World building failed. Cost is not enough. buildingId: {buildingId}, costGroupId: {levelConfig.BuildCostGroupId}");
                 return false;
@@ -114,7 +114,7 @@ namespace Game
             MapObjectData mapObject = CreateMapObject(building);
             if (!MapManager.Instance.TryAddMapObject(mapObject))
             {
-                WorldItemManager.Instance.AddItems(costs);
+                ItemManager.Instance.AddItems(costs);
                 building = null;
                 Debug.LogWarning($"World building failed. Add map object failed. buildingId: {buildingId}, coord: {coord}");
                 return false;
@@ -122,6 +122,7 @@ namespace Game
 
             buildings.Add(instanceId, building);
             CreateView(building);
+            QuestManager.Instance.NotifyEvent(QuestEventType.BuildBuilding, buildingId);
             StorageManager.Instance.MarkDirty();
             return true;
         }
@@ -162,18 +163,19 @@ namespace Game
                 return false;
             }
 
-            IReadOnlyList<WorldItem> costs = GetBuildCosts(nextLevelConfig.BuildCostGroupId);
+            IReadOnlyList<ItemStack> costs = GetBuildCosts(nextLevelConfig.BuildCostGroupId);
             if (nextLevelConfig.BuildCostGroupId > 0 && costs.Count == 0)
             {
                 return false;
             }
 
-            if (!WorldItemManager.Instance.TryConsumeItems(costs))
+            if (!ItemManager.Instance.TryConsumeItems(costs))
             {
                 return false;
             }
 
             building.UpgradeTo(nextLevelConfig.Level);
+            QuestManager.Instance.NotifyEvent(QuestEventType.UpgradeBuilding, building.ConfigId);
             StorageManager.Instance.MarkDirty();
             return true;
         }
@@ -199,14 +201,14 @@ namespace Game
                 return false;
             }
 
-            IReadOnlyList<WorldItem> costs = GetBuildCosts(nextLevelConfig.BuildCostGroupId);
+            IReadOnlyList<ItemStack> costs = GetBuildCosts(nextLevelConfig.BuildCostGroupId);
             if (nextLevelConfig.BuildCostGroupId > 0 && costs.Count == 0)
             {
                 reason = LocalizationManager.Get("ui.build.reason.cost_config");
                 return false;
             }
 
-            if (!WorldItemManager.Instance.HasItems(costs))
+            if (!ItemManager.Instance.HasItems(costs))
             {
                 reason = FormatCosts(costs);
                 return false;
@@ -533,18 +535,18 @@ namespace Game
             return true;
         }
 
-        private IReadOnlyList<WorldItem> GetBuildCosts(int costGroupId)
+        private IReadOnlyList<ItemStack> GetBuildCosts(int costGroupId)
         {
             if (costGroupId <= 0)
             {
-                return Array.Empty<WorldItem>();
+                return Array.Empty<ItemStack>();
             }
 
             costResolver ??= new WorldCostResolver(DataManager.Instance.WorldCost);
             return costResolver.GetCostGroup(costGroupId);
         }
 
-        private static string FormatCosts(IReadOnlyList<WorldItem> costs)
+        private static string FormatCosts(IReadOnlyList<ItemStack> costs)
         {
             if (costs == null || costs.Count == 0)
             {
@@ -554,7 +556,7 @@ namespace Game
             List<string> parts = new List<string>();
             for (int i = 0; i < costs.Count; i++)
             {
-                WorldItem cost = costs[i];
+                ItemStack cost = costs[i];
                 if (cost == null || cost.ItemId <= 0 || cost.Count <= 0)
                 {
                     continue;

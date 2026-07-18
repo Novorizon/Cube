@@ -11,9 +11,9 @@ namespace Game
 {
     public sealed class TechTreePanel : UIPanel, IScrollHandler
     {
-        public const string PrefabPath = "Assets/Arts/UI/Panels/TechTreePanel.prefab";
+        public const string PrefabPath = "Assets/Arts/UI/Panels/TechTree/TechTreePanel.prefab";
 
-        private const string BranchPrefabPath = "Assets/Arts/UI/Panels/TechBranch.prefab";
+        private const string BranchPrefabPath = "Assets/Arts/UI/Panels/TechTree/TechBranch.prefab";
         private const float BranchHeight = 138f;
         private const float BranchTopPadding = 24f;
         private const float BranchBottomPadding = 24f;
@@ -32,6 +32,8 @@ namespace Game
         private GameObject branchPrefab;
         private readonly List<TechBranchView> branchViews = new List<TechBranchView>();
         private bool suppressHorizontalScrollbarEvent;
+
+        public override UICloseTriggers CloseTriggers => UICloseTriggers.CloseButton | UICloseTriggers.Back | UICloseTriggers.RightOutside;
 
         protected override void OnCreate()
         {
@@ -75,7 +77,13 @@ namespace Game
             if (closeButton != null)
             {
                 closeButton.onClick.RemoveAllListeners();
-                closeButton.onClick.AddListener(() => UIManager.Instance.Panels.Hide(PrefabPath));
+                closeButton.onClick.AddListener(() =>
+                {
+                    if (CanCloseBy(UICloseReason.CloseButton))
+                    {
+                        UIManager.Instance.Panels.Hide(PrefabPath);
+                    }
+                });
             }
         }
 
@@ -206,22 +214,15 @@ namespace Game
 
         private void OnTechClicked(int techId)
         {
-            if (TechManager.Instance.TryResearch(techId, out string reason))
+            ShowTechUnlockPanelAsync(techId).Forget();
+        }
+
+        private async System.Threading.Tasks.Task ShowTechUnlockPanelAsync(int techId)
+        {
+            await UIManager.Instance.Panels.ShowAsync(TechUnlockPanel.PrefabPath, new TechUnlockPanel.Args
             {
-                if (DataManager.Instance.TechNode != null &&
-                    DataManager.Instance.TechNode.TryGet(techId, out TechNodeConfig config) &&
-                    config != null)
-                {
-                    Toast.Info(LocalizationManager.Format("ui.tech.toast.unlocked", LocalizedConfigText.TechName(config.Id)));
-                }
-
-                Refresh();
-                WorldMainPanel.Instance?.RefreshNow();
-                return;
-            }
-
-            Toast.Warning(reason);
-            Refresh();
+                TechId = techId,
+            });
         }
 
         private GameObject GetBranchPrefab()

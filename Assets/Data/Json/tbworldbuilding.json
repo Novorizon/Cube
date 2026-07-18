@@ -59,8 +59,8 @@
     "unlockBuildingLevel": 0,
     "enable": true,
     "showInBuildPanel": true,
-    "defaultUnlocked": false,
-    "unlockSourceType": 2
+    "defaultUnlocked": true,
+    "unlockSourceType": 1
   },
   {
     "id": 30000004,

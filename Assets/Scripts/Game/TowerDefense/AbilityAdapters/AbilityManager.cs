@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.Framework;
 using Game.Ability;
+using Game.Ability.Configuration;
 using UnityEngine;
 using RuntimeAbility = Game.Ability.Ability;
 
@@ -19,33 +20,113 @@ namespace Game
         private readonly Dictionary<int, TdUnit> npcUnits = new Dictionary<int, TdUnit>();
         private readonly Dictionary<int, TdUnit> towerUnits = new Dictionary<int, TdUnit>();
         private readonly List<IUnit> searchResults = new List<IUnit>();
+        private readonly HashSet<int> activeNpcObjectIds = new HashSet<int>();
+        private readonly HashSet<int> activeTowerObjectIds = new HashSet<int>();
+        private readonly List<int> staleObjectIds = new List<int>();
+        private readonly List<IAbilityDefinitionProvider> additionalDefinitionProviders = new List<IAbilityDefinitionProvider>();
 
         private TdUnit baseUnit;
+        private int nextRuntimeEntityId;
+        private bool lifecycleEventsSubscribed;
         private bool initialized;
 
         public AbilitySystem Engine { get; } = new AbilitySystem();
+        public AbilityDefinitionRegistry DefinitionRegistry { get; private set; }
+        public bool IsInitialized => initialized;
+
+        public void GetBindingDebugSnapshot(IList<AbilityBindingDebugInfo> results)
+        {
+            if (results == null)
+            {
+                return;
+            }
+
+            results.Clear();
+            foreach (KeyValuePair<int, TdUnit> pair in npcUnits)
+            {
+                TdUnit unit = pair.Value;
+                results.Add(new AbilityBindingDebugInfo
+                {
+                    Kind = TdUnitKind.Npc,
+                    BusinessObjectId = pair.Key,
+                    RuntimeEntityId = unit != null ? unit.EntityId : 0,
+                    DisplayName = unit?.Npc != null ? unit.Npc.name : "<released NPC>",
+                    IsValid = unit != null && unit.IsValidBinding
+                });
+            }
+
+            foreach (KeyValuePair<int, TdUnit> pair in towerUnits)
+            {
+                TdUnit unit = pair.Value;
+                results.Add(new AbilityBindingDebugInfo
+                {
+                    Kind = TdUnitKind.Tower,
+                    BusinessObjectId = pair.Key,
+                    RuntimeEntityId = unit != null ? unit.EntityId : 0,
+                    DisplayName = unit?.Tower != null ? unit.Tower.name : "<released Tower>",
+                    IsValid = unit != null && unit.IsValidBinding
+                });
+            }
+
+            if (baseUnit != null)
+            {
+                results.Add(new AbilityBindingDebugInfo
+                {
+                    Kind = TdUnitKind.Base,
+                    BusinessObjectId = 0,
+                    RuntimeEntityId = baseUnit.EntityId,
+                    DisplayName = "Base",
+                    IsValid = baseUnit.IsValidBinding
+                });
+            }
+        }
 
         public bool Initialize()
         {
+            UnsubscribeFromLifecycleEvents();
             npcUnits.Clear();
             towerUnits.Clear();
+            activeNpcObjectIds.Clear();
+            activeTowerObjectIds.Clear();
+            staleObjectIds.Clear();
             baseUnit = null;
+            nextRuntimeEntityId = 1;
 
             // Core runtime only sees interfaces; all project-specific lookup stays in adapters.
             Engine.Initialize(new TdWorld(this), new TdPresentation());
-            RegisterDefinitions();
+            if (!RegisterDefinitions())
+            {
+                initialized = false;
+                Debug.LogError("AbilityManager initialization stopped because definition providers are invalid.");
+                return false;
+            }
 
             initialized = true;
+            SubscribeToLifecycleEvents();
+            SynchronizeUnitBindings();
             Debug.Log("AbilityManager initialized.");
+            return true;
+        }
+
+        /// <summary>
+        /// Registers an optional provider before Initialize. JSON sources stay outside generated
+        /// Luban output and are merged through the same collision-safe definition registry.
+        /// </summary>
+        public bool AddDefinitionProvider(IAbilityDefinitionProvider provider)
+        {
+            if (provider == null || initialized)
+            {
+                return false;
+            }
+
+            additionalDefinitionProviders.Add(provider);
             return true;
         }
 
         public void Release()
         {
-            Engine.ClearRuntime();
-            npcUnits.Clear();
-            towerUnits.Clear();
-            baseUnit = null;
+            UnsubscribeFromLifecycleEvents();
+            ClearBattleRuntime();
             initialized = false;
         }
 
@@ -56,6 +137,7 @@ namespace Game
                 return;
             }
 
+            SynchronizeUnitBindings();
             Engine.Update(deltaTime);
         }
 
@@ -67,10 +149,16 @@ namespace Game
             }
 
             int entityId = npc.GetInstanceID();
-            if (!npcUnits.TryGetValue(entityId, out TdUnit unit))
+            if (npcUnits.TryGetValue(entityId, out TdUnit unit) && unit.Npc != npc)
             {
-                unit = new TdUnit(npc);
-                npcUnits.Add(entityId, unit);
+                UnregisterNpcObject(entityId);
+                unit = null;
+            }
+
+            if (unit == null)
+            {
+                unit = new TdUnit(AllocateRuntimeEntityId(), npc);
+                npcUnits[entityId] = unit;
             }
 
             return unit;
@@ -84,10 +172,16 @@ namespace Game
             }
 
             int entityId = tower.GetInstanceID();
-            if (!towerUnits.TryGetValue(entityId, out TdUnit unit))
+            if (towerUnits.TryGetValue(entityId, out TdUnit unit) && unit.Tower != tower)
             {
-                unit = new TdUnit(tower);
-                towerUnits.Add(entityId, unit);
+                UnregisterTowerObject(entityId);
+                unit = null;
+            }
+
+            if (unit == null)
+            {
+                unit = new TdUnit(AllocateRuntimeEntityId(), tower);
+                towerUnits[entityId] = unit;
             }
 
             return unit;
@@ -103,14 +197,37 @@ namespace Game
             return baseUnit;
         }
 
+        public bool UnregisterUnit(Npc npc)
+        {
+            return npc != null && UnregisterNpcObject(npc.GetInstanceID());
+        }
+
+        public bool UnregisterUnit(Tower tower)
+        {
+            return tower != null && UnregisterTowerObject(tower.GetInstanceID());
+        }
+
+        public bool UnregisterBaseUnit()
+        {
+            if (baseUnit == null)
+            {
+                return false;
+            }
+
+            Engine.RemoveUnit(baseUnit);
+            baseUnit = null;
+            return true;
+        }
+
         public RuntimeAbility AddAbilityToNpc(Npc npc, int skillId, int level = 1)
         {
             return AddAbility(GetUnit(npc), skillId, level);
         }
 
-        public RuntimeAbility AddAbilityToTower(Tower tower, int skillId, int level = 1)
+        public RuntimeAbility AddAbilityToTower(Tower tower, int skillId, int level = 0)
         {
-            return AddAbility(GetUnit(tower), skillId, level);
+            int resolvedLevel = level > 0 ? level : tower != null ? tower.Level : 1;
+            return AddAbility(GetUnit(tower), skillId, resolvedLevel);
         }
 
         public RuntimeAbility AddAbilityToBase(int skillId, int level = 1)
@@ -136,9 +253,9 @@ namespace Game
             return Engine.AddAbility(owner, AbilityConfigConverter.AbilityName(skillId), level, resourceOwner);
         }
 
-        public CastResult CastAbility(IUnit caster, int skillId)
+        public CastResult CastAbility(IUnit caster, int skillId, int level = 1)
         {
-            RuntimeAbility ability = EnsureAbility(caster, skillId);
+            RuntimeAbility ability = EnsureAbility(caster, skillId, level);
             if (ability == null)
             {
                 return CastResult.Fail(CastFailureReason.MissingAbility);
@@ -147,9 +264,9 @@ namespace Game
             return Engine.CastAbility(caster, ability.Definition.Name);
         }
 
-        public CastResult CastAbilityOnTarget(IUnit caster, int skillId, IUnit target)
+        public CastResult CastAbilityOnTarget(IUnit caster, int skillId, IUnit target, int level = 1)
         {
-            RuntimeAbility ability = EnsureAbility(caster, skillId);
+            RuntimeAbility ability = EnsureAbility(caster, skillId, level);
             if (ability == null)
             {
                 return CastResult.Fail(CastFailureReason.MissingAbility);
@@ -158,9 +275,9 @@ namespace Game
             return Engine.CastAbilityOnTarget(caster, ability.Definition.Name, target);
         }
 
-        public CastResult CastAbilityOnPosition(IUnit caster, int skillId, Vector3 position)
+        public CastResult CastAbilityOnPosition(IUnit caster, int skillId, Vector3 position, int level = 1)
         {
-            RuntimeAbility ability = EnsureAbility(caster, skillId);
+            RuntimeAbility ability = EnsureAbility(caster, skillId, level);
             if (ability == null)
             {
                 return CastResult.Fail(CastFailureReason.MissingAbility);
@@ -176,12 +293,12 @@ namespace Game
 
         public CastResult CastTowerAbilityAtBestTarget(Tower tower, int skillId)
         {
-            return CastAbilityAtBestTarget(GetUnit(tower), skillId);
+            return CastAbilityAtBestTarget(GetUnit(tower), skillId, tower != null ? tower.Level : 1);
         }
 
         public CastResult CastTowerAbilityOnTarget(Tower tower, int skillId, Npc target)
         {
-            return CastAbilityOnTarget(GetUnit(tower), skillId, GetUnit(target));
+            return CastAbilityOnTarget(GetUnit(tower), skillId, GetUnit(target), tower != null ? tower.Level : 1);
         }
 
         public CastResult CastBaseAbilityAtBestTarget(int skillId)
@@ -189,9 +306,25 @@ namespace Game
             return CastAbilityAtBestTarget(GetBaseUnit(), skillId);
         }
 
-        public CastResult CastAbilityAtBestTarget(IUnit caster, int skillId)
+        public bool TryGetBaseAbilityCooldown(int skillId, out float remaining, out float duration)
         {
-            RuntimeAbility ability = EnsureAbility(caster, skillId);
+            remaining = 0f;
+            duration = 0f;
+
+            RuntimeAbility ability = EnsureAbility(GetBaseUnit(), skillId);
+            if (ability == null)
+            {
+                return false;
+            }
+
+            remaining = Mathf.Max(0f, ability.CooldownRemaining);
+            duration = Mathf.Max(0f, ability.GetCooldown());
+            return true;
+        }
+
+        public CastResult CastAbilityAtBestTarget(IUnit caster, int skillId, int level = 1)
+        {
+            RuntimeAbility ability = EnsureAbility(caster, skillId, level);
             if (ability == null)
             {
                 return CastResult.Fail(CastFailureReason.MissingAbility);
@@ -208,7 +341,7 @@ namespace Game
 
             if ((behavior & AbilityBehavior.UnitTarget) != 0)
             {
-                IUnit target = FindNearestTarget(caster, definition);
+                IUnit target = FindNearestTarget(caster, ability);
                 if (target == null)
                 {
                     return CastResult.Fail(CastFailureReason.InvalidTarget, "No valid target.");
@@ -219,7 +352,7 @@ namespace Game
 
             if ((behavior & AbilityBehavior.PointTarget) != 0)
             {
-                IUnit target = FindNearestTarget(caster, definition);
+                IUnit target = FindNearestTarget(caster, ability);
                 Vector3 position = target != null ? target.Position : caster.Position;
                 return Engine.CastAbilityOnPosition(caster, definition.Name, position);
             }
@@ -353,7 +486,7 @@ namespace Game
             return Engine.AddModifier(unit, unit, AbilityConfigConverter.ModifierName(modifierId), duration);
         }
 
-        private RuntimeAbility EnsureAbility(IUnit caster, int skillId)
+        private RuntimeAbility EnsureAbility(IUnit caster, int skillId, int level = 1)
         {
             if (!initialized || caster == null)
             {
@@ -365,28 +498,230 @@ namespace Game
             RuntimeAbility ability = Engine.FindAbility(caster, abilityName);
             if (ability != null)
             {
+                ability.SetLevel(Mathf.Max(1, level));
                 return ability;
             }
 
-            return AddAbility(caster, skillId);
+            return AddAbility(caster, skillId, Mathf.Max(1, level));
         }
 
-        private IUnit FindNearestTarget(IUnit caster, AbilityDefinition definition)
+        private int AllocateRuntimeEntityId()
         {
-            if (caster == null || definition == null)
+            return nextRuntimeEntityId++;
+        }
+
+        private void SubscribeToLifecycleEvents()
+        {
+            if (lifecycleEventsSubscribed)
+            {
+                return;
+            }
+
+            NpcManager.Instance.NpcRegistered += OnNpcRegistered;
+            NpcManager.Instance.NpcUnregistered += OnNpcUnregistered;
+            TowerManager.Instance.TowerRegistered += OnTowerRegistered;
+            TowerManager.Instance.TowerUnregistered += OnTowerUnregistered;
+            BaseManager.Instance.BaseLoaded += OnBaseLoaded;
+            BaseManager.Instance.BaseRemoving += OnBaseRemoving;
+            BattleFlowManager.Instance.BattleCompleted += OnBattleCompleted;
+            lifecycleEventsSubscribed = true;
+        }
+
+        private void UnsubscribeFromLifecycleEvents()
+        {
+            if (!lifecycleEventsSubscribed)
+            {
+                return;
+            }
+
+            NpcManager.Instance.NpcRegistered -= OnNpcRegistered;
+            NpcManager.Instance.NpcUnregistered -= OnNpcUnregistered;
+            TowerManager.Instance.TowerRegistered -= OnTowerRegistered;
+            TowerManager.Instance.TowerUnregistered -= OnTowerUnregistered;
+            BaseManager.Instance.BaseLoaded -= OnBaseLoaded;
+            BaseManager.Instance.BaseRemoving -= OnBaseRemoving;
+            BattleFlowManager.Instance.BattleCompleted -= OnBattleCompleted;
+            lifecycleEventsSubscribed = false;
+        }
+
+        private void OnNpcRegistered(Npc npc)
+        {
+            GetUnit(npc);
+        }
+
+        private void OnNpcUnregistered(Npc npc)
+        {
+            UnregisterUnit(npc);
+        }
+
+        private void OnTowerRegistered(Tower tower)
+        {
+            GetUnit(tower);
+        }
+
+        private void OnTowerUnregistered(Tower tower)
+        {
+            UnregisterUnit(tower);
+        }
+
+        private void OnBaseLoaded()
+        {
+            GetBaseUnit();
+        }
+
+        private void OnBaseRemoving()
+        {
+            UnregisterBaseUnit();
+        }
+
+        private void OnBattleCompleted(BattleEndedMessage message)
+        {
+            ClearBattleRuntime();
+        }
+
+        private void ClearBattleRuntime()
+        {
+            Engine.ClearRuntime();
+            npcUnits.Clear();
+            towerUnits.Clear();
+            searchResults.Clear();
+            activeNpcObjectIds.Clear();
+            activeTowerObjectIds.Clear();
+            staleObjectIds.Clear();
+            baseUnit = null;
+            nextRuntimeEntityId = 1;
+        }
+
+        private void SynchronizeUnitBindings()
+        {
+            SynchronizeNpcBindings();
+            SynchronizeTowerBindings();
+
+            if (BaseManager.Instance.HasBaseObject)
+            {
+                GetBaseUnit();
+            }
+            else if (baseUnit != null)
+            {
+                UnregisterBaseUnit();
+            }
+        }
+
+        private void SynchronizeNpcBindings()
+        {
+            activeNpcObjectIds.Clear();
+            IReadOnlyList<Npc> activeNpcs = NpcManager.Instance.ActiveNpcs;
+            if (activeNpcs != null)
+            {
+                for (int i = 0; i < activeNpcs.Count; i++)
+                {
+                    Npc npc = activeNpcs[i];
+                    if (npc == null)
+                    {
+                        continue;
+                    }
+
+                    int objectId = npc.GetInstanceID();
+                    activeNpcObjectIds.Add(objectId);
+                    GetUnit(npc);
+                }
+            }
+
+            staleObjectIds.Clear();
+            foreach (KeyValuePair<int, TdUnit> pair in npcUnits)
+            {
+                if (!activeNpcObjectIds.Contains(pair.Key) || pair.Value == null || !pair.Value.IsValidBinding)
+                {
+                    staleObjectIds.Add(pair.Key);
+                }
+            }
+
+            for (int i = 0; i < staleObjectIds.Count; i++)
+            {
+                UnregisterNpcObject(staleObjectIds[i]);
+            }
+        }
+
+        private void SynchronizeTowerBindings()
+        {
+            activeTowerObjectIds.Clear();
+            IReadOnlyList<Tower> activeTowers = TowerManager.Instance.ActiveTowers;
+            if (activeTowers != null)
+            {
+                for (int i = 0; i < activeTowers.Count; i++)
+                {
+                    Tower tower = activeTowers[i];
+                    if (tower == null)
+                    {
+                        continue;
+                    }
+
+                    int objectId = tower.GetInstanceID();
+                    activeTowerObjectIds.Add(objectId);
+                    GetUnit(tower);
+                }
+            }
+
+            staleObjectIds.Clear();
+            foreach (KeyValuePair<int, TdUnit> pair in towerUnits)
+            {
+                if (!activeTowerObjectIds.Contains(pair.Key) || pair.Value == null || !pair.Value.IsValidBinding)
+                {
+                    staleObjectIds.Add(pair.Key);
+                }
+            }
+
+            for (int i = 0; i < staleObjectIds.Count; i++)
+            {
+                UnregisterTowerObject(staleObjectIds[i]);
+            }
+        }
+
+        private bool UnregisterNpcObject(int objectId)
+        {
+            if (!npcUnits.TryGetValue(objectId, out TdUnit unit))
+            {
+                return false;
+            }
+
+            Engine.RemoveUnit(unit);
+            npcUnits.Remove(objectId);
+            return true;
+        }
+
+        private bool UnregisterTowerObject(int objectId)
+        {
+            if (!towerUnits.TryGetValue(objectId, out TdUnit unit))
+            {
+                return false;
+            }
+
+            Engine.RemoveUnit(unit);
+            towerUnits.Remove(objectId);
+            return true;
+        }
+
+        private IUnit FindNearestTarget(IUnit caster, RuntimeAbility ability)
+        {
+            if (caster == null || ability == null)
             {
                 return null;
             }
 
+            AbilityDefinition definition = ability.Definition;
+
             TargetQuery query = new TargetQuery
             {
+                Engine = Engine,
                 Caster = caster,
                 Team = definition.TargetTeam,
                 Types = definition.TargetType,
                 Flags = definition.TargetFlags
             };
 
-            float radius = definition.CastRange != null ? definition.CastRange.GetValue(1) : 0f;
+            float radius = Mathf.Max(
+                0f,
+                ability.GetCastRange() + Engine.GetModifierProperty(caster, ModifierProperty.CastRangeBonus, null));
             if (radius <= 0f)
             {
                 radius = GlobalSearchRadius;
@@ -419,34 +754,31 @@ namespace Game
             return nearest;
         }
 
-        private void RegisterDefinitions()
+        private bool RegisterDefinitions()
         {
-            // Build all definitions from tables at startup; runtime instances reference these by name.
-            Dictionary<int, List<SkillActionConfig>> actionGroups = AbilityConfigConverter.BuildActionGroups(DataManager.Instance.SkillAction);
-
-            if (DataManager.Instance.SkillModifier != null && DataManager.Instance.SkillModifier.GetAll() != null)
+            List<IAbilityDefinitionProvider> providers = new List<IAbilityDefinitionProvider>
             {
-                foreach (KeyValuePair<int, SkillModifierConfig> pair in DataManager.Instance.SkillModifier.GetAll())
-                {
-                    ModifierDefinition definition = AbilityConfigConverter.ToModifierDefinition(pair.Value, actionGroups);
-                    Engine.RegisterModifierDefinition(definition);
-                }
+                new ExcelAbilityDefinitionProvider(
+                    DataManager.Instance.Skill,
+                    DataManager.Instance.SkillAction,
+                    DataManager.Instance.SkillModifier)
+            };
+            providers.AddRange(additionalDefinitionProviders);
+
+            DefinitionRegistry = new AbilityDefinitionRegistry();
+            DefinitionRegistry.LoadProviders(providers);
+            for (int i = 0; i < DefinitionRegistry.Validation.Issues.Count; i++)
+            {
+                AbilityValidationIssue issue = DefinitionRegistry.Validation.Issues[i];
+                string message = "[Ability Provider][" + issue.Code + "] " + issue.Message +
+                                 (issue.Source != null ? " | " + issue.Source : string.Empty) +
+                                 (!string.IsNullOrEmpty(issue.ReferenceChain) ? " | " + issue.ReferenceChain : string.Empty);
+                if (issue.Severity == AbilityValidationSeverity.Error) Debug.LogError(message);
+                else if (issue.Severity == AbilityValidationSeverity.Warning) Debug.LogWarning(message);
+                else Debug.Log(message);
             }
 
-            if (DataManager.Instance.Skill != null && DataManager.Instance.Skill.GetAll() != null)
-            {
-                foreach (KeyValuePair<int, SkillConfig> pair in DataManager.Instance.Skill.GetAll())
-                {
-                    SkillConfig config = pair.Value;
-                    if (config == null || !config.Enable)
-                    {
-                        continue;
-                    }
-
-                    AbilityDefinition definition = AbilityConfigConverter.ToAbilityDefinition(config, actionGroups);
-                    Engine.RegisterAbilityDefinition(definition);
-                }
-            }
+            return DefinitionRegistry.ApplyTo(Engine);
         }
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 
 namespace Game.Ability
 {
@@ -9,9 +10,6 @@ namespace Game.Ability
     /// </summary>
     public static class ActionRunner
     {
-        // Reused within one execution path to avoid allocations in common action loops.
-        private static readonly List<IUnit> ScratchTargets = new List<IUnit>();
-
         public static void Execute(IReadOnlyList<ActionDefinition> actions, CastContext context)
         {
             if (actions == null || context == null)
@@ -32,43 +30,55 @@ namespace Game.Ability
                 return;
             }
 
-            // ActionType performs the gameplay operation; optional VFX/SFX are also played below.
-            switch (action.ActionType)
+            // Every execution rents its own target list. Nested modifier/projectile callbacks may
+            // execute another action immediately, so a shared static scratch list is not reentrant.
+            List<IUnit> targets = ListPool<IUnit>.Get();
+            try
             {
-                case ActionType.Damage:
-                    ExecuteDamage(action, context);
-                    break;
-                case ActionType.Heal:
-                    ExecuteHeal(action, context);
-                    break;
-                case ActionType.AddModifier:
-                    ExecuteAddModifier(action, context);
-                    break;
-                case ActionType.Purge:
-                    ExecutePurge(action, context);
-                    break;
-                case ActionType.CreateTrackingProjectile:
-                    ExecuteTrackingProjectile(action, context);
-                    break;
-                case ActionType.CreateLinearProjectile:
-                    ExecuteLinearProjectile(action, context);
-                    break;
-                case ActionType.PlayEffect:
-                    ExecuteEffect(action, context);
-                    break;
-                case ActionType.PlaySound:
+                ResolveTargets(action.Target, context, targets);
+
+                // ActionType performs the gameplay operation; optional VFX/SFX are also played below.
+                switch (action.ActionType)
+                {
+                    case ActionType.Damage:
+                        ExecuteDamage(action, context, targets);
+                        break;
+                    case ActionType.Heal:
+                        ExecuteHeal(action, context, targets);
+                        break;
+                    case ActionType.AddModifier:
+                        ExecuteAddModifier(action, context, targets);
+                        break;
+                    case ActionType.Purge:
+                        ExecutePurge(action, context, targets);
+                        break;
+                    case ActionType.CreateTrackingProjectile:
+                        ExecuteTrackingProjectile(action, context, targets);
+                        break;
+                    case ActionType.CreateLinearProjectile:
+                        ExecuteLinearProjectile(action, context);
+                        break;
+                    case ActionType.PlayEffect:
+                        ExecuteEffect(action, context, targets);
+                        break;
+                    case ActionType.PlaySound:
+                        ExecuteSound(action, context);
+                        break;
+                }
+
+                if (action.ActionType != ActionType.PlayEffect)
+                {
+                    ExecuteEffect(action, context, targets);
+                }
+
+                if (action.ActionType != ActionType.PlaySound)
+                {
                     ExecuteSound(action, context);
-                    break;
+                }
             }
-
-            if (action.ActionType != ActionType.PlayEffect)
+            finally
             {
-                ExecuteEffect(action, context);
-            }
-
-            if (action.ActionType != ActionType.PlaySound)
-            {
-                ExecuteSound(action, context);
+                ListPool<IUnit>.Release(targets);
             }
         }
 
@@ -91,17 +101,16 @@ namespace Game.Ability
             return context;
         }
 
-        private static void ExecuteDamage(ActionDefinition action, CastContext context)
+        private static void ExecuteDamage(ActionDefinition action, CastContext context, List<IUnit> targets)
         {
-            ResolveTargets(action.Target, context);
             float amount = action.ResolveValue(context.Ability);
-            for (int i = 0; i < ScratchTargets.Count; i++)
+            for (int i = 0; i < targets.Count; i++)
             {
                 context.Engine.ApplyDamage(new DamageInfo
                 {
                     Engine = context.Engine,
                     Attacker = context.Caster,
-                    Victim = ScratchTargets[i],
+                    Victim = targets[i],
                     Ability = context.Ability,
                     Amount = amount,
                     DamageType = action.DamageType,
@@ -110,57 +119,53 @@ namespace Game.Ability
             }
         }
 
-        private static void ExecuteHeal(ActionDefinition action, CastContext context)
+        private static void ExecuteHeal(ActionDefinition action, CastContext context, List<IUnit> targets)
         {
-            ResolveTargets(action.Target, context);
             float amount = action.ResolveValue(context.Ability);
-            for (int i = 0; i < ScratchTargets.Count; i++)
+            for (int i = 0; i < targets.Count; i++)
             {
                 context.Engine.Heal(new HealInfo
                 {
                     Source = context.Caster,
-                    Target = ScratchTargets[i],
+                    Target = targets[i],
                     Ability = context.Ability,
                     Amount = amount
                 });
             }
         }
 
-        private static void ExecuteAddModifier(ActionDefinition action, CastContext context)
+        private static void ExecuteAddModifier(ActionDefinition action, CastContext context, List<IUnit> targets)
         {
             if (string.IsNullOrEmpty(action.ModifierName))
             {
                 return;
             }
 
-            ResolveTargets(action.Target, context);
             float duration = action.ResolveDuration(context.Ability);
-            for (int i = 0; i < ScratchTargets.Count; i++)
+            for (int i = 0; i < targets.Count; i++)
             {
-                context.Engine.AddModifier(context.Caster, ScratchTargets[i], context.Ability, action.ModifierName, new ModifierApplyOptions { Duration = duration });
+                context.Engine.AddModifier(context.Caster, targets[i], context.Ability, action.ModifierName, new ModifierApplyOptions { Duration = duration });
             }
         }
 
-        private static void ExecutePurge(ActionDefinition action, CastContext context)
+        private static void ExecutePurge(ActionDefinition action, CastContext context, List<IUnit> targets)
         {
-            ResolveTargets(action.Target, context);
-            for (int i = 0; i < ScratchTargets.Count; i++)
+            for (int i = 0; i < targets.Count; i++)
             {
-                context.Engine.Purge(ScratchTargets[i], action.PurgePositiveBuffs, action.PurgeDebuffs, action.PurgeOnlyPurgable);
+                context.Engine.Purge(targets[i], action.PurgePositiveBuffs, action.PurgeDebuffs, action.PurgeOnlyPurgable);
             }
         }
 
-        private static void ExecuteTrackingProjectile(ActionDefinition action, CastContext context)
+        private static void ExecuteTrackingProjectile(ActionDefinition action, CastContext context, List<IUnit> targets)
         {
             if (action.Projectile == null)
             {
                 return;
             }
 
-            ResolveTargets(action.Target, context);
-            for (int i = 0; i < ScratchTargets.Count; i++)
+            for (int i = 0; i < targets.Count; i++)
             {
-                context.Engine.CreateTrackingProjectile(context.Ability, context.Caster, ScratchTargets[i], action.Projectile);
+                context.Engine.CreateTrackingProjectile(context.Ability, context.Caster, targets[i], action.Projectile);
             }
         }
 
@@ -185,23 +190,22 @@ namespace Game.Ability
             context.Engine.CreateLinearProjectile(context.Ability, context.Caster, context.Caster.Position, direction, action.Projectile);
         }
 
-        private static void ExecuteEffect(ActionDefinition action, CastContext context)
+        private static void ExecuteEffect(ActionDefinition action, CastContext context, List<IUnit> targets)
         {
             if (context.Engine.Presentation == null || string.IsNullOrEmpty(action.EffectName))
             {
                 return;
             }
 
-            ResolveTargets(action.Target, context);
-            if (ScratchTargets.Count == 0 || action.Target == ActionTarget.Point)
+            if (targets.Count == 0 || action.Target == ActionTarget.Point)
             {
                 context.Engine.Presentation.PlayEffect(action.EffectName, ResolvePoint(action.Target, context));
                 return;
             }
 
-            for (int i = 0; i < ScratchTargets.Count; i++)
+            for (int i = 0; i < targets.Count; i++)
             {
-                context.Engine.Presentation.PlayEffect(action.EffectName, ScratchTargets[i]);
+                context.Engine.Presentation.PlayEffect(action.EffectName, targets[i]);
             }
         }
 
@@ -215,30 +219,30 @@ namespace Game.Ability
             context.Engine.Presentation.PlaySound(action.SoundName, ResolvePoint(action.Target, context));
         }
 
-        private static void ResolveTargets(ActionTarget target, CastContext context)
+        private static void ResolveTargets(ActionTarget target, CastContext context, List<IUnit> targets)
         {
             // ContextTargets are pre-filtered by Targeting for AOE/no-target casts.
-            ScratchTargets.Clear();
+            targets.Clear();
             switch (target)
             {
                 case ActionTarget.Caster:
-                    AddTarget(context.Caster);
+                    AddTarget(context.Caster, targets);
                     break;
                 case ActionTarget.PrimaryTarget:
-                    AddTarget(context.Target);
-                    if (ScratchTargets.Count == 0 && context.Targets.Count > 0)
+                    AddTarget(context.Target, targets);
+                    if (targets.Count == 0 && context.Targets.Count > 0)
                     {
-                        AddTarget(context.Targets[0]);
+                        AddTarget(context.Targets[0], targets);
                     }
                     break;
                 case ActionTarget.ContextTargets:
                     for (int i = 0; i < context.Targets.Count; i++)
                     {
-                        AddTarget(context.Targets[i]);
+                        AddTarget(context.Targets[i], targets);
                     }
-                    if (ScratchTargets.Count == 0)
+                    if (targets.Count == 0)
                     {
-                        AddTarget(context.Target);
+                        AddTarget(context.Target, targets);
                     }
                     break;
             }
@@ -257,11 +261,11 @@ namespace Game.Ability
             }
         }
 
-        private static void AddTarget(IUnit target)
+        private static void AddTarget(IUnit target, List<IUnit> targets)
         {
-            if (target != null && !ScratchTargets.Contains(target))
+            if (target != null && !targets.Contains(target))
             {
-                ScratchTargets.Add(target);
+                targets.Add(target);
             }
         }
     }

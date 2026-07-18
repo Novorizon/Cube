@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Game.Framework;
 using TMPro;
 using UI;
@@ -10,40 +9,30 @@ namespace Game
 {
     public sealed class WorldMainPanel : UIPanel
     {
-        public const string PrefabPath = "Assets/Arts/UI/Panels/WorldMainPanel.prefab";
-        private const string BuildSlotPrefabPath = "Assets/Arts/UI/Panels/BuildSlot.prefab";
-        private static readonly HashSet<string> MissingBuildIconWarnings = new HashSet<string>();
-        private static readonly Color BuildCostEnoughColor = new Color(0.23f, 0.18f, 0.12f, 1f);
-        private static readonly Color BuildCostMissingColor = new Color(0.82f, 0.12f, 0.08f, 1f);
+        public const string PrefabPath = "Assets/Arts/UI/Panels/World/WorldMainPanel.prefab";
+        private const string ManagementFloatingGroup = "ManagementFloating";
+        private const string BuildEntryId = "build";
+        private const string ToolKitEntryId = "toolkit";
+        private const string ProductionEntryId = "production";
+        private const string QuestEntryId = "quest";
+        private const string TechTreeEntryId = "techTree";
+        private const string MenuEntryId = "menu";
+        private const int DefaultBattleMapConfigId = 30950001;
 
         public static WorldMainPanel Instance { get; private set; }
 
-        private readonly WorldCostResolver costResolver = new WorldCostResolver(DataManager.Instance.WorldCost);
-        private readonly WorldTopBarPanel topBarPanel = new WorldTopBarPanel();
-        private readonly WorldBuildPanel buildPanel = new WorldBuildPanel();
-        private readonly WorldBottomBarPanel bottomBarPanel = new WorldBottomBarPanel();
-        private readonly WorldEntryBarPanel entryBarPanel = new WorldEntryBarPanel();
-        private readonly WorldRightBarPanel rightBarPanel = new WorldRightBarPanel();
-        private readonly WorldBagPanel bagPanel = new WorldBagPanel();
-        private readonly WorldProductionPanel productionPanel = new WorldProductionPanel();
-        private readonly WorldFarmPanel farmPanel = new WorldFarmPanel();
-        private readonly WorldBuildingDetailPanel buildingDetailPanel = new WorldBuildingDetailPanel();
+        [SerializeField] private WorldTopBarPanel topBarPanel;
+        [SerializeField] private WorldBottomBarPanel bottomBarPanel;
+        [SerializeField] private WorldEntryBarPanel entryBarPanel;
+        [SerializeField] private WorldRightBarPanel rightBarPanel;
+        [SerializeField] private WorldBuildingDetailPanel buildingDetailPanel;
 
         private RectTransform rootRect;
-        private TMP_Text toolKitText;
+        private RectTransform bottomBarRect;
         private TMP_Text currentModeText;
         private TMP_Text selectedSummaryText;
-        private GameObject buildPanelRoot;
-        private Transform buildButtonContainer;
-        private GameObject bagPanelRoot;
-        private GameObject productionPanelRoot;
-        private GameObject farmPanelRoot;
-        private GameObject buildingDetailPanelRoot;
-        private GameObject toolKitPanelRoot;
-        private GameObject questPanelRoot;
-        private GameObject buildSlotPrefab;
+        private readonly WorldPanelEntryController panelEntries = new WorldPanelEntryController();
         private float nextRefreshTime;
-        private int lastBuildListStateHash = int.MinValue;
 
         public void RefreshNow()
         {
@@ -64,7 +53,12 @@ namespace Game
                 WorldMessageTopic.TechChanged,
                 _ =>
                 {
-                    lastBuildListStateHash = int.MinValue;
+                    RefreshNow();
+                }));
+            RegisterDisposable(Messager.Instance.Subscribe<WorldMessageTopic, QuestChangedMessage>(
+                WorldMessageTopic.QuestChanged,
+                _ =>
+                {
                     RefreshNow();
                 }));
             RefreshNow();
@@ -73,8 +67,7 @@ namespace Game
         protected override void OnDestroyed()
         {
             LocalizationManager.LanguageChanged -= OnLanguageChanged;
-            bottomBarPanel.Dispose();
-            bagPanel.Dispose();
+            bottomBarPanel?.Dispose();
 
             if (Instance == this)
             {
@@ -96,6 +89,8 @@ namespace Game
 
         private void Update()
         {
+            topBarPanel?.RefreshCalendarMotion();
+
             if (Time.unscaledTime < nextRefreshTime)
             {
                 return;
@@ -133,160 +128,180 @@ namespace Game
 
         private bool TryBindExistingLayout()
         {
-            bottomBarPanel.Dispose();
-            bagPanel.Dispose();
-
-            Transform buildPanelTransform = rootRect.Find("BuildPanel");
-            Transform topBar = rootRect.Find("TopBar");
-            Transform resources = rootRect.Find("Resources");
-            Transform bottomBar = rootRect.Find("BottomBar");
-            Transform leftBar = rootRect.Find("LeftBar");
-            Transform rightBar = rootRect.Find("RightBar");
-            Transform bagPanelTransform = rootRect.Find("BottomBar/BagPanel") ?? rootRect.Find("BagPanel");
-            Transform productionPanelTransform = rootRect.Find("ProductionPanel") ?? rootRect.Find("DebugPanel");
-            Transform buildingDetailPanelTransform = rootRect.Find("BuildingDetailPanel");
-            Transform farmPanelTransform = rootRect.Find("FarmPanel");
-            if (buildPanelTransform == null)
+            if (bottomBarPanel == null)
             {
                 return false;
             }
 
-            topBarPanel.Bind(topBar, resources, ShowWorldMenuPanel);
-            buildPanel.Bind(buildPanelTransform, CloseBuildPanelFromButton, OnBuildCategoryChanged);
-            bottomBarPanel.Bind(bottomBar, ToggleBagPanel, ToggleBuildPanel, ShowTechTreePanel);
-            entryBarPanel.Bind(leftBar, () => ToggleExclusivePanel(questPanelRoot));
-            rightBarPanel.Bind(rightBar, ToggleProductionPanel, () => ToggleExclusivePanel(toolKitPanelRoot), () => WorldGameplayController.Instance?.SelectFarmAreaMode(), ShowTechTreePanel);
-            bagPanel.Bind(bagPanelTransform, () => SetPanelVisible(bagPanelRoot, false));
-            productionPanel.Bind(productionPanelTransform);
-            buildingDetailPanel.Bind(buildingDetailPanelTransform, HideBuildingDetailPanel, RefreshNow);
-            farmPanel.Bind(farmPanelTransform, HideFarmPanel, cropId => WorldGameplayController.Instance != null && WorldGameplayController.Instance.TryPlantSelectedFarm(cropId));
+            topBarPanel?.Initialize(ShowWorldMenuPanel);
+            RegisterPanelEntries();
+            bottomBarPanel.Initialize(ToggleBagPanel, ToggleBuildPanel, ToggleToolKitPanel, ShowTechTreePanel);
+            entryBarPanel?.Initialize(ToggleQuestPanel);
+            rightBarPanel?.Initialize(
+                ToggleProductionPanel,
+                ToggleToolKitPanel,
+                () => GameplayController.Instance?.SelectFarmAreaMode(),
+                ShowTechTreePanel,
+                EnterBattleMap);
+            buildingDetailPanel?.Initialize(HideBuildingDetailPanel, RefreshNow);
 
+            bottomBarRect = bottomBarPanel.RootRect;
             currentModeText = bottomBarPanel.CurrentModeText;
             selectedSummaryText = bottomBarPanel.SelectedSummaryText;
-            buildPanelRoot = buildPanel.Root;
-            buildButtonContainer = buildPanel.ButtonContainer;
-            bagPanelRoot = bagPanel.Root;
-            productionPanelRoot = productionPanel.Root;
-            farmPanelRoot = farmPanel.Root;
-            buildingDetailPanelRoot = buildingDetailPanel.Root;
-            toolKitPanelRoot = FindGameObject("ToolKitPanel");
-            questPanelRoot = FindGameObject("QuestPanel");
-            toolKitText = FindText(toolKitPanelRoot != null ? toolKitPanelRoot.transform : null, "Content");
-
-            if (buildButtonContainer == null)
-            {
-                toolKitText = null;
-                currentModeText = null;
-                selectedSummaryText = null;
-                buildPanelRoot = null;
-                buildButtonContainer = null;
-                bagPanelRoot = null;
-                productionPanelRoot = null;
-                farmPanelRoot = null;
-                buildingDetailPanelRoot = null;
-                toolKitPanelRoot = null;
-                questPanelRoot = null;
-                return false;
-            }
 
             BindPopupCloseButtons();
-            RefreshBagToggle();
+            RefreshPanelEntryStates();
             return true;
+        }
+
+        private void RegisterPanelEntries()
+        {
+            panelEntries.Clear();
+            panelEntries.Register(new WorldPanelEntry(
+                BuildEntryId,
+                ManagementFloatingGroup,
+                WorldBuildPanel.PrefabPath));
+            panelEntries.Register(new WorldPanelEntry(
+                ToolKitEntryId,
+                ManagementFloatingGroup,
+                WorldToolKitPanel.PrefabPath));
+            panelEntries.Register(new WorldPanelEntry(
+                ProductionEntryId,
+                ManagementFloatingGroup,
+                WorldProductionPanel.PrefabPath));
+            panelEntries.Register(new WorldPanelEntry(
+                QuestEntryId,
+                ManagementFloatingGroup,
+                QuestPanel.PrefabPath));
+            panelEntries.Register(new WorldPanelEntry(
+                TechTreeEntryId,
+                ManagementFloatingGroup,
+                TechTreePanel.PrefabPath,
+                bottomBarPanel.SetTechOpen));
+            panelEntries.Register(new WorldPanelEntry(
+                MenuEntryId,
+                ManagementFloatingGroup,
+                WorldMenuPanel.PrefabPath));
         }
 
         private void BindPopupCloseButtons()
         {
-            WorldPanelBindingUtility.BindButton(rootRect.Find("ToolKitPanel/Close"), () => SetPanelVisible(toolKitPanelRoot, false), "ToolKit close");
-            WorldPanelBindingUtility.BindButton(rootRect.Find("ToolKitPanel/Upgrade"), UpgradeToolKitFromButton, "ToolKit upgrade");
-            WorldPanelBindingUtility.BindButton(rootRect.Find("QuestPanel/Close"), () => SetPanelVisible(questPanelRoot, false), "Quest close");
+        }
+
+        private void ToggleQuestPanel()
+        {
+            TogglePanelEntry(QuestEntryId);
         }
 
         private void ToggleBuildPanel()
         {
-            if (buildPanelRoot == null)
-            {
-                return;
-            }
-
-            bool nextVisible = !buildPanelRoot.activeSelf;
-            HideFloatingPanels();
-            SetPanelVisible(buildPanelRoot, nextVisible);
-            RefreshNow();
-        }
-
-        private void CloseBuildPanelFromButton()
-        {
-            SetPanelVisible(buildPanelRoot, false);
-            RefreshNow();
+            TogglePanelEntry(BuildEntryId);
         }
 
         private void ShowTechTreePanel()
         {
-            ShowTechTreePanelAsync().Forget();
+            TogglePanelEntry(TechTreeEntryId);
         }
 
         private void ShowWorldMenuPanel()
         {
-            ShowWorldMenuPanelAsync().Forget();
-        }
-
-        private async System.Threading.Tasks.Task ShowTechTreePanelAsync()
-        {
-            await UIManager.Instance.Panels.ShowAsync(TechTreePanel.PrefabPath);
-        }
-
-        private async System.Threading.Tasks.Task ShowWorldMenuPanelAsync()
-        {
-            HideFloatingPanels();
-            await UIManager.Instance.Panels.ShowAsync(WorldMenuPanel.PrefabPath);
-        }
-
-        private void OnBuildCategoryChanged()
-        {
-            lastBuildListStateHash = int.MinValue;
-            RefreshNow();
+            TogglePanelEntry(MenuEntryId);
         }
 
         private void OnLanguageChanged()
         {
-            lastBuildListStateHash = int.MinValue;
-            bottomBarPanel.RefreshSlots();
-            bagPanel.RefreshSlots();
+            topBarPanel?.RefreshCalendarWidget();
+            topBarPanel?.RefreshWeather();
+            bottomBarPanel?.RefreshSlots();
             RefreshNow();
         }
 
         private void ToggleBagPanel()
         {
-            ToggleExclusivePanel(bagPanelRoot);
+            if (bottomBarPanel == null)
+            {
+                return;
+            }
+
+            bool shouldOpen = !bottomBarPanel.IsBagOpen;
+            if (shouldOpen)
+            {
+                HideFloatingPanels(true, null, false);
+            }
+
+            bottomBarPanel.SetBagOpen(shouldOpen);
+            RefreshNow();
         }
 
         private void ToggleProductionPanel()
         {
-            ToggleExclusivePanel(productionPanelRoot);
+            TogglePanelEntry(ProductionEntryId);
+        }
+
+        private void ToggleToolKitPanel()
+        {
+            TogglePanelEntry(ToolKitEntryId);
+        }
+
+        private void EnterBattleMap()
+        {
+            if (!MapManager.Instance.LoadBattleMap(DefaultBattleMapConfigId))
+            {
+                Debug.LogError($"Enter battle map failed. Map config id: {DefaultBattleMapConfigId}");
+            }
+        }
+
+        private void TogglePanelEntry(string entryId)
+        {
+            TogglePanelEntryAsync(entryId).Forget();
+        }
+
+        private async System.Threading.Tasks.Task TogglePanelEntryAsync(string entryId)
+        {
+            if (!panelEntries.TryGet(entryId, out WorldPanelEntry entry))
+            {
+                return;
+            }
+
+            if (panelEntries.IsShown(entry))
+            {
+                UIManager.Instance.Panels.Hide(entry.PrefabPath);
+                RefreshNow();
+                return;
+            }
+
+            HideFloatingPanels(true, entry.PrefabPath);
+            await UIManager.Instance.Panels.ShowExclusiveAsync(entry.GroupId, entry.PrefabPath);
+            RefreshNow();
         }
 
         public void ShowFarmPanel(Farm farm)
         {
-            if (farmPanelRoot == null)
-            {
-                Debug.LogWarning("Show farm panel failed. FarmPanel is missing from WorldMainPanel prefab.");
-                return;
-            }
-
             if (farm == null)
             {
                 Debug.LogWarning("Show farm panel failed. Farm is null.");
                 return;
             }
 
-            HideFloatingPanels();
-            farmPanel.Show(farm);
+            WorldFarmPanel.Instance?.SetSelectedFarm(farm);
+            ShowFarmPanelAsync(farm).Forget();
+        }
+
+        private async System.Threading.Tasks.Task ShowFarmPanelAsync(Farm farm)
+        {
+            HideFloatingPanels(false);
+            UIHandle handle = await UIManager.Instance.Panels.ShowAsync(WorldFarmPanel.PrefabPath, farm);
+            if (handle.View is WorldFarmPanel farmPanel)
+            {
+                farmPanel.SetSelectedFarm(farm);
+            }
+
             RefreshNow();
         }
 
         public void ShowBuildingDetailPanel(WorldBuilding building)
         {
-            if (buildingDetailPanelRoot == null)
+            if (buildingDetailPanel == null)
             {
                 Debug.LogWarning("Show building detail panel failed. BuildingDetailPanel is missing from WorldMainPanel prefab.");
                 return;
@@ -299,68 +314,42 @@ namespace Game
             }
 
             HideFloatingPanels();
-            buildingDetailPanel.Show(building);
+            buildingDetailPanel?.Show(building);
             RefreshNow();
         }
 
         public void HideFarmPanel()
         {
-            farmPanel.Hide();
+            UIManager.Instance.Panels.Hide(WorldFarmPanel.PrefabPath);
         }
 
         public void HideBuildingDetailPanel()
         {
-            buildingDetailPanel.Hide();
+            buildingDetailPanel?.Hide();
         }
 
-        private void ToggleExclusivePanel(GameObject panel)
+        private void HideFloatingPanels(
+            bool hideFarmPanel = true,
+            string exceptPrefabPath = null,
+            bool hideBagPanel = true)
         {
-            if (panel == null)
+            if (hideBagPanel)
             {
-                return;
+                bottomBarPanel?.SetBagOpen(false);
             }
 
-            bool nextVisible = !panel.activeSelf;
-            HideFloatingPanels();
-            SetPanelVisible(panel, nextVisible);
-            RefreshNow();
-        }
-
-        private void HideFloatingPanels()
-        {
-            SetPanelVisible(buildPanelRoot, false);
-            SetPanelVisible(bagPanelRoot, false);
-            SetPanelVisible(productionPanelRoot, false);
-            SetPanelVisible(buildingDetailPanelRoot, false);
-            SetPanelVisible(farmPanelRoot, false);
-            SetPanelVisible(toolKitPanelRoot, false);
-            SetPanelVisible(questPanelRoot, false);
-        }
-
-        private void SetPanelVisible(GameObject panel, bool visible)
-        {
-            if (panel != null)
+            buildingDetailPanel?.Hide();
+            UIManager.Instance.Panels.HideExclusiveGroup(ManagementFloatingGroup, exceptPrefabPath);
+            UIManager.Instance.Panels.HideStack(WorldMenuPanel.SettingsStackGroupId);
+            if (hideFarmPanel)
             {
-                panel.SetActive(visible);
+                UIManager.Instance.Panels.Hide(WorldFarmPanel.PrefabPath);
             }
-
-            if (panel == bagPanelRoot)
-            {
-                RefreshBagToggle();
-            }
-
         }
 
-        private void RefreshBagToggle()
+        private void RefreshPanelEntryStates()
         {
-            bool isOpen = bagPanelRoot != null && bagPanelRoot.activeSelf;
-            bottomBarPanel.SetBagOpen(isOpen);
-        }
-
-        private void UpgradeToolKitFromButton()
-        {
-            ToolKitManager.Instance.Upgrade();
-            RefreshNow();
+            panelEntries.RefreshStates();
         }
 
         private void Refresh()
@@ -372,23 +361,14 @@ namespace Game
                 return;
             }
 
-            int mapId = MapManager.Instance.CurrentMap != null ? MapManager.Instance.CurrentMap.Id : 0;
-            bool hasHouse = WorldBuildingManager.Instance.HasActiveBuildingType(WorldBuildingType.House);
-            int selectedBuildingId = WorldGameplayController.Instance != null ? WorldGameplayController.Instance.SelectedBuildingId : 0;
+            int selectedBuildingId = GameplayController.Instance != null ? GameplayController.Instance.SelectedBuildingId : 0;
 
-            RefreshTopBarCells();
+            RefreshPanelEntryStates();
             RefreshCalendarWidget();
-            buildPanel.RefreshTabs(hasHouse);
-            productionPanel.Refresh();
-            farmPanel.Refresh();
-            buildingDetailPanel.Refresh();
+            RefreshQuestPanel();
+            buildingDetailPanel?.Refresh();
 
-            if (toolKitText != null)
-            {
-                toolKitText.text = ToolKitManager.Instance.GetDisplayText();
-            }
-
-            bool farmAreaMode = WorldGameplayController.Instance != null && WorldGameplayController.Instance.IsFarmAreaMode;
+            bool farmAreaMode = GameplayController.Instance != null && GameplayController.Instance.IsFarmAreaMode;
             if (currentModeText != null)
             {
                 currentModeText.text = farmAreaMode
@@ -401,67 +381,6 @@ namespace Game
             if (selectedSummaryText != null)
             {
                 selectedSummaryText.text = FormatSelectedObjectSummary(selectedBuildingId);
-            }
-
-            int buildListStateHash = CalculateBuildListStateHash(selectedBuildingId, hasHouse, farmAreaMode);
-            if (buildListStateHash != lastBuildListStateHash)
-            {
-                lastBuildListStateHash = buildListStateHash;
-                RebuildBuildingButtons(selectedBuildingId, hasHouse);
-            }
-        }
-
-        private void RebuildBuildingButtons(int selectedBuildingId, bool hasHouse)
-        {
-            if (buildButtonContainer == null)
-            {
-                return;
-            }
-
-            List<GameObject> oldButtons = new List<GameObject>();
-            for (int i = buildButtonContainer.childCount - 1; i >= 0; i--)
-            {
-                Transform child = buildButtonContainer.GetChild(i);
-                if (child == null || child.gameObject == null)
-                {
-                    continue;
-                }
-
-                oldButtons.Add(child.gameObject);
-            }
-
-            for (int i = 0; i < oldButtons.Count; i++)
-            {
-                DestroyUnityObject(oldButtons[i]);
-            }
-
-            IReadOnlyDictionary<int, WorldBuildingConfig> configs = DataManager.Instance.WorldBuilding?.GetAll();
-            if (configs == null)
-            {
-                return;
-            }
-
-            List<WorldBuildingConfig> buildableConfigs = new List<WorldBuildingConfig>();
-            foreach (KeyValuePair<int, WorldBuildingConfig> pair in configs)
-            {
-                WorldBuildingConfig config = pair.Value;
-                bool isHouse = config != null && (WorldBuildingType)config.BuildingType == WorldBuildingType.House;
-                if (config == null ||
-                    !config.Enable ||
-                    !config.ShowInBuildPanel ||
-                    ShouldHideFromBuildPanel(config, hasHouse) ||
-                    (!isHouse || hasHouse) && !IsInBuildCategory(config, buildPanel.CurrentCategory))
-                {
-                    continue;
-                }
-
-                buildableConfigs.Add(config);
-            }
-
-            buildableConfigs.Sort(CompareBuildConfigs);
-            for (int i = 0; i < buildableConfigs.Count; i++)
-            {
-                CreateBuildingButton(buildableConfigs[i], selectedBuildingId);
             }
         }
 
@@ -477,197 +396,75 @@ namespace Game
                 return false;
             }
 
-            if (buildPanelRoot != null &&
-                buildButtonContainer != null)
+            if (bottomBarRect != null)
             {
                 return true;
             }
 
-            toolKitText = null;
+            bottomBarRect = null;
             currentModeText = null;
             selectedSummaryText = null;
-            buildPanelRoot = null;
-            buildButtonContainer = null;
-            bagPanelRoot = null;
-            toolKitPanelRoot = null;
-            questPanelRoot = null;
-            lastBuildListStateHash = int.MinValue;
 
             return TryBindExistingLayout();
         }
 
-        private int CalculateBuildListStateHash(int selectedBuildingId, bool hasHouse, bool farmAreaMode)
+        public bool TryGetBottomBarTopInParent(RectTransform targetParent, out float topY)
         {
-            unchecked
+            topY = 0f;
+            if (bottomBarRect == null || targetParent == null)
             {
-                int hash = selectedBuildingId;
-                hash = hash * 397 ^ (hasHouse ? 1 : 0);
-                hash = hash * 397 ^ (farmAreaMode ? 1 : 0);
-                hash = hash * 397 ^ (int)buildPanel.CurrentCategory;
-                hash = hash * 397 ^ GetItemCount(ItemIds.Gold);
-                hash = hash * 397 ^ GetItemCount(ItemIds.Wood);
-                hash = hash * 397 ^ GetItemCount(ItemIds.Stone);
-                hash = hash * 397 ^ GetItemCount(ItemIds.Food);
-                hash = hash * 397 ^ GetItemCount(ItemIds.CopperOre);
-                hash = hash * 397 ^ GetItemCount(ItemIds.IronOre);
-                hash = hash * 397 ^ TechManager.Instance.Revision;
-                foreach (KeyValuePair<int, WorldBuilding> pair in WorldBuildingManager.Instance.GetAllBuildings())
-                {
-                    WorldBuilding building = pair.Value;
-                    if (building == null)
-                    {
-                        continue;
-                    }
-
-                    hash = hash * 397 ^ building.ConfigId;
-                    hash = hash * 397 ^ building.Level;
-                    hash = hash * 397 ^ (int)building.Status;
-                }
-
-                return hash;
+                return false;
             }
+
+            Vector3[] corners = new Vector3[4];
+            bottomBarRect.GetWorldCorners(corners);
+            topY = targetParent.InverseTransformPoint(corners[1]).y;
+            return true;
         }
 
-        private void CreateBuildingButton(WorldBuildingConfig config, int selectedBuildingId)
+        public bool TryGetHotBarGridRectInParent(RectTransform targetParent, out Rect rect)
         {
-            bool unlocked = WorldBuildingManager.Instance.IsBuildingUnlocked(config.Id);
-            bool hasCost = HasBuildCost(config.Id, out string costText);
-            string requirementText = string.Empty;
-
-            if (!unlocked)
-            {
-                requirementText = WorldBuildingManager.Instance.GetUnlockRequirementText(config);
-            }
-
-            GameObject prefab = GetBuildSlotPrefab();
-            if (prefab == null || buildButtonContainer == null)
-            {
-                return;
-            }
-
-            GameObject slotObject = Instantiate(prefab, buildButtonContainer, false);
-            slotObject.name = $"Build_{config.Id}";
-
-            Image background = slotObject.GetComponent<Image>();
-            if (background != null)
-            {
-                background.color = new Color(0.98f, 0.91f, 0.78f, 0.98f);
-            }
-
-            SetChildActive(slotObject.transform, "Selected", selectedBuildingId == config.Id);
-            SetChildText(slotObject.transform, "NameText", GetBuildingName(config.Id));
-            SetChildText(slotObject.transform, "CostText", !unlocked ? LocalizationManager.Get("ui.common.locked") : hasCost ? costText : LocalizationManager.Format("ui.build.cost.need", GetBuildCostDisplayText(config.Id)));
-            SetChildTextColor(slotObject.transform, "CostText", BuildCostEnoughColor);
-            SetChildText(slotObject.transform, "RequirementText", unlocked ? string.Empty : string.IsNullOrWhiteSpace(requirementText) ? LocalizationManager.Get("ui.common.locked") : requirementText);
-            SetChildActive(slotObject.transform, "LockOverlay", !unlocked);
-            RefreshBuildSlotIcon(slotObject.transform, config);
-
-            Button button = slotObject.GetComponent<Button>();
-            if (button == null)
-            {
-                Debug.LogError($"[WorldMainPanel] Missing static Button on build slot prefab: {BuildSlotPrefabPath}");
-                return;
-            }
-
-            button.interactable = true;
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(() =>
-            {
-                if (!WorldBuildingManager.Instance.IsBuildingUnlocked(config.Id))
-                {
-                    string currentRequirement = WorldBuildingManager.Instance.GetUnlockRequirementText(config);
-                    Toast.Warning(string.IsNullOrWhiteSpace(currentRequirement) ? LocalizationManager.Get("ui.build.locked") : currentRequirement);
-                    RefreshNow();
-                    return;
-                }
-
-                if (!HasBuildCost(config.Id, out string currentCostText))
-                {
-                    Toast.Warning(LocalizationManager.Format("ui.build.missing_materials", GetMissingBuildCostText(config.Id, currentCostText)));
-                    RefreshNow();
-                    return;
-                }
-
-                WorldGameplayController.Instance?.SelectBuilding(config.Id);
-                SetPanelVisible(buildPanelRoot, false);
-                RefreshNow();
-            });
+            return TryGetRectInParent(bottomBarPanel != null ? bottomBarPanel.HotBarGridRect : null, targetParent, out rect);
         }
 
-        private GameObject GetBuildSlotPrefab()
+        public bool TryGetHotSlotRectInParent(int slotNumber, RectTransform targetParent, out Rect rect)
         {
-            if (buildSlotPrefab != null)
+            rect = default;
+            if (bottomBarPanel == null || !bottomBarPanel.TryGetHotSlotRect(slotNumber, out RectTransform slotRect))
             {
-                return buildSlotPrefab;
+                return false;
             }
 
-            buildSlotPrefab = ResourceManager.Instance.LoadGameObject(BuildSlotPrefabPath);
-            if (buildSlotPrefab == null)
-            {
-                Debug.LogError($"[WorldMainPanel] Missing build slot prefab: {BuildSlotPrefabPath}");
-            }
-
-            return buildSlotPrefab;
+            return TryGetRectInParent(slotRect, targetParent, out rect);
         }
 
-        private static void RefreshBuildSlotIcon(Transform slot, WorldBuildingConfig config)
+        private static bool TryGetRectInParent(RectTransform source, RectTransform targetParent, out Rect rect)
         {
-            Image icon = FindImage(slot, "Icon");
-            TMP_Text iconLabel = FindText(slot, "IconLabel");
-            Sprite sprite = LoadBuildIcon(config);
-            if (icon != null)
+            rect = default;
+            if (source == null || targetParent == null)
             {
-                icon.sprite = sprite;
-                icon.color = sprite != null ? Color.white : new Color(0.86f, 0.68f, 0.38f, 0.9f);
-                icon.preserveAspect = true;
+                return false;
             }
 
-            if (iconLabel != null)
-            {
-                iconLabel.gameObject.SetActive(sprite == null);
-                iconLabel.text = GetBuildIconLabel(GetBuildingName(config.Id));
-            }
-        }
+            Vector3[] corners = new Vector3[4];
+            source.GetWorldCorners(corners);
 
-        private static Sprite LoadBuildIcon(WorldBuildingConfig config)
-        {
-            if (config == null || string.IsNullOrWhiteSpace(config.IconLocation))
+            Vector2 min = targetParent.InverseTransformPoint(corners[0]);
+            Vector2 max = min;
+            for (int i = 1; i < corners.Length; i++)
             {
-                return null;
+                Vector2 point = targetParent.InverseTransformPoint(corners[i]);
+                min = Vector2.Min(min, point);
+                max = Vector2.Max(max, point);
             }
 
-            if (!config.IconLocation.StartsWith("Assets/", StringComparison.Ordinal))
-            {
-                if (MissingBuildIconWarnings.Add(config.IconLocation))
-                {
-                    Debug.LogWarning($"[WorldMainPanel] Building icon location must be a full asset path. location: {config.IconLocation}");
-                }
-
-                return null;
-            }
-
-            Sprite sprite = ResourceManager.Instance.LoadAsset<Sprite>(config.IconLocation);
-            if (sprite == null && MissingBuildIconWarnings.Add(config.IconLocation))
-            {
-                Debug.LogWarning($"[WorldMainPanel] Building icon load failed. location: {config.IconLocation}");
-            }
-
-            return sprite;
-        }
-
-        private static string GetBuildIconLabel(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                return LocalizationManager.Get("ui.build.icon_fallback");
-            }
-
-            return name.Length <= 2 ? name : name.Substring(0, 2);
+            rect = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+            return true;
         }
 
         private string FormatSelectedObjectSummary(int selectedBuildingId)
         {
-            WorldGameplayController gameplay = WorldGameplayController.Instance;
+            GameplayController gameplay = GameplayController.Instance;
             if (gameplay != null)
             {
                 if (gameplay.SelectedFarm != null)
@@ -675,9 +472,9 @@ namespace Game
                     return FormatFarmSummary(gameplay.SelectedFarm);
                 }
 
-                if (gameplay.SelectedWorldBuilding != null)
+                if (gameplay.SelectedBuilding != null)
                 {
-                    return FormatBuildingSummary(gameplay.SelectedWorldBuilding);
+                    return FormatBuildingSummary(gameplay.SelectedBuilding);
                 }
             }
 
@@ -722,258 +519,18 @@ namespace Game
             return LocalizationManager.Format("ui.main.building_summary", GetBuildingName(building.ConfigId), building.Level, status);
         }
 
-        private bool HasBuildCost(int buildingId, out string costText)
-        {
-            costText = LocalizationManager.Get("ui.common.free");
-            if (!DataManager.Instance.TryGetWorldBuildingLevel(buildingId, 1, out WorldBuildingLevelConfig levelConfig) || levelConfig == null)
-            {
-                costText = LocalizationManager.Get("ui.common.config");
-                return false;
-            }
-
-            IReadOnlyList<WorldItem> costs = costResolver.GetCostGroup(levelConfig.BuildCostGroupId);
-            if (levelConfig.BuildCostGroupId <= 0 || costs.Count == 0)
-            {
-                return true;
-            }
-
-            costText = FormatCosts(costs);
-            return WorldItemManager.Instance.HasItems(costs);
-        }
-
-        private string GetBuildCostDisplayText(int buildingId)
-        {
-            if (!DataManager.Instance.TryGetWorldBuildingLevel(buildingId, 1, out WorldBuildingLevelConfig levelConfig) || levelConfig == null)
-            {
-                return LocalizationManager.Get("ui.common.config");
-            }
-
-            IReadOnlyList<WorldItem> costs = costResolver.GetCostGroup(levelConfig.BuildCostGroupId);
-            if (levelConfig.BuildCostGroupId <= 0 || costs.Count == 0)
-            {
-                return LocalizationManager.Get("ui.common.free");
-            }
-
-            return FormatCosts(costs, true);
-        }
-
-        private string GetMissingBuildCostText(int buildingId, string fallbackCostText)
-        {
-            if (!DataManager.Instance.TryGetWorldBuildingLevel(buildingId, 1, out WorldBuildingLevelConfig levelConfig) || levelConfig == null)
-            {
-                return fallbackCostText;
-            }
-
-            IReadOnlyList<WorldItem> costs = costResolver.GetCostGroup(levelConfig.BuildCostGroupId);
-            if (costs == null || costs.Count == 0)
-            {
-                return fallbackCostText;
-            }
-
-            List<string> parts = new List<string>();
-            for (int i = 0; i < costs.Count; i++)
-            {
-                WorldItem cost = costs[i];
-                if (cost == null || cost.ItemId <= 0 || cost.Count <= 0)
-                {
-                    continue;
-                }
-
-                int current = WorldItemManager.Instance.GetCount(cost.ItemId);
-                if (current >= cost.Count)
-                {
-                    continue;
-                }
-
-                parts.Add($"{GetItemName(cost.ItemId)} {current}/{cost.Count}");
-            }
-
-            return parts.Count > 0 ? string.Join("、", parts) : fallbackCostText;
-        }
-
-        private string FormatCosts(IReadOnlyList<WorldItem> costs)
-        {
-            return FormatCosts(costs, false);
-        }
-
-        private string FormatCosts(IReadOnlyList<WorldItem> costs, bool colorMissingCount)
-        {
-            if (costs == null || costs.Count == 0)
-            {
-                return LocalizationManager.Get("ui.common.free");
-            }
-
-            List<string> parts = new List<string>();
-            for (int i = 0; i < costs.Count; i++)
-            {
-                WorldItem cost = costs[i];
-                if (cost == null || cost.ItemId <= 0 || cost.Count <= 0)
-                {
-                    continue;
-                }
-
-                string countText = cost.Count.ToString();
-                if (colorMissingCount && !WorldItemManager.Instance.HasItem(cost.ItemId, cost.Count))
-                {
-                    countText = $"<color=#{ColorUtility.ToHtmlStringRGB(BuildCostMissingColor)}>{countText}</color>";
-                }
-
-                parts.Add($"{GetItemName(cost.ItemId)} {countText}");
-            }
-
-            return parts.Count > 0 ? string.Join(", ", parts) : LocalizationManager.Get("ui.common.free");
-        }
-
         private static string GetBuildingName(int buildingId)
         {
             return LocalizedConfigText.BuildingName(buildingId);
         }
 
-        private static string GetItemName(int itemId)
-        {
-            return LocalizedConfigText.ItemName(itemId);
-        }
-
-        private int GetItemCount(int itemId)
-        {
-            return WorldItemManager.Instance.GetCount(itemId);
-        }
-
-        private void RefreshTopBarCells()
-        {
-            topBarPanel.RefreshCells(GetItemCount);
-        }
-
         private void RefreshCalendarWidget()
         {
-            topBarPanel.RefreshCalendarWidget();
+            topBarPanel?.RefreshCalendarWidget();
         }
 
-        private static bool ShouldHideFromBuildPanel(WorldBuildingConfig config, bool hasHouse)
+        private void RefreshQuestPanel()
         {
-            WorldBuildingType buildingType = (WorldBuildingType)config.BuildingType;
-            if (buildingType == WorldBuildingType.House)
-            {
-                return hasHouse;
-            }
-
-            if (!hasHouse)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsInBuildCategory(WorldBuildingConfig config, WorldBuildCategory category)
-        {
-            if (config == null || category == WorldBuildCategory.All)
-            {
-                return true;
-            }
-
-            return GetBuildCategory(config) == category;
-        }
-
-        private static WorldBuildCategory GetBuildCategory(WorldBuildingConfig config)
-        {
-            if (config == null)
-            {
-                return WorldBuildCategory.Special;
-            }
-
-            int category = config.BuildCategory;
-            if (category < (int)WorldBuildCategory.Building || category > (int)WorldBuildCategory.Special)
-            {
-                return WorldBuildCategory.Special;
-            }
-
-            return (WorldBuildCategory)category;
-        }
-
-        private static int CompareBuildConfigs(WorldBuildingConfig left, WorldBuildingConfig right)
-        {
-            if (ReferenceEquals(left, right))
-            {
-                return 0;
-            }
-
-            if (left == null)
-            {
-                return 1;
-            }
-
-            if (right == null)
-            {
-                return -1;
-            }
-
-            int sort = left.SortOrder.CompareTo(right.SortOrder);
-            return sort != 0 ? sort : left.Id.CompareTo(right.Id);
-        }
-
-        private static TMP_Text FindText(Transform parent, string childName)
-        {
-            Transform child = parent != null ? parent.Find(childName) : null;
-            return child != null ? child.GetComponent<TMP_Text>() : null;
-        }
-
-        private static Image FindImage(Transform parent, string childName)
-        {
-            Transform child = parent != null ? parent.Find(childName) : null;
-            return child != null ? child.GetComponent<Image>() : null;
-        }
-
-        private static void SetChildActive(Transform parent, string childName, bool active)
-        {
-            Transform child = parent != null ? parent.Find(childName) : null;
-            if (child != null)
-            {
-                child.gameObject.SetActive(active);
-            }
-        }
-
-        private static void SetChildText(Transform parent, string childName, string content)
-        {
-            TMP_Text text = FindText(parent, childName);
-            if (text != null)
-            {
-                text.richText = true;
-                text.text = content;
-            }
-        }
-
-        private static void SetChildTextColor(Transform parent, string childName, Color color)
-        {
-            TMP_Text text = FindText(parent, childName);
-            if (text != null)
-            {
-                text.color = color;
-            }
-        }
-
-        private GameObject FindGameObject(string childName)
-        {
-            Transform child = rootRect != null ? rootRect.Find(childName) : null;
-            return child != null ? child.gameObject : null;
-        }
-
-        private static void DestroyUnityObject(UnityEngine.Object target)
-        {
-            if (target == null)
-            {
-                return;
-            }
-
-            if (Application.isPlaying)
-            {
-                Destroy(target);
-                return;
-            }
-
-#if UNITY_EDITOR
-            DestroyImmediate(target);
-#endif
         }
     }
 }

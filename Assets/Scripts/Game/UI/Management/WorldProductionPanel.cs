@@ -2,22 +2,50 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using TMPro;
+using UI;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Game
 {
-    internal sealed class WorldProductionPanel
+    public sealed class WorldProductionPanel : UIPanel
     {
+        public const string PrefabPath = "Assets/Arts/UI/Panels/Production/ProductionPanel.prefab";
+
         private readonly StringBuilder builder = new StringBuilder(512);
         private GameObject root;
         private TMP_Text contentText;
         private ProductionStatGroup activeGroup = ProductionStatGroup.Overview;
+        private float nextRefreshTime;
 
         public GameObject Root => root;
+        public override UICloseTriggers CloseTriggers => UICloseTriggers.CloseButton | UICloseTriggers.Back | UICloseTriggers.RightOutside;
 
-        public bool Bind(Transform rootTransform)
+        protected override void OnCreate()
         {
+            BindStaticLayout();
+        }
+
+        protected override void OnOpen(object args)
+        {
+            BindStaticLayout();
+            WorldFloatingPanelLayout.AlignBottomToHotBarGrid(GetComponent<RectTransform>());
+            RefreshNow();
+        }
+
+        private void Update()
+        {
+            if (!IsOpen || Time.unscaledTime < nextRefreshTime)
+            {
+                return;
+            }
+
+            Refresh();
+        }
+
+        private bool BindStaticLayout()
+        {
+            Transform rootTransform = transform;
             root = rootTransform != null ? rootTransform.gameObject : null;
             if (rootTransform == null)
             {
@@ -37,9 +65,15 @@ namespace Game
             BindTab(rootTransform, "Tab_Ores", ProductionStatGroup.Ores);
             BindTab(rootTransform, "Tab_Basic", ProductionStatGroup.BasicResources);
             BindTab(rootTransform, "Tab_Buildings", ProductionStatGroup.Buildings);
-            WorldPanelBindingUtility.BindButton(rootTransform.Find("Close"), () => root.SetActive(false), "Production close");
+            WorldPanelBindingUtility.BindButton(rootTransform.Find("Close"), CloseSelf, "Production close");
             Refresh();
             return contentText != null;
+        }
+
+        private void RefreshNow()
+        {
+            nextRefreshTime = 0f;
+            Refresh();
         }
 
         public void Refresh()
@@ -49,6 +83,7 @@ namespace Game
                 return;
             }
 
+            nextRefreshTime = Time.unscaledTime + 0.5f;
             List<ProductionStat> stats = ProductionStatsProvider.Instance.GetStats(activeGroup);
             builder.Clear();
             builder.AppendLine(GetGroupTitle(activeGroup));
@@ -78,6 +113,14 @@ namespace Game
                 activeGroup = group;
                 Refresh();
             }, path);
+        }
+
+        private void CloseSelf()
+        {
+            if (CanCloseBy(UICloseReason.CloseButton))
+            {
+                UIManager.Instance.Panels.Hide(PrefabPath);
+            }
         }
 
         private static string GetGroupTitle(ProductionStatGroup group)

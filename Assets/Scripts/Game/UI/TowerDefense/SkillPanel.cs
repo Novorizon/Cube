@@ -8,38 +8,48 @@ namespace Game
 {
     public sealed class SkillPanel : UIPanel
     {
-        private const string SkillContentPrefabPath = "Assets/Arts/UI/TowerDefense/Prefabs/Skill.prefab";
-
         [SerializeField]
         private RectTransform contentRoot;
 
         [SerializeField]
         private CommonSlotView slotPrefab;
 
+        [SerializeField]
+        private CommonSlotView[] initialSlots;
+
+        [SerializeField]
+        private GameObject skillContentPrefab;
+
         private readonly Dictionary<int, CommonSlotView> slots = new Dictionary<int, CommonSlotView>();
         private readonly Dictionary<int, SkillConfig> slotConfigs = new Dictionary<int, SkillConfig>();
         private readonly List<CommonSlotView> slotPool = new List<CommonSlotView>();
         private readonly HashSet<string> missingIconWarnings = new HashSet<string>();
-        private GameObject skillContentPrefab;
         private int usedSlotCount;
+        private bool subscribed;
 
         public event Action<int> SkillClicked;
 
+        public override UICloseTriggers CloseTriggers => UICloseTriggers.None;
+
         protected override void OnCreate()
         {
-            if (ItemManager.Instance != null)
-            {
-                ItemManager.Instance.OnItemChanged += OnItemChanged;
-            }
+            RegisterInitialSlots();
+        }
+
+        protected override void OnOpen(object args)
+        {
+            Subscribe();
+            Initialize();
+        }
+
+        protected override void OnClose()
+        {
+            Unsubscribe();
         }
 
         protected override void OnDestroyed()
         {
-            if (ItemManager.Instance != null)
-            {
-                ItemManager.Instance.OnItemChanged -= OnItemChanged;
-            }
-
+            Unsubscribe();
             Clear();
             SkillClicked = null;
         }
@@ -61,14 +71,14 @@ namespace Game
                     continue;
                 }
 
-                GameObject contentPrefab = GetSkillContentPrefab();
-                if (contentPrefab == null)
+                if (skillContentPrefab == null)
                 {
+                    Debug.LogError($"[{nameof(SkillPanel)}] skillContentPrefab is not assigned.", this);
                     return;
                 }
 
                 CommonSlotView slot = AcquireSlot();
-                slot.Init(config.Id, LocalizedConfigText.SkillName(config.Id), GetAvailableCastCount(config), LoadIcon(config.IconLocation), contentPrefab, OnSkillClicked);
+                slot.Init(config.Id, LocalizedConfigText.SkillName(config.Id), GetAvailableCastCount(config), LoadIcon(config.IconLocation), skillContentPrefab, OnSkillClicked);
                 slots[config.Id] = slot;
                 slotConfigs[config.Id] = config;
             }
@@ -137,6 +147,27 @@ namespace Game
             }
         }
 
+        private void Update()
+        {
+            if (!IsOpen)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<int, CommonSlotView> pair in slots)
+            {
+                if (pair.Value == null)
+                {
+                    continue;
+                }
+
+                if (AbilityManager.Instance.TryGetBaseAbilityCooldown(pair.Key, out float remaining, out float duration))
+                {
+                    pair.Value.SetCooldown(remaining, duration);
+                }
+            }
+        }
+
         private static bool ShouldShowInHud(SkillConfig config)
         {
             if (config == null || !config.Enable || config.AbilityActionGroupId <= 0 || config.CostResourceId <= 0)
@@ -159,7 +190,7 @@ namespace Game
                 return 1;
             }
 
-            return ItemManager.Instance.GetCount(config.CostResourceId) / config.CostCount;
+            return BattleItemManager.Instance.GetCount(config.CostResourceId) / config.CostCount;
         }
 
         private Sprite LoadIcon(string location)
@@ -190,8 +221,6 @@ namespace Game
 
         private void Clear()
         {
-            RefreshSlotPool();
-
             foreach (CommonSlotView slot in slotPool)
             {
                 if (slot != null)
@@ -208,8 +237,6 @@ namespace Game
 
         private CommonSlotView AcquireSlot()
         {
-            RefreshSlotPool();
-
             if (usedSlotCount < slotPool.Count)
             {
                 CommonSlotView slot = slotPool[usedSlotCount];
@@ -224,53 +251,44 @@ namespace Game
             return instance;
         }
 
-        private void RefreshSlotPool()
+        private void RegisterInitialSlots()
         {
-            if (contentRoot == null)
+            slotPool.Clear();
+            if (initialSlots == null)
             {
-                slotPool.Clear();
                 return;
             }
 
-            slotPool.Clear();
-            contentRoot.GetComponentsInChildren(true, slotPool);
-            slotPool.Sort(CompareSlotOrder);
+            for (int i = 0; i < initialSlots.Length; i++)
+            {
+                CommonSlotView slot = initialSlots[i];
+                if (slot != null && !slotPool.Contains(slot))
+                {
+                    slotPool.Add(slot);
+                }
+            }
         }
 
-        private static int CompareSlotOrder(CommonSlotView left, CommonSlotView right)
+        private void Subscribe()
         {
-            if (left == right)
+            if (subscribed)
             {
-                return 0;
+                return;
             }
 
-            if (left == null)
-            {
-                return 1;
-            }
-
-            if (right == null)
-            {
-                return -1;
-            }
-
-            return left.transform.GetSiblingIndex().CompareTo(right.transform.GetSiblingIndex());
+            BattleItemManager.Instance.OnItemChanged += OnItemChanged;
+            subscribed = true;
         }
 
-        private GameObject GetSkillContentPrefab()
+        private void Unsubscribe()
         {
-            if (skillContentPrefab != null)
+            if (!subscribed)
             {
-                return skillContentPrefab;
+                return;
             }
 
-            skillContentPrefab = ResourceManager.Instance.LoadGameObject(SkillContentPrefabPath);
-            if (skillContentPrefab == null)
-            {
-                Debug.LogWarning($"Skill content prefab load failed. location: {SkillContentPrefabPath}");
-            }
-
-            return skillContentPrefab;
+            BattleItemManager.Instance.OnItemChanged -= OnItemChanged;
+            subscribed = false;
         }
     }
 }

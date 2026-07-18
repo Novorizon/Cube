@@ -12,20 +12,20 @@ namespace Game
             this.worldCostTable = worldCostTable;
         }
 
-        public IReadOnlyList<WorldItem> GetCostGroup(int groupId)
+        public IReadOnlyList<ItemStack> GetCostGroup(int groupId)
         {
             if (groupId <= 0)
             {
-                return Array.Empty<WorldItem>();
+                return Array.Empty<ItemStack>();
             }
 
             IReadOnlyDictionary<int, WorldCostConfig> configs = worldCostTable?.GetAll();
             if (configs == null)
             {
-                return Array.Empty<WorldItem>();
+                return Array.Empty<ItemStack>();
             }
 
-            List<WorldItem> costs = new List<WorldItem>();
+            List<ItemStack> costs = new List<ItemStack>();
             foreach (KeyValuePair<int, WorldCostConfig> pair in configs)
             {
                 WorldCostConfig config = pair.Value;
@@ -34,7 +34,7 @@ namespace Game
                     continue;
                 }
 
-                costs.Add(new WorldItem(config.ItemId, config.Count));
+                costs.Add(new ItemStack(config.ItemId, config.Count));
             }
 
             return costs;

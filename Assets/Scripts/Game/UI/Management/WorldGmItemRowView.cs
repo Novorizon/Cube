@@ -54,7 +54,7 @@ namespace Game
             RefreshText();
             if (countText != null)
             {
-                countText.text = WorldItemManager.Instance.GetCount(itemId).ToString();
+                countText.text = ItemManager.Instance.GetCount(itemId).ToString();
             }
         }
 

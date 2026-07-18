@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="QuestTableConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="name" type="string" comment="client" />
+    <var name="description" type="string" comment="client" />
+    <var name="questType" type="string" comment="client" />
+    <var name="rewardGroupId" type="int" comment="client" />
+    <var name="preQuestId1" type="int" comment="client" />
+    <var name="preQuestId2" type="int" comment="client" />
+    <var name="preQuestId3" type="int" comment="client" />
+    <var name="acceptMode" type="int" comment="client" />
+    <var name="acceptEventType" type="int" comment="client" />
+    <var name="acceptTargetId" type="int" comment="client" />
+    <var name="autoAccept" type="bool" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbQuest" value="QuestTableConfig" input="quest.xlsx" mode="map" index="id" />
+</module>

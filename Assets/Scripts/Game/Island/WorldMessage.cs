@@ -8,9 +8,12 @@ namespace Game
         ItemChanged = 1,
         BagChanged = 2,
         TechChanged = 3,
+        QuestChanged = 4,
+        QuestCompleted = 5,
+        QuestAccepted = 6,
     }
 
-    public sealed class WorldItemChangedMessage : IMessage
+    public sealed class ItemChangedMessage : IMessage
     {
         public int ItemId;
         public int Count;
@@ -29,5 +32,23 @@ namespace Game
     {
         public int TechId;
         public bool FullRefresh;
+    }
+
+    public sealed class QuestChangedMessage : IMessage
+    {
+        public int QuestId;
+        public bool FullRefresh;
+    }
+
+    public sealed class QuestCompletedMessage : IMessage
+    {
+        public int QuestId;
+        public string QuestName;
+    }
+
+    public sealed class QuestAcceptedMessage : IMessage
+    {
+        public int QuestId;
+        public string QuestName;
     }
 }

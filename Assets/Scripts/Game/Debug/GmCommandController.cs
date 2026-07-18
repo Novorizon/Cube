@@ -1,6 +1,7 @@
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
 
 using System;
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -51,7 +52,7 @@ namespace Game
             EnsureView();
             root.SetActive(true);
             inputField.text = string.Empty;
-            SetHint("GM: add <itemId> [count] | camera follow/free");
+            SetHint("GM: add <itemId> [count] | camera follow/free | time scale/set/season");
             inputField.ActivateInputField();
             inputField.Select();
 
@@ -218,8 +219,141 @@ namespace Game
                     return ExecuteAdd(parts, out message);
                 case "camera":
                     return ExecuteCamera(parts, out message);
+                case "time":
+                    return ExecuteTime(parts, out message);
                 default:
                     message = $"Unknown command: {parts[0]}";
+                    return false;
+            }
+        }
+
+        private static bool ExecuteTime(string[] parts, out string message)
+        {
+            if (parts.Length < 2)
+            {
+                message = "Usage: time scale <value> | time set <hour> [minute] | time date <year> <month> <day> <hour> [minute] | time season spring/summer/autumn/winter";
+                return false;
+            }
+
+            string mode = parts[1].ToLowerInvariant();
+            switch (mode)
+            {
+                case "scale":
+                case "speed":
+                    return ExecuteTimeScale(parts, out message);
+                case "set":
+                    return ExecuteTimeSet(parts, out message);
+                case "date":
+                    return ExecuteTimeDate(parts, out message);
+                case "season":
+                    return ExecuteTimeSeason(parts, out message);
+                default:
+                    message = "Usage: time scale/set/date/season";
+                    return false;
+            }
+        }
+
+        private static bool ExecuteTimeScale(string[] parts, out string message)
+        {
+            if (parts.Length < 3 ||
+                !float.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out float scale) ||
+                scale < 0f)
+            {
+                message = "Usage: time scale <value>. Example: time scale 120";
+                return false;
+            }
+
+            CalendarManager.Instance.SetGameTimeScale(scale);
+            message = $"Game time scale: {scale.ToString("0.###", CultureInfo.InvariantCulture)}";
+            return true;
+        }
+
+        private static bool ExecuteTimeSet(string[] parts, out string message)
+        {
+            if (parts.Length < 3 ||
+                !int.TryParse(parts[2], out int hour))
+            {
+                message = "Usage: time set <hour> [minute]. Example: time set 12 0";
+                return false;
+            }
+
+            int minute = 0;
+            if (parts.Length >= 4 && !int.TryParse(parts[3], out minute))
+            {
+                message = "Minute must be an integer.";
+                return false;
+            }
+
+            CalendarManager.Instance.SetTimeOfDay(hour, minute);
+            WorldMainPanel.Instance?.RefreshNow();
+            message = $"Game time: {CalendarManager.Instance.GetDateText()} {CalendarManager.Instance.GetTimeText()}";
+            return true;
+        }
+
+        private static bool ExecuteTimeDate(string[] parts, out string message)
+        {
+            if (parts.Length < 6 ||
+                !int.TryParse(parts[2], out int year) ||
+                !int.TryParse(parts[3], out int month) ||
+                !int.TryParse(parts[4], out int day) ||
+                !int.TryParse(parts[5], out int hour))
+            {
+                message = "Usage: time date <year> <month> <day> <hour> [minute]. Example: time date 1 2 1 12 0";
+                return false;
+            }
+
+            int minute = 0;
+            if (parts.Length >= 7 && !int.TryParse(parts[6], out minute))
+            {
+                message = "Minute must be an integer.";
+                return false;
+            }
+
+            CalendarManager.Instance.SetDateTime(year, month, day, hour, minute);
+            WorldMainPanel.Instance?.RefreshNow();
+            message = $"Game time: {CalendarManager.Instance.GetDateText()} {CalendarManager.Instance.GetTimeText()}";
+            return true;
+        }
+
+        private static bool ExecuteTimeSeason(string[] parts, out string message)
+        {
+            if (parts.Length < 3 || !TryParseSeason(parts[2], out Season season))
+            {
+                message = "Usage: time season spring/summer/autumn/winter";
+                return false;
+            }
+
+            CalendarManager calendar = CalendarManager.Instance;
+            int month = ((int)season - 1) * CalendarManager.MonthsPerSeason + 1;
+            calendar.SetDateTime(calendar.Year, month, 1, calendar.Hour, calendar.Minute);
+            WorldMainPanel.Instance?.RefreshNow();
+            message = $"Season: {CalendarManager.GetSeasonName(calendar.Season)}";
+            return true;
+        }
+
+        private static bool TryParseSeason(string value, out Season season)
+        {
+            switch ((value ?? string.Empty).ToLowerInvariant())
+            {
+                case "spring":
+                case "1":
+                    season = Season.Spring;
+                    return true;
+                case "summer":
+                case "2":
+                    season = Season.Summer;
+                    return true;
+                case "autumn":
+                case "fall":
+                case "3":
+                    season = Season.Autumn;
+                    return true;
+                case "winter":
+                case "4":
+                    season = Season.Winter;
+                    return true;
+                default:
+                    season = default;
                     return false;
             }
         }
@@ -232,9 +366,9 @@ namespace Game
                 return false;
             }
 
-            if (WorldGameplayController.Instance == null)
+            if (GameplayController.Instance == null)
             {
-                message = "WorldGameplayController is not active.";
+                message = "GameplayController is not active.";
                 return false;
             }
 
@@ -243,12 +377,12 @@ namespace Game
             {
                 case "follow":
                 case "followplayer":
-                    WorldGameplayController.Instance.SetCameraFollowMode(CameraFollowMode.FollowPlayer);
+                    GameplayController.Instance.SetCameraFollowMode(CameraFollowMode.FollowPlayer);
                     message = "Camera mode: FollowPlayer";
                     return true;
 
                 case "free":
-                    WorldGameplayController.Instance.SetCameraFollowMode(CameraFollowMode.Free);
+                    GameplayController.Instance.SetCameraFollowMode(CameraFollowMode.Free);
                     message = "Camera mode: Free";
                     return true;
 

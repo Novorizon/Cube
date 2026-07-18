@@ -1,29 +1,40 @@
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game
 {
-    internal sealed class WorldRightBarPanel
+    public sealed class WorldRightBarPanel : MonoBehaviour
     {
-        public bool Bind(
-            Transform root,
+        [SerializeField] private Button productionButton;
+        [SerializeField] private Button toolKitButton;
+        [SerializeField] private Button farmButton;
+        [SerializeField] private Button techButton;
+        [SerializeField] private Button battleButton;
+
+        public void Initialize(
             Action productionClicked,
             Action toolKitClicked,
             Action farmClicked,
-            Action techClicked)
+            Action techClicked,
+            Action battleClicked)
         {
-            if (root == null)
+            BindButton(productionButton, productionClicked);
+            BindButton(toolKitButton, toolKitClicked);
+            BindButton(farmButton, farmClicked);
+            BindButton(techButton, techClicked);
+            BindButton(battleButton, battleClicked);
+        }
+
+        private static void BindButton(Button button, Action clicked)
+        {
+            if (button == null)
             {
-                return false;
+                return;
             }
 
-            Transform production = root.Find("Production") ?? root.Find("Status");
-            WorldPanelBindingUtility.BindButton(production, () => productionClicked?.Invoke(), "Production entry");
-            WorldPanelBindingUtility.BindButton(root.Find("ToolKitEntry"), () => toolKitClicked?.Invoke(), "ToolKit entry");
-            WorldPanelBindingUtility.BindButton(root.Find("QuickFarm"), () => farmClicked?.Invoke(), "Farm entry");
-            Transform tech = root.Find("Tech") ?? root.Find("TechEntry");
-            WorldPanelBindingUtility.BindButton(tech, () => techClicked?.Invoke(), "Tech entry");
-            return true;
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(() => clicked?.Invoke());
         }
     }
 }

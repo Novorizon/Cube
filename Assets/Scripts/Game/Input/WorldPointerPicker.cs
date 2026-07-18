@@ -1,4 +1,5 @@
 using Game.Framework;
+using UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -56,6 +57,11 @@ namespace Game
 
         public static bool IsPointerOverUi()
         {
+            if (IsPointerConsumedByUiFramework())
+            {
+                return true;
+            }
+
             if (EventSystem.current == null)
             {
                 return false;
@@ -80,6 +86,12 @@ namespace Game
             }
 
             return EventSystem.current.IsPointerOverGameObject();
+        }
+
+        private static bool IsPointerConsumedByUiFramework()
+        {
+            UIManager uiManager = UIManager.Current;
+            return uiManager != null && uiManager.IsPointerConsumedThisFrame;
         }
 
         public static bool TryPick(Vector2 screenPosition, Camera camera, out WorldPointerHit hit, bool includeUi = true)
@@ -136,6 +148,24 @@ namespace Game
             }
 
             return MapManager.Instance.TryPickTile(screenPosition, camera, out tileView);
+        }
+
+        public static bool TryPickTilePosition(Vector2 screenPosition, Camera camera, out TileView tileView, out Vector3 worldPosition, bool includeUi = true)
+        {
+            tileView = null;
+            worldPosition = Vector3.zero;
+
+            if (includeUi && IsPointerOverUi())
+            {
+                return false;
+            }
+
+            if (camera == null)
+            {
+                return false;
+            }
+
+            return MapManager.Instance.TryPickTile(screenPosition, camera, out tileView, out worldPosition);
         }
 
         public static bool TryPickTileCoord(Camera camera, out Vector3Int coord, bool includeUi = true)

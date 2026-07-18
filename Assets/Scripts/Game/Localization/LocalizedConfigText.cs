@@ -1,4 +1,4 @@
-namespace Game
+﻿namespace Game
 {
     public static class LocalizedConfigText
     {
@@ -240,37 +240,37 @@ namespace Game
             return LocalizationManager.GetOrFallback($"map.{mapId}.desc", fallback);
         }
 
-        public static string WorldResourceName(int resourceId)
+        public static string ResourceName(int resourceId)
         {
             string fallback = resourceId.ToString();
-            if (DataManager.Instance.WorldResource != null &&
-                DataManager.Instance.WorldResource.TryGet(resourceId, out WorldResourceConfig config) &&
+            if (DataManager.Instance.Resource != null &&
+                DataManager.Instance.Resource.TryGet(resourceId, out ResourceConfig config) &&
                 config != null &&
                 !string.IsNullOrWhiteSpace(config.Name))
             {
                 fallback = config.Name;
             }
 
-            return LocalizationManager.GetOrFallback($"world_resource.{resourceId}.name", fallback);
+            return LocalizationManager.GetOrFallback($"resource.{resourceId}.name", fallback);
         }
 
-        public static string WorldGatherName(int gatherId)
+        public static string GatherName(int gatherId)
         {
             string fallback = gatherId.ToString();
-            if (DataManager.Instance.WorldGather != null &&
-                DataManager.Instance.WorldGather.TryGet(gatherId, out WorldGatherConfig config) &&
+            if (DataManager.Instance.Gather != null &&
+                DataManager.Instance.Gather.TryGet(gatherId, out GatherConfig config) &&
                 config != null &&
                 !string.IsNullOrWhiteSpace(config.Name))
             {
                 fallback = config.Name;
             }
 
-            return LocalizationManager.GetOrFallback($"world_gather.{gatherId}.name", fallback);
+            return LocalizationManager.GetOrFallback($"gather.{gatherId}.name", fallback);
         }
 
-        public static string RecipeName(int recipeId, string fallback)
+        public static string BlueprintName(int blueprintId, string fallback)
         {
-            return LocalizationManager.GetOrFallback($"recipe.{recipeId}.name", fallback);
+            return LocalizationManager.GetOrFallback($"blueprint.{blueprintId}.name", fallback);
         }
 
         private static string GetItemNameKey(int itemId)

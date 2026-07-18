@@ -231,7 +231,7 @@ namespace Game
             }
 
             int costItemId = GetCostItemId(levelConfig.CostItemId);
-            if (!ItemManager.Instance.TryConsume(costItemId, levelConfig.BuildCost))
+            if (!BattleItemManager.Instance.TryConsume(costItemId, levelConfig.BuildCost))
             {
                 Toast.Warning(LocalizationManager.Get("ui.td.toast.not_enough_gold"));
                 return false;
@@ -241,7 +241,7 @@ namespace Game
 
             if (prefab == null)
             {
-                ItemManager.Instance.AddItem(costItemId, levelConfig.BuildCost);
+                BattleItemManager.Instance.AddItem(costItemId, levelConfig.BuildCost);
                 Debug.LogWarning($"Build tower failed. Load prefab failed. towerConfigId: {towerConfigId}, location: {levelConfig.PrefabLocation}");
                 return false;
             }
@@ -263,7 +263,7 @@ namespace Game
 
             if (!placed)
             {
-                ItemManager.Instance.AddItem(costItemId, levelConfig.BuildCost);
+                BattleItemManager.Instance.AddItem(costItemId, levelConfig.BuildCost);
                 GameObject.Destroy(instance);
                 return false;
             }
@@ -289,7 +289,7 @@ namespace Game
             }
 
             int costItemId = GetCostItemId(nextLevelConfig.UpgradeCostItemId);
-            if (!ItemManager.Instance.TryConsume(costItemId, nextLevelConfig.UpgradeCost))
+            if (!BattleItemManager.Instance.TryConsume(costItemId, nextLevelConfig.UpgradeCost))
             {
                 Toast.Warning(LocalizationManager.Get("ui.td.toast.not_enough_gold"));
                 return false;
@@ -301,7 +301,7 @@ namespace Game
                 return true;
             }
 
-            ItemManager.Instance.AddItem(costItemId, nextLevelConfig.UpgradeCost);
+            BattleItemManager.Instance.AddItem(costItemId, nextLevelConfig.UpgradeCost);
             return false;
         }
 
@@ -336,7 +336,7 @@ namespace Game
 
             if (sellCount > 0)
             {
-                ItemManager.Instance.AddItem(sellItemId, sellCount);
+                BattleItemManager.Instance.AddItem(sellItemId, sellCount);
             }
 
             return true;

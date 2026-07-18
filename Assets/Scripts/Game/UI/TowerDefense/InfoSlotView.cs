@@ -60,5 +60,32 @@ namespace Game
 
             gameObject.SetActive(data.Visible);
         }
+
+        public void Clear()
+        {
+            slotKey = string.Empty;
+            if (iconImage != null)
+            {
+                iconImage.sprite = null;
+                iconImage.enabled = false;
+            }
+
+            if (nameText != null)
+            {
+                nameText.text = string.Empty;
+            }
+
+            if (valueText != null)
+            {
+                valueText.text = string.Empty;
+            }
+
+            if (addValueText != null)
+            {
+                addValueText.text = string.Empty;
+            }
+
+            gameObject.SetActive(false);
+        }
     }
 }

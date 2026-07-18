@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="GatherConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="name" type="string" comment="client" />
+    <var name="rewardGroupId" type="int" comment="client" />
+    <var name="depleteAfterTimes" type="int" comment="client" />
+    <var name="respawnSeconds" type="int" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbGather" value="GatherConfig" input="gather.xlsx" mode="map" index="id" />
+</module>

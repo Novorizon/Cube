@@ -9,22 +9,33 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using Game.Ability.Configuration;
 using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 public static class LubanTool
 {
-    private const string ConfigRoot = @"D:\Cube\Data";
-    private const string ExcelDir = @"D:\Cube\Data\Excel";
-    private const string XmlDir = @"D:\Cube\Data\Defines";
-    private const string GenAllBat = @"D:\Cube\Data\gen_all.bat";
+    private static readonly string ProjectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+    private static readonly string ConfigRoot = Path.Combine(ProjectRoot, "Data");
+    private static readonly string ExcelDir = Path.Combine(ConfigRoot, "Excel");
+    private static readonly string XmlDir = Path.Combine(ConfigRoot, "Defines");
+    private static readonly string GenAllBat = Path.Combine(ConfigRoot, "gen_all.bat");
 
     [MenuItem("Luban/Update All")]
     public static void Update()
     {
         try
         {
+            AbilityValidationReport abilityReport = AbilityExcelValidationRunner.Validate(ExcelDir, ProjectRoot);
+            AbilityExcelValidationRunner.LogReport(abilityReport);
+            if (!abilityReport.IsValid)
+            {
+                throw new InvalidDataException(
+                    "Ability Excel semantic validation failed with " + abilityReport.ErrorCount +
+                    " error(s). Luban generation was cancelled.");
+            }
+
             int updateCount = UpdateAllXml();
             Debug.Log("Luban bean xml update finished. Updated xml count: " + updateCount);
 
@@ -391,7 +402,7 @@ public static class LubanTool
         public string Comment { get; set; } = string.Empty;
     }
 
-    private sealed class XlsxSheetData
+    internal sealed class XlsxSheetData
     {
         private readonly Dictionary<int, Dictionary<int, string>> cells = new Dictionary<int, Dictionary<int, string>>();
 
@@ -435,9 +446,14 @@ public static class LubanTool
 
             return rowCells.Keys.Max();
         }
+
+        public int GetMaxRow()
+        {
+            return cells.Count == 0 ? 0 : cells.Keys.Max();
+        }
     }
 
-    private static class XlsxReader
+    internal static class XlsxReader
     {
         public static XlsxSheetData ReadFirstSheet(string xlsxPath)
         {
@@ -447,7 +463,7 @@ public static class LubanTool
 
             string sheetPath = FindFirstSheetPath(archive);
 
-            ZipArchiveEntry sheetEntry = archive.GetEntry(sheetPath);
+            ZipArchiveEntry sheetEntry = GetEntry(archive, sheetPath);
 
             if (sheetEntry == null)
             {
@@ -505,7 +521,7 @@ public static class LubanTool
         {
             List<string> result = new List<string>();
 
-            ZipArchiveEntry entry = archive.GetEntry("xl/sharedStrings.xml");
+            ZipArchiveEntry entry = GetEntry(archive, "xl/sharedStrings.xml");
 
             if (entry == null)
             {
@@ -538,8 +554,8 @@ public static class LubanTool
 
         private static string FindFirstSheetPath(ZipArchive archive)
         {
-            ZipArchiveEntry workbookEntry = archive.GetEntry("xl/workbook.xml");
-            ZipArchiveEntry relsEntry = archive.GetEntry("xl/_rels/workbook.xml.rels");
+            ZipArchiveEntry workbookEntry = GetEntry(archive, "xl/workbook.xml");
+            ZipArchiveEntry relsEntry = GetEntry(archive, "xl/_rels/workbook.xml.rels");
 
             if (workbookEntry == null || relsEntry == null)
             {
@@ -594,6 +610,18 @@ public static class LubanTool
             }
 
             return target;
+        }
+
+        private static ZipArchiveEntry GetEntry(ZipArchive archive, string path)
+        {
+            if (archive == null || string.IsNullOrWhiteSpace(path))
+            {
+                return null;
+            }
+
+            string normalized = path.Replace('\\', '/');
+            return archive.Entries.FirstOrDefault(entry =>
+                string.Equals(entry.FullName.Replace('\\', '/'), normalized, StringComparison.OrdinalIgnoreCase));
         }
 
         private static string ReadCellValue(XElement cellElement, XNamespace ns, List<string> sharedStrings)

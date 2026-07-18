@@ -169,7 +169,7 @@ namespace Game
                 int income = Mathf.Max(0, crop.OutputCountPerSecond) * farm.CellCount * passedSeconds;
                 if (income > 0)
                 {
-                    WorldItemManager.Instance.AddItem(crop.OutputItemId, income);
+                    ItemManager.Instance.AddItem(crop.OutputItemId, income);
                 }
 
                 farm.SetNextIncomeAt(farm.NextIncomeAtUnixTime + passedSeconds);
@@ -241,8 +241,8 @@ namespace Game
                 return false;
             }
 
-            int seedCost = Mathf.Max(0, crop.SeedCost) * farm.CellCount;
-            if (crop.SeedItemId > 0 && seedCost > 0 && !WorldItemManager.Instance.TryConsumeItem(crop.SeedItemId, seedCost))
+            int seedCost = crop.SeedItemId > 0 ? GetSeedCostPerCell(crop) * farm.CellCount : 0;
+            if (crop.SeedItemId > 0 && seedCost > 0 && !ItemManager.Instance.TryConsumeItem(crop.SeedItemId, seedCost))
             {
                 return false;
             }
@@ -251,6 +251,11 @@ namespace Game
             farm.Plant(cropId, currentUnixTime, crop.GrowSeconds);
             RefreshFarmPlotViews(farm);
             RefreshFarmCropViews(farm);
+            if (crop.SeedItemId > 0 && seedCost > 0)
+            {
+                ItemManager.Instance.NotifyUseCompleted(crop.SeedItemId, seedCost);
+            }
+
             StorageManager.Instance.MarkDirty();
             return true;
         }
@@ -481,6 +486,16 @@ namespace Game
             }
 
             return nextFarmId++;
+        }
+
+        private static int GetSeedCostPerCell(WorldCropDefinition crop)
+        {
+            if (crop == null || crop.SeedItemId <= 0)
+            {
+                return 0;
+            }
+
+            return Mathf.Max(1, crop.SeedCost);
         }
 
         private void BuildCropConfigs()

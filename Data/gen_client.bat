@@ -12,6 +12,13 @@ set BIN_DIR=..\Assets\Data\Bin
 set JSON_DIR=..\Assets\Data\Json
 set PROJECT_ROOT=..
 
+dotnet run --project "%PROJECT_ROOT%\Tools\AbilityConfigValidator\AbilityConfigValidator.csproj" --configuration Release -- "%CONF_ROOT%\Excel" "%PROJECT_ROOT%"
+
+if errorlevel 1 (
+    echo Ability configuration validation failed. Generation cancelled.
+    exit /b 1
+)
+
 if not exist "%CODE_DIR%" mkdir "%CODE_DIR%"
 if not exist "%BIN_DIR%" mkdir "%BIN_DIR%"
 if not exist "%JSON_DIR%" mkdir "%JSON_DIR%"

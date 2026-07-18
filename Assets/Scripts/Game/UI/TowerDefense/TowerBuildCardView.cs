@@ -30,6 +30,7 @@ namespace Game
 
         private Action<int> clickedCallback;
         private readonly List<GameObject> skillInstances = new List<GameObject>();
+        private bool affordable = true;
 
         public void Init(int towerId, string towerName, int cost, Action<int> clickedCallback)
         {
@@ -70,6 +71,15 @@ namespace Game
             }
         }
 
+        public void SetAffordable(bool value)
+        {
+            affordable = value;
+            if (button != null)
+            {
+                button.interactable = affordable;
+            }
+        }
+
         public void SetSkills(IReadOnlyList<SkillConfig> skills, GameObject skillPrefab, Func<string, Sprite> loadIcon)
         {
             ClearSkills();
@@ -91,12 +101,15 @@ namespace Game
                 instance.name = $"Skill_{config.Id}";
                 skillInstances.Add(instance);
 
-                Image skillIcon = FindIconImage(instance.transform);
-                if (skillIcon != null)
+                BattleSlotContentView contentView = instance.GetComponent<BattleSlotContentView>();
+                if (contentView != null)
                 {
                     Sprite icon = loadIcon?.Invoke(config.IconLocation);
-                    skillIcon.sprite = icon;
-                    skillIcon.enabled = icon != null;
+                    contentView.SetIcon(icon);
+                }
+                else
+                {
+                    Debug.LogError($"Tower skill prefab is missing {nameof(BattleSlotContentView)}.", skillPrefab);
                 }
             }
         }
@@ -119,43 +132,15 @@ namespace Game
 
         private void ClearSkills()
         {
-            if (skillContentRoot != null)
+            for (int i = skillInstances.Count - 1; i >= 0; i--)
             {
-                for (int i = skillContentRoot.childCount - 1; i >= 0; i--)
+                if (skillInstances[i] != null)
                 {
-                    Destroy(skillContentRoot.GetChild(i).gameObject);
+                    Destroy(skillInstances[i]);
                 }
             }
 
             skillInstances.Clear();
-        }
-
-        private static Image FindIconImage(Transform root)
-        {
-            if (root == null)
-            {
-                return null;
-            }
-
-            if (root.name == "Icon")
-            {
-                Image image = root.GetComponent<Image>();
-                if (image != null)
-                {
-                    return image;
-                }
-            }
-
-            for (int i = 0; i < root.childCount; i++)
-            {
-                Image image = FindIconImage(root.GetChild(i));
-                if (image != null)
-                {
-                    return image;
-                }
-            }
-
-            return null;
         }
     }
 }

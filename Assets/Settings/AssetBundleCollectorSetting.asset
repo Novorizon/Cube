@@ -80,14 +80,6 @@ MonoBehaviour:
         FilterRuleName: CollectAll
         AssetTags: 
         UserData: 
-      - CollectPath: Assets/Arts/UI/TowerDefense
-        CollectorGUID: 55513664306c79b4ebc434e82429c577
-        CollectorType: 0
-        AddressRuleName: AddressByFileName
-        PackRuleName: PackDirectory
-        FilterRuleName: CollectAll
-        AssetTags: 
-        UserData: 
       - CollectPath: Assets/Arts/UI/Atlas
         CollectorGUID: e6efc5283d8e3684689143bf7e23e3c2
         CollectorType: 0
@@ -130,7 +122,7 @@ MonoBehaviour:
         FilterRuleName: CollectAll
         AssetTags: 
         UserData: 
-      - CollectPath: Assets/Arts/Base
+      - CollectPath: Assets/Arts/Tool
         CollectorGUID: b5b1c71a3246dc14495409b96e783a2b
         CollectorType: 0
         AddressRuleName: AddressByFileName

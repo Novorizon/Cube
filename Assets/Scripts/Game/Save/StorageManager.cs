@@ -7,6 +7,12 @@ namespace Game
 {
     public sealed class StorageManager
     {
+        public sealed class StoryData
+        {
+            public int CurrentStoryId;
+            public int[] CompletedStoryIds;
+        }
+
         private const string SaveFileName = "save_0.json";
         private const float AutoSaveDelay = 5f;
 
@@ -97,7 +103,7 @@ namespace Game
                     return false;
                 }
 
-                WorldItemManager.Instance.LoadSaveData(data.WorldItems);
+                ItemManager.Instance.LoadSaveData(data.WorldItems);
                 TechManager.Instance.LoadSaveData(data.Tech);
                 WorldGatherManager.Instance.LoadSaveData(data.GatherNodes);
                 WorldBuildingManager.Instance.LoadSaveData(data.WorldBuildings);
@@ -108,6 +114,8 @@ namespace Game
                 CalendarManager.Instance.LoadSaveData(data.Calendar);
                 ApplyOfflineCalendarProgress(data.SavedAtUnixTime);
                 BagManager.Instance.LoadSaveData(data.Bag);
+                QuestManager.Instance.LoadSaveData(data.Quest);
+                StoryManager.Instance.LoadSaveData(data.Story);
                 loadedPlayer = data.Player;
                 dirty = false;
                 return true;
@@ -132,7 +140,7 @@ namespace Game
                 {
                     Version = SaveVersion.Current,
                     SavedAtUnixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                    WorldItems = WorldItemManager.Instance.CreateSaveData(),
+                    WorldItems = ItemManager.Instance.CreateSaveData(),
                     GatherNodes = WorldGatherManager.Instance.CreateSaveData(),
                     WorldBuildings = WorldBuildingManager.Instance.CreateSaveData(),
                     RuntimeUnlockedBuildingIds = WorldBuildingManager.Instance.CreateRuntimeUnlockSaveData(),
@@ -142,7 +150,9 @@ namespace Game
                     Calendar = CalendarManager.Instance.CreateSaveData(),
                     Bag = BagManager.Instance.CreateSaveData(),
                     Tech = TechManager.Instance.CreateSaveData(),
-                    Player = WorldGameplayController.Instance != null ? WorldGameplayController.Instance.CreatePlayerSaveData() : loadedPlayer,
+                    Quest = QuestManager.Instance.CreateSaveData(),
+                    Story = StoryManager.Instance.CreateSaveData(),
+                    Player = GameplayController.Instance != null ? GameplayController.Instance.CreatePlayerSaveData() : loadedPlayer,
                 };
 
                 string directory = Path.GetDirectoryName(SavePath);

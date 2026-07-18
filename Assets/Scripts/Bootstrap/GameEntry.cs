@@ -29,8 +29,9 @@ namespace Game
             WorldBuildingManager.Instance.Initialize();
             MineManager.Instance.Initialize();
             FarmManager.Instance.Initialize();
-            WorldRecipeManager.Instance.Initialize();
-            WorldTaskManager.Instance.Initialize();
+            BlueprintManager.Instance.Initialize();
+            QuestManager.Instance.Initialize();
+            StoryManager.Instance.Initialize();
             ToolKitManager.Instance.Initialize();
             BagManager.Instance.Initialize();
             CalendarManager.Instance.Initialize();
@@ -55,14 +56,18 @@ namespace Game
             BattleTargetClickManager.Instance.Initialize();
 
             UIManager.Instance.UseResourceManagerLoader();
+            QuestToastListener.Instance.Initialize();
 
             UIManager.Instance.ClearAll(true);
-            MapManager.Instance.LoadWorldMap(startupWorldMapId);
+            if (MapManager.Instance.LoadWorldMap(startupWorldMapId))
+            {
+                StoryManager.Instance.TryStartAutoStories();
+            }
         }
 
         private void Update()
         {
-            CalendarManager.Instance.Update(Time.deltaTime);
+            CalendarManager.Instance.Update(Time.unscaledDeltaTime);
             WorldBuildingManager.Instance.Update();
             WorldIncomeManager.Instance.Update();
             StorageManager.Instance.Update();
@@ -74,6 +79,7 @@ namespace Game
 
             AbilityManager.Instance.Update(Time.deltaTime);
             NpcManager.Instance.Update(Time.deltaTime);
+            WorldHpBarManager.Instance.Update();
 
             if (!BattleFlowManager.Instance.IsRunning)
             {
@@ -93,9 +99,12 @@ namespace Game
         private void OnDestroy()
         {
             StorageManager.Instance.Save();
+            StoryManager.Instance.Release();
+            QuestToastListener.Instance.Release();
             BagManager.Instance.Release();
-            WorldGameplayController.Shutdown();
+            GameplayController.Shutdown();
             AbilityManager.Instance.Release();
+            WorldHpBarManager.Instance.Clear();
             BattleTargetClickManager.Instance.Release();
             GameInputManager.Instance.Release();
         }

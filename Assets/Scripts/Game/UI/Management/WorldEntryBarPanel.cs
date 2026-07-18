@@ -1,22 +1,22 @@
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game
 {
-    internal sealed class WorldEntryBarPanel
+    public sealed class WorldEntryBarPanel : MonoBehaviour
     {
-        public bool Bind(Transform root, Action questClicked)
+        [SerializeField] private Button questButton;
+
+        public void Initialize(Action questClicked)
         {
-            if (root == null)
+            if (questButton == null)
             {
-                return false;
+                return;
             }
 
-            WorldPanelBindingUtility.BindButton(
-                WorldPanelBindingUtility.FindFirst(root, "Entry_Quest", "Quest"),
-                () => questClicked?.Invoke(),
-                "Quest entry");
-            return true;
+            questButton.onClick.RemoveAllListeners();
+            questButton.onClick.AddListener(() => questClicked?.Invoke());
         }
     }
 }

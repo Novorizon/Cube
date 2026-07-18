@@ -174,6 +174,11 @@ namespace Game.Editor
             Button addAllSeedsButton = CreateGmCommonButton(commonRoot.transform, "AddAllSeeds", "All Seeds +100", "ui.gm.button.all_seeds_100", 2, 1);
             Button addAllResourcesButton = CreateGmCommonButton(commonRoot.transform, "AddAllResources", "All Resources +1000", "ui.gm.button.all_resources_1000", 0, 2);
             Button addAllCropsButton = CreateGmCommonButton(commonRoot.transform, "AddAllCrops", "All Crops +1000", "ui.gm.button.all_crops_1000", 1, 2);
+            CreateGmText(commonRoot.transform, "TimeScaleTitle", "Time Scale", 0f, 280f, 520f, 28f, 20, TextAlignmentOptions.Left, new Color(0.2f, 0.2f, 0.2f, 1f));
+            Button timeScalePauseButton = CreateGmButton(commonRoot.transform, "TimeScalePause", "Time x0", 0f, 318f, 115f, 54f, 18, new Color(0.94f, 0.9f, 0.82f, 1f));
+            Button timeScaleNormalButton = CreateGmButton(commonRoot.transform, "TimeScaleNormal", "Time x1", 135f, 318f, 115f, 54f, 18, new Color(0.99f, 0.96f, 0.88f, 1f));
+            Button timeScaleFastButton = CreateGmButton(commonRoot.transform, "TimeScaleFast", "Time x20", 270f, 318f, 115f, 54f, 18, new Color(0.99f, 0.96f, 0.88f, 1f));
+            Button timeScaleVeryFastButton = CreateGmButton(commonRoot.transform, "TimeScaleVeryFast", "Time x120", 405f, 318f, 115f, 54f, 18, new Color(0.99f, 0.96f, 0.88f, 1f));
 
             GameObject resourcesRoot = CreateGmPage(root.transform, "ResourcesRoot");
             CreateGmText(resourcesRoot.transform, "ResourcesTitle", "Resources", 0f, 0f, 520f, 30f, 22, TextAlignmentOptions.Left, new Color(0.2f, 0.2f, 0.2f, 1f), "ui.gm.section.resources");
@@ -236,6 +241,10 @@ namespace Game.Editor
             SetObject(serialized, "addAllResourcesButton", addAllResourcesButton);
             SetObject(serialized, "addAllSeedsButton", addAllSeedsButton);
             SetObject(serialized, "addAllCropsButton", addAllCropsButton);
+            SetObject(serialized, "timeScalePauseButton", timeScalePauseButton);
+            SetObject(serialized, "timeScaleNormalButton", timeScaleNormalButton);
+            SetObject(serialized, "timeScaleFastButton", timeScaleFastButton);
+            SetObject(serialized, "timeScaleVeryFastButton", timeScaleVeryFastButton);
             SetObjectArray(serialized, "resourceRows", resourceRows);
             SetObjectArray(serialized, "seedRows", seedRows);
             SetObjectArray(serialized, "cropRows", cropRows);

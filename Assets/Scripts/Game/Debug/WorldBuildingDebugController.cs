@@ -65,8 +65,8 @@ namespace Game
 
         private void AddTestResources()
         {
-            WorldItemManager.Instance.AddItem(ItemIds.Wood, testResourceCount);
-            WorldItemManager.Instance.AddItem(ItemIds.Stone, testResourceCount);
+            ItemManager.Instance.AddItem(ItemIds.Wood, testResourceCount);
+            ItemManager.Instance.AddItem(ItemIds.Stone, testResourceCount);
             Debug.Log($"WorldBuildingDebugController add resources. Wood +{testResourceCount}, Stone +{testResourceCount}");
         }
 

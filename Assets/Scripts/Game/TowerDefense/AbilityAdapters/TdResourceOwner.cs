@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Game
 {
     /// <summary>
-    /// Maps ability mana cost to the current item/resource inventory system.
+    /// Maps ability mana cost to the current item/resource bag system.
     /// </summary>
     public sealed class TdResourceOwner : IResourceOwner
     {
@@ -24,7 +24,7 @@ namespace Game
                     return 0f;
                 }
 
-                return ItemManager.Instance.GetCount(resourceItemId);
+                return BattleItemManager.Instance.GetCount(resourceItemId);
             }
         }
 
@@ -40,7 +40,7 @@ namespace Game
                 return false;
             }
 
-            return ItemManager.Instance.HasItem(resourceItemId, Mathf.CeilToInt(amount));
+            return BattleItemManager.Instance.HasItem(resourceItemId, Mathf.CeilToInt(amount));
         }
 
         public bool SpendMana(float amount)
@@ -55,7 +55,7 @@ namespace Game
                 return false;
             }
 
-            return ItemManager.Instance.TryConsume(resourceItemId, Mathf.CeilToInt(amount));
+            return BattleItemManager.Instance.TryConsume(resourceItemId, Mathf.CeilToInt(amount));
         }
     }
 }

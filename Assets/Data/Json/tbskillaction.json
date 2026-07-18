@@ -11,7 +11,7 @@
     "modifierId": 0,
     "damageType": 2,
     "effectLocation": "Assets/Arts/Effects/BowHitEffect.prefab",
-    "soundLocation": ""
+    "soundLocation": "29"
   },
   {
     "id": 50210002,
@@ -25,7 +25,7 @@
     "modifierId": 0,
     "damageType": 2,
     "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
-    "soundLocation": ""
+    "soundLocation": "31"
   },
   {
     "id": 50210003,
@@ -38,27 +38,13 @@
     "duration": 4,
     "modifierId": 50500001,
     "damageType": 0,
-    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
-    "soundLocation": ""
-  },
-  {
-    "id": 50210004,
-    "groupId": 50200003,
-    "order": 1,
-    "actionType": 1,
-    "targetType": 2,
-    "value": 30,
-    "radius": 0,
-    "duration": 0,
-    "modifierId": 0,
-    "damageType": 1,
-    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
+    "effectLocation": "",
     "soundLocation": ""
   },
   {
     "id": 50210005,
     "groupId": 50200003,
-    "order": 2,
+    "order": 1,
     "actionType": 3,
     "targetType": 2,
     "value": 0,
@@ -66,7 +52,7 @@
     "duration": 2,
     "modifierId": 50500002,
     "damageType": 0,
-    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
+    "effectLocation": "",
     "soundLocation": ""
   },
   {
@@ -122,20 +108,20 @@
     "duration": 1.5,
     "modifierId": 50500005,
     "damageType": 0,
-    "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
+    "effectLocation": "",
     "soundLocation": ""
   },
   {
     "id": 50210010,
     "groupId": 50201001,
     "order": 1,
-    "actionType": 3,
-    "targetType": 1,
-    "value": 0,
+    "actionType": 1,
+    "targetType": 2,
+    "value": 15,
     "radius": 0,
-    "duration": -1,
-    "modifierId": 50500003,
-    "damageType": 0,
+    "duration": 0,
+    "modifierId": 0,
+    "damageType": 2,
     "effectLocation": "Assets/Arts/Effects/IceHitEffect.prefab",
     "soundLocation": ""
   }

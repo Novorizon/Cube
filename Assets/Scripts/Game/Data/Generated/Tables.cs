@@ -21,16 +21,25 @@ public partial class Tables
     public TbAbilitySpecialValueConfig TbAbilitySpecialValueConfig {get; }
     public TbAbilitySystemEnumConfig TbAbilitySystemEnumConfig {get; }
     public TbBase TbBase {get; }
+    public TbBlueprint TbBlueprint {get; }
+    public TbBlueprintItem TbBlueprintItem {get; }
+    public TbGather TbGather {get; }
     public TbItem TbItem {get; }
     public TbLocalization TbLocalization {get; }
     public TbMap TbMap {get; }
     public TbNpc TbNpc {get; }
     public TbNpcDrop TbNpcDrop {get; }
+    public TbQuest TbQuest {get; }
+    public TbQuestObjective TbQuestObjective {get; }
+    public TbResource TbResource {get; }
+    public TbReward TbReward {get; }
     public TbSkill TbSkill {get; }
     public TbSkillAction TbSkillAction {get; }
     public TbSkillModifier TbSkillModifier {get; }
     public TbSkillSystemEnum TbSkillSystemEnum {get; }
     public TbStorageCapacity TbStorageCapacity {get; }
+    public TbStory TbStory {get; }
+    public TbStoryLine TbStoryLine {get; }
     public TbTechNode TbTechNode {get; }
     public TbTower TbTower {get; }
     public TbTowerLevel TbTowerLevel {get; }
@@ -40,9 +49,6 @@ public partial class Tables
     public TbWorldBuildingLevel TbWorldBuildingLevel {get; }
     public TbWorldCost TbWorldCost {get; }
     public TbWorldCrop TbWorldCrop {get; }
-    public TbWorldGather TbWorldGather {get; }
-    public TbWorldResource TbWorldResource {get; }
-    public TbWorldReward TbWorldReward {get; }
 
     public Tables(System.Func<string, ByteBuf> loader)
     {
@@ -54,16 +60,25 @@ public partial class Tables
         TbAbilitySpecialValueConfig = new TbAbilitySpecialValueConfig(loader("tbabilityspecialvalueconfig"));
         TbAbilitySystemEnumConfig = new TbAbilitySystemEnumConfig(loader("tbabilitysystemenumconfig"));
         TbBase = new TbBase(loader("tbbase"));
+        TbBlueprint = new TbBlueprint(loader("tbblueprint"));
+        TbBlueprintItem = new TbBlueprintItem(loader("tbblueprintitem"));
+        TbGather = new TbGather(loader("tbgather"));
         TbItem = new TbItem(loader("tbitem"));
         TbLocalization = new TbLocalization(loader("tblocalization"));
         TbMap = new TbMap(loader("tbmap"));
         TbNpc = new TbNpc(loader("tbnpc"));
         TbNpcDrop = new TbNpcDrop(loader("tbnpcdrop"));
+        TbQuest = new TbQuest(loader("tbquest"));
+        TbQuestObjective = new TbQuestObjective(loader("tbquestobjective"));
+        TbResource = new TbResource(loader("tbresource"));
+        TbReward = new TbReward(loader("tbreward"));
         TbSkill = new TbSkill(loader("tbskill"));
         TbSkillAction = new TbSkillAction(loader("tbskillaction"));
         TbSkillModifier = new TbSkillModifier(loader("tbskillmodifier"));
         TbSkillSystemEnum = new TbSkillSystemEnum(loader("tbskillsystemenum"));
         TbStorageCapacity = new TbStorageCapacity(loader("tbstoragecapacity"));
+        TbStory = new TbStory(loader("tbstory"));
+        TbStoryLine = new TbStoryLine(loader("tbstoryline"));
         TbTechNode = new TbTechNode(loader("tbtechnode"));
         TbTower = new TbTower(loader("tbtower"));
         TbTowerLevel = new TbTowerLevel(loader("tbtowerlevel"));
@@ -73,9 +88,6 @@ public partial class Tables
         TbWorldBuildingLevel = new TbWorldBuildingLevel(loader("tbworldbuildinglevel"));
         TbWorldCost = new TbWorldCost(loader("tbworldcost"));
         TbWorldCrop = new TbWorldCrop(loader("tbworldcrop"));
-        TbWorldGather = new TbWorldGather(loader("tbworldgather"));
-        TbWorldResource = new TbWorldResource(loader("tbworldresource"));
-        TbWorldReward = new TbWorldReward(loader("tbworldreward"));
         ResolveRef();
     }
     
@@ -89,16 +101,25 @@ public partial class Tables
         TbAbilitySpecialValueConfig.ResolveRef(this);
         TbAbilitySystemEnumConfig.ResolveRef(this);
         TbBase.ResolveRef(this);
+        TbBlueprint.ResolveRef(this);
+        TbBlueprintItem.ResolveRef(this);
+        TbGather.ResolveRef(this);
         TbItem.ResolveRef(this);
         TbLocalization.ResolveRef(this);
         TbMap.ResolveRef(this);
         TbNpc.ResolveRef(this);
         TbNpcDrop.ResolveRef(this);
+        TbQuest.ResolveRef(this);
+        TbQuestObjective.ResolveRef(this);
+        TbResource.ResolveRef(this);
+        TbReward.ResolveRef(this);
         TbSkill.ResolveRef(this);
         TbSkillAction.ResolveRef(this);
         TbSkillModifier.ResolveRef(this);
         TbSkillSystemEnum.ResolveRef(this);
         TbStorageCapacity.ResolveRef(this);
+        TbStory.ResolveRef(this);
+        TbStoryLine.ResolveRef(this);
         TbTechNode.ResolveRef(this);
         TbTower.ResolveRef(this);
         TbTowerLevel.ResolveRef(this);
@@ -108,9 +129,6 @@ public partial class Tables
         TbWorldBuildingLevel.ResolveRef(this);
         TbWorldCost.ResolveRef(this);
         TbWorldCrop.ResolveRef(this);
-        TbWorldGather.ResolveRef(this);
-        TbWorldResource.ResolveRef(this);
-        TbWorldReward.ResolveRef(this);
     }
 }
 

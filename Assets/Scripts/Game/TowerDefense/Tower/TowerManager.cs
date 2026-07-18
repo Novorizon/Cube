@@ -10,6 +10,9 @@ namespace Game
 
         private readonly List<Tower> activeTowers = new List<Tower>();
 
+        public event System.Action<Tower> TowerRegistered;
+        public event System.Action<Tower> TowerUnregistered;
+
         public IReadOnlyList<Tower> ActiveTowers => activeTowers;
 
         private TowerManager()
@@ -36,6 +39,7 @@ namespace Game
             }
 
             activeTowers.Add(tower);
+            TowerRegistered?.Invoke(tower);
 
             Debug.Log($"Tower registered. configId: {tower.ConfigId}, coord: {tower.Coord}");
         }
@@ -47,11 +51,23 @@ namespace Game
                 return;
             }
 
-            activeTowers.Remove(tower);
+            if (activeTowers.Remove(tower))
+            {
+                TowerUnregistered?.Invoke(tower);
+            }
         }
 
         public void Clear()
         {
+            for (int i = activeTowers.Count - 1; i >= 0; i--)
+            {
+                Tower tower = activeTowers[i];
+                if (tower != null)
+                {
+                    TowerUnregistered?.Invoke(tower);
+                }
+            }
+
             activeTowers.Clear();
         }
 
@@ -107,29 +123,33 @@ namespace Game
                 return;
             }
 
-            tower.Data.AttackTimer = config.AttackInterval * AbilityManager.Instance.GetAttackIntervalMultiplier(tower);
-
+            Ability.CastResult skillResult = null;
+            bool skillApplied = false;
             if (config.SkillId > 0)
             {
-                Ability.CastResult result = AbilityManager.Instance.CastTowerAbilityOnTarget(tower, config.SkillId, target);
+                skillResult = AbilityManager.Instance.CastTowerAbilityOnTarget(tower, config.SkillId, target);
+                skillApplied = skillResult == null || skillResult.Success;
 
-                if (result == null || result.Success)
+                if (skillApplied)
                 {
                     Debug.Log($"Tower cast skill. towerConfigId: {tower.ConfigId}, level: {tower.Level}, skillId: {config.SkillId}, target: {target.name}");
-                    return;
                 }
-
-                Debug.LogWarning($"Tower cast skill failed. towerConfigId: {tower.ConfigId}, level: {tower.Level}, skillId: {config.SkillId}, reason: {result.FailureReason}, message: {result.Message}");
-                return;
+                else if (skillResult.FailureReason != Ability.CastFailureReason.Cooldown)
+                {
+                    Debug.LogWarning($"Tower cast skill failed; basic attack will continue. towerConfigId: {tower.ConfigId}, level: {tower.Level}, skillId: {config.SkillId}, reason: {skillResult.FailureReason}, message: {skillResult.Message}");
+                }
             }
 
+            // TowerLevelConfig is the single source for the attack cadence, base damage, range,
+            // and projectile presentation. A configured ability only adds extra hit behavior.
             Vector3 startPosition = tower.transform.position + Vector3.up * 0.8f;
             Vector3 targetPosition = target.transform.position + Vector3.up * 0.6f;
             _ = BattleEffect.PlayProjectileWithHitAsync(config.AttackEffect, config.HitEffect, startPosition, targetPosition);
 
             AbilityManager.Instance.ApplyTowerAttackDamage(tower, target, config.Damage);
+            tower.Data.AttackTimer = Mathf.Max(0.05f, config.AttackInterval * AbilityManager.Instance.GetAttackIntervalMultiplier(tower));
 
-            Debug.Log($"Tower attack. towerConfigId: {tower.ConfigId}, level: {tower.Level}, target: {target.name}, damage: {config.Damage}");
+            Debug.Log($"Tower basic attack. towerConfigId: {tower.ConfigId}, level: {tower.Level}, target: {target.name}, damage: {config.Damage}, skillApplied: {skillApplied}");
         }
 
         private Npc FindTarget(Tower tower, float range)
@@ -194,7 +214,7 @@ namespace Game
                 return false;
             }
             int costItemId = config.CostItemId > 0 ? config.CostItemId : ItemIds.Gold;
-            int itemCount = ItemManager.Instance.GetCount(costItemId);
+            int itemCount = BattleItemManager.Instance.GetCount(costItemId);
             if (itemCount < config.BuildCost)
             {
                 Debug.LogWarning($"Build cost is not enough. itemId: {costItemId}, current: {itemCount}, need: {config.BuildCost}");

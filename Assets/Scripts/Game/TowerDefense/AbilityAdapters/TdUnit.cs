@@ -27,21 +27,35 @@ namespace Game
         private readonly Npc npc;
         private readonly Tower tower;
         private readonly TdUnitKind kind;
+        private readonly int entityId;
 
         public TdUnit(Npc npc)
+            : this(npc != null ? npc.GetInstanceID() : 0, npc)
         {
+        }
+
+        internal TdUnit(int entityId, Npc npc)
+        {
+            this.entityId = entityId;
             this.npc = npc;
             kind = TdUnitKind.Npc;
         }
 
         public TdUnit(Tower tower)
+            : this(tower != null ? tower.GetInstanceID() : 0, tower)
         {
+        }
+
+        internal TdUnit(int entityId, Tower tower)
+        {
+            this.entityId = entityId;
             this.tower = tower;
             kind = TdUnitKind.Tower;
         }
 
         private TdUnit()
         {
+            entityId = BaseEntityId;
             kind = TdUnitKind.Base;
         }
 
@@ -56,23 +70,25 @@ namespace Game
 
         public Tower Tower => tower;
 
-        public int EntityId
+        public int EntityId => entityId;
+
+        public bool IsValidBinding
         {
             get
             {
                 switch (kind)
                 {
                     case TdUnitKind.Npc:
-                        return npc != null ? npc.GetInstanceID() : 0;
+                        return npc != null;
 
                     case TdUnitKind.Tower:
-                        return tower != null ? tower.GetInstanceID() : 0;
+                        return tower != null;
 
                     case TdUnitKind.Base:
-                        return BaseEntityId;
+                        return BaseManager.Instance.HasBaseObject;
 
                     default:
-                        return 0;
+                        return false;
                 }
             }
         }

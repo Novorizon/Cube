@@ -9,7 +9,7 @@ namespace Game
 {
     public sealed class TechBranchView : MonoBehaviour
     {
-        private const string NodeSlotPrefabPath = "Assets/Arts/UI/Panels/TechSlot.prefab";
+        private const string NodeSlotPrefabPath = "Assets/Arts/UI/Panels/TechTree/TechSlot.prefab";
         private const float RightPadding = 60f;
         private const float SlotWidth = 138f;
         private const float SlotHeight = 116f;
@@ -140,11 +140,14 @@ namespace Game
             RectTransform nodeRect = node.GetComponent<RectTransform>();
             if (nodeRect != null)
             {
+                Vector2 authoredSize = nodeRect.sizeDelta;
+                float scale = CalculateVisualScale(authoredSize);
                 nodeRect.anchorMin = new Vector2(0f, 0.5f);
                 nodeRect.anchorMax = new Vector2(0f, 0.5f);
                 nodeRect.pivot = new Vector2(0.5f, 0.5f);
                 nodeRect.anchoredPosition = anchoredPosition;
-                nodeRect.sizeDelta = new Vector2(SlotWidth, SlotHeight);
+                nodeRect.sizeDelta = authoredSize;
+                nodeRect.localScale = new Vector3(scale, scale, 1f);
             }
 
             TechSlotView slotView = node.GetComponent<TechSlotView>();
@@ -210,6 +213,16 @@ namespace Game
             }
 
             return nodeCount * SlotWidth + Mathf.Max(0, nodeCount - 1) * SlotSpacing + RightPadding;
+        }
+
+        private static float CalculateVisualScale(Vector2 authoredSize)
+        {
+            if (authoredSize.x <= 0f || authoredSize.y <= 0f)
+            {
+                return 1f;
+            }
+
+            return Mathf.Min(1f, SlotWidth / authoredSize.x, SlotHeight / authoredSize.y);
         }
 
         private float GetViewportWidth()

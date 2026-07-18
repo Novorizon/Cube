@@ -29,6 +29,8 @@ namespace UI
             }
         }
 
+        public static UIManager Current => instance;
+
         [SerializeField] UISettings settings;
 
         public UIMessageBus Bus { get; } = new UIMessageBus();
@@ -43,6 +45,12 @@ namespace UI
         readonly Dictionary<UILayer, Transform> layerRoots = new Dictionary<UILayer, Transform>();
 
         UIInstanceFactory factory;
+        UIOutsideClickDetector outsideClickDetector;
+        GameObject panelOutsideBlocker;
+        Canvas panelOutsideBlockerCanvas;
+        int pointerConsumedFrame = -1;
+
+        public bool IsPointerConsumedThisFrame => pointerConsumedFrame == Time.frameCount;
 
         void Awake()
         {
@@ -103,7 +111,7 @@ namespace UI
 
         public bool HandleBack()
         {
-            if (Popups != null && Popups.CloseTop())
+            if (Popups != null && Popups.CloseTop(UICloseReason.Back))
             {
                 return true;
             }
@@ -131,6 +139,16 @@ namespace UI
             Bus.Clear();
         }
 
+        internal void MarkPointerConsumedForCurrentFrame()
+        {
+            pointerConsumedFrame = Time.frameCount;
+        }
+
+        void LateUpdate()
+        {
+            RefreshPanelOutsideBlocker();
+        }
+
         void RebuildManagers(int startId, int startVersion)
         {
             factory = new UIInstanceFactory(loader, layerRoots, startId, startVersion);
@@ -139,6 +157,35 @@ namespace UI
             Panels = new PanelManager(factory);
             Overlays = new OverlayManager(factory);
             Toasts = new ToastManager(factory);
+            EnsureOutsideClickDetector();
+        }
+
+        void EnsureOutsideClickDetector()
+        {
+            if (outsideClickDetector == null)
+            {
+                outsideClickDetector = GetComponent<UIOutsideClickDetector>();
+                if (outsideClickDetector == null)
+                {
+                    outsideClickDetector = gameObject.AddComponent<UIOutsideClickDetector>();
+                }
+            }
+
+            outsideClickDetector.Initialize(this);
+        }
+
+        void RefreshPanelOutsideBlocker()
+        {
+            if (panelOutsideBlocker == null)
+            {
+                return;
+            }
+
+            bool shouldShow = Panels != null && Panels.HasOutsideClickTarget();
+            if (panelOutsideBlocker.activeSelf != shouldShow)
+            {
+                panelOutsideBlocker.SetActive(shouldShow);
+            }
         }
 
         void EnsureEventSystem()
@@ -194,6 +241,7 @@ namespace UI
                 rootCanvas.worldCamera = ResolveCamera();
             }
 
+            CreateOrUpdatePanelOutsideBlocker(rootCanvas.transform);
             CreateOrUpdateLayer(rootCanvas.transform, UILayer.Background);
             CreateOrUpdateLayer(rootCanvas.transform, UILayer.Page);
             CreateOrUpdateLayer(rootCanvas.transform, UILayer.Popup);
@@ -239,6 +287,62 @@ namespace UI
             }
 
             layerRoots[layer] = layerTransform;
+        }
+
+        void CreateOrUpdatePanelOutsideBlocker(Transform parent)
+        {
+            const string blockerName = "PanelOutsideBlocker";
+            Transform blockerTransform = parent.Find(blockerName);
+
+            if (blockerTransform == null)
+            {
+                panelOutsideBlocker = new GameObject(blockerName);
+                panelOutsideBlocker.transform.SetParent(parent, false);
+
+                RectTransform rt = panelOutsideBlocker.AddComponent<RectTransform>();
+                rt.anchorMin = Vector2.zero;
+                rt.anchorMax = Vector2.one;
+                rt.offsetMin = Vector2.zero;
+                rt.offsetMax = Vector2.zero;
+
+                panelOutsideBlockerCanvas = panelOutsideBlocker.AddComponent<Canvas>();
+                panelOutsideBlockerCanvas.overrideSorting = true;
+
+                panelOutsideBlocker.AddComponent<GraphicRaycaster>();
+
+                Image image = panelOutsideBlocker.AddComponent<Image>();
+                image.raycastTarget = true;
+                image.color = Color.clear;
+            }
+            else
+            {
+                panelOutsideBlocker = blockerTransform.gameObject;
+                panelOutsideBlockerCanvas = panelOutsideBlocker.GetComponent<Canvas>();
+                if (panelOutsideBlockerCanvas == null)
+                {
+                    panelOutsideBlockerCanvas = panelOutsideBlocker.AddComponent<Canvas>();
+                }
+
+                if (panelOutsideBlocker.GetComponent<GraphicRaycaster>() == null)
+                {
+                    panelOutsideBlocker.AddComponent<GraphicRaycaster>();
+                }
+
+                Image image = panelOutsideBlocker.GetComponent<Image>();
+                if (image == null)
+                {
+                    image = panelOutsideBlocker.AddComponent<Image>();
+                }
+
+                image.raycastTarget = true;
+                image.color = Color.clear;
+            }
+
+            panelOutsideBlockerCanvas.overrideSorting = true;
+            int step = settings != null ? settings.sortingOrderStep : 100;
+            panelOutsideBlockerCanvas.sortingOrder = ((int)UILayer.Background * step) - 1;
+            panelOutsideBlocker.transform.SetAsFirstSibling();
+            panelOutsideBlocker.SetActive(false);
         }
     }
 }

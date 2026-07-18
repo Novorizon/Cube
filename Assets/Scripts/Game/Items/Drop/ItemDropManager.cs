@@ -62,7 +62,7 @@ namespace Game
 
         private void AddItemDirectly(int itemId, int count, Vector3 position)
         {
-            ItemManager.Instance.AddItem(itemId, count);
+            BattleItemManager.Instance.AddItem(itemId, count);
             NotifyItemFly(itemId, count, position);
         }
 

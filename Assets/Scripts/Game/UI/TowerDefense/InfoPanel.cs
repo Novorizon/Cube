@@ -28,34 +28,6 @@ namespace Game
         [SerializeField]
         private TMP_Text descriptionText;
 
-        [Header("Legacy Texts")]
-        [SerializeField]
-        private TMP_Text levelText;
-
-        [SerializeField]
-        private TMP_Text hpText;
-
-        [SerializeField]
-        private UIProgressBar hpFill;
-
-        [SerializeField]
-        private TMP_Text attackText;
-
-        [SerializeField]
-        private TMP_Text attackAddText;
-
-        [SerializeField]
-        private TMP_Text rangeText;
-
-        [SerializeField]
-        private TMP_Text speedText;
-
-        [SerializeField]
-        private TMP_Text upgradeCostText;
-
-        [SerializeField]
-        private TMP_Text sellGoldText;
-
         [Header("Dynamic Info Slots")]
         [SerializeField]
         private RectTransform contentRoot;
@@ -71,47 +43,42 @@ namespace Game
         private Button sellButton;
 
         private readonly Dictionary<string, InfoSlotView> slots = new Dictionary<string, InfoSlotView>();
+        private readonly List<InfoSlotView> slotPool = new List<InfoSlotView>();
         private static readonly Dictionary<TdTargetInfoType, Sprite> fallbackIconCache = new Dictionary<TdTargetInfoType, Sprite>();
 
         private TdTargetInfoType selectedTargetType;
         private int selectedTargetId;
         private TdTargetRuntimeInfo selectedInfo;
-        private bool initialized;
         private TargetModelPreview modelPreview;
         private Subscriber subscriber;
 
-        public event Action<int> UpgradeClicked;
-        public event Action<int> SellClicked;
         public event Action<TdTargetRuntimeInfo> UpgradeTargetClicked;
         public event Action<TdTargetRuntimeInfo> SellTargetClicked;
 
+        public override UICloseTriggers CloseTriggers => UICloseTriggers.None;
+
         protected override void OnCreate()
         {
-            Initialize();
+            EnsureModelPreview();
+            BindButtons();
         }
 
-        private void Start()
+        protected override void OnOpen(object args)
         {
-            //Initialize();
+            RegisterMessageHandlers();
+            ClearInfo();
+        }
+
+        protected override void OnClose()
+        {
+            ClearSubscriptions();
+            modelPreview?.Clear();
         }
 
         protected override void OnDestroyed()
         {
-            if (subscriber != null)
-            {
-                subscriber.Clear();
-                subscriber = null;
-            }
-
-            if (upgradeButton != null)
-            {
-                upgradeButton.onClick.RemoveListener(OnUpgradeClicked);
-            }
-
-            if (sellButton != null)
-            {
-                sellButton.onClick.RemoveListener(OnSellClicked);
-            }
+            ClearSubscriptions();
+            UnbindButtons();
 
             if (modelPreview != null)
             {
@@ -119,48 +86,19 @@ namespace Game
                 modelPreview = null;
             }
 
-            ClearInfoSlots();
-
-            UpgradeClicked = null;
-            SellClicked = null;
+            DestroyInfoSlots();
             UpgradeTargetClicked = null;
             SellTargetClicked = null;
         }
 
+        [Obsolete("Embedded panel lifecycle initializes InfoPanel automatically.")]
         public void Initialize()
         {
-            if (initialized)
-            {
-                return;
-            }
-
-            initialized = true;
-            RegisterMessageHandlers();
-            EnsureModelPreview();
-
-            if (upgradeButton != null)
-            {
-                upgradeButton.onClick.RemoveListener(OnUpgradeClicked);
-                upgradeButton.onClick.AddListener(OnUpgradeClicked);
-            }
-
-            if (sellButton != null)
-            {
-                sellButton.onClick.RemoveListener(OnSellClicked);
-                sellButton.onClick.AddListener(OnSellClicked);
-            }
-
-            SetPanelVisible(true);
             ClearInfo();
         }
 
         public void Show(TdTargetRuntimeInfo info)
         {
-            if (!initialized)
-            {
-                Initialize();
-            }
-
             selectedTargetType = info.Type;
             selectedTargetId = info.TargetId;
             selectedInfo = info;
@@ -187,7 +125,6 @@ namespace Game
                 descriptionText.text = string.IsNullOrEmpty(info.Description) ? string.Empty : info.Description;
             }
 
-            UpdateLegacyTexts(info);
             SetInfoSlots(GetInfoSlots(info));
             UpdateActionButtons(info);
             SetPanelVisible(true);
@@ -219,7 +156,7 @@ namespace Game
 
         public void SetInfoSlots(IReadOnlyList<TdInfoSlotData> slotDataList)
         {
-            ClearInfoSlots();
+            ReleaseInfoSlots();
 
             if (contentRoot == null || infoSlotPrefab == null)
             {
@@ -240,10 +177,9 @@ namespace Game
                     data.Key = string.IsNullOrEmpty(data.Name) ? i.ToString() : data.Name;
                 }
 
-                InfoSlotView slot = Instantiate(infoSlotPrefab, contentRoot);
+                InfoSlotView slot = AcquireInfoSlot();
                 slot.Init(data);
                 slots[data.Key] = slot;
-                slot.transform.SetAsLastSibling();
             }
         }
 
@@ -274,9 +210,11 @@ namespace Game
                 descriptionText.text = string.Empty;
             }
 
-            ClearLegacyTexts();
-            ClearInfoSlots();
+            ReleaseInfoSlots();
             UpdateActionButtons(default);
+            // The center information frame is part of the persistent battle HUD.
+            // Clearing a selection removes only its content; it must not hide the
+            // whole panel/background.
             SetPanelVisible(true);
         }
 
@@ -339,120 +277,49 @@ namespace Game
             result.Add(new TdInfoSlotData(key, name, value, addValue));
         }
 
-        private void ClearInfoSlots()
+        private InfoSlotView AcquireInfoSlot()
         {
-            slots.Clear();
-
-            if (contentRoot == null)
+            for (int i = 0; i < slotPool.Count; i++)
             {
-                return;
+                InfoSlotView pooledSlot = slotPool[i];
+                if (pooledSlot != null && !pooledSlot.gameObject.activeSelf)
+                {
+                    pooledSlot.gameObject.SetActive(true);
+                    pooledSlot.transform.SetAsLastSibling();
+                    return pooledSlot;
+                }
             }
 
-            for (int i = contentRoot.childCount - 1; i >= 0; i--)
+            InfoSlotView instance = Instantiate(infoSlotPrefab, contentRoot);
+            slotPool.Add(instance);
+            return instance;
+        }
+
+        private void ReleaseInfoSlots()
+        {
+            slots.Clear();
+            for (int i = 0; i < slotPool.Count; i++)
             {
-                Transform child = contentRoot.GetChild(i);
-                if (child != null && child.GetComponent<InfoSlotView>() != null)
+                InfoSlotView slot = slotPool[i];
+                if (slot != null)
                 {
-                    child.gameObject.SetActive(false);
-                    Destroy(child.gameObject);
+                    slot.Clear();
                 }
             }
         }
 
-        private void UpdateLegacyTexts(TdTargetRuntimeInfo info)
+        private void DestroyInfoSlots()
         {
-            if (levelText != null)
+            slots.Clear();
+            for (int i = slotPool.Count - 1; i >= 0; i--)
             {
-                levelText.text = info.Level > 0 ? info.Level.ToString() : EmptyValue;
+                if (slotPool[i] != null)
+                {
+                    Destroy(slotPool[i].gameObject);
+                }
             }
 
-            if (hpText != null)
-            {
-                hpText.text = info.MaxHp > 0 ? $"{Mathf.Max(0, info.CurrentHp)}/{info.MaxHp}" : EmptyValue;
-            }
-
-            if (hpFill != null)
-            {
-                hpFill.SetValue(Mathf.Max(0, info.CurrentHp), Mathf.Max(0, info.MaxHp));
-            }
-
-            if (attackText != null)
-            {
-                attackText.text = info.Attack > 0 ? info.Attack.ToString() : EmptyValue;
-            }
-
-            if (attackAddText != null)
-            {
-                attackAddText.text = info.AttackAdd > 0 ? $"+{info.AttackAdd}" : string.Empty;
-            }
-
-            if (rangeText != null)
-            {
-                rangeText.text = info.Range > 0f ? $"{info.Range:0.#}" : EmptyValue;
-            }
-
-            if (speedText != null)
-            {
-                speedText.text = info.AttackInterval > 0f ? $"{info.AttackInterval:0.#}s" : EmptyValue;
-            }
-
-            if (upgradeCostText != null)
-            {
-                upgradeCostText.text = info.CanUpgrade ? info.UpgradeCost.ToString() : EmptyValue;
-            }
-
-            if (sellGoldText != null)
-            {
-                sellGoldText.text = info.CanSell ? info.SellGold.ToString() : EmptyValue;
-            }
-        }
-
-        private void ClearLegacyTexts()
-        {
-            if (levelText != null)
-            {
-                levelText.text = EmptyValue;
-            }
-
-            if (hpText != null)
-            {
-                hpText.text = EmptyValue;
-            }
-
-            if (hpFill != null)
-            {
-                hpFill.SetValue(0, 1);
-            }
-
-            if (attackText != null)
-            {
-                attackText.text = EmptyValue;
-            }
-
-            if (attackAddText != null)
-            {
-                attackAddText.text = string.Empty;
-            }
-
-            if (rangeText != null)
-            {
-                rangeText.text = EmptyValue;
-            }
-
-            if (speedText != null)
-            {
-                speedText.text = EmptyValue;
-            }
-
-            if (upgradeCostText != null)
-            {
-                upgradeCostText.text = EmptyValue;
-            }
-
-            if (sellGoldText != null)
-            {
-                sellGoldText.text = EmptyValue;
-            }
+            slotPool.Clear();
         }
 
         private void UpdateActionButtons(TdTargetRuntimeInfo info)
@@ -474,6 +341,7 @@ namespace Game
 
         private void RegisterMessageHandlers()
         {
+            ClearSubscriptions();
             subscriber = new Subscriber();
 
             ISubscription targetInfoChangedSubscription = Messager.Instance.Subscribe<BattleMessageTopic, TargetInfoMessage>(BattleMessageTopic.TargetInfoChanged, OnTargetInfoMessage);
@@ -481,6 +349,36 @@ namespace Game
 
             subscriber.Add(targetInfoChangedSubscription);
             subscriber.Add(targetInfoClearedSubscription);
+        }
+
+        private void ClearSubscriptions()
+        {
+            if (subscriber != null)
+            {
+                subscriber.Clear();
+                subscriber = null;
+            }
+        }
+
+        private void BindButtons()
+        {
+            if (upgradeButton != null)
+            {
+                upgradeButton.onClick.RemoveListener(OnUpgradeClicked);
+                upgradeButton.onClick.AddListener(OnUpgradeClicked);
+            }
+
+            if (sellButton != null)
+            {
+                sellButton.onClick.RemoveListener(OnSellClicked);
+                sellButton.onClick.AddListener(OnSellClicked);
+            }
+        }
+
+        private void UnbindButtons()
+        {
+            upgradeButton?.onClick.RemoveListener(OnUpgradeClicked);
+            sellButton?.onClick.RemoveListener(OnSellClicked);
         }
 
         private void OnTargetInfoMessage(TargetInfoMessage message)
@@ -500,7 +398,6 @@ namespace Game
                 return;
             }
 
-            UpgradeClicked?.Invoke(selectedTargetId);
             UpgradeTargetClicked?.Invoke(selectedInfo);
         }
 
@@ -511,7 +408,6 @@ namespace Game
                 return;
             }
 
-            SellClicked?.Invoke(selectedTargetId);
             SellTargetClicked?.Invoke(selectedInfo);
         }
 

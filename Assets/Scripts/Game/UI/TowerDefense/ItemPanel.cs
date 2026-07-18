@@ -8,39 +8,47 @@ namespace Game
 {
     public sealed class ItemPanel : UIPanel
     {
-        private const string ItemContentPrefabPath = "Assets/Arts/UI/TowerDefense/Prefabs/Item.prefab";
-
         [SerializeField]
         private RectTransform contentRoot;
 
         [SerializeField]
         private CommonSlotView slotPrefab;
 
+        [SerializeField]
+        private CommonSlotView[] initialSlots;
+
+        [SerializeField]
+        private GameObject itemContentPrefab;
+
         private readonly Dictionary<int, CommonSlotView> slots = new Dictionary<int, CommonSlotView>();
         private readonly List<CommonSlotView> slotPool = new List<CommonSlotView>();
         private readonly HashSet<string> missingIconWarnings = new HashSet<string>();
-        private GameObject itemContentPrefab;
         private int usedSlotCount;
+        private bool subscribed;
 
         public event Action<int> ItemClicked;
 
+        public override UICloseTriggers CloseTriggers => UICloseTriggers.None;
+
         protected override void OnCreate()
         {
-            if (ItemManager.Instance != null)
-            {
-                ItemManager.Instance.OnItemChanged += OnItemChanged;
-            }
+            RegisterInitialSlots();
+        }
 
+        protected override void OnOpen(object args)
+        {
+            Subscribe();
             Initialize();
+        }
+
+        protected override void OnClose()
+        {
+            Unsubscribe();
         }
 
         protected override void OnDestroyed()
         {
-            if (ItemManager.Instance != null)
-            {
-                ItemManager.Instance.OnItemChanged -= OnItemChanged;
-            }
-
+            Unsubscribe();
             Clear();
             ItemClicked = null;
         }
@@ -54,9 +62,9 @@ namespace Game
                 return;
             }
 
-            IReadOnlyDictionary<int, ItemData> items = ItemManager.Instance.GetAllItems();
+            IReadOnlyDictionary<int, BattleItemData> items = BattleItemManager.Instance.GetAllItems();
 
-            foreach (KeyValuePair<int, ItemData> pair in items)
+            foreach (KeyValuePair<int, BattleItemData> pair in items)
             {
                 CreateOrUpdateSlot(pair.Key, pair.Value.Count);
             }
@@ -114,14 +122,14 @@ namespace Game
                 return;
             }
 
-            GameObject contentPrefab = GetItemContentPrefab();
-            if (contentPrefab == null)
+            if (itemContentPrefab == null)
             {
+                Debug.LogError($"[{nameof(ItemPanel)}] itemContentPrefab is not assigned.", this);
                 return;
             }
 
             CommonSlotView slot = AcquireSlot();
-            slot.Init(config.Id, LocalizedConfigText.ItemName(config.Id), count, LoadIcon(config.IconLocation), contentPrefab, OnItemClicked);
+            slot.Init(config.Id, LocalizedConfigText.ItemName(config.Id), count, LoadIcon(config.IconLocation), itemContentPrefab, OnItemClicked);
             slots[itemId] = slot;
         }
 
@@ -132,8 +140,6 @@ namespace Game
 
         private void Clear()
         {
-            RefreshSlotPool();
-
             foreach (CommonSlotView slot in slotPool)
             {
                 if (slot != null)
@@ -149,8 +155,6 @@ namespace Game
 
         private CommonSlotView AcquireSlot()
         {
-            RefreshSlotPool();
-
             if (usedSlotCount < slotPool.Count)
             {
                 CommonSlotView slot = slotPool[usedSlotCount];
@@ -165,37 +169,22 @@ namespace Game
             return instance;
         }
 
-        private void RefreshSlotPool()
+        private void RegisterInitialSlots()
         {
-            if (contentRoot == null)
+            slotPool.Clear();
+            if (initialSlots == null)
             {
-                slotPool.Clear();
                 return;
             }
 
-            slotPool.Clear();
-            contentRoot.GetComponentsInChildren(true, slotPool);
-            slotPool.Sort(CompareSlotOrder);
-        }
-
-        private static int CompareSlotOrder(CommonSlotView left, CommonSlotView right)
-        {
-            if (left == right)
+            for (int i = 0; i < initialSlots.Length; i++)
             {
-                return 0;
+                CommonSlotView slot = initialSlots[i];
+                if (slot != null && !slotPool.Contains(slot))
+                {
+                    slotPool.Add(slot);
+                }
             }
-
-            if (left == null)
-            {
-                return 1;
-            }
-
-            if (right == null)
-            {
-                return -1;
-            }
-
-            return left.transform.GetSiblingIndex().CompareTo(right.transform.GetSiblingIndex());
         }
 
         private Sprite LoadIcon(string location)
@@ -224,20 +213,26 @@ namespace Game
             return sprite;
         }
 
-        private GameObject GetItemContentPrefab()
+        private void Subscribe()
         {
-            if (itemContentPrefab != null)
+            if (subscribed)
             {
-                return itemContentPrefab;
+                return;
             }
 
-            itemContentPrefab = ResourceManager.Instance.LoadGameObject(ItemContentPrefabPath);
-            if (itemContentPrefab == null)
+            BattleItemManager.Instance.OnItemChanged += OnItemChanged;
+            subscribed = true;
+        }
+
+        private void Unsubscribe()
+        {
+            if (!subscribed)
             {
-                Debug.LogWarning($"Item content prefab load failed. location: {ItemContentPrefabPath}");
+                return;
             }
 
-            return itemContentPrefab;
+            BattleItemManager.Instance.OnItemChanged -= OnItemChanged;
+            subscribed = false;
         }
     }
 }

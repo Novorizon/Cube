@@ -21,6 +21,10 @@ namespace Game.Editor
         private const string AnimatorFolder = PlayerAssetRoot + "/Animators";
         private const string MaterialPath = MaterialFolder + "/WorldPlayer_Forestbound.mat";
         private const string AnimatorControllerPath = AnimatorFolder + "/WorldPlayer.controller";
+        private const string UseToolAvatarMaskPath = AnimatorFolder + "/WorldPlayer_UseToolUpperBody.mask";
+        private const string UseToolLayerName = "UseTool Upper Body";
+        private const float PickUpStateSpeed = 2.8f;
+        private const float UseToolStateSpeed = 2f;
 
         private const string IdleFbxPath = SourceRoot + "/Meshy_AI_Forestbound_Adventure_biped_Animation_Idle_5_withSkin.fbx";
         private const string WalkFbxPath = SourceRoot + "/Meshy_AI_Forestbound_Adventure_biped_Animation_Walking_withSkin.fbx";
@@ -43,7 +47,9 @@ namespace Game.Editor
             ConfigureTextureImporters();
 
             Material material = CreateOrUpdateMaterial();
+            AvatarMask useToolMask = CreateOrUpdateUseToolAvatarMask();
             AnimatorController controller = CreateOrUpdateAnimatorController();
+            AddUseToolLayer(controller, useToolMask);
             CreateOrUpdatePrefab(material, controller);
 
             AssetDatabase.SaveAssets();
@@ -216,6 +222,32 @@ namespace Game.Editor
             }
         }
 
+        private static AvatarMask CreateOrUpdateUseToolAvatarMask()
+        {
+            AvatarMask mask = AssetDatabase.LoadAssetAtPath<AvatarMask>(UseToolAvatarMaskPath);
+            if (mask == null)
+            {
+                mask = new AvatarMask();
+                AssetDatabase.CreateAsset(mask, UseToolAvatarMaskPath);
+            }
+
+            for (int i = 0; i < (int)AvatarMaskBodyPart.LastBodyPart; i++)
+            {
+                mask.SetHumanoidBodyPartActive((AvatarMaskBodyPart)i, false);
+            }
+
+            mask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.LeftArm, true);
+            mask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.RightArm, true);
+            mask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.LeftFingers, true);
+            mask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.RightFingers, true);
+            mask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.LeftHandIK, true);
+            mask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.RightHandIK, true);
+            mask.transformCount = 0;
+
+            EditorUtility.SetDirty(mask);
+            return mask;
+        }
+
         private static AnimatorController CreateOrUpdateAnimatorController()
         {
             if (File.Exists(AnimatorControllerPath))
@@ -255,12 +287,49 @@ namespace Game.Editor
             walkToIdle.duration = 0.12f;
             walkToIdle.AddCondition(AnimatorConditionMode.Less, 0.05f, "MoveSpeed");
 
-            AddActionState(stateMachine, "PickUp", pickUp, "PickUp", idleState, new Vector3(530f, 40f, 0f));
-            AddActionState(stateMachine, "UseTool", useTool, "UseTool", idleState, new Vector3(530f, 140f, 0f));
+            AddActionState(stateMachine, "PickUp", pickUp, "PickUp", idleState, new Vector3(530f, 40f, 0f), PickUpStateSpeed);
             AddActionState(stateMachine, "Pull", pull, "Pull", idleState, new Vector3(530f, 240f, 0f));
 
             EditorUtility.SetDirty(controller);
             return controller;
+        }
+
+        private static void AddUseToolLayer(AnimatorController controller, AvatarMask mask)
+        {
+            if (controller == null || mask == null)
+            {
+                return;
+            }
+
+            AnimationClip useTool = LoadClip(UseToolFbxPath, "UseTool");
+            if (useTool == null)
+            {
+                return;
+            }
+
+            controller.AddLayer(UseToolLayerName);
+            AnimatorControllerLayer[] layers = controller.layers;
+            AnimatorControllerLayer layer = layers[layers.Length - 1];
+            layer.avatarMask = mask;
+            layer.blendingMode = AnimatorLayerBlendingMode.Override;
+            layer.defaultWeight = 0f;
+            layer.iKPass = false;
+            layers[layers.Length - 1] = layer;
+            controller.layers = layers;
+
+            AnimatorStateMachine stateMachine = layer.stateMachine;
+            AnimatorState emptyState = stateMachine.AddState("Empty", new Vector3(250f, 80f, 0f));
+            stateMachine.defaultState = emptyState;
+            AddActionState(
+                stateMachine,
+                "UseTool",
+                useTool,
+                "UseTool",
+                emptyState,
+                new Vector3(530f, 80f, 0f),
+                UseToolStateSpeed);
+
+            EditorUtility.SetDirty(controller);
         }
 
         private static void AddActionState(
@@ -269,7 +338,8 @@ namespace Game.Editor
             Motion motion,
             string triggerName,
             AnimatorState returnState,
-            Vector3 position)
+            Vector3 position,
+            float speed = 1f)
         {
             if (motion == null)
             {
@@ -278,6 +348,7 @@ namespace Game.Editor
 
             AnimatorState state = stateMachine.AddState(stateName, position);
             state.motion = motion;
+            state.speed = speed;
 
             AnimatorStateTransition enter = stateMachine.AddAnyStateTransition(state);
             enter.hasExitTime = false;

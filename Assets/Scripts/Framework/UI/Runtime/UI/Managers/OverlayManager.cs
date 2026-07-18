@@ -15,6 +15,8 @@ namespace UI
             this.factory = factory;
         }
 
+        public bool HasBlockingOverlay => blockingCount > 0 && blockingOverlay.IsValid;
+
         public async Task<IDisposable> ShowBlockingAsync(string prefabPath, object args = null)
         {
             blockingCount++;

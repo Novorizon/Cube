@@ -33,16 +33,15 @@ namespace Game
                 return false;
             }
 
-            if (researchedTechIds.Contains(techId))
+            if (DataManager.Instance.TechNode == null ||
+                !DataManager.Instance.TechNode.TryGet(techId, out TechNodeConfig config) ||
+                config == null ||
+                !config.Enable)
             {
-                return true;
+                return false;
             }
 
-            return DataManager.Instance.TechNode != null &&
-                   DataManager.Instance.TechNode.TryGet(techId, out TechNodeConfig config) &&
-                   config != null &&
-                   config.Enable &&
-                   config.DefaultUnlocked;
+            return config.DefaultUnlocked || researchedTechIds.Contains(techId);
         }
 
         public bool IsBuildingUnlockedByTech(int buildingId)
@@ -82,9 +81,9 @@ namespace Game
                 return string.Empty;
             }
 
-            if (config.PreTechId > 0 && !IsResearched(config.PreTechId))
+            if (TryGetUnmetPrerequisite(config, out int prerequisiteTechId))
             {
-                return LocalizationManager.Format("ui.tech.require.prerequisite", GetTechName(config.PreTechId));
+                return LocalizationManager.Format("ui.tech.require.prerequisite", GetTechName(prerequisiteTechId));
             }
 
             return LocalizationManager.Format("ui.tech.require.tech", GetTechName(config.Id));
@@ -111,20 +110,20 @@ namespace Game
                 return TechResearchState.Researched;
             }
 
-            if (config.PreTechId > 0 && !IsResearched(config.PreTechId))
+            if (TryGetUnmetPrerequisite(config, out int prerequisiteTechId))
             {
-                reason = LocalizationManager.Format("ui.tech.reason.need_prerequisite", GetTechName(config.PreTechId));
+                reason = LocalizationManager.Format("ui.tech.reason.need_prerequisite", GetTechName(prerequisiteTechId));
                 return TechResearchState.LockedByPrerequisite;
             }
 
-            IReadOnlyList<WorldItem> costs = GetCosts(config.CostGroupId);
+            IReadOnlyList<ItemStack> costs = GetCosts(config.CostGroupId);
             if (config.CostGroupId > 0 && costs.Count == 0)
             {
                 reason = LocalizationManager.Get("ui.tech.reason.missing_cost_config");
                 return TechResearchState.MissingCostConfig;
             }
 
-            if (!WorldItemManager.Instance.HasItems(costs))
+            if (!ItemManager.Instance.HasItems(costs))
             {
                 reason = LocalizationManager.Format("ui.tech.reason.not_enough_cost", FormatMissingCosts(costs));
                 return TechResearchState.NotEnoughCost;
@@ -153,8 +152,8 @@ namespace Game
                 return false;
             }
 
-            IReadOnlyList<WorldItem> costs = GetCosts(config.CostGroupId);
-            if (!WorldItemManager.Instance.TryConsumeItems(costs))
+            IReadOnlyList<ItemStack> costs = GetCosts(config.CostGroupId);
+            if (!ItemManager.Instance.TryConsumeItems(costs))
             {
                 reason = LocalizationManager.Format("ui.tech.reason.not_enough_cost", FormatMissingCosts(costs));
                 return false;
@@ -189,7 +188,12 @@ namespace Game
                 }
             }
 
+            bool removedInvalidUnlocks = RemoveInvalidResearchUnlocks();
             Revision++;
+            if (removedInvalidUnlocks)
+            {
+                StorageManager.Instance.MarkDirty();
+            }
         }
 
         public SaveTechData CreateSaveData()
@@ -221,17 +225,106 @@ namespace Game
             }
         }
 
-        private IReadOnlyList<WorldItem> GetCosts(int costGroupId)
+        private bool TryGetUnmetPrerequisite(TechNodeConfig config, out int prerequisiteTechId)
+        {
+            prerequisiteTechId = 0;
+            if (config == null)
+            {
+                return false;
+            }
+
+            int currentPrerequisiteId = config.PreTechId;
+            HashSet<int> visitedTechIds = null;
+            while (currentPrerequisiteId > 0)
+            {
+                if (visitedTechIds == null)
+                {
+                    visitedTechIds = new HashSet<int>();
+                }
+
+                if (!visitedTechIds.Add(currentPrerequisiteId))
+                {
+                    prerequisiteTechId = currentPrerequisiteId;
+                    return true;
+                }
+
+                if (!IsResearched(currentPrerequisiteId))
+                {
+                    prerequisiteTechId = currentPrerequisiteId;
+                    return true;
+                }
+
+                if (DataManager.Instance.TechNode == null ||
+                    !DataManager.Instance.TechNode.TryGet(currentPrerequisiteId, out TechNodeConfig prerequisiteConfig) ||
+                    prerequisiteConfig == null ||
+                    !prerequisiteConfig.Enable)
+                {
+                    prerequisiteTechId = currentPrerequisiteId;
+                    return true;
+                }
+
+                currentPrerequisiteId = prerequisiteConfig.PreTechId;
+            }
+
+            return false;
+        }
+
+        private bool RemoveInvalidResearchUnlocks()
+        {
+            bool removedAny = false;
+            bool removedThisPass;
+            List<int> invalidTechIds = new List<int>();
+
+            do
+            {
+                removedThisPass = false;
+                invalidTechIds.Clear();
+
+                foreach (int techId in researchedTechIds)
+                {
+                    if (!IsValidSavedResearch(techId))
+                    {
+                        invalidTechIds.Add(techId);
+                    }
+                }
+
+                for (int i = 0; i < invalidTechIds.Count; i++)
+                {
+                    removedThisPass |= researchedTechIds.Remove(invalidTechIds[i]);
+                }
+
+                removedAny |= removedThisPass;
+            }
+            while (removedThisPass);
+
+            return removedAny;
+        }
+
+        private bool IsValidSavedResearch(int techId)
+        {
+            if (DataManager.Instance.TechNode == null ||
+                !DataManager.Instance.TechNode.TryGet(techId, out TechNodeConfig config) ||
+                config == null ||
+                !config.Enable ||
+                config.DefaultUnlocked)
+            {
+                return false;
+            }
+
+            return !TryGetUnmetPrerequisite(config, out _);
+        }
+
+        private IReadOnlyList<ItemStack> GetCosts(int costGroupId)
         {
             if (costGroupId <= 0 || costResolver == null)
             {
-                return System.Array.Empty<WorldItem>();
+                return System.Array.Empty<ItemStack>();
             }
 
             return costResolver.GetCostGroup(costGroupId);
         }
 
-        private string FormatMissingCosts(IReadOnlyList<WorldItem> costs)
+        private string FormatMissingCosts(IReadOnlyList<ItemStack> costs)
         {
             if (costs == null || costs.Count == 0)
             {
@@ -241,13 +334,13 @@ namespace Game
             List<string> parts = new List<string>();
             for (int i = 0; i < costs.Count; i++)
             {
-                WorldItem cost = costs[i];
+                ItemStack cost = costs[i];
                 if (cost == null || cost.ItemId <= 0 || cost.Count <= 0)
                 {
                     continue;
                 }
 
-                int current = WorldItemManager.Instance.GetCount(cost.ItemId);
+                int current = ItemManager.Instance.GetCount(cost.ItemId);
                 if (current >= cost.Count)
                 {
                     continue;

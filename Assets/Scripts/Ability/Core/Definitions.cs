@@ -153,7 +153,10 @@ namespace Game.Ability
         public readonly List<ActionDefinition> OnDestroyActions = new List<ActionDefinition>();
         public readonly List<ActionDefinition> IntervalActions = new List<ActionDefinition>();
         public ModifierEventType TriggerEventType = ModifierEventType.None;
+        public ModifierEventScope TriggerEventScope = ModifierEventScope.Related;
         public readonly List<ActionDefinition> TriggerActions = new List<ActionDefinition>();
+        // Persistent presentation owned by each Modifier runtime instance.
+        public string SustainedEffectName;
         // Aura source modifiers periodically refresh this modifier on valid nearby units.
         public string AuraModifierName;
         public float AuraRadius;

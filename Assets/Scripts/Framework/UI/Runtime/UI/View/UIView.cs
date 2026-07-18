@@ -15,9 +15,11 @@ namespace UI
 
         public bool IsOpen { get; private set; }
         public bool IsDestroyed => destroyed;
+        public virtual UICloseTriggers CloseTriggers => UICloseTriggers.None;
 
         internal int InstanceId { get; set; }
         internal int InstanceVersion { get; set; }
+        internal int LastOpenFrame { get; private set; }
 
         protected CancellationToken OpenCancellationToken => openCancellation != null ? openCancellation.Token : CancellationToken.None;
 
@@ -37,6 +39,7 @@ namespace UI
             CancelOpenToken();
             openCancellation = new CancellationTokenSource();
             IsOpen = true;
+            LastOpenFrame = Time.frameCount;
             OnOpen(args);
         }
 
@@ -61,6 +64,19 @@ namespace UI
             }
 
             disposables.Add(disposable);
+        }
+
+        public bool CanCloseBy(UICloseReason reason)
+        {
+            UICloseTriggers trigger = UICloseTriggerUtility.ToTrigger(reason);
+            return trigger != UICloseTriggers.None &&
+                   (CloseTriggers & trigger) != 0 &&
+                   CanClose(reason);
+        }
+
+        protected virtual bool CanClose(UICloseReason reason)
+        {
+            return true;
         }
 
         void OnDestroy()
