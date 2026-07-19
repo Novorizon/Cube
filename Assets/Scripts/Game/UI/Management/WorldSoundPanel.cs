@@ -12,22 +12,24 @@ namespace Game
         private const float VolumeStep = 0.1f;
 
         [SerializeField] private Button closeButton;
+        [SerializeField] private Button returnButton;
         [SerializeField] private Button decreaseButton;
         [SerializeField] private Button increaseButton;
-        [SerializeField] private Button muteButton;
+        [SerializeField] private Button onButton;
+        [SerializeField] private Button offButton;
         [SerializeField] private Slider volumeSlider;
         [SerializeField] private TMP_Text volumeText;
-        [SerializeField] private TMP_Text muteButtonText;
 
         public override UICloseTriggers CloseTriggers => UICloseTriggers.CloseButton | UICloseTriggers.Back | UICloseTriggers.RightOutside;
 
         protected override void OnCreate()
         {
-            BuildVolumeSliderIfMissing();
             Bind(closeButton, CloseSelf, nameof(closeButton));
-            Bind(decreaseButton, () => ChangeVolume(-VolumeStep), nameof(decreaseButton));
-            Bind(increaseButton, () => ChangeVolume(VolumeStep), nameof(increaseButton));
-            Bind(muteButton, ToggleMute, nameof(muteButton));
+            Bind(returnButton, CloseSelf, nameof(returnButton));
+            Bind(decreaseButton, DecreaseVolume, nameof(decreaseButton));
+            Bind(increaseButton, IncreaseVolume, nameof(increaseButton));
+            Bind(onButton, Mute, nameof(onButton));
+            Bind(offButton, Unmute, nameof(offButton));
             BindSlider();
             LocalizationManager.LanguageChanged += Refresh;
             GameAudioSettings.VolumeChanged += OnVolumeChanged;
@@ -37,73 +39,19 @@ namespace Game
         {
             LocalizationManager.LanguageChanged -= Refresh;
             GameAudioSettings.VolumeChanged -= OnVolumeChanged;
+            Unbind(closeButton, CloseSelf);
+            Unbind(returnButton, CloseSelf);
+            Unbind(decreaseButton, DecreaseVolume);
+            Unbind(increaseButton, IncreaseVolume);
+            Unbind(onButton, Mute);
+            Unbind(offButton, Unmute);
+            volumeSlider?.onValueChanged.RemoveListener(OnSliderValueChanged);
         }
 
         protected override void OnOpen(object args)
         {
             GameAudioSettings.Load();
             Refresh();
-        }
-
-        private void BuildVolumeSliderIfMissing()
-        {
-            if (volumeSlider != null)
-            {
-                return;
-            }
-
-            Transform existing = transform.Find("VolumeSlider");
-            if (existing != null && existing.TryGetComponent(out volumeSlider))
-            {
-                return;
-            }
-
-            GameObject sliderObject = CreateChild("VolumeSlider", transform);
-            RectTransform sliderRect = sliderObject.GetComponent<RectTransform>();
-            sliderRect.anchorMin = new Vector2(0.5f, 0.5f);
-            sliderRect.anchorMax = new Vector2(0.5f, 0.5f);
-            sliderRect.pivot = new Vector2(0.5f, 0.5f);
-            sliderRect.anchoredPosition = new Vector2(0f, -12f);
-            sliderRect.sizeDelta = new Vector2(280f, 28f);
-
-            volumeSlider = sliderObject.AddComponent<Slider>();
-            volumeSlider.minValue = 0f;
-            volumeSlider.maxValue = 1f;
-            volumeSlider.wholeNumbers = false;
-            volumeSlider.direction = Slider.Direction.LeftToRight;
-
-            GameObject background = CreateChild("Background", sliderObject.transform);
-            RectTransform backgroundRect = background.GetComponent<RectTransform>();
-            Stretch(backgroundRect, new Vector2(0f, 8f), new Vector2(0f, -8f));
-            Image backgroundImage = background.AddComponent<Image>();
-            backgroundImage.color = new Color(0.45f, 0.32f, 0.18f, 0.45f);
-
-            GameObject fillArea = CreateChild("Fill Area", sliderObject.transform);
-            RectTransform fillAreaRect = fillArea.GetComponent<RectTransform>();
-            Stretch(fillAreaRect, new Vector2(0f, 8f), new Vector2(0f, -8f));
-
-            GameObject fill = CreateChild("Fill", fillArea.transform);
-            RectTransform fillRect = fill.GetComponent<RectTransform>();
-            Stretch(fillRect, Vector2.zero, Vector2.zero);
-            Image fillImage = fill.AddComponent<Image>();
-            fillImage.color = new Color(0.26f, 0.58f, 0.25f, 0.95f);
-
-            GameObject handleArea = CreateChild("Handle Slide Area", sliderObject.transform);
-            RectTransform handleAreaRect = handleArea.GetComponent<RectTransform>();
-            Stretch(handleAreaRect, new Vector2(12f, 0f), new Vector2(-12f, 0f));
-
-            GameObject handle = CreateChild("Handle", handleArea.transform);
-            RectTransform handleRect = handle.GetComponent<RectTransform>();
-            handleRect.anchorMin = new Vector2(0.5f, 0.5f);
-            handleRect.anchorMax = new Vector2(0.5f, 0.5f);
-            handleRect.pivot = new Vector2(0.5f, 0.5f);
-            handleRect.sizeDelta = new Vector2(30f, 30f);
-            Image handleImage = handle.AddComponent<Image>();
-            handleImage.color = new Color(0.18f, 0.42f, 0.86f, 0.98f);
-
-            volumeSlider.fillRect = fillRect;
-            volumeSlider.handleRect = handleRect;
-            volumeSlider.targetGraphic = handleImage;
         }
 
         private void BindSlider()
@@ -133,6 +81,11 @@ namespace Game
             button.onClick.AddListener(action);
         }
 
+        private static void Unbind(Button button, UnityEngine.Events.UnityAction action)
+        {
+            button?.onClick.RemoveListener(action);
+        }
+
         private void OnSliderValueChanged(float value)
         {
             SetVolume(value);
@@ -143,9 +96,24 @@ namespace Game
             SetVolume(AudioListener.volume + delta);
         }
 
-        private void ToggleMute()
+        private void DecreaseVolume()
         {
-            SetVolume(AudioListener.volume > 0.01f ? 0f : 1f);
+            ChangeVolume(-VolumeStep);
+        }
+
+        private void IncreaseVolume()
+        {
+            ChangeVolume(VolumeStep);
+        }
+
+        private void Mute()
+        {
+            GameAudioSettings.Mute();
+        }
+
+        private void Unmute()
+        {
+            GameAudioSettings.Unmute();
         }
 
         private void SetVolume(float volume)
@@ -172,12 +140,9 @@ namespace Game
                     Mathf.RoundToInt(AudioListener.volume * 100f));
             }
 
-            if (muteButtonText != null)
-            {
-                muteButtonText.text = AudioListener.volume > 0.01f
-                    ? LocalizationManager.Get("ui.sound.mute")
-                    : LocalizationManager.Get("ui.sound.unmute");
-            }
+            bool muted = GameAudioSettings.IsMuted;
+            SetActive(onButton != null ? onButton.gameObject : null, !muted);
+            SetActive(offButton != null ? offButton.gameObject : null, muted);
         }
 
         private void CloseSelf()
@@ -188,20 +153,13 @@ namespace Game
             }
         }
 
-        private static GameObject CreateChild(string name, Transform parent)
+        private static void SetActive(GameObject target, bool active)
         {
-            GameObject go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            go.AddComponent<RectTransform>();
-            return go;
+            if (target != null && target.activeSelf != active)
+            {
+                target.SetActive(active);
+            }
         }
 
-        private static void Stretch(RectTransform rect, Vector2 offsetMin, Vector2 offsetMax)
-        {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = offsetMin;
-            rect.offsetMax = offsetMax;
-        }
     }
 }

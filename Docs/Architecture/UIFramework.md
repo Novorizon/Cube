@@ -165,6 +165,10 @@ Bag 入口不在该表中，由 `WorldBottomBarPanel` 本地处理。
 
 当前代码结构中 Menu、Sound、Language、Save、GM 是独立 `UIPanel`，短期可以走 `WorldMenuPanel.SettingsStackGroupId` 的 Stack。
 
+`SoundPanel` 直接使用 prefab 序列化的 `Slider` 组件引用，不在运行时按名称查找或创建控件；因此 Slider 及其子节点允许改名和调整层级。
+
+声音开关使用独立的 `On / Off` Button 状态：点击 On 记录当前音量后静音，点击 Off 恢复该音量；如果由 Slider 或增减按钮把音量调到 0，Off 默认恢复到 50%。
+
 从产品结构看，Sound、Language、Save 更像 Menu 内部子页面。后续如果要整理，优先改成 Menu 内部节点，由 Menu 脚本统一管理；GM 如果仍是调试大面板，可以保留独立 Panel。
 
 

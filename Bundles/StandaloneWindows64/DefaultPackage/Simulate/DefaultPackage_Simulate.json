@@ -10,7 +10,7 @@
     "BuildPipeline": "EditorSimulateBuildPipeline",
     "PackageName": "DefaultPackage",
     "PackageVersion": "Simulate",
-    "PackageNote": "2026/7/18 19:23:19",
+    "PackageNote": "2026/7/19 23:11:28",
     "AssetList": [
         {
             "Address": "",
@@ -6134,6 +6134,14 @@
         },
         {
             "Address": "",
+            "AssetPath": "Assets/Arts/UI/Icons/System/129d77b0-e64b-4072-9229-650029e4b6a8.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 68,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
             "AssetPath": "Assets/Arts/UI/Icons/System/345d22e7-de50-44b2-8ae3-89d579c02f86.png",
             "AssetGUID": "",
             "AssetTags": [],
@@ -6151,6 +6159,22 @@
         {
             "Address": "",
             "AssetPath": "Assets/Arts/UI/Icons/System/3e95b2e4-7cfc-4ec9-83f5-903e7bfecbe3.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 68,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Icons/System/4ee6be62-66ca-46ae-b945-b4cb77acde44.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 68,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Icons/System/5070f123-7471-4031-abb4-17d0a19c1e68.png",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 68,
@@ -6407,6 +6431,14 @@
         {
             "Address": "",
             "AssetPath": "Assets/Arts/UI/Icons/System/farm.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 68,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Icons/System/febd4d40-8e3d-4594-9537-ccd7f17df628.png",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 68,
@@ -6710,7 +6742,7 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Badges/ui_td_badge_count_bg.png",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/BattlePage.prefab",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 74,
@@ -6718,10 +6750,34 @@
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Bars/ui_td_bar_hp_bg.png",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/BattleResultPopup.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 74,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/BattleSettingsPopup.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 74,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Badges/ui_td_badge_count_bg.png",
             "AssetGUID": "",
             "AssetTags": [],
             "BundleID": 75,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Bars/ui_td_bar_hp_bg.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 76,
             "DependBundleIDs": []
         },
         {
@@ -6729,7 +6785,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Bars/ui_td_bar_hp_fill_green.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 75,
+            "BundleID": 76,
             "DependBundleIDs": []
         },
         {
@@ -6737,7 +6793,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Bars/ui_td_bar_hp_gloss.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 75,
+            "BundleID": 76,
             "DependBundleIDs": []
         },
         {
@@ -6745,7 +6801,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Bars/ui_td_bar_small_bg.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 75,
+            "BundleID": 76,
             "DependBundleIDs": []
         },
         {
@@ -6753,7 +6809,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Bars/ui_td_bar_small_fill_green.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 75,
+            "BundleID": 76,
             "DependBundleIDs": []
         },
         {
@@ -6761,7 +6817,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_green_disabled.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6769,7 +6825,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_green_normal.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6777,7 +6833,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_green_pressed.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6785,7 +6841,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_icon_round_disabled.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6793,7 +6849,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_icon_round_normal.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6801,7 +6857,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_icon_round_pressed.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6809,7 +6865,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_orange_disabled.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6817,7 +6873,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_orange_normal.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6825,7 +6881,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_orange_pressed.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6833,7 +6889,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_white_disabled.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6841,7 +6897,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_white_normal.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6849,7 +6905,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_white_pressed.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6857,7 +6913,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_yellow_normal.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6865,7 +6921,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_button_yellow_pressed.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6873,7 +6929,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_toggle_knob.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6881,7 +6937,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_toggle_track_off.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6889,7 +6945,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Buttons/ui_td_toggle_track_on.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 76,
+            "BundleID": 77,
             "DependBundleIDs": []
         },
         {
@@ -6897,7 +6953,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Dividers/ui_td_divider_horizontal.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 77,
+            "BundleID": 78,
             "DependBundleIDs": []
         },
         {
@@ -6905,7 +6961,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Dividers/ui_td_divider_vertical.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 77,
+            "BundleID": 78,
             "DependBundleIDs": []
         },
         {
@@ -6913,7 +6969,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Frames/ui_td_frame_icon_round.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 78,
+            "BundleID": 79,
             "DependBundleIDs": []
         },
         {
@@ -6921,7 +6977,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Frames/ui_td_frame_icon_square_disabled.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 78,
+            "BundleID": 79,
             "DependBundleIDs": []
         },
         {
@@ -6929,7 +6985,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Frames/ui_td_frame_icon_square_normal.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 78,
+            "BundleID": 79,
             "DependBundleIDs": []
         },
         {
@@ -6937,7 +6993,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Frames/ui_td_frame_icon_square_selected.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 78,
+            "BundleID": 79,
             "DependBundleIDs": []
         },
         {
@@ -6945,7 +7001,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/Panels/ui_td_panel_bg_horizontal.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 79,
+            "BundleID": 80,
             "DependBundleIDs": []
         },
         {
@@ -6953,7 +7009,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/States/ui_td_state_cooldown_mask.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 80,
+            "BundleID": 81,
             "DependBundleIDs": []
         },
         {
@@ -6961,7 +7017,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/States/ui_td_state_disabled_mask.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 80,
+            "BundleID": 81,
             "DependBundleIDs": []
         },
         {
@@ -6969,7 +7025,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/States/ui_td_state_highlight_glow.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 80,
+            "BundleID": 81,
             "DependBundleIDs": []
         },
         {
@@ -6977,7 +7033,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/States/ui_td_state_price_not_enough_mask.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 80,
+            "BundleID": 81,
             "DependBundleIDs": []
         },
         {
@@ -6985,7 +7041,55 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Common/States/ui_td_state_selected_glow.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 80,
+            "BundleID": 81,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/CommonSlot.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 74,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/Icon.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 74,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/InfoSlot.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 74,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/Inner.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 74,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/Item.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 74,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/MiniMapIcon.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 74,
             "DependBundleIDs": []
         },
         {
@@ -6993,7 +7097,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/BattleControl/ui_td_control_panel_bg.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 81,
+            "BundleID": 82,
             "DependBundleIDs": []
         },
         {
@@ -7001,7 +7105,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/BattleControl/ui_td_speed_button_disabled.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 81,
+            "BundleID": 82,
             "DependBundleIDs": []
         },
         {
@@ -7009,7 +7113,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/BattleControl/ui_td_speed_button_normal.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 81,
+            "BundleID": 82,
             "DependBundleIDs": []
         },
         {
@@ -7017,7 +7121,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/BattleControl/ui_td_speed_button_selected.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 81,
+            "BundleID": 82,
             "DependBundleIDs": []
         },
         {
@@ -7025,7 +7129,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/BuildPanel/ui_td_build_panel_bg.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 82,
+            "BundleID": 83,
             "DependBundleIDs": []
         },
         {
@@ -7033,7 +7137,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/BuildPanel/ui_td_tower_card_bg_disabled.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 82,
+            "BundleID": 83,
             "DependBundleIDs": []
         },
         {
@@ -7041,7 +7145,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/BuildPanel/ui_td_tower_card_bg_normal.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 82,
+            "BundleID": 83,
             "DependBundleIDs": []
         },
         {
@@ -7049,7 +7153,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/BuildPanel/ui_td_tower_card_bg_selected.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 82,
+            "BundleID": 83,
             "DependBundleIDs": []
         },
         {
@@ -7057,7 +7161,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/BuildPanel/ui_td_tower_card_price_bg.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 82,
+            "BundleID": 83,
             "DependBundleIDs": []
         },
         {
@@ -7065,7 +7169,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/MiniMap/ui_td_minimap_base_icon.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 83,
+            "BundleID": 84,
             "DependBundleIDs": []
         },
         {
@@ -7073,7 +7177,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/MiniMap/ui_td_minimap_enemy_dot.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 83,
+            "BundleID": 84,
             "DependBundleIDs": []
         },
         {
@@ -7081,7 +7185,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/MiniMap/ui_td_minimap_frame.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 83,
+            "BundleID": 84,
             "DependBundleIDs": []
         },
         {
@@ -7089,7 +7193,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/MiniMap/ui_td_minimap_inner_bg.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 83,
+            "BundleID": 84,
             "DependBundleIDs": []
         },
         {
@@ -7097,7 +7201,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/MiniMap/ui_td_minimap_path_dot.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 83,
+            "BundleID": 84,
             "DependBundleIDs": []
         },
         {
@@ -7105,7 +7209,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/MiniMap/ui_td_minimap_path_line.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 83,
+            "BundleID": 84,
             "DependBundleIDs": []
         },
         {
@@ -7113,7 +7217,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/MiniMap/ui_td_minimap_player_marker.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 83,
+            "BundleID": 84,
             "DependBundleIDs": []
         },
         {
@@ -7121,7 +7225,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/MiniMap/ui_td_minimap_tower_dot.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 83,
+            "BundleID": 84,
             "DependBundleIDs": []
         },
         {
@@ -7129,7 +7233,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/SkillPanel/skill_panel_background_rgba.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 84,
+            "BundleID": 85,
             "DependBundleIDs": []
         },
         {
@@ -7137,7 +7241,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/SkillPanel/ui_td_skill_slot_frame_disabled.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 84,
+            "BundleID": 85,
             "DependBundleIDs": []
         },
         {
@@ -7145,7 +7249,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/SkillPanel/ui_td_skill_slot_frame_normal.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 84,
+            "BundleID": 85,
             "DependBundleIDs": []
         },
         {
@@ -7153,7 +7257,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/SkillPanel/ui_td_skill_slot_frame_selected.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 84,
+            "BundleID": 85,
             "DependBundleIDs": []
         },
         {
@@ -7161,7 +7265,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/SkillPanel/ui_td_skill_slot_inner_dark.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 84,
+            "BundleID": 85,
             "DependBundleIDs": []
         },
         {
@@ -7169,7 +7273,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/TopStatusBar/ui_td_top_status_bar_bg.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 85,
+            "BundleID": 86,
             "DependBundleIDs": []
         },
         {
@@ -7177,7 +7281,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/TowerInfo/ui_td_tower_info_header_bg.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 86,
+            "BundleID": 87,
             "DependBundleIDs": []
         },
         {
@@ -7185,7 +7289,7 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/TowerInfo/ui_td_tower_info_panel_bg.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 86,
+            "BundleID": 87,
             "DependBundleIDs": []
         },
         {
@@ -7193,127 +7297,55 @@
             "AssetPath": "Assets/Arts/UI/Panels/Battle/Modules/TowerInfo/ui_td_tower_info_stat_row_bg.png",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 86,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/BattlePage.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
             "BundleID": 87,
             "DependBundleIDs": []
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/BattleResultPopup.prefab",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/Skill.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 87,
+            "BundleID": 74,
             "DependBundleIDs": []
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/BattleSettingsPopup.prefab",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/SpeedButton.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 87,
+            "BundleID": 74,
             "DependBundleIDs": []
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/CommonSlot.prefab",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/TowerBuildCard.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 87,
+            "BundleID": 74,
             "DependBundleIDs": []
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/Icon.prefab",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/TowerCard.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 87,
+            "BundleID": 74,
             "DependBundleIDs": []
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/InfoSlot.prefab",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/TowerCardSkill.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 87,
+            "BundleID": 74,
             "DependBundleIDs": []
         },
         {
             "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/Inner.prefab",
+            "AssetPath": "Assets/Arts/UI/Panels/Battle/WorldHpBar.prefab",
             "AssetGUID": "",
             "AssetTags": [],
-            "BundleID": 87,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/Item.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 87,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/MiniMapIcon.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 87,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/Skill.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 87,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/SpeedButton.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 87,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/TowerBuildCard.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 87,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/TowerCard.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 87,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/TowerCardSkill.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 87,
-            "DependBundleIDs": []
-        },
-        {
-            "Address": "",
-            "AssetPath": "Assets/Arts/UI/Panels/Battle/Prefabs/WorldHpBar.prefab",
-            "AssetGUID": "",
-            "AssetTags": [],
-            "BundleID": 87,
+            "BundleID": 74,
             "DependBundleIDs": []
         },
         {
@@ -8643,7 +8675,7 @@
             "UnityCRC": 0,
             "FileHash": "6bb82838a66eecb3493e51161400f3a9",
             "FileCRC": 0,
-            "FileSize": 59680227,
+            "FileSize": 63609593,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -8694,6 +8726,16 @@
             "FileHash": "b241b54083c4e6d570219e15f3246232",
             "FileCRC": 0,
             "FileSize": 449534,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_arts_ui_panels_battle.bundle",
+            "UnityCRC": 0,
+            "FileHash": "0a16ec6ba82f48d2e264ec20fae2f74c",
+            "FileCRC": 0,
+            "FileSize": 629770,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []
@@ -8829,16 +8871,6 @@
             "DependBundleIDs": []
         },
         {
-            "BundleName": "assets_arts_ui_panels_battle_prefabs.bundle",
-            "UnityCRC": 0,
-            "FileHash": "3b99f7e56fc54e0021a57c51f265f45b",
-            "FileCRC": 0,
-            "FileSize": 608574,
-            "Encrypted": false,
-            "Tags": [],
-            "DependBundleIDs": []
-        },
-        {
             "BundleName": "assets_arts_ui_panels_build.bundle",
             "UnityCRC": 0,
             "FileHash": "e3955be8a4cf82b094fd3fd4b07223e0",
@@ -8883,7 +8915,7 @@
             "UnityCRC": 0,
             "FileHash": "f45c9f2f5359e68cf119f85bf26b46d7",
             "FileCRC": 0,
-            "FileSize": 173274,
+            "FileSize": 172570,
             "Encrypted": false,
             "Tags": [],
             "DependBundleIDs": []

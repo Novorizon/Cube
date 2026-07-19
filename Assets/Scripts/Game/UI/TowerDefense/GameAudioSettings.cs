@@ -8,7 +8,9 @@ namespace Game
         public const string VolumeKey = "World.Sound.Volume";
 
         private const float MutedThreshold = 0.01f;
+        private const float DefaultUnmuteVolume = 0.5f;
         private static float volumeBeforeMute = 1f;
+        private static bool mutedFromButton;
 
         public static event Action<float> VolumeChanged;
 
@@ -27,6 +29,7 @@ namespace Game
             {
                 volumeBeforeMute = clamped;
             }
+            mutedFromButton = false;
 
             AudioListener.volume = clamped;
             if (save)
@@ -38,9 +41,35 @@ namespace Game
             VolumeChanged?.Invoke(clamped);
         }
 
+        public static void Mute()
+        {
+            if (!IsMuted)
+            {
+                volumeBeforeMute = Volume;
+            }
+
+            SetVolume(0f);
+            mutedFromButton = true;
+        }
+
+        public static void Unmute()
+        {
+            float restoreVolume = mutedFromButton && volumeBeforeMute > MutedThreshold
+                ? volumeBeforeMute
+                : DefaultUnmuteVolume;
+            SetVolume(restoreVolume);
+        }
+
         public static void ToggleMute()
         {
-            SetVolume(IsMuted ? Mathf.Max(MutedThreshold, volumeBeforeMute) : 0f);
+            if (IsMuted)
+            {
+                Unmute();
+            }
+            else
+            {
+                Mute();
+            }
         }
     }
 }

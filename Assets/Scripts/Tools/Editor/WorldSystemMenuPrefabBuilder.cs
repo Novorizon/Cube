@@ -81,19 +81,33 @@ namespace Game.Editor
             GameObject root = CreatePanelRoot("SoundPanel", typeof(WorldSoundPanel), "Sound");
             Transform content = root.transform.Find("Content");
             TMP_Text volumeText = CreateText(content, "VolumeText", "Volume: 100%", 24, 42f);
+            Slider volumeSlider = CreateSlider(content, "Slider");
+            Button onButton = CreateButton(content, "On", "On");
+            float nextElementAfterSoundButton = NextElementY[content];
+            Button offButton = CreateButton(content, "Off", "Off");
+            RectTransform onRect = onButton.GetComponent<RectTransform>();
+            RectTransform offRect = offButton.GetComponent<RectTransform>();
+            offRect.anchorMin = onRect.anchorMin;
+            offRect.anchorMax = onRect.anchorMax;
+            offRect.pivot = onRect.pivot;
+            offRect.anchoredPosition = onRect.anchoredPosition;
+            offRect.sizeDelta = onRect.sizeDelta;
+            NextElementY[content] = nextElementAfterSoundButton;
+            offButton.gameObject.SetActive(false);
             Button decreaseButton = CreateButton(content, "Decrease", "Volume -");
             Button increaseButton = CreateButton(content, "Increase", "Volume +");
-            Button muteButton = CreateButton(content, "Mute", "Mute");
-            TMP_Text muteButtonText = muteButton.GetComponentInChildren<TMP_Text>(true);
+            Button returnButton = CreateButton(content, "Return", "Return");
             Button closeButton = CreateButton(content, "Close", "Close");
 
             SerializedObject serialized = new SerializedObject(root.GetComponent<WorldSoundPanel>());
             SetObject(serialized, "closeButton", closeButton);
+            SetObject(serialized, "returnButton", returnButton);
             SetObject(serialized, "decreaseButton", decreaseButton);
             SetObject(serialized, "increaseButton", increaseButton);
-            SetObject(serialized, "muteButton", muteButton);
+            SetObject(serialized, "onButton", onButton);
+            SetObject(serialized, "offButton", offButton);
+            SetObject(serialized, "volumeSlider", volumeSlider);
             SetObject(serialized, "volumeText", volumeText);
-            SetObject(serialized, "muteButtonText", muteButtonText);
             serialized.ApplyModifiedPropertiesWithoutUndo();
 
             SavePrefab(root, WorldSoundPanel.PrefabPath);
@@ -399,6 +413,66 @@ namespace Game.Editor
             label.alignment = TextAlignmentOptions.Center;
             label.raycastTarget = false;
             return label;
+        }
+
+        private static Slider CreateSlider(Transform parent, string name)
+        {
+            GameObject root = new GameObject(name, typeof(RectTransform), typeof(Slider));
+            root.transform.SetParent(parent, false);
+            PlaceElement(root.GetComponent<RectTransform>(), parent, 32f);
+
+            GameObject backgroundObject = new GameObject("Background", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            backgroundObject.transform.SetParent(root.transform, false);
+            RectTransform backgroundRect = backgroundObject.GetComponent<RectTransform>();
+            backgroundRect.anchorMin = new Vector2(0f, 0.35f);
+            backgroundRect.anchorMax = new Vector2(1f, 0.65f);
+            backgroundRect.offsetMin = Vector2.zero;
+            backgroundRect.offsetMax = Vector2.zero;
+            Image background = backgroundObject.GetComponent<Image>();
+            background.color = new Color(0.72f, 0.67f, 0.57f, 1f);
+
+            GameObject fillAreaObject = new GameObject("Fill Area", typeof(RectTransform));
+            fillAreaObject.transform.SetParent(root.transform, false);
+            RectTransform fillAreaRect = fillAreaObject.GetComponent<RectTransform>();
+            fillAreaRect.anchorMin = new Vector2(0f, 0.35f);
+            fillAreaRect.anchorMax = new Vector2(1f, 0.65f);
+            fillAreaRect.offsetMin = Vector2.zero;
+            fillAreaRect.offsetMax = Vector2.zero;
+
+            GameObject fillObject = new GameObject("Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            fillObject.transform.SetParent(fillAreaObject.transform, false);
+            RectTransform fillRect = fillObject.GetComponent<RectTransform>();
+            fillRect.anchorMin = Vector2.zero;
+            fillRect.anchorMax = Vector2.one;
+            fillRect.offsetMin = Vector2.zero;
+            fillRect.offsetMax = Vector2.zero;
+            fillObject.GetComponent<Image>().color = new Color(0.26f, 0.58f, 0.25f, 1f);
+
+            GameObject handleAreaObject = new GameObject("Handle Slide Area", typeof(RectTransform));
+            handleAreaObject.transform.SetParent(root.transform, false);
+            RectTransform handleAreaRect = handleAreaObject.GetComponent<RectTransform>();
+            handleAreaRect.anchorMin = Vector2.zero;
+            handleAreaRect.anchorMax = Vector2.one;
+            handleAreaRect.offsetMin = new Vector2(10f, 0f);
+            handleAreaRect.offsetMax = new Vector2(-10f, 0f);
+
+            GameObject handleObject = new GameObject("Handle", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            handleObject.transform.SetParent(handleAreaObject.transform, false);
+            RectTransform handleRect = handleObject.GetComponent<RectTransform>();
+            handleRect.anchorMin = new Vector2(0.5f, 0.5f);
+            handleRect.anchorMax = new Vector2(0.5f, 0.5f);
+            handleRect.sizeDelta = new Vector2(24f, 24f);
+            Image handle = handleObject.GetComponent<Image>();
+            handle.color = Color.white;
+
+            Slider slider = root.GetComponent<Slider>();
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.wholeNumbers = false;
+            slider.fillRect = fillRect;
+            slider.handleRect = handleRect;
+            slider.targetGraphic = handle;
+            return slider;
         }
 
         private static Button EnsureButton(Transform parent, string name, string text)
