@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Game;
 using TMPro;
 using UI;
@@ -17,10 +18,11 @@ namespace Game.Editor
         private const string SettingsPopupPath = "Assets/Arts/UI/Panels/Battle/BattleSettingsPopup.prefab";
         private const string ResultPopupPath = "Assets/Arts/UI/Panels/Battle/BattleResultPopup.prefab";
         private const string CommonSlotPath = "Assets/Arts/UI/Panels/Battle/CommonSlot.prefab";
+        private const string SkillPanelPrefabPath = "Assets/Arts/UI/Panels/Battle/Skill/SkillPanel.prefab";
+        private const string SkillSlotPath = "Assets/Arts/UI/Panels/Battle/Skill/SkillSlot.prefab";
+        private const string SkillSlotSmallPath = "Assets/Arts/UI/Panels/Battle/Skill/SkillSlotSmall.prefab";
         private const string ItemContentPath = "Assets/Arts/UI/Panels/Battle/Item.prefab";
-        private const string SkillContentPath = "Assets/Arts/UI/Panels/Battle/Skill.prefab";
-        private const string TowerSkillContentPath = "Assets/Arts/UI/Panels/Battle/TowerCardSkill.prefab";
-        private const string TowerBuildCardPath = "Assets/Arts/UI/Panels/Battle/TowerBuildCard.prefab";
+        private const string SkillContentPath = "Assets/Arts/UI/Panels/Battle/Skill/Skill.prefab";
         private const string TowerCardPath = "Assets/Arts/UI/Panels/Battle/TowerCard.prefab";
         private const string InfoSlotPath = "Assets/Arts/UI/Panels/Battle/InfoSlot.prefab";
         private const string WorldHpBarPath = "Assets/Arts/UI/Panels/Battle/WorldHpBar.prefab";
@@ -40,9 +42,10 @@ namespace Game.Editor
             EnsureFontAtlasReadable();
             BindSlotContent(ItemContentPath);
             BindSlotContent(SkillContentPath);
-            BindSlotContent(TowerSkillContentPath);
             BindCommonSlot();
-            BindTowerCard(TowerBuildCardPath);
+            BindSkillSlot(SkillSlotPath);
+            BindSkillSlot(SkillSlotSmallPath);
+            BindSkillPanelPrefab();
             BindTowerCard(TowerCardPath);
             BindInfoSlot();
             BindSettingsPopup();
@@ -53,6 +56,166 @@ namespace Game.Editor
             AssetDatabase.Refresh();
             Validate();
             Debug.Log("Battle UI prefab binding completed.");
+        }
+
+        [MenuItem("Tools/Battle UI/Apply Radial Skill Panel")]
+        public static void ApplyRadialSkillPanel()
+        {
+            EnsureFontAtlasReadable();
+            BindSlotContent(SkillContentPath);
+            BindSkillSlot(SkillSlotPath);
+            BindSkillSlot(SkillSlotSmallPath);
+            BindSkillPanelPrefab();
+            BindRadialSkillPanelOnBattlePage();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            ValidateRadialSkillPanel();
+            RenderRadialSkillPreview();
+            Debug.Log("Battle radial skill panel completed.");
+        }
+
+        [MenuItem("Tools/Battle UI/Render Radial Skill Preview")]
+        public static void RenderRadialSkillPreview()
+        {
+            string projectRoot = Directory.GetParent(Application.dataPath)?.FullName ?? Directory.GetCurrentDirectory();
+            string previewPath = Path.Combine(projectRoot, "Logs", "RadialSkillPreview.png");
+            GameObject cameraObject = null;
+            GameObject canvasObject = null;
+            RenderTexture renderTexture = null;
+            Texture2D previewTexture = null;
+
+            try
+            {
+                cameraObject = new GameObject("RadialSkillPreviewCamera", typeof(Camera));
+                Camera camera = cameraObject.GetComponent<Camera>();
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = new Color(0.035f, 0.065f, 0.095f, 1f);
+                int previewLayer = LayerMask.NameToLayer("UI");
+                if (previewLayer < 0)
+                {
+                    previewLayer = 5;
+                }
+
+                camera.cullingMask = 1 << previewLayer;
+                camera.orthographic = true;
+                camera.orthographicSize = 5f;
+                camera.nearClipPlane = 0.01f;
+                camera.farClipPlane = 100f;
+
+                renderTexture = new RenderTexture(960, 540, 24, RenderTextureFormat.ARGB32)
+                {
+                    name = "RadialSkillPreviewRT"
+                };
+                renderTexture.Create();
+                camera.targetTexture = renderTexture;
+
+                canvasObject = new GameObject("RadialSkillPreviewCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
+                Canvas canvas = canvasObject.GetComponent<Canvas>();
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = camera;
+                canvas.planeDistance = 1f;
+                canvasObject.layer = previewLayer;
+
+                CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1920f, 1080f);
+                scaler.matchWidthOrHeight = 0.5f;
+
+                GameObject panelPrefab = Require(
+                    AssetDatabase.LoadAssetAtPath<GameObject>(SkillPanelPrefabPath),
+                    SkillPanelPrefabPath,
+                    nameof(SkillPanel));
+                GameObject panelInstance = PrefabUtility.InstantiatePrefab(panelPrefab, canvasObject.transform) as GameObject;
+                if (panelInstance == null)
+                {
+                    throw new InvalidOperationException($"Could not instantiate {SkillPanelPrefabPath} for preview.");
+                }
+
+                panelInstance.name = "SkillPanelPreview";
+                SkillPanel skillPanel = Require(
+                    panelInstance.GetComponent<SkillPanel>(),
+                    SkillPanelPrefabPath,
+                    nameof(SkillPanel));
+
+                RectTransform panelRect = panelInstance.transform as RectTransform;
+                panelRect.anchorMin = new Vector2(1f, 0f);
+                panelRect.anchorMax = new Vector2(1f, 0f);
+                panelRect.pivot = new Vector2(1f, 0f);
+                panelRect.anchoredPosition = new Vector2(-18f, 14f);
+                panelRect.sizeDelta = new Vector2(538.5847f, 445.848f);
+                panelRect.localRotation = Quaternion.identity;
+                panelRect.localScale = Vector3.one;
+
+                CommonSlotView[] slots = skillPanel.GetComponentsInChildren<CommonSlotView>(true);
+                string[] iconPaths =
+                {
+                    "Assets/Arts/UI/Icons/Skills/ui_td_skill_fireball_icon.png",
+                    "Assets/Arts/UI/Icons/Skills/ice_snowflake_transparent.png",
+                    "Assets/Arts/UI/Icons/Skills/ui_td_skill_bomb_icon.png",
+                    "Assets/Arts/UI/Icons/Skills/ui_td_skill_bomb_icon.png",
+                    "Assets/Arts/UI/Icons/Skills/lightning.png"
+                };
+                int[] counts = { 1, 8, 6, 5, 12 };
+                for (int i = 0; i < slots.Length && i < iconPaths.Length; i++)
+                {
+                    slots[i].gameObject.SetActive(true);
+                    Sprite icon = AssetDatabase.LoadAssetAtPath<Sprite>(iconPaths[i]);
+                    slots[i].Init(i + 1, string.Empty, counts[i], icon, null);
+                }
+
+                if (slots.Length > 2)
+                {
+                    slots[2].SetCooldown(5f, 8f);
+                }
+
+                SetLayerRecursively(panelInstance, previewLayer);
+
+                Canvas.ForceUpdateCanvases();
+                camera.Render();
+
+                RenderTexture previous = RenderTexture.active;
+                RenderTexture.active = renderTexture;
+                previewTexture = new Texture2D(960, 540, TextureFormat.RGBA32, false);
+                previewTexture.ReadPixels(new Rect(0f, 0f, 960f, 540f), 0, 0);
+                previewTexture.Apply();
+                RenderTexture.active = previous;
+
+                Directory.CreateDirectory(Path.GetDirectoryName(previewPath));
+                File.WriteAllBytes(previewPath, previewTexture.EncodeToPNG());
+                Debug.Log($"Battle radial skill preview rendered: {previewPath}");
+            }
+            finally
+            {
+                if (previewTexture != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(previewTexture);
+                }
+
+                if (renderTexture != null)
+                {
+                    if (cameraObject != null)
+                    {
+                        Camera previewCamera = cameraObject.GetComponent<Camera>();
+                        if (previewCamera != null)
+                        {
+                            previewCamera.targetTexture = null;
+                        }
+                    }
+
+                    renderTexture.Release();
+                    UnityEngine.Object.DestroyImmediate(renderTexture);
+                }
+
+                if (canvasObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(canvasObject);
+                }
+
+                if (cameraObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(cameraObject);
+                }
+            }
         }
 
         private static void EnsureFontAtlasReadable()
@@ -82,18 +245,19 @@ namespace Game.Editor
             List<string> errors = new List<string>();
             ValidateComponent<BattlePage>(BattlePagePath, errors,
                 "topPanel", "buildTowerPanel", "itemPanel", "targetInfoPanel", "skillPanel", "battleControlPanel");
-            ValidateComponent<BattleSafeAreaFitter>(BattlePagePath, errors, "target");
+            ValidateComponent<UISafeAreaFitter>(BattlePagePath, errors, "target");
             ValidateChildComponent<TopPanel>(BattlePagePath, errors,
                 "baseHpBar", "coinText", "baseHpValueText", "waveText", "enemyText");
             ValidateChildComponent<BuildTowerPanel>(BattlePagePath, errors,
-                "contentRoot", "cardPrefab", "towerCardSkillPrefab");
+                "contentRoot", "cardPrefab");
             ValidateChildComponent<ItemPanel>(BattlePagePath, errors,
                 "contentRoot", "slotPrefab", "itemContentPrefab");
             ValidateChildComponent<SkillPanel>(BattlePagePath, errors,
-                "contentRoot", "slotPrefab", "skillContentPrefab");
+                "contentRoot", "slotPrefab");
             ValidateChildComponent<InfoPanel>(BattlePagePath, errors,
-                "canvasGroup", "targetIconImage", "targetNameText", "descriptionText", "contentRoot",
-                "infoSlotPrefab", "upgradeButton", "sellButton");
+                "canvasGroup", "targetIconImage", "targetNameText", "levelText", "descriptionText", "statusRoot", "contentRoot",
+                "infoSlotPrefab", "actionRoot");
+            ValidateInfoPanelActions(BattlePagePath, errors);
             ValidateChildComponent<BattleControlPanel>(BattlePagePath, errors,
                 "speed1Button", "speed2Button", "speed3Button", "autoNextWaveToggle", "pauseButton", "playButton",
                 "soundButton", "settingButton");
@@ -103,27 +267,40 @@ namespace Game.Editor
                 "titleText", "mapText", "reasonText", "rewardText", "nextButton", "nextButtonText",
                 "restartButton", "restartButtonText", "mainMenuButton", "mainMenuButtonText");
             ValidateComponent<CommonSlotView>(CommonSlotPath, errors, "contentRoot", "button");
+            ValidateComponent<CommonSlotView>(SkillSlotPath, errors,
+                "contentRoot", "contentView", "button", "countText", "countBadge", "disabledMask", "cooldownMask", "cooldownText");
+            ValidateComponent<CommonSlotView>(SkillSlotSmallPath, errors,
+                "contentRoot", "contentView", "button", "countText", "countBadge", "disabledMask", "cooldownMask", "cooldownText");
+            ValidateComponent<SkillPanel>(SkillPanelPrefabPath, errors,
+                "contentRoot", "slotPrefab");
             ValidateComponent<InfoSlotView>(InfoSlotPath, errors, "nameText", "valueText", "addValueText");
-            ValidateComponent<TowerBuildCardView>(TowerBuildCardPath, errors,
-                "button", "iconImage", "selectedFrame", "nameText", "costText", "skillContentRoot");
             ValidateComponent<TowerBuildCardView>(TowerCardPath, errors,
-                "button", "iconImage", "selectedFrame", "nameText", "costText", "skillContentRoot");
+                "button", "iconImage", "normalFrame", "selectedFrame", "nameText", "descriptionText",
+                "costText", "damageValueText");
+            ValidateTowerCardSlots(TowerCardPath, errors);
             ValidateComponent<BattleSlotContentView>(ItemContentPath, errors, "iconImage");
             ValidateComponent<BattleSlotContentView>(SkillContentPath, errors, "iconImage");
-            ValidateComponent<BattleSlotContentView>(TowerSkillContentPath, errors, "iconImage");
             ValidateComponent<WorldHpBarView>(WorldHpBarPath, errors, "hpBar", "nameText", "rectTransform");
             ValidateNoMissingScripts(BattlePagePath, errors);
             ValidateNoMissingScripts(SettingsPopupPath, errors);
             ValidateNoMissingScripts(ResultPopupPath, errors);
             ValidateNoMissingScripts(CommonSlotPath, errors);
+            ValidateNoMissingScripts(SkillSlotPath, errors);
+            ValidateNoMissingScripts(SkillSlotSmallPath, errors);
+            ValidateNoMissingScripts(SkillPanelPrefabPath, errors);
             ValidateNoMissingScripts(ItemContentPath, errors);
             ValidateNoMissingScripts(SkillContentPath, errors);
-            ValidateNoMissingScripts(TowerSkillContentPath, errors);
-            ValidateNoMissingScripts(TowerBuildCardPath, errors);
             ValidateNoMissingScripts(TowerCardPath, errors);
             ValidateNoMissingScripts(InfoSlotPath, errors);
             ValidateNoMissingScripts(WorldHpBarPath, errors);
             ValidateLoadedBattlePagesNoMissingScripts(errors);
+
+            GameObject skillPanelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(SkillPanelPrefabPath);
+            SkillPanel authoredSkillPanel = skillPanelPrefab != null ? skillPanelPrefab.GetComponent<SkillPanel>() : null;
+            if (authoredSkillPanel != null)
+            {
+                ValidateSkillPanelSlots(SkillPanelPrefabPath, authoredSkillPanel, errors);
+            }
 
             if (errors.Count > 0)
             {
@@ -144,17 +321,17 @@ namespace Game.Editor
                 }
 
                 BattlePage page = Require(root.GetComponent<BattlePage>(), BattlePagePath, nameof(BattlePage));
-                BattleSafeAreaFitter safeArea = root.GetComponent<BattleSafeAreaFitter>();
+                UISafeAreaFitter safeArea = root.GetComponent<UISafeAreaFitter>();
                 if (safeArea == null)
                 {
-                    safeArea = root.AddComponent<BattleSafeAreaFitter>();
+                    safeArea = root.AddComponent<UISafeAreaFitter>();
                 }
                 SetReferences(safeArea, ("target", root.transform as RectTransform));
                 TopPanel top = root.GetComponentInChildren<TopPanel>(true);
                 BuildTowerPanel build = root.GetComponentInChildren<BuildTowerPanel>(true);
                 ItemPanel item = root.GetComponentInChildren<ItemPanel>(true);
                 InfoPanel info = root.GetComponentInChildren<InfoPanel>(true);
-                SkillPanel skill = root.GetComponentInChildren<SkillPanel>(true);
+                SkillPanel skill = GetOrCreateSkillPanel(root);
                 BattleControlPanel control = root.GetComponentInChildren<BattleControlPanel>(true);
                 MiniMapPanel miniMap = root.GetComponentInChildren<MiniMapPanel>(true);
 
@@ -167,14 +344,27 @@ namespace Game.Editor
                     ("battleControlPanel", control),
                     ("miniMapPanel", miniMap));
 
-                GameObject towerSkillPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(TowerSkillContentPath);
-                SetReferences(build, ("towerCardSkillPrefab", towerSkillPrefab));
                 BindTopPanel(top);
                 BindSlotPanel(item, ItemContentPath);
-                BindSlotPanel(skill, SkillContentPath);
                 BindInfoPanel(info);
                 BindBattleControl(control);
 
+                PrefabUtility.SaveAsPrefabAsset(root, BattlePagePath);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        private static void BindRadialSkillPanelOnBattlePage()
+        {
+            GameObject root = PrefabUtility.LoadPrefabContents(BattlePagePath);
+            try
+            {
+                BattlePage page = Require(root.GetComponent<BattlePage>(), BattlePagePath, nameof(BattlePage));
+                SkillPanel skill = GetOrCreateSkillPanel(root);
+                SetReferences(page, ("skillPanel", skill));
                 PrefabUtility.SaveAsPrefabAsset(root, BattlePagePath);
             }
             finally
@@ -207,11 +397,18 @@ namespace Game.Editor
         private static void BindSlotPanel(Component panel, string contentPrefabPath)
         {
             SerializedObject serialized = new SerializedObject(panel);
-            RectTransform contentRoot = serialized.FindProperty("contentRoot").objectReferenceValue as RectTransform;
+            SerializedProperty contentRootProperty = serialized.FindProperty("contentRoot");
+            RectTransform contentRoot = contentRootProperty.objectReferenceValue as RectTransform;
+            if (contentRoot == null)
+            {
+                contentRoot = panel.transform as RectTransform;
+                contentRootProperty.objectReferenceValue = contentRoot;
+            }
+
             CommonSlotView[] slots = contentRoot != null ? contentRoot.GetComponentsInChildren<CommonSlotView>(true) : Array.Empty<CommonSlotView>();
             Array.Sort(slots, (left, right) => left.transform.GetSiblingIndex().CompareTo(right.transform.GetSiblingIndex()));
             SetArray(serialized.FindProperty("initialSlots"), slots);
-            serialized.FindProperty(panel is ItemPanel ? "itemContentPrefab" : "skillContentPrefab").objectReferenceValue =
+            serialized.FindProperty("itemContentPrefab").objectReferenceValue =
                 AssetDatabase.LoadAssetAtPath<GameObject>(contentPrefabPath);
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
@@ -242,6 +439,49 @@ namespace Game.Editor
             }
 
             SerializedObject serialized = new SerializedObject(panel);
+            Transform level = Find(panel.transform, "Level");
+            serialized.FindProperty("levelText").objectReferenceValue =
+                level != null ? level.GetComponent<TMP_Text>() : null;
+            Transform status = Find(panel.transform, "Status");
+            serialized.FindProperty("statusRoot").objectReferenceValue =
+                status != null ? status.gameObject : null;
+            status?.gameObject.SetActive(false);
+            Transform actionRoot = panel.transform.Find("Action");
+            if (actionRoot != null)
+            {
+                ItemPanel copiedItemPanel = actionRoot.GetComponent<ItemPanel>();
+                if (copiedItemPanel != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(copiedItemPanel);
+                }
+
+                CommonSlotView[] copiedSlotViews = actionRoot.GetComponentsInChildren<CommonSlotView>(true);
+                for (int i = 0; i < copiedSlotViews.Length; i++)
+                {
+                    UnityEngine.Object.DestroyImmediate(copiedSlotViews[i]);
+                }
+
+                Button[] actionButtons = actionRoot.GetComponentsInChildren<Button>(true);
+                Array.Sort(actionButtons, (left, right) => left.transform.GetSiblingIndex().CompareTo(right.transform.GetSiblingIndex()));
+                for (int i = 0; i < actionButtons.Length; i++)
+                {
+                    if (actionButtons[i] != null && actionButtons[i].targetGraphic != null)
+                    {
+                        actionButtons[i].targetGraphic.raycastTarget = true;
+                    }
+                }
+
+                serialized.FindProperty("actionRoot").objectReferenceValue = actionRoot.gameObject;
+                SetArray(serialized.FindProperty("actionButtons"), actionButtons);
+            }
+
+            RectTransform contentRoot = serialized.FindProperty("contentRoot").objectReferenceValue as RectTransform;
+            InfoSlotView[] infoSlots = contentRoot != null
+                ? contentRoot.GetComponentsInChildren<InfoSlotView>(true)
+                : Array.Empty<InfoSlotView>();
+            Array.Sort(infoSlots, (left, right) => left.transform.GetSiblingIndex().CompareTo(right.transform.GetSiblingIndex()));
+            SetArray(serialized.FindProperty("initialSlots"), infoSlots);
+
             SerializedProperty descriptionProperty = serialized.FindProperty("descriptionText");
             if (descriptionProperty.objectReferenceValue == null)
             {
@@ -308,6 +548,199 @@ namespace Game.Editor
             });
         }
 
+        private static void BindSkillSlot(string path)
+        {
+            EditPrefab(path, root =>
+            {
+                CommonSlotView slot = Require(root.GetComponent<CommonSlotView>(), path, nameof(CommonSlotView));
+                Button button = root.GetComponent<Button>() ?? root.GetComponentInChildren<Button>(true);
+                Transform frameTransform = Find(root.transform, "Frame");
+                Image frame = frameTransform != null ? frameTransform.GetComponent<Image>() : null;
+                Transform contentRoot = Find(root.transform, "ContentRoot");
+                Transform skillContent = contentRoot != null ? Find(contentRoot, "Skill") : null;
+                BattleSlotContentView contentView = skillContent != null ? skillContent.GetComponent<BattleSlotContentView>() : null;
+                Transform countText = Find(root.transform, "CountText");
+                Transform countBadge = Find(root.transform, "CountBadge");
+                Transform disabledMask = Find(root.transform, "DisabledMask");
+                Transform cooldownMask = Find(root.transform, "CooldownMask");
+                Transform cooldownText = Find(root.transform, "CooldownText");
+
+                Require(button, path, nameof(Button));
+                Require(frame, path, "Frame Image");
+                Require(contentRoot, path, "ContentRoot");
+                Require(contentView, path, "ContentRoot/Skill");
+                Require(countText, path, "CountText");
+                Require(countBadge, path, "CountBadge");
+                Require(disabledMask, path, "DisabledMask");
+                Require(cooldownMask, path, "CooldownMask");
+                Require(cooldownText, path, "CooldownText");
+
+                button.targetGraphic = frame;
+                SetReferences(slot,
+                    ("contentRoot", contentRoot),
+                    ("contentView", contentView),
+                    ("button", button),
+                    ("countText", countText.GetComponent<TMP_Text>()),
+                    ("countBadge", countBadge.gameObject),
+                    ("disabledMask", disabledMask.gameObject),
+                    ("cooldownMask", cooldownMask.GetComponent<Image>()),
+                    ("cooldownText", cooldownText.GetComponent<TMP_Text>()));
+            });
+        }
+
+        private static void BindSkillPanelPrefab()
+        {
+            EditPrefab(SkillPanelPrefabPath, root =>
+            {
+                SkillPanel panel = Require(root.GetComponent<SkillPanel>(), SkillPanelPrefabPath, nameof(SkillPanel));
+                CommonSlotView featuredSlot = null;
+                List<CommonSlotView> smallSlots = new List<CommonSlotView>();
+                CommonSlotView[] allSlots = root.GetComponentsInChildren<CommonSlotView>(true);
+
+                for (int i = 0; i < allSlots.Length; i++)
+                {
+                    CommonSlotView slot = allSlots[i];
+                    string sourcePath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(slot.gameObject);
+                    bool isFeatured = sourcePath == SkillSlotPath || string.Equals(slot.name, "SkillSlot", StringComparison.Ordinal);
+                    bool isSmall = sourcePath == SkillSlotSmallPath || slot.name.StartsWith("SkillSlotSmall", StringComparison.Ordinal);
+
+                    if (isFeatured && !isSmall)
+                    {
+                        if (featuredSlot != null)
+                        {
+                            throw new InvalidOperationException($"{SkillPanelPrefabPath}: expected exactly one {SkillSlotPath} instance.");
+                        }
+
+                        featuredSlot = slot;
+                    }
+                    else if (isSmall)
+                    {
+                        smallSlots.Add(slot);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"{SkillPanelPrefabPath}: unsupported slot instance {slot.name}.");
+                    }
+                }
+
+                if (featuredSlot == null || smallSlots.Count != 4)
+                {
+                    throw new InvalidOperationException(
+                        $"{SkillPanelPrefabPath}: expected one {SkillSlotPath} and four {SkillSlotSmallPath} instances, " +
+                        $"found featured={featuredSlot != null}, small={smallSlots.Count}.");
+                }
+
+                smallSlots.Sort((left, right) => left.transform.GetSiblingIndex().CompareTo(right.transform.GetSiblingIndex()));
+                RepairSmallSkillSlotLayout(smallSlots);
+                CommonSlotView[] orderedSlots = new CommonSlotView[5];
+                orderedSlots[0] = featuredSlot;
+                for (int i = 0; i < smallSlots.Count; i++)
+                {
+                    orderedSlots[i + 1] = smallSlots[i];
+                }
+
+                GameObject smallSlotPrefabAsset = Require(
+                    AssetDatabase.LoadAssetAtPath<GameObject>(SkillSlotSmallPath),
+                    SkillSlotSmallPath,
+                    nameof(SkillSlotSmallPath));
+                CommonSlotView smallSlotPrefab = Require(
+                    smallSlotPrefabAsset.GetComponent<CommonSlotView>(),
+                    SkillSlotSmallPath,
+                    nameof(CommonSlotView));
+                root.SetActive(true);
+                SerializedObject serialized = new SerializedObject(panel);
+                serialized.FindProperty("contentRoot").objectReferenceValue = root.transform;
+                serialized.FindProperty("slotPrefab").objectReferenceValue = smallSlotPrefab;
+                SetArray(serialized.FindProperty("initialSlots"), orderedSlots);
+                serialized.FindProperty("featuredSkillId").intValue = 50000001;
+                serialized.FindProperty("maxVisibleSlots").intValue = orderedSlots.Length;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            });
+        }
+
+        private static void RepairSmallSkillSlotLayout(IReadOnlyList<CommonSlotView> smallSlots)
+        {
+            HashSet<string> names = new HashSet<string>(StringComparer.Ordinal);
+            HashSet<Vector2> positions = new HashSet<Vector2>();
+            for (int i = 0; i < smallSlots.Count; i++)
+            {
+                names.Add(smallSlots[i].name);
+                positions.Add(((RectTransform)smallSlots[i].transform).anchoredPosition);
+            }
+
+            if (names.Count == smallSlots.Count && positions.Count == smallSlots.Count)
+            {
+                return;
+            }
+
+            Vector2[] authoredPositions =
+            {
+                new Vector2(-345f, 61f),
+                new Vector2(-248f, 319f),
+                new Vector2(-326f, 204f),
+                new Vector2(-95f, 342f)
+            };
+
+            for (int i = 0; i < smallSlots.Count; i++)
+            {
+                CommonSlotView slot = smallSlots[i];
+                slot.gameObject.name = $"SkillSlotSmall{i + 1}";
+                RectTransform rect = (RectTransform)slot.transform;
+                rect.anchorMin = new Vector2(1f, 0f);
+                rect.anchorMax = new Vector2(1f, 0f);
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.sizeDelta = new Vector2(64f, 64f);
+                rect.anchoredPosition = authoredPositions[i];
+                rect.localRotation = Quaternion.identity;
+            }
+
+            Debug.LogWarning(
+                $"{SkillPanelPrefabPath}: repaired invalid nested-prefab transform overrides for the four small skill slots.");
+        }
+
+        private static SkillPanel GetOrCreateSkillPanel(GameObject battlePageRoot)
+        {
+            GameObject panelPrefab = Require(
+                AssetDatabase.LoadAssetAtPath<GameObject>(SkillPanelPrefabPath),
+                SkillPanelPrefabPath,
+                nameof(SkillPanel));
+            SkillPanel panel = null;
+            SkillPanel[] existingPanels = battlePageRoot.GetComponentsInChildren<SkillPanel>(true);
+            for (int i = 0; i < existingPanels.Length; i++)
+            {
+                SkillPanel candidate = existingPanels[i];
+                string sourcePath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(candidate.gameObject);
+                if (panel == null && sourcePath == SkillPanelPrefabPath)
+                {
+                    panel = candidate;
+                    continue;
+                }
+
+                UnityEngine.Object.DestroyImmediate(candidate.gameObject);
+            }
+
+            if (panel == null)
+            {
+                GameObject instance = PrefabUtility.InstantiatePrefab(panelPrefab, battlePageRoot.transform) as GameObject;
+                if (instance == null)
+                {
+                    throw new InvalidOperationException($"Could not instantiate {SkillPanelPrefabPath} in {BattlePagePath}.");
+                }
+
+                panel = Require(instance.GetComponent<SkillPanel>(), SkillPanelPrefabPath, nameof(SkillPanel));
+            }
+
+            panel.gameObject.name = "SkillPanel";
+            panel.gameObject.SetActive(true);
+            BattleControlPanel controlPanel = battlePageRoot.GetComponentInChildren<BattleControlPanel>(true);
+            if (controlPanel != null)
+            {
+                panel.transform.SetSiblingIndex(controlPanel.transform.GetSiblingIndex());
+            }
+
+            return panel;
+        }
+
         private static void BindSlotContent(string path)
         {
             EditPrefab(path, root =>
@@ -328,31 +761,43 @@ namespace Game.Editor
             EditPrefab(path, root =>
             {
                 TowerBuildCardView card = Require(root.GetComponent<TowerBuildCardView>(), path, nameof(TowerBuildCardView));
-                Transform selected = Find(root.transform, "SelectedFrame");
-                if (selected == null)
-                {
-                    selected = Find(root.transform, "Selected");
-                }
-
-                Transform skillRoot = Find(root.transform, "SkillContent");
-                if (skillRoot == null)
-                {
-                    skillRoot = Find(root.transform, "Skills");
-                }
-
-                if (skillRoot == null)
-                {
-                    skillRoot = Find(root.transform, "Skill");
-                }
-
-                if (skillRoot == null)
-                {
-                    skillRoot = root.transform;
-                }
+                Transform normal = Find(root.transform, "normal");
+                Transform selected = Find(root.transform, "selected");
+                Transform towerIcon = Find(root.transform, "TowerIcon");
+                Transform towerName = Find(root.transform, "TowerName");
+                Transform description = Find(root.transform, "DescriptionText");
+                Transform cost = Find(root.transform, "CostText");
+                Transform skill1 = Find(root.transform, "Skill1");
+                Transform skill2 = Find(root.transform, "Skill2");
+                Transform skill3 = Find(root.transform, "Skill3");
+                TMP_Text damageValue = skill1 != null
+                    ? skill1.GetComponentInChildren<TMP_Text>(true)
+                    : null;
 
                 SetReferences(card,
+                    ("button", root.GetComponent<Button>()),
+                    ("iconImage", towerIcon != null ? towerIcon.GetComponent<Image>() : null),
+                    ("normalFrame", normal != null ? normal.GetComponent<Image>() : null),
                     ("selectedFrame", selected != null ? selected.GetComponent<Image>() : null),
-                    ("skillContentRoot", skillRoot as RectTransform));
+                    ("nameText", towerName != null ? towerName.GetComponent<TMP_Text>() : null),
+                    ("descriptionText", description != null ? description.GetComponent<TMP_Text>() : null),
+                    ("costText", cost != null ? cost.GetComponent<TMP_Text>() : null),
+                    ("damageValueText", damageValue));
+
+                GameObject[] skillSlots =
+                {
+                    skill2 != null ? skill2.gameObject : null,
+                    skill3 != null ? skill3.gameObject : null,
+                };
+                BattleSlotContentView[] skillViews =
+                {
+                    skill2 != null ? skill2.GetComponent<BattleSlotContentView>() : null,
+                    skill3 != null ? skill3.GetComponent<BattleSlotContentView>() : null,
+                };
+                SerializedObject serialized = new SerializedObject(card);
+                SetArray(serialized.FindProperty("skillSlots"), skillSlots);
+                SetArray(serialized.FindProperty("skillViews"), skillViews);
+                serialized.ApplyModifiedPropertiesWithoutUndo();
             });
         }
 
@@ -395,6 +840,7 @@ namespace Game.Editor
                 Button restart = GetButton(root.transform, "RestartButton") ?? GetButton(root.transform, "EndBattleButton");
                 Button menu = GetButton(root.transform, "MainMenuButton");
                 Button close = GetButton(root.transform, "CloseButton");
+
                 SetReferences(popup,
                     ("languageButton", language),
                     ("soundButton", sound),
@@ -524,6 +970,24 @@ namespace Game.Editor
             return text;
         }
 
+        private static void Stretch(RectTransform rect)
+        {
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = Vector2.zero;
+        }
+
+        private static void SetLayerRecursively(GameObject root, int layer)
+        {
+            root.layer = layer;
+            for (int i = 0; i < root.transform.childCount; i++)
+            {
+                SetLayerRecursively(root.transform.GetChild(i).gameObject, layer);
+            }
+        }
+
         private static TMP_Text CreateText(string name, Transform parent, float size, TextAlignmentOptions alignment, string value)
         {
             GameObject textObject = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
@@ -536,6 +1000,96 @@ namespace Game.Editor
             text.text = value;
             text.enableWordWrapping = true;
             return text;
+        }
+
+        private static void ValidateRadialSkillPanel()
+        {
+            List<string> errors = new List<string>();
+            ValidateComponent<CommonSlotView>(SkillSlotPath, errors,
+                "contentRoot", "contentView", "button", "countText", "countBadge", "disabledMask", "cooldownMask", "cooldownText");
+            ValidateComponent<CommonSlotView>(SkillSlotSmallPath, errors,
+                "contentRoot", "contentView", "button", "countText", "countBadge", "disabledMask", "cooldownMask", "cooldownText");
+            ValidateComponent<SkillPanel>(SkillPanelPrefabPath, errors,
+                "contentRoot", "slotPrefab");
+            ValidateNoMissingScripts(SkillSlotPath, errors);
+            ValidateNoMissingScripts(SkillSlotSmallPath, errors);
+            ValidateNoMissingScripts(SkillPanelPrefabPath, errors);
+            ValidateNoMissingScripts(BattlePagePath, errors);
+
+            GameObject authoredPanelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(SkillPanelPrefabPath);
+            SkillPanel authoredPanel = authoredPanelPrefab != null ? authoredPanelPrefab.GetComponent<SkillPanel>() : null;
+            if (authoredPanel != null)
+            {
+                ValidateSkillPanelSlots(SkillPanelPrefabPath, authoredPanel, errors);
+            }
+
+            GameObject pagePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BattlePagePath);
+            SkillPanel[] panels = pagePrefab != null ? pagePrefab.GetComponentsInChildren<SkillPanel>(true) : Array.Empty<SkillPanel>();
+            if (panels.Length != 1)
+            {
+                errors.Add($"{BattlePagePath}: expected exactly one {nameof(SkillPanel)}, found {panels.Length}");
+            }
+            else
+            {
+                SkillPanel panel = panels[0];
+                ValidateSerializedReferences(BattlePagePath, panel, errors,
+                    "contentRoot", "slotPrefab");
+                ValidateSkillPanelSlots(BattlePagePath, panel, errors);
+
+                string sourcePath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(panel.gameObject);
+                if (sourcePath != SkillPanelPrefabPath)
+                {
+                    errors.Add($"{BattlePagePath}: {nameof(SkillPanel)} must be an instance of {SkillPanelPrefabPath}");
+                }
+
+                if (!panel.gameObject.activeSelf)
+                {
+                    errors.Add($"{BattlePagePath}: radial {nameof(SkillPanel)} must be active");
+                }
+            }
+
+            if (errors.Count > 0)
+            {
+                throw new InvalidOperationException("Battle radial skill panel validation failed:\n" + string.Join("\n", errors));
+            }
+        }
+
+        private static void ValidateSkillPanelSlots(string path, SkillPanel panel, List<string> errors)
+        {
+            SerializedObject serialized = new SerializedObject(panel);
+            SerializedProperty slotPrefab = serialized.FindProperty("slotPrefab");
+            string slotPrefabPath = slotPrefab != null
+                ? AssetDatabase.GetAssetPath(slotPrefab.objectReferenceValue)
+                : string.Empty;
+            if (slotPrefabPath != SkillSlotSmallPath)
+            {
+                errors.Add($"{path}: {nameof(SkillPanel)}.slotPrefab must use {SkillSlotSmallPath}");
+            }
+
+            SerializedProperty initialSlots = serialized.FindProperty("initialSlots");
+            if (initialSlots == null || initialSlots.arraySize != 5)
+            {
+                errors.Add($"{path}: {nameof(SkillPanel)} must contain one featured and four auxiliary slots");
+                return;
+            }
+
+            for (int i = 0; i < initialSlots.arraySize; i++)
+            {
+                CommonSlotView slot = initialSlots.GetArrayElementAtIndex(i).objectReferenceValue as CommonSlotView;
+                if (slot == null)
+                {
+                    errors.Add($"{path}: {nameof(SkillPanel)}.initialSlots[{i}] is not assigned");
+                    continue;
+                }
+
+                bool expectsSmall = i > 0;
+                bool isSmall = slot.name.StartsWith("SkillSlotSmall", StringComparison.Ordinal);
+                if (expectsSmall != isSmall)
+                {
+                    string expectedPath = expectsSmall ? SkillSlotSmallPath : SkillSlotPath;
+                    errors.Add($"{path}: {nameof(SkillPanel)}.initialSlots[{i}] must use {expectedPath}");
+                }
+            }
         }
 
         private static void EditPrefab(string path, Action<GameObject> edit)
@@ -574,6 +1128,56 @@ namespace Game.Editor
                 if (property == null || property.objectReferenceValue == null)
                 {
                     errors.Add($"{path}: {component.GetType().Name}.{properties[i]} is not assigned");
+                }
+            }
+        }
+
+        private static void ValidateTowerCardSlots(string path, List<string> errors)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            TowerBuildCardView card = prefab != null ? prefab.GetComponent<TowerBuildCardView>() : null;
+            if (card == null)
+            {
+                return;
+            }
+
+            SerializedObject serialized = new SerializedObject(card);
+            ValidateReferenceArray(serialized.FindProperty("skillSlots"), path, nameof(TowerBuildCardView), "skillSlots", 2, errors);
+            ValidateReferenceArray(serialized.FindProperty("skillViews"), path, nameof(TowerBuildCardView), "skillViews", 2, errors);
+        }
+
+        private static void ValidateInfoPanelActions(string path, List<string> errors)
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            InfoPanel panel = prefab != null ? prefab.GetComponentInChildren<InfoPanel>(true) : null;
+            if (panel == null)
+            {
+                return;
+            }
+
+            SerializedObject serialized = new SerializedObject(panel);
+            ValidateReferenceArray(serialized.FindProperty("actionButtons"), path, nameof(InfoPanel), "actionButtons", 3, errors);
+        }
+
+        private static void ValidateReferenceArray(
+            SerializedProperty property,
+            string path,
+            string componentName,
+            string propertyName,
+            int expectedSize,
+            List<string> errors)
+        {
+            if (property == null || !property.isArray || property.arraySize != expectedSize)
+            {
+                errors.Add($"{path}: {componentName}.{propertyName} must contain {expectedSize} references");
+                return;
+            }
+
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                if (property.GetArrayElementAtIndex(i).objectReferenceValue == null)
+                {
+                    errors.Add($"{path}: {componentName}.{propertyName}[{i}] is not assigned");
                 }
             }
         }

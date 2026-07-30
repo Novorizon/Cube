@@ -420,6 +420,11 @@
     "en": "Close"
   },
   {
+    "key": "ui.common.return",
+    "zhCn": "返回",
+    "en": "Return"
+  },
+  {
     "key": "ui.menu.title",
     "zhCn": "菜单",
     "en": "Menu"
@@ -987,7 +992,7 @@
   {
     "key": "ui.td.result.reward_prefix",
     "zhCn": "奖励：",
-    "en": "Reward: "
+    "en": "Reward:"
   },
   {
     "key": "ui.td.result.reason_victory",

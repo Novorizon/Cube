@@ -12,6 +12,13 @@ namespace Game
         Interactable = 3,
     }
 
+    public enum MiniMapVisibility
+    {
+        Inherit = 0,
+        Show = 1,
+        Hide = 2,
+    }
+
     [Serializable]
     public class MapObjectData
     {
@@ -31,6 +38,7 @@ namespace Game
         public Vector3 LocalScale = Vector3.one;
         public bool BlocksBuild;
         public bool BlocksMove;
+        public MiniMapVisibility MiniMapVisibility = MiniMapVisibility.Inherit;
 
         public Vector3Int Coord
         {

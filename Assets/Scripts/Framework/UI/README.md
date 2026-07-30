@@ -18,6 +18,18 @@ await UI.UIManager.Instance.Popups.OpenAsync("Assets/Data/UI/Popups/SettingsPopu
 UI.UIManager.Instance.Toasts.Enqueue("Assets/Data/UI/Toasts/SimpleToast.prefab", "Saved!");
 ```
 
+## 屏幕适配
+
+```csharp
+DeviceScreenInfo screen = DeviceManager.Instance.Screen;
+UIViewportInfo viewport = UIManager.Instance.Viewport.Current;
+UIManager.Instance.Viewport.Changed += OnViewportChanged;
+```
+
+`DeviceManager` 是通用设备与屏幕信息源；`UIViewportService` 只把其中的尺寸、方向和
+安全区转换成 UI 语义。通用全屏安全区使用 `UISafeAreaFitter`；具体面板如何切换紧凑
+布局仍由业务 prefab 或业务组件决定，不放进 `UIView` / `UIPanel`。
+
 ## 使用 YooAsset / ResourceManager
 
 ```csharp

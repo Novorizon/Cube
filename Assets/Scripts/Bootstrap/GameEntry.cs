@@ -17,6 +17,7 @@ namespace Game
 
         private async Task Initialize()
         {
+            DeviceManager.Instance.Initialize();
             await ResourceManager.Instance.InitializeAsync();
 
             GameInputManager.Instance.Initialize(InputMode.World);

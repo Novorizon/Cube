@@ -7,8 +7,8 @@ namespace UI
     public sealed class UISettings : ScriptableObject
     {
         [Header("Canvas Scaler")]
-        public int referenceWidth = 1080;
-        public int referenceHeight = 1920;
+        public int referenceWidth = 1920;
+        public int referenceHeight = 1080;
 
         public CanvasScaler.ScreenMatchMode screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
 
@@ -22,5 +22,22 @@ namespace UI
 
         [Tooltip("sortingOrder = (int)layer * sortingOrderStep")]
         public int sortingOrderStep = 100;
+
+        [Header("Tooltip")]
+        public string tooltipPrefabPath = "Assets/Arts/UI/Panels/Common/Tooltip.prefab";
+
+        [Min(0f)]
+        public float tooltipInitialDelay = 0.55f;
+
+        [Min(0f)]
+        public float tooltipReshowDelay = 0.08f;
+
+        [Min(0f)]
+        public float tooltipWarmDuration = 0.75f;
+
+        public Vector2 tooltipOffset = new Vector2(16f, 8f);
+
+        [Min(0f)]
+        public float tooltipScreenPadding = 12f;
     }
 }

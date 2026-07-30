@@ -44,7 +44,7 @@ Assets/Data/Json/Wave
 
 ## 当前重要表
 
-`Tables` 当前包含 Ability、Skill、Item、Localization、Map、Npc、Tower、Wave、TechNode、WorldBuilding、WorldCost、WorldCrop、Gather、Resource、Reward、Quest、QuestObjective、Blueprint、BlueprintItem、Story、StoryLine 等表。
+`Tables` 当前包含 Ability、Skill、Item、Localization、Map、Npc、Tower、Wave、TechNode、WorldBuilding、WorldCost、WorldCrop、Gather、Resource、Reward、Quest、QuestObjective、Blueprint、BlueprintItem、Story、StoryStep 等表。
 
 每个 Excel 的用途、全部字段、关联关系和当前代码接入状态见：
 
@@ -69,7 +69,7 @@ Data/Excel/quest_objective.xlsx
 Data/Excel/blueprint.xlsx
 Data/Excel/blueprint_item.xlsx
 Data/Excel/story.xlsx
-Data/Excel/story_line.xlsx
+Data/Excel/story_step.xlsx
 ```
 
 ## 本地化
@@ -109,7 +109,6 @@ ui.quest.claimed
 - 不手动改 `Assets/Scripts/Game/Data/Generated`。
 - 不手动改由 Luban 生成的 `.bytes` 作为长期方案。
 - 表结构变更要同步 `Data/Defines/*.xml`、`Data/Excel/*.xlsx` 和生成结果。
-
 
 
 

@@ -12,6 +12,7 @@ BottomBar
 RightBar
 MiniMap
 LeftBar / entry buttons
+Setting
 ```
 
 当前子模块：
@@ -114,7 +115,9 @@ Bag 和 HotBar 共用 `BagManager` 的 slot：
 - 拖拽时显示跟随鼠标的物品图标和数量，源格图标暂时变淡；结束、关闭 Bag 或销毁 BottomBar 时必须清理拖拽状态。
 - 拖到空格是移动，拖到已有物品格是交换。
 - slot 只保存 `itemId`；物品数量由 `ItemManager` 统一保存。
+- HotBar 每个 slot 的 `Hotkey` 和 `Count` 都使用 `TextMeshProUGUI`；`Hotkey` 固定显示 `1-0`，`Count` 由 `BagSlotView` 刷新物品数量，两者都不拦截射线。
 - 点击 slot 走 `BagManager.TryUseSlot -> ItemManager.Use`；UI 不按物品类型分支。
+- 主键盘区顶排 `1-0` 映射快捷栏 slot `0-9`；不响应小键盘数字。键盘和点击共用 `BagManager.TryUseSlot`，仅在经营世界输入模式、没有文本框聚焦且未拖拽时响应。
 - 工具点击只选择或装入 ToolKit，不立即累计 `UseItem` 任务进度。
 - 未配置使用效果的物品返回失败，不扣数量，也不发送任务事件。
 - 任务 `UseItem` 只在采集、开垦、种植或消耗效果真正完成后累计。
@@ -139,6 +142,12 @@ Assets/Scripts/Game/UI/Management/WorldFloatingPanelLayout.cs
 
 位置优先通过 prefab 节点和序列化引用调整，不写死单分辨率像素。
 
+经营 UI 的屏幕度量和安全区来自框架
+`UIManager.Instance.Viewport` / `UISafeAreaFitter`。季节、天气、日期格式和经营 HUD 的
+Compact / Normal / Wide 规则属于业务层，不进入 `UIManager`、`UIView` 或 `UIPanel`。
+当前没有足够多的业务响应式脚本，因此不额外创建 `Management/Responsive` 文件夹；
+后续出现至少两个独立布局档位组件时，再集中到该目录。
+
 ## TopBar
 
 Prefab：
@@ -147,21 +156,97 @@ Prefab：
 Assets/Arts/UI/Panels/World/TopBar.prefab
 ```
 
-绑定脚本：`WorldTopBarPanel`。日期、时间、天气、季节图、日夜图、菜单按钮都通过序列化字段引用。
+绑定脚本：`WorldTopBarPanel`。年份、月日、季节、时间、天气、温度、季节图标、天气图标、
+四季底板和日夜图都通过序列化字段引用；脚本只更新 prefab 已有节点，不在运行时创建、
+按名称查找或调整布局。
+
+`Setting` 为 `WorldMainPanel` 根节点的同级常驻入口，不属于 `TopBar.prefab`。按钮通过
+`WorldMainPanel.settingButton` 序列化绑定并打开 Menu；这样 Setting 的右上角定位不会参与
+TopBar 的日历、天气布局计算。
+
+日历块必须由 prefab 中的布局组件保持整体居中：
+
+```text
+CalendarBlock（HorizontalLayoutGroup）
+  SeasonIcon
+  DateColumn（VerticalLayoutGroup / MiddleLeft）
+    Header
+      HorizontalLayoutGroup（MiddleLeft，不强制拉伸子项）
+        Year / Dot / Season
+    MonthDay（横向 Stretch，文字 Left）
+```
+
+日期不能通过手工 x 坐标对齐。`Header` 和 `MonthDay` 共用 `DateColumn` 左边界，使文字
+始终贴近季节图标；切换为 `Year 1 · Summer` 后，内容按 preferred width 向右扩展，不会
+在图标和文字之间重新产生大块空白。
 
 显示规则：
 
 ```text
-日期：第N年 / 季节 / M月D日
-英文日期：Year N / Season / M/D
-天气：天气 / 晴朗 22C
+年份：第N年；英文为 Year N
+日期：M月D日；英文为 M/D
+季节：独立图标 + 季节名称
+天气：独立图标 + 天气名称
+温度：数值由脚本更新，单位 °C 由 prefab 固定节点显示
 日夜圆图：12:00 为初始外观
-季节横图：随年内进度平滑横移
 ```
+
+季节名称使用固定强调色，年份、日期、天气等主要文字保持深色：
+
+```text
+春 Spring  #4A8F3C  深叶绿
+夏 Summer  #E2A72B  阳光金
+秋 Autumn  #C86A2A  枫叶橙
+冬 Winter  #4F86B8  冰霜蓝
+```
+
+色值由 `WorldTopBarPanel.GetSeasonTextColor()` 统一维护，语言切换只改变季节名称，不改变
+对应颜色。
+
+TopBar 使用固定 HUD 尺寸，不根据本地化字符串动态拉长：
+
+```text
+TopBar：620 × 90
+Weather：190 × 79
+Weather/Value：110 × 30
+```
+
+天气名称保持单行，TMP 自动字号范围为 `18–25`；超过当前语言可用宽度时使用省略号。
+四季底板只铺满固定 TopBar，不参与 preferred width 计算。这样切换中文、英文或其他语言
+时，HUD 的整体宽度和屏幕位置不会跳动。
+
+季节与天气资源配置位于 `WorldTopBarPanel`：
+
+```text
+seasonIconBindings   Season -> Sprite
+weatherIconBindings  WeatherType -> Sprite
+seasonBackgroundBindings Season -> Sprite
+```
+
+当前天气还没有独立的天气管理器，TopBar 使用 `initialWeather` 和
+`initialTemperatureCelsius` 作为初始显示；后续天气业务通过
+`SetWeather(WeatherType, temperatureCelsius)` 更新。没有配置对应 Sprite 时隐藏该图标，
+避免继续显示上一个季节或天气的错误图标。
+
+四季底板复用 prefab 根节点下已有的 `Background/Image`，不动态创建节点。春、夏、秋、冬
+分别由 `seasonBackgroundBindings` 配置；漏配时回退到 `defaultSeasonBackground`，避免
+整个 TopBar 底板消失。
+
+`Sky` 的旋转直接由 `CalendarManager` 的当天时间计算，不按帧累计角度：
+
+```text
+12:00 -> noonRotationZ
+经过 24 游戏小时 -> 旋转一整圈 360 度
+默认 600 秒真实时间 / 游戏日 -> 0.6 度 / 真实秒
+```
+
+`WorldTopBarPanel.dayNightSkyNoonRotationZ` 是图片在 12:00 时的校准角，当前
+`DayNightSkyDisk.png` 使用 `0`。不要从运行时已经旋转过的 `Transform` 缓存中午基准，
+否则父子对象 `Awake` 顺序不同会产生额外角度偏移。
 
 ## 系统设置
 
-当前代码中 Menu、Sound、Language、Save、GM 是独立 `UIPanel`，短期可用 Stack 保持 Menu -> 子面板 -> 返回 Menu。
+当前代码中 Menu、Sound、Language、Save、GM 是独立 `UIPanel`，短期可用 Stack 保持 Menu -> 子面板 -> 返回 Menu。`MenuPanel` 同时被经营大地图和塔防战场复用，并根据当前模式切换 `Save` / `Retreat`：经营模式只显示存档，战场只显示撤退。
 
 后续更推荐：
 
@@ -170,8 +255,11 @@ MenuPanel
   Sound
   Language
   Save
+  Retreat（仅战场）
   GM
 ```
+
+`Retreat` 表示放弃当前战斗并返回进入战斗前的世界地图。它不是普通页面 `Return`，也不是正常完成关卡的 `Finish`；点击后必须显示无奖励确认。战场隐藏 `Save`，避免保存单局战斗中的临时状态。
 
 如果 Sound、Language、Save 只是设置页，就作为 Menu 内部节点由 `WorldMenuPanel` 通过序列化字段切换。不要为了 Stack 强行拆 panel。
 

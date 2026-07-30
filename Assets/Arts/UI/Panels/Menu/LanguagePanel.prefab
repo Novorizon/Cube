@@ -89,7 +89,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1166b793be54dcda4c9b80e183248aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  closeButton: {fileID: 130204}
+  returnButton: {fileID: 130204}
   englishButton: {fileID: 130104}
   chineseButton: {fileID: 130004}
   languageText: {fileID: 0}
@@ -1101,5 +1101,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetText: {fileID: 130213}
   legacyText: {fileID: 0}
-  key: ui.common.close
-  fallback: Close
+  key: ui.common.return
+  fallback: Return

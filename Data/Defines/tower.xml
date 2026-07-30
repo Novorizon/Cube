@@ -19,6 +19,7 @@
     <var name="SellGoldRate" type="float" comment="client" />
     <var name="canUpgrade" type="bool" comment="client" />
     <var name="iconLocation" type="string" comment="client" />
+    <var name="actionGroupId" type="int" comment="client" />
   </bean>
 
   <table name="TbTower" value="TowerConfig" input="tower.xlsx" mode="map" index="id" />

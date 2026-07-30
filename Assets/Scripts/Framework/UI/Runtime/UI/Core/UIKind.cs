@@ -6,6 +6,7 @@ namespace UI
         Popup = 1,
         Panel = 2,
         Overlay = 3,
-        Toast = 4
+        Toast = 4,
+        Tooltip = 5
     }
 }

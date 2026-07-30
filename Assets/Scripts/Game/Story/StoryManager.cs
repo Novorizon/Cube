@@ -15,6 +15,7 @@ namespace Game
 
         private ISubscription questCompletedSubscription;
         private int currentStoryId;
+        private int currentStepIndex;
         private bool loading;
 
         private StoryManager()
@@ -27,6 +28,7 @@ namespace Game
             configList.Clear();
             completedStoryIds.Clear();
             currentStoryId = 0;
+            currentStepIndex = 0;
 
             LoadConfigs();
 
@@ -47,6 +49,7 @@ namespace Game
             loading = true;
             completedStoryIds.Clear();
             currentStoryId = data != null ? data.CurrentStoryId : 0;
+            currentStepIndex = data != null ? Mathf.Max(0, data.CurrentStepIndex) : 0;
 
             if (data?.CompletedStoryIds != null)
             {
@@ -71,6 +74,7 @@ namespace Game
             return new StorageManager.StoryData
             {
                 CurrentStoryId = currentStoryId,
+                CurrentStepIndex = currentStepIndex,
                 CompletedStoryIds = completed.ToArray(),
             };
         }
@@ -82,6 +86,11 @@ namespace Game
 
         public bool TryStartAutoStories()
         {
+            if (TryResumeCurrentStory())
+            {
+                return true;
+            }
+
             for (int i = 0; i < configList.Count; i++)
             {
                 StoryConfig config = configList[i];
@@ -95,6 +104,28 @@ namespace Game
             }
 
             return false;
+        }
+
+        public bool TryResumeCurrentStory()
+        {
+            if (currentStoryId <= 0)
+            {
+                return false;
+            }
+
+            if (!configs.TryGetValue(currentStoryId, out StoryConfig config) ||
+                config?.Steps == null ||
+                config.Steps.Length == 0)
+            {
+                currentStoryId = 0;
+                currentStepIndex = 0;
+                MarkDirtyIfReady();
+                return false;
+            }
+
+            currentStepIndex = Mathf.Clamp(currentStepIndex, 0, config.Steps.Length - 1);
+            PresentCurrent(config);
+            return true;
         }
 
         public bool TryStart(int storyId)
@@ -143,46 +174,46 @@ namespace Game
                 return;
             }
 
-            Dictionary<int, List<StoryLineTableConfig>> linesByStoryId = BuildStoryLineIndex();
+            Dictionary<int, List<StoryStepTableConfig>> stepsByStoryId = BuildStoryStepIndex();
             List<StoryTableConfig> rows = new List<StoryTableConfig>(table.Values);
             rows.Sort((a, b) => a.Id.CompareTo(b.Id));
 
             for (int i = 0; i < rows.Count; i++)
             {
-                AddConfig(CreateStoryConfig(rows[i], linesByStoryId));
+                AddConfig(CreateStoryConfig(rows[i], stepsByStoryId));
             }
         }
 
-        private static Dictionary<int, List<StoryLineTableConfig>> BuildStoryLineIndex()
+        private static Dictionary<int, List<StoryStepTableConfig>> BuildStoryStepIndex()
         {
-            Dictionary<int, List<StoryLineTableConfig>> index = new Dictionary<int, List<StoryLineTableConfig>>();
-            IReadOnlyDictionary<int, StoryLineTableConfig> table = DataManager.Instance.StoryLine?.GetAll();
+            Dictionary<int, List<StoryStepTableConfig>> index = new Dictionary<int, List<StoryStepTableConfig>>();
+            IReadOnlyDictionary<int, StoryStepTableConfig> table = DataManager.Instance.StoryStep?.GetAll();
             if (table == null)
             {
                 return index;
             }
 
-            foreach (KeyValuePair<int, StoryLineTableConfig> pair in table)
+            foreach (KeyValuePair<int, StoryStepTableConfig> pair in table)
             {
-                StoryLineTableConfig row = pair.Value;
+                StoryStepTableConfig row = pair.Value;
                 if (row == null || !row.Enable || row.StoryId <= 0)
                 {
                     continue;
                 }
 
-                if (!index.TryGetValue(row.StoryId, out List<StoryLineTableConfig> rows))
+                if (!index.TryGetValue(row.StoryId, out List<StoryStepTableConfig> rows))
                 {
-                    rows = new List<StoryLineTableConfig>();
+                    rows = new List<StoryStepTableConfig>();
                     index.Add(row.StoryId, rows);
                 }
 
                 rows.Add(row);
             }
 
-            foreach (List<StoryLineTableConfig> rows in index.Values)
+            foreach (List<StoryStepTableConfig> rows in index.Values)
             {
-                rows.Sort((a, b) => a.LineIndex != b.LineIndex
-                    ? a.LineIndex.CompareTo(b.LineIndex)
+                rows.Sort((a, b) => a.StepIndex != b.StepIndex
+                    ? a.StepIndex.CompareTo(b.StepIndex)
                     : a.Id.CompareTo(b.Id));
             }
 
@@ -191,19 +222,19 @@ namespace Game
 
         private static StoryConfig CreateStoryConfig(
             StoryTableConfig row,
-            IReadOnlyDictionary<int, List<StoryLineTableConfig>> linesByStoryId)
+            IReadOnlyDictionary<int, List<StoryStepTableConfig>> stepsByStoryId)
         {
             if (row == null)
             {
                 return null;
             }
 
-            linesByStoryId.TryGetValue(row.Id, out List<StoryLineTableConfig> lines);
+            stepsByStoryId.TryGetValue(row.Id, out List<StoryStepTableConfig> steps);
             return new StoryConfig
             {
                 Id = row.Id,
                 Title = row.Title,
-                Lines = CreateLines(lines),
+                Steps = CreateSteps(steps),
                 TriggerMode = (StoryTriggerMode)row.TriggerMode,
                 TriggerTargetId = row.TriggerTargetId,
                 CompleteQuestEventType = (QuestEventType)row.CompleteQuestEventType,
@@ -214,24 +245,38 @@ namespace Game
             };
         }
 
-        private static string[] CreateLines(IReadOnlyList<StoryLineTableConfig> rows)
+        private static StoryStep[] CreateSteps(IReadOnlyList<StoryStepTableConfig> rows)
         {
             if (rows == null || rows.Count == 0)
             {
-                return System.Array.Empty<string>();
+                return System.Array.Empty<StoryStep>();
             }
 
-            List<string> lines = new List<string>();
+            List<StoryStep> steps = new List<StoryStep>(rows.Count);
             for (int i = 0; i < rows.Count; i++)
             {
-                StoryLineTableConfig row = rows[i];
-                if (row != null && !string.IsNullOrWhiteSpace(row.Text))
+                StoryStepTableConfig row = rows[i];
+                if (row != null)
                 {
-                    lines.Add(row.Text);
+                    steps.Add(new StoryStep
+                    {
+                        Id = row.Id,
+                        StepIndex = row.StepIndex,
+                        StepType = (StoryStepType)row.StepType,
+                        Text = row.Text,
+                        IllustrationPath = row.IllustrationPath,
+                        MotionPreset = (StoryMotionPreset)row.MotionPreset,
+                        MotionDuration = Mathf.Max(0f, row.MotionDuration),
+                        AdvanceMode = (StoryAdvanceMode)row.AdvanceMode,
+                        AutoAdvanceDelay = Mathf.Max(0f, row.AutoAdvanceDelay),
+                        GuideTargetId = row.GuideTargetId,
+                        GuideText = row.GuideText,
+                        AllowTargetInteraction = row.AllowTargetInteraction,
+                    });
                 }
             }
 
-            return lines.ToArray();
+            return steps.ToArray();
         }
 
         private void AddConfig(StoryConfig config)
@@ -249,6 +294,8 @@ namespace Game
         {
             return config != null &&
                    config.Enable &&
+                   config.Steps != null &&
+                   config.Steps.Length > 0 &&
                    currentStoryId == 0 &&
                    (config.Repeatable || !completedStoryIds.Contains(config.Id));
         }
@@ -256,8 +303,29 @@ namespace Game
         private void Start(StoryConfig config)
         {
             currentStoryId = config.Id;
+            currentStepIndex = 0;
             MarkDirtyIfReady();
-            presenter.Present(config, () => Complete(config.Id));
+            PresentCurrent(config);
+        }
+
+        private void PresentCurrent(StoryConfig config)
+        {
+            presenter.Present(
+                config,
+                currentStepIndex,
+                stepIndex => UpdateCurrentStepIndex(config.Id, stepIndex),
+                () => Complete(config.Id));
+        }
+
+        private void UpdateCurrentStepIndex(int storyId, int stepIndex)
+        {
+            if (currentStoryId != storyId)
+            {
+                return;
+            }
+
+            currentStepIndex = Mathf.Max(0, stepIndex);
+            MarkDirtyIfReady();
         }
 
         private void Complete(int storyId)
@@ -265,6 +333,7 @@ namespace Game
             if (!configs.TryGetValue(storyId, out StoryConfig config))
             {
                 currentStoryId = 0;
+                currentStepIndex = 0;
                 MarkDirtyIfReady();
                 return;
             }
@@ -275,6 +344,7 @@ namespace Game
             }
 
             currentStoryId = 0;
+            currentStepIndex = 0;
 
             if (config.CompleteQuestEventType != QuestEventType.None && config.CompleteQuestTargetId > 0)
             {

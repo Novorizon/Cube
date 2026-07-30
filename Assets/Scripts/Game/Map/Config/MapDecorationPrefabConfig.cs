@@ -41,6 +41,15 @@ namespace Game
 
             [HorizontalGroup("Flags")]
             public bool BlocksMove;
+
+            [FoldoutGroup("Mini Map")]
+            [LabelText("Show By Default")]
+            public bool ShowOnMiniMap;
+
+            [FoldoutGroup("Mini Map")]
+            [AssetsOnly]
+            [PreviewField(48f)]
+            public Sprite MiniMapIcon;
         }
 
         [ListDrawerSettings(Expanded = true, DraggableItems = true, ShowIndexLabels = true)]

@@ -26,6 +26,7 @@ namespace Game
         [SerializeField] private WorldEntryBarPanel entryBarPanel;
         [SerializeField] private WorldRightBarPanel rightBarPanel;
         [SerializeField] private WorldBuildingDetailPanel buildingDetailPanel;
+        [SerializeField] private Button settingButton;
 
         private RectTransform rootRect;
         private RectTransform bottomBarRect;
@@ -117,6 +118,7 @@ namespace Game
             rootRect.offsetMin = Vector2.zero;
             rootRect.offsetMax = Vector2.zero;
             rootRect.pivot = new Vector2(0.5f, 0.5f);
+            EnsureManagementMiniMap();
 
             if (TryBindExistingLayout())
             {
@@ -126,21 +128,46 @@ namespace Game
             Debug.LogError($"[{nameof(WorldMainPanel)}] Invalid prefab layout. Please rebuild or fix prefab: {PrefabPath}");
         }
 
+        private void EnsureManagementMiniMap()
+        {
+            Transform[] children = GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < children.Length; i++)
+            {
+                Transform child = children[i];
+                if (child == null || child.name != "MiniMapPanel")
+                {
+                    continue;
+                }
+
+                ManagementMiniMapPanel miniMap = child.GetComponent<ManagementMiniMapPanel>();
+                if (miniMap == null)
+                {
+                    miniMap = child.gameObject.AddComponent<ManagementMiniMapPanel>();
+                }
+                miniMap.EnsureRuntimeLayout();
+                return;
+            }
+
+            Debug.LogWarning($"[{nameof(WorldMainPanel)}] MiniMapPanel node is missing from prefab: {PrefabPath}");
+        }
+
         private bool TryBindExistingLayout()
         {
-            if (bottomBarPanel == null)
+            if (topBarPanel == null || bottomBarPanel == null || settingButton == null)
             {
                 return false;
             }
 
-            topBarPanel?.Initialize(ShowWorldMenuPanel);
+            topBarPanel.Initialize();
+            settingButton.onClick.RemoveListener(ShowWorldMenuPanel);
+            settingButton.onClick.AddListener(ShowWorldMenuPanel);
             RegisterPanelEntries();
             bottomBarPanel.Initialize(ToggleBagPanel, ToggleBuildPanel, ToggleToolKitPanel, ShowTechTreePanel);
             entryBarPanel?.Initialize(ToggleQuestPanel);
             rightBarPanel?.Initialize(
                 ToggleProductionPanel,
                 ToggleToolKitPanel,
-                () => GameplayController.Instance?.SelectFarmAreaMode(),
+                EnterFarmAreaMode,
                 ShowTechTreePanel,
                 EnterBattleMap);
             buildingDetailPanel?.Initialize(HideBuildingDetailPanel, RefreshNow);
@@ -241,6 +268,15 @@ namespace Game
         private void ToggleToolKitPanel()
         {
             TogglePanelEntry(ToolKitEntryId);
+        }
+
+        private void EnterFarmAreaMode()
+        {
+            GameplayController gameplay = GameplayController.Instance;
+            RequirementResult requirement = gameplay != null
+                ? gameplay.SelectFarmAreaMode()
+                : FarmRequirementChecker.GameplayUnavailable();
+            RequirementToast.TryPass(requirement);
         }
 
         private void EnterBattleMap()

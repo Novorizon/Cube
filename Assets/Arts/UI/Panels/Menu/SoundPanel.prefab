@@ -90,8 +90,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d4af336d2841dfa606f5f0ad7bd8a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  closeButton: {fileID: 130304}
-  returnButton: {fileID: 130204}
+  returnButton: {fileID: 130304}
   decreaseButton: {fileID: 130004}
   increaseButton: {fileID: 130104}
   onButton: {fileID: 7100000000000005001}
@@ -919,8 +918,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetText: {fileID: 130313}
   legacyText: {fileID: 0}
-  key: ui.common.close
-  fallback: Close
+  key: ui.common.return
+  fallback: Return
 --- !u!1 &477133500444463315
 GameObject:
   m_ObjectHideFlags: 0

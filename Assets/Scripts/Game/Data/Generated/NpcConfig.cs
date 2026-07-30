@@ -29,6 +29,7 @@ public sealed partial class NpcConfig : Luban.BeanBase
         AttackInterval = _buf.ReadFloat();
         MaxHp = _buf.ReadInt();
         RewardGold = _buf.ReadInt();
+        ActionGroupId = _buf.ReadInt();
     }
 
     public static NpcConfig DeserializeNpcConfig(ByteBuf _buf)
@@ -88,6 +89,10 @@ public sealed partial class NpcConfig : Luban.BeanBase
     /// client
     /// </summary>
     public readonly int RewardGold;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly int ActionGroupId;
    
     public const int __ID__ = -1928671901;
     public override int GetTypeId() => __ID__;
@@ -112,6 +117,7 @@ public sealed partial class NpcConfig : Luban.BeanBase
         + "attackInterval:" + AttackInterval + ","
         + "maxHp:" + MaxHp + ","
         + "rewardGold:" + RewardGold + ","
+        + "actionGroupId:" + ActionGroupId + ","
         + "}";
     }
 }

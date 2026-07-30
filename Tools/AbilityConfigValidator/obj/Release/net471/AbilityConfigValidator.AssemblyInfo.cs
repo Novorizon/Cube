@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AbilityConfigValidator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b67d5b459abb4ef046f0312ed1c61d8e3948000c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+377dae6f6b5964cb6c9cccdec57892e5a24ac5be")]
 [assembly: System.Reflection.AssemblyProductAttribute("AbilityConfigValidator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AbilityConfigValidator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

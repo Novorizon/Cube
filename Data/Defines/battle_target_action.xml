@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="BattleTargetActionConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="groupId" type="int" comment="client" />
+    <var name="actionType" type="int" comment="client" />
+    <var name="name" type="string" comment="client" />
+    <var name="iconLocation" type="string" comment="client" />
+    <var name="sortOrder" type="int" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbBattleTargetAction" value="BattleTargetActionConfig" input="battle_target_action.xlsx" mode="map" index="id" />
+</module>

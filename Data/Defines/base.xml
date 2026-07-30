@@ -11,6 +11,7 @@
     <var name="hitEffect" type="string" comment="client" />
     <var name="deadEffect" type="string" comment="client" />
     <var name="enable" type="bool" comment="client" />
+    <var name="actionGroupId" type="int" comment="client" />
   </bean>
 
   <table name="TbBase" value="BaseConfig" input="base.xlsx" mode="map" index="id" />

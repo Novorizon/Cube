@@ -6,6 +6,9 @@ namespace Game
 {
     public partial class MapManager
     {
+        private const int DefaultWorldMapId = 1001;
+        private int currentWorldMapId;
+
         public bool LoadWorldMap(int worldMapId)
         {
             string location = "Assets/Data/Map/" + worldMapId + ".json";
@@ -19,9 +22,21 @@ namespace Game
                 return false;
             }
 
+            currentWorldMapId = worldMapId;
             CreateMap();
             AfterWorldMapCreated();
             return true;
+        }
+
+        public void RetreatFromBattle()
+        {
+            int worldMapId = currentWorldMapId > 0 ? currentWorldMapId : DefaultWorldMapId;
+            UIManager.Instance.Pages.Clear(true);
+
+            if (!LoadWorldMap(worldMapId))
+            {
+                ReturnToMainMenu();
+            }
         }
 
         private void AfterWorldMapCreated()

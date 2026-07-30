@@ -18,7 +18,9 @@
     "enable": true,
     "showInBuildPanel": true,
     "defaultUnlocked": true,
-    "unlockSourceType": 1
+    "unlockSourceType": 1,
+    "showOnMiniMap": true,
+    "miniMapIconLocation": ""
   },
   {
     "id": 30000002,
@@ -39,7 +41,9 @@
     "enable": true,
     "showInBuildPanel": true,
     "defaultUnlocked": false,
-    "unlockSourceType": 2
+    "unlockSourceType": 2,
+    "showOnMiniMap": true,
+    "miniMapIconLocation": ""
   },
   {
     "id": 30000003,
@@ -60,7 +64,9 @@
     "enable": true,
     "showInBuildPanel": true,
     "defaultUnlocked": true,
-    "unlockSourceType": 1
+    "unlockSourceType": 1,
+    "showOnMiniMap": true,
+    "miniMapIconLocation": ""
   },
   {
     "id": 30000004,
@@ -81,7 +87,9 @@
     "enable": true,
     "showInBuildPanel": true,
     "defaultUnlocked": false,
-    "unlockSourceType": 2
+    "unlockSourceType": 2,
+    "showOnMiniMap": true,
+    "miniMapIconLocation": ""
   },
   {
     "id": 30000005,
@@ -102,7 +110,9 @@
     "enable": true,
     "showInBuildPanel": true,
     "defaultUnlocked": false,
-    "unlockSourceType": 2
+    "unlockSourceType": 2,
+    "showOnMiniMap": true,
+    "miniMapIconLocation": ""
   },
   {
     "id": 30000006,
@@ -123,7 +133,9 @@
     "enable": true,
     "showInBuildPanel": true,
     "defaultUnlocked": false,
-    "unlockSourceType": 2
+    "unlockSourceType": 2,
+    "showOnMiniMap": true,
+    "miniMapIconLocation": ""
   },
   {
     "id": 30000007,
@@ -144,7 +156,9 @@
     "enable": true,
     "showInBuildPanel": true,
     "defaultUnlocked": false,
-    "unlockSourceType": 2
+    "unlockSourceType": 2,
+    "showOnMiniMap": true,
+    "miniMapIconLocation": ""
   },
   {
     "id": 30001001,
@@ -165,7 +179,9 @@
     "enable": true,
     "showInBuildPanel": true,
     "defaultUnlocked": false,
-    "unlockSourceType": 2
+    "unlockSourceType": 2,
+    "showOnMiniMap": true,
+    "miniMapIconLocation": ""
   },
   {
     "id": 30001002,
@@ -186,7 +202,9 @@
     "enable": true,
     "showInBuildPanel": true,
     "defaultUnlocked": false,
-    "unlockSourceType": 2
+    "unlockSourceType": 2,
+    "showOnMiniMap": true,
+    "miniMapIconLocation": ""
   },
   {
     "id": 30001003,
@@ -207,7 +225,9 @@
     "enable": true,
     "showInBuildPanel": true,
     "defaultUnlocked": false,
-    "unlockSourceType": 2
+    "unlockSourceType": 2,
+    "showOnMiniMap": true,
+    "miniMapIconLocation": ""
   },
   {
     "id": 30002001,
@@ -228,7 +248,9 @@
     "enable": true,
     "showInBuildPanel": true,
     "defaultUnlocked": false,
-    "unlockSourceType": 2
+    "unlockSourceType": 2,
+    "showOnMiniMap": true,
+    "miniMapIconLocation": ""
   },
   {
     "id": 30002002,
@@ -249,7 +271,9 @@
     "enable": true,
     "showInBuildPanel": true,
     "defaultUnlocked": false,
-    "unlockSourceType": 2
+    "unlockSourceType": 2,
+    "showOnMiniMap": true,
+    "miniMapIconLocation": ""
   },
   {
     "id": 30002003,
@@ -270,6 +294,8 @@
     "enable": true,
     "showInBuildPanel": true,
     "defaultUnlocked": false,
-    "unlockSourceType": 2
+    "unlockSourceType": 2,
+    "showOnMiniMap": true,
+    "miniMapIconLocation": ""
   }
 ]

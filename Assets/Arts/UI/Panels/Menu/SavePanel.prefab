@@ -89,7 +89,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24e43ad7fdb84d6bbac38f1e4b8162ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  closeButton: {fileID: 130104}
+  returnButton: {fileID: 130104}
   saveButton: {fileID: 130004}
   statusText: {fileID: 121003}
 --- !u!1 &110000
@@ -704,7 +704,7 @@ GameObject:
   - component: {fileID: 130103}
   - component: {fileID: 130104}
   m_Layer: 0
-  m_Name: Close
+  m_Name: Return
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -878,7 +878,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Close
+  m_text: Return
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a6dd943d49be3fe48ada30f134520ed6, type: 2}
   m_sharedMaterial: {fileID: 4271238848016355447, guid: a6dd943d49be3fe48ada30f134520ed6,
@@ -962,5 +962,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetText: {fileID: 130113}
   legacyText: {fileID: 0}
-  key: ui.common.close
-  fallback: Close
+  key: ui.common.return
+  fallback: Return

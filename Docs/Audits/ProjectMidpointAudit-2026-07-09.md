@@ -93,7 +93,7 @@ Assets/Scripts/Game/Story/StoryPanel.cs:114    当前 UI 运行时创建，没�
 建议：
 
 - 短期方案：如果不支持剧情中途保存，就不要把未完成 Story 写入存档，读档时置 0。
-- 完整方案：保存 `CurrentLineIndex`，读档后通过 `StoryPresenter` 恢复 UI。
+- 完整方案：保存 `CurrentStepIndex`，读档后通过 `StoryPresenter` 恢复 UI。
 
 ### P2 - Quest / Story / Blueprint 缺少配置校验
 

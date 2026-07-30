@@ -9,7 +9,7 @@ namespace Game
     {
         public const string PrefabPath = "Assets/Arts/UI/Panels/Menu/LanguagePanel.prefab";
 
-        [SerializeField] private Button closeButton;
+        [SerializeField] private Button returnButton;
         [SerializeField] private Button englishButton;
         [SerializeField] private Button chineseButton;
         [SerializeField] private TMP_Text languageText;
@@ -18,7 +18,7 @@ namespace Game
 
         protected override void OnCreate()
         {
-            Bind(closeButton, CloseSelf, nameof(closeButton));
+            Bind(returnButton, CloseSelf, nameof(returnButton));
             Bind(englishButton, () => SetLanguage(LocalizationManager.English), nameof(englishButton));
             Bind(chineseButton, () => SetLanguage(LocalizationManager.Chinese), nameof(chineseButton));
             LocalizationManager.LanguageChanged += Refresh;

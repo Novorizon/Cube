@@ -95,10 +95,8 @@ namespace Game
                 battlePage.SkillClicked += OnBattlePageSkillClicked;
                 battlePage.AutoNextWaveChanged -= OnBattlePageAutoNextWaveChanged;
                 battlePage.AutoNextWaveChanged += OnBattlePageAutoNextWaveChanged;
-                battlePage.TowerSellTargetClicked -= OnBattlePageTowerSellClicked;
-                battlePage.TowerSellTargetClicked += OnBattlePageTowerSellClicked;
-                battlePage.TowerUpgradeTargetClicked -= OnBattlePageTowerUpgradeClicked;
-                battlePage.TowerUpgradeTargetClicked += OnBattlePageTowerUpgradeClicked;
+                battlePage.TargetActionClicked -= OnBattlePageTargetActionClicked;
+                battlePage.TargetActionClicked += OnBattlePageTargetActionClicked;
                 battlePage.ItemClicked -= OnBattlePageItemClicked;
                 battlePage.ItemClicked += OnBattlePageItemClicked;
                 OnBattlePageAutoNextWaveChanged(battlePage.AutoNextWaveEnabled);
@@ -128,6 +126,22 @@ namespace Game
         {
             // true means waves chain immediately after spawn completion; false waits for the field to clear.
             WaveManager.Instance.SetWaitAllEnemiesKilledBeforeNextWave(!autoNextWave);
+        }
+
+        private void OnBattlePageTargetActionClicked(TdTargetActionRequest request)
+        {
+            switch (request.Action.Type)
+            {
+                case TdTargetActionType.UpgradeTower:
+                    OnBattlePageTowerUpgradeClicked(request.Target);
+                    break;
+                case TdTargetActionType.SellTower:
+                    OnBattlePageTowerSellClicked(request.Target);
+                    break;
+                default:
+                    Debug.LogWarning($"Unsupported target action: {request.Action.Type}. configId: {request.Action.ConfigId}");
+                    break;
+            }
         }
 
         private void OnBattlePageTowerSellClicked(TdTargetRuntimeInfo info)
@@ -167,7 +181,10 @@ namespace Game
 
             if (TowerBuildManager.Instance.TryUpgradeTower(tower))
             {
-                BattleTargetClickManager.Instance.ClearSelection();
+                if (TryGetTower(info.Coord, out Tower upgradedTower) && upgradedTower != null)
+                {
+                    BattleTargetClickManager.Instance.ShowTowerInfo(upgradedTower);
+                }
             }
         }
 

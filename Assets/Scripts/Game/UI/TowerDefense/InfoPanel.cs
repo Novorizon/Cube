@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using UI;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
@@ -26,7 +27,13 @@ namespace Game
         private TMP_Text targetNameText;
 
         [SerializeField]
+        private TMP_Text levelText;
+
+        [SerializeField]
         private TMP_Text descriptionText;
+
+        [SerializeField]
+        private GameObject statusRoot;
 
         [Header("Dynamic Info Slots")]
         [SerializeField]
@@ -35,30 +42,37 @@ namespace Game
         [SerializeField]
         private InfoSlotView infoSlotPrefab;
 
-        [Header("Tower Actions")]
         [SerializeField]
-        private Button upgradeButton;
+        private InfoSlotView[] initialSlots;
+
+        [Header("Target Actions")]
+        [SerializeField]
+        private GameObject actionRoot;
 
         [SerializeField]
-        private Button sellButton;
+        private Button[] actionButtons;
 
         private readonly Dictionary<string, InfoSlotView> slots = new Dictionary<string, InfoSlotView>();
         private readonly List<InfoSlotView> slotPool = new List<InfoSlotView>();
+        private readonly List<TdTargetActionData> visibleActions = new List<TdTargetActionData>();
+        private readonly Dictionary<string, Sprite> actionIconCache = new Dictionary<string, Sprite>();
         private static readonly Dictionary<TdTargetInfoType, Sprite> fallbackIconCache = new Dictionary<TdTargetInfoType, Sprite>();
 
         private TdTargetInfoType selectedTargetType;
         private int selectedTargetId;
         private TdTargetRuntimeInfo selectedInfo;
+        private UnityAction[] actionListeners;
         private TargetModelPreview modelPreview;
         private Subscriber subscriber;
 
-        public event Action<TdTargetRuntimeInfo> UpgradeTargetClicked;
-        public event Action<TdTargetRuntimeInfo> SellTargetClicked;
+        public event Action<TdTargetActionRequest> TargetActionClicked;
 
         public override UICloseTriggers CloseTriggers => UICloseTriggers.None;
 
         protected override void OnCreate()
         {
+            ResolveAuthoredReferences();
+            RegisterInitialSlots();
             EnsureModelPreview();
             BindButtons();
         }
@@ -87,8 +101,8 @@ namespace Game
             }
 
             DestroyInfoSlots();
-            UpgradeTargetClicked = null;
-            SellTargetClicked = null;
+            actionIconCache.Clear();
+            TargetActionClicked = null;
         }
 
         [Obsolete("Embedded panel lifecycle initializes InfoPanel automatically.")]
@@ -120,13 +134,24 @@ namespace Game
                 targetNameText.text = string.IsNullOrEmpty(info.Name) ? EmptyName : info.Name;
             }
 
+            if (levelText != null)
+            {
+                bool showLevel = info.Level > 0;
+                levelText.gameObject.SetActive(showLevel);
+                levelText.text = showLevel
+                    ? $"{LocalizationManager.Get("ui.td.info.level")} {info.Level}"
+                    : string.Empty;
+            }
+
             if (descriptionText != null)
             {
                 descriptionText.text = string.IsNullOrEmpty(info.Description) ? string.Empty : info.Description;
             }
 
+            statusRoot?.SetActive(false);
+
             SetInfoSlots(GetInfoSlots(info));
-            UpdateActionButtons(info);
+            UpdateActionButtons(info.Actions);
             SetPanelVisible(true);
         }
 
@@ -205,13 +230,21 @@ namespace Game
                 targetNameText.text = EmptyName;
             }
 
+            if (levelText != null)
+            {
+                levelText.text = string.Empty;
+                levelText.gameObject.SetActive(false);
+            }
+
             if (descriptionText != null)
             {
                 descriptionText.text = string.Empty;
             }
 
+            statusRoot?.SetActive(false);
+
             ReleaseInfoSlots();
-            UpdateActionButtons(default);
+            UpdateActionButtons(null);
             // The center information frame is part of the persistent battle HUD.
             // Clearing a selection removes only its content; it must not hide the
             // whole panel/background.
@@ -242,6 +275,34 @@ namespace Game
             modelPreview.Initialize(targetIconImage);
         }
 
+        private void ResolveAuthoredReferences()
+        {
+            if (levelText != null && statusRoot != null)
+            {
+                return;
+            }
+
+            Transform[] descendants = GetComponentsInChildren<Transform>(true);
+            for (int i = 0; i < descendants.Length; i++)
+            {
+                Transform descendant = descendants[i];
+                if (descendant == null)
+                {
+                    continue;
+                }
+
+                if (levelText == null && string.Equals(descendant.name, "Level", StringComparison.OrdinalIgnoreCase))
+                {
+                    levelText = descendant.GetComponent<TMP_Text>();
+                }
+
+                if (statusRoot == null && string.Equals(descendant.name, "Status", StringComparison.OrdinalIgnoreCase))
+                {
+                    statusRoot = descendant.gameObject;
+                }
+            }
+        }
+
         private IReadOnlyList<TdInfoSlotData> GetInfoSlots(TdTargetRuntimeInfo info)
         {
             if (info.InfoSlots != null && info.InfoSlots.Count > 0)
@@ -256,7 +317,6 @@ namespace Game
         {
             List<TdInfoSlotData> result = new List<TdInfoSlotData>();
 
-            AddInfoSlot(result, "level", LocalizationManager.Get("ui.td.info.level"), info.Level > 0 ? info.Level.ToString() : EmptyValue);
             AddInfoSlot(result, "hp", LocalizationManager.Get("ui.td.info.hp"), info.MaxHp > 0 ? $"{Mathf.Max(0, info.CurrentHp)}/{info.MaxHp}" : EmptyValue);
             AddInfoSlot(result, "attack", LocalizationManager.Get("ui.td.info.attack"), info.Attack > 0 ? info.Attack.ToString() : EmptyValue, info.AttackAdd > 0 ? $"+{info.AttackAdd}" : string.Empty);
             AddInfoSlot(result, "range", LocalizationManager.Get("ui.td.info.range"), info.Range > 0f ? $"{info.Range:0.#}" : EmptyValue);
@@ -295,6 +355,36 @@ namespace Game
             return instance;
         }
 
+        private void RegisterInitialSlots()
+        {
+            slotPool.Clear();
+
+            if (initialSlots != null)
+            {
+                for (int i = 0; i < initialSlots.Length; i++)
+                {
+                    RegisterInitialSlot(initialSlots[i]);
+                }
+            }
+
+            if (contentRoot != null)
+            {
+                InfoSlotView[] authoredSlots = contentRoot.GetComponentsInChildren<InfoSlotView>(true);
+                for (int i = 0; i < authoredSlots.Length; i++)
+                {
+                    RegisterInitialSlot(authoredSlots[i]);
+                }
+            }
+        }
+
+        private void RegisterInitialSlot(InfoSlotView slot)
+        {
+            if (slot != null && !slotPool.Contains(slot))
+            {
+                slotPool.Add(slot);
+            }
+        }
+
         private void ReleaseInfoSlots()
         {
             slots.Clear();
@@ -322,20 +412,61 @@ namespace Game
             slotPool.Clear();
         }
 
-        private void UpdateActionButtons(TdTargetRuntimeInfo info)
+        private void UpdateActionButtons(IReadOnlyList<TdTargetActionData> actions)
         {
-            bool isTower = info.Type == TdTargetInfoType.Tower && info.TargetId > 0;
+            visibleActions.Clear();
+            int buttonCount = actionButtons != null ? actionButtons.Length : 0;
+            int actionCount = actions != null ? Mathf.Min(actions.Count, buttonCount) : 0;
 
-            if (upgradeButton != null)
+            for (int i = 0; i < buttonCount; i++)
             {
-                upgradeButton.gameObject.SetActive(isTower);
-                upgradeButton.interactable = isTower && info.CanUpgrade;
+                Button button = actionButtons[i];
+                if (button == null)
+                {
+                    continue;
+                }
+
+                bool visible = i < actionCount;
+                button.gameObject.SetActive(visible);
+                if (!visible)
+                {
+                    continue;
+                }
+
+                TdTargetActionData action = actions[i];
+                visibleActions.Add(action);
+                button.interactable = action.Interactable;
+                ApplyActionIcon(button, action.IconLocation);
             }
 
-            if (sellButton != null)
+            if (actions != null && actions.Count > buttonCount)
             {
-                sellButton.gameObject.SetActive(isTower);
-                sellButton.interactable = isTower && info.CanSell;
+                Debug.LogWarning($"[{nameof(InfoPanel)}] Action count exceeds authored slots. actions: {actions.Count}, slots: {buttonCount}", this);
+            }
+
+            actionRoot?.SetActive(actionCount > 0);
+        }
+
+        private void ApplyActionIcon(Button button, string iconLocation)
+        {
+            if (!(button.targetGraphic is Image image) || string.IsNullOrWhiteSpace(iconLocation))
+            {
+                return;
+            }
+
+            if (!actionIconCache.TryGetValue(iconLocation, out Sprite icon))
+            {
+                icon = ResourceManager.Instance.LoadAsset<Sprite>(iconLocation);
+                if (icon != null)
+                {
+                    actionIconCache[iconLocation] = icon;
+                }
+            }
+
+            if (icon != null)
+            {
+                image.sprite = icon;
+                image.enabled = true;
             }
         }
 
@@ -362,23 +493,43 @@ namespace Game
 
         private void BindButtons()
         {
-            if (upgradeButton != null)
+            UnbindButtons();
+            int count = actionButtons != null ? actionButtons.Length : 0;
+            actionListeners = new UnityAction[count];
+            for (int i = 0; i < count; i++)
             {
-                upgradeButton.onClick.RemoveListener(OnUpgradeClicked);
-                upgradeButton.onClick.AddListener(OnUpgradeClicked);
-            }
+                Button button = actionButtons[i];
+                if (button == null)
+                {
+                    continue;
+                }
 
-            if (sellButton != null)
-            {
-                sellButton.onClick.RemoveListener(OnSellClicked);
-                sellButton.onClick.AddListener(OnSellClicked);
+                if (button.targetGraphic != null)
+                {
+                    button.targetGraphic.raycastTarget = true;
+                }
+
+                int buttonIndex = i;
+                actionListeners[i] = () => OnActionClicked(buttonIndex);
+                button.onClick.AddListener(actionListeners[i]);
             }
         }
 
         private void UnbindButtons()
         {
-            upgradeButton?.onClick.RemoveListener(OnUpgradeClicked);
-            sellButton?.onClick.RemoveListener(OnSellClicked);
+            if (actionButtons != null && actionListeners != null)
+            {
+                int count = Mathf.Min(actionButtons.Length, actionListeners.Length);
+                for (int i = 0; i < count; i++)
+                {
+                    if (actionButtons[i] != null && actionListeners[i] != null)
+                    {
+                        actionButtons[i].onClick.RemoveListener(actionListeners[i]);
+                    }
+                }
+            }
+
+            actionListeners = null;
         }
 
         private void OnTargetInfoMessage(TargetInfoMessage message)
@@ -391,24 +542,25 @@ namespace Game
             ClearInfo();
         }
 
-        private void OnUpgradeClicked()
+        private void OnActionClicked(int buttonIndex)
         {
-            if (selectedTargetType != TdTargetInfoType.Tower || selectedTargetId <= 0)
+            if (selectedTargetType == TdTargetInfoType.None || selectedTargetId <= 0 ||
+                buttonIndex < 0 || buttonIndex >= visibleActions.Count)
             {
                 return;
             }
 
-            UpgradeTargetClicked?.Invoke(selectedInfo);
-        }
-
-        private void OnSellClicked()
-        {
-            if (selectedTargetType != TdTargetInfoType.Tower || selectedTargetId <= 0)
+            TdTargetActionData action = visibleActions[buttonIndex];
+            if (!action.Interactable)
             {
                 return;
             }
 
-            SellTargetClicked?.Invoke(selectedInfo);
+            TargetActionClicked?.Invoke(new TdTargetActionRequest
+            {
+                Action = action,
+                Target = selectedInfo
+            });
         }
 
         private static Sprite GetFallbackIcon(TdTargetInfoType type)

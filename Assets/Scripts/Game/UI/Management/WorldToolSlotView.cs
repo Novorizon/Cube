@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.Framework;
 using TMPro;
+using UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -29,6 +30,9 @@ namespace Game
         private int itemId;
         private bool selected;
         private bool highlighted;
+        private bool pointerInside;
+        private bool tooltipSuppressed;
+        private bool tooltipDismissedUntilExit;
 
         public int SlotIndex => slotIndex;
         public int ItemId => itemId;
@@ -58,12 +62,24 @@ namespace Game
             hovered = onHovered;
             highlighted = false;
             Refresh();
+            RefreshTooltip();
         }
 
         public void SetDropHighlighted(bool value)
         {
             highlighted = value;
             RefreshFrame();
+        }
+
+        public void SetTooltipSuppressed(bool value)
+        {
+            tooltipSuppressed = value;
+            if (!value && pointerInside)
+            {
+                tooltipDismissedUntilExit = true;
+            }
+
+            HideTooltip();
         }
 
         public void OnPointerClick(PointerEventData eventData)
@@ -75,6 +91,8 @@ namespace Game
 
             if (HasTool)
             {
+                tooltipDismissedUntilExit = true;
+                HideTooltip();
                 clicked?.Invoke(slotIndex);
             }
         }
@@ -83,6 +101,8 @@ namespace Game
         {
             if (HasTool)
             {
+                tooltipDismissedUntilExit = true;
+                HideTooltip();
                 dragStarted?.Invoke(slotIndex, eventData);
             }
         }
@@ -110,12 +130,25 @@ namespace Game
 
         public void OnPointerEnter(PointerEventData eventData)
         {
+            pointerInside = true;
+            tooltipDismissedUntilExit = false;
             hovered?.Invoke(slotIndex, true);
+            RefreshTooltip();
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            pointerInside = false;
+            tooltipDismissedUntilExit = false;
             hovered?.Invoke(slotIndex, false);
+            HideTooltip();
+        }
+
+        private void OnDisable()
+        {
+            pointerInside = false;
+            tooltipDismissedUntilExit = false;
+            HideTooltip();
         }
 
         private void Refresh()
@@ -177,6 +210,41 @@ namespace Game
             {
                 background.color = new Color(0.82f, 0.78f, 0.66f, 0.72f);
             }
+        }
+
+        private void RefreshTooltip()
+        {
+            TooltipManager tooltips = UIManager.Current?.Tooltips;
+            if (tooltips == null)
+            {
+                return;
+            }
+
+            if (tooltipSuppressed || tooltipDismissedUntilExit || !pointerInside || !HasTool)
+            {
+                tooltips.Hide(this);
+                return;
+            }
+
+            tooltips.Show(
+                this,
+                transform as RectTransform,
+                CreateTooltipData);
+        }
+
+        private TooltipData CreateTooltipData()
+        {
+            return new TooltipData
+            {
+                Title = ToolKitDefinitions.GetToolName(itemId),
+                Description = LocalizedConfigText.ItemDescription(itemId),
+                Icon = IconSprite,
+            };
+        }
+
+        private void HideTooltip()
+        {
+            UIManager.Current?.Tooltips?.Hide(this);
         }
 
         private void BindLayout()

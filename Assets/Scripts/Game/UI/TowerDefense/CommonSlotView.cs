@@ -11,6 +11,9 @@ namespace Game
         private Transform contentRoot;
 
         [SerializeField]
+        private BattleSlotContentView contentView;
+
+        [SerializeField]
         private Button button;
 
         [SerializeField]
@@ -36,6 +39,11 @@ namespace Game
         private GameObject contentInstance;
         private bool hasCount;
         private bool coolingDown;
+
+        public void Init(int slotId, string displayName, int count, Sprite icon, Action<int> onClicked)
+        {
+            Init(slotId, displayName, count, icon, null, onClicked);
+        }
 
         public void Init(int slotId, string displayName, int count, Sprite icon, GameObject contentPrefab, Action<int> onClicked)
         {
@@ -97,6 +105,11 @@ namespace Game
             id = 0;
             clicked = null;
 
+            if (contentView != null)
+            {
+                contentView.SetIcon(null);
+            }
+
             if (contentInstance != null)
             {
                 Destroy(contentInstance);
@@ -153,6 +166,13 @@ namespace Game
                 contentInstance = null;
             }
 
+            if (contentView != null)
+            {
+                contentView.gameObject.SetActive(true);
+                contentView.SetIcon(icon);
+                return;
+            }
+
             if (contentPrefab == null)
             {
                 return;
@@ -162,10 +182,10 @@ namespace Game
             contentInstance = Instantiate(contentPrefab, parent, false);
             contentInstance.transform.SetSiblingIndex(Mathf.Min(1, contentInstance.transform.parent.childCount - 1));
 
-            BattleSlotContentView contentView = contentInstance.GetComponent<BattleSlotContentView>();
-            if (contentView != null)
+            BattleSlotContentView dynamicContentView = contentInstance.GetComponent<BattleSlotContentView>();
+            if (dynamicContentView != null)
             {
-                contentView.SetIcon(icon);
+                dynamicContentView.SetIcon(icon);
             }
             else
             {

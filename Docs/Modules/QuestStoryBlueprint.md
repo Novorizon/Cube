@@ -20,21 +20,21 @@ Data/Defines/quest_objective.xml
 Data/Defines/blueprint.xml
 Data/Defines/blueprint_item.xml
 Data/Defines/story.xml
-Data/Defines/story_line.xml
+Data/Defines/story_step.xml
 
 Data/Excel/quest.xlsx
 Data/Excel/quest_objective.xlsx
 Data/Excel/blueprint.xlsx
 Data/Excel/blueprint_item.xlsx
 Data/Excel/story.xlsx
-Data/Excel/story_line.xlsx
+Data/Excel/story_step.xlsx
 
 Assets/Data/Bin/tbquest.bytes
 Assets/Data/Bin/tbquestobjective.bytes
 Assets/Data/Bin/tbblueprint.bytes
 Assets/Data/Bin/tbblueprintitem.bytes
 Assets/Data/Bin/tbstory.bytes
-Assets/Data/Bin/tbstoryline.bytes
+Assets/Data/Bin/tbstorystep.bytes
 ```
 
 运行时代码：
@@ -42,7 +42,7 @@ Assets/Data/Bin/tbstoryline.bytes
 ```text
 QuestManager      DataManager.Instance.Quest + QuestObjective
 BlueprintManager  DataManager.Instance.Blueprint + BlueprintItem
-StoryManager      DataManager.Instance.Story + StoryLine
+StoryManager      DataManager.Instance.Story + StoryStep
 ```
 
 ## 当前文件

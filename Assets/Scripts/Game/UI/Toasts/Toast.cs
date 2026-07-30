@@ -1,5 +1,22 @@
 namespace UI
 {
+    public static class RequirementToast
+    {
+        /// <summary>
+        /// Returns true when requirements pass. Otherwise shows one merged warning toast.
+        /// </summary>
+        public static bool TryPass(Game.RequirementResult result)
+        {
+            if (result.Succeeded)
+            {
+                return true;
+            }
+
+            Toast.Warning(result.Message);
+            return false;
+        }
+    }
+
     public static class Toast
     {
         private const string SimpleToastPath = "Assets/Arts/UI/Toasts/SimpleToast.prefab";

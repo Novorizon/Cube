@@ -50,13 +50,13 @@ Assets/Data/Json
 
 | 模块 | 先读文档 | 代码入口 | 配置表 | 工具 / 生成 | 备注 |
 | --- | --- | --- | --- | --- | --- |
-| Story | `Modules/Story.md`、`Product/ProgressionAndQuests.md` | `Assets/Scripts/Game/Story` | `story.xlsx`、`story_line.xlsx` | `gen_all.bat`、`Luban/Update All` | 当前没有专门 Story 编辑器或校验器 |
+| Story | `Modules/Story.md`、`Product/ProgressionAndQuests.md` | `Assets/Scripts/Game/Story` | `story.xlsx`、`story_step.xlsx` | `gen_all.bat`、`Luban/Update All`、`StoryPanelPrefabBuilder` | StoryStep 同时承载文字、插画与轻量 Guide；当前没有专门 Story 配表校验器 |
 | Quest | `Modules/QuestStoryBlueprint.md`、`Product/ProgressionAndQuests.md` | `Assets/Scripts/Game/Quests`、`Assets/Scripts/Game/UI/Management/QuestPanel.cs` | `quest.xlsx`、`quest_objective.xlsx`、`reward.xlsx` | `gen_all.bat`、`Luban/Update All` | 奖励发放已走 BagManager；Toast / 获得反馈继续打磨 |
 | Blueprint | `Modules/QuestStoryBlueprint.md`、`Modules/Island.md` | `Assets/Scripts/Game/Blueprints` | `blueprint.xlsx`、`blueprint_item.xlsx` | `gen_all.bat`、`Luban/Update All` | 不要新增 `Recipe` 同义概念 |
 | Management UI | `Architecture/UIFramework.md`、`Modules/ManagementUI.md` | `Assets/Scripts/Game/UI/Management` | 通常不直接改表；文本走 `localization.xlsx` | Prefab + Inspector 绑定；必要时用 `WorldSystemMenuPrefabBuilder` / `WorldLocalizationPrefabBinder` | 不要把稳定 HUD 节点改回运行时 `Find` |
-| UI Framework | `Architecture/UIFramework.md`、`Decisions/0002-ui-kind-usage.md` | `Assets/Scripts/Framework/UI` | 无 | 代码验证为主 | Stack / Exclusive / outside close 属框架能力 |
+| UI Framework | `Architecture/UIFramework.md`、`Decisions/0002-ui-kind-usage.md` | `Assets/Scripts/Framework/UI`、`Assets/Scripts/Game/Core/RequirementResult.cs`、`Assets/Scripts/Game/UI/Toasts` | 通用 UI 无；业务提示文本走 `localization.xlsx` | 代码验证为主；本地化改动跑 `gen_all.bat` | Stack / Exclusive / outside close 属框架能力；业务条件统一返回 RequirementResult |
 | Island Resources / Tools | `Modules/Island.md` | `Assets/Scripts/Game/Island/Resources`、`Assets/Scripts/Game/Island/Tools` | `item.xlsx`、`resource.xlsx`、`gather.xlsx` | `gen_all.bat` | ToolKit UI 另读 `Modules/ManagementUI.md` |
-| Farming | `Modules/Island.md`、`Product/ManagementMode.md` | `Assets/Scripts/Game/Island/Farming`、`WorldFarmPanel.cs` | `world_crop.xlsx` | `gen_all.bat` | 种子消耗和成熟规则继续打磨 |
+| Farming | `Modules/Island.md`、`Product/ManagementMode.md` | `Assets/Scripts/Game/Island/Farming`、`PlacementController.cs`、`WorldFarmPanel.cs` | `world_crop.xlsx`；锄头获取链路还涉及 `item.xlsx`、`blueprint.xlsx`、Quest / Reward 表 | `gen_all.bat` | QuickFarm 已检查 Active House、锄头拥有与 ToolKit；各失败阶段走 RequirementResult + Toast；锄头正常获取链路仍待补齐 |
 | Buildings / Production | `Modules/Island.md`、`Product/ManagementMode.md` | `Assets/Scripts/Game/Island/Buildings`、`WorldBuildingDetailPanel.cs` | `world_building.xlsx`、`world_building_level.xlsx`、`world_building_income.xlsx`、`world_cost.xlsx`、`reward.xlsx` | `gen_all.bat`、`WorldConfigValidator` | `WorldConfigValidator` 主要校验建筑 / 科技关系 |
 | Tech | `Modules/Island.md`、`Modules/ManagementUI.md` | `Assets/Scripts/Game/Island/Tech`、`TechTreePanel.cs` | `tech_node.xlsx` | `gen_all.bat`、`WorldConfigValidator` | TechUnlock 后续更适合 Popup |
 | Calendar / Save | `Architecture/SaveSystem.md`、`Modules/Island.md` | `CalendarManager.cs`、`StorageManager.cs`、`SaveData.cs` | 无主要表 | `WorldSaveDevTool` 可辅助存档测试 | 存档字段变更要注意兼容 |

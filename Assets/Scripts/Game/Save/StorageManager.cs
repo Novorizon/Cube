@@ -10,6 +10,7 @@ namespace Game
         public sealed class StoryData
         {
             public int CurrentStoryId;
+            public int CurrentStepIndex;
             public int[] CompletedStoryIds;
         }
 

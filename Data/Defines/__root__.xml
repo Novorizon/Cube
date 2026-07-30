@@ -4,6 +4,7 @@
   <include name="npc_drop.xml" />
   <include name="tower.xml" />
   <include name="tower_level.xml" />
+  <include name="battle_target_action.xml" />
   <include name="item.xml" />
   <include name="localization.xml" />
   <include name="storage_capacity.xml" />
@@ -20,7 +21,7 @@
   <include name="blueprint.xml" />
   <include name="blueprint_item.xml" />
   <include name="story.xml" />
-  <include name="story_line.xml" />
+  <include name="story_step.xml" />
   <include name="base.xml" />
   <include name="map.xml" />
   <include name="wave.xml" />

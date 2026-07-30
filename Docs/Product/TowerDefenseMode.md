@@ -41,7 +41,7 @@ MapManager.Instance.LoadBattleMap(mapConfigId);
 
 经营主界面通过 `RightBar/BattleEntry` 进入战斗，当前入口加载默认关卡配置 `30950001`。战斗 UI 位于 `Assets/Arts/UI/Panels/Battle`。
 
-战斗主界面是 `BattlePage`。其内部功能区是由 Page 统一管理生命周期的多个 Panel；设置和战斗结算作为模态 Popup 打开。当前小地图入口保留但默认关闭，其余战斗 HUD 模块进入正式功能闭环。
+战斗主界面是 `BattlePage`。其内部功能区是由 Page 统一管理生命周期的多个 Panel；系统菜单复用经营模式的 `WorldMenuPanel`，战斗结算使用独立模态 Popup。战场菜单隐藏存档并显示“撤退”；撤退需要二次确认，结束当前战斗且不发放奖励。当前小地图入口保留但默认关闭，其余战斗 HUD 模块进入正式功能闭环。
 
 ## 与经营模式的边界
 

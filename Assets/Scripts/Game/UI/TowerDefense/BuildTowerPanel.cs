@@ -14,9 +14,6 @@ namespace Game
         [SerializeField]
         private GameObject cardPrefab;
 
-        [SerializeField]
-        private GameObject towerCardSkillPrefab;
-
         private readonly List<TowerBuildCardView> cards = new List<TowerBuildCardView>();
         private readonly HashSet<string> missingIconWarnings = new HashSet<string>();
         private int selectedTowerConfigId;
@@ -28,18 +25,22 @@ namespace Game
         protected override void OnOpen(object args)
         {
             BattleItemManager.Instance.OnItemChanged += OnItemChanged;
+            TowerBuildManager.Instance.SelectionChanged += OnBuildSelectionChanged;
+            selectedTowerConfigId = TowerBuildManager.Instance.SelectedTowerConfigId;
             Initialize();
         }
 
         protected override void OnClose()
         {
             BattleItemManager.Instance.OnItemChanged -= OnItemChanged;
+            TowerBuildManager.Instance.SelectionChanged -= OnBuildSelectionChanged;
             CancelSelect();
         }
 
         protected override void OnDestroyed()
         {
             BattleItemManager.Instance.OnItemChanged -= OnItemChanged;
+            TowerBuildManager.Instance.SelectionChanged -= OnBuildSelectionChanged;
             ClearCards();
             TowerClicked = null;
         }
@@ -82,11 +83,14 @@ namespace Game
                     continue;
 
                 string towerName = LocalizedConfigText.TowerName(towerId);
+                string description = LocalizedConfigText.TowerDescription(towerId);
                 string iconLocation = towerConfig.IconLocation;
                 int costCount = towerConfig.CostCount;
+                int damage = towerConfig.Damage;
                 if (DataManager.Instance.TryGetTowerLevel(towerId, 1, out TowerLevelConfig levelConfig))
                 {
                     costCount = levelConfig.BuildCost;
+                    damage = levelConfig.Damage;
                 }
 
                 Sprite icon = LoadIcon(iconLocation, "Tower");
@@ -104,9 +108,9 @@ namespace Game
                     continue;
                 }
 
-                card.Init(towerId, towerName, costCount, OnTowerCardClicked);
+                card.Init(towerId, towerName, description, costCount, damage, OnTowerCardClicked);
                 card.SetIcon(icon);
-                card.SetSkills(skills, skills.Count > 0 ? towerCardSkillPrefab : null, location => LoadIcon(location, "Tower skill"));
+                card.SetSkills(skills, location => LoadIcon(location, "Tower skill"));
                 card.SetSelected(towerId == selectedTowerConfigId);
                 card.SetAffordable(TowerManager.Instance.HasGold(towerId));
                 cards.Add(card);
@@ -149,9 +153,6 @@ namespace Game
                 return;
             }
 
-            selectedTowerConfigId = towerConfigId;
-            RefreshSelected();
-
             TowerBuildManager.Instance.SelectTower(towerConfigId);
             TowerBuildInputController.Instance.RefreshPreviewAtCurrentPointer();
             TowerClicked?.Invoke(towerConfigId);
@@ -159,10 +160,13 @@ namespace Game
 
         private void OnCancelButtonClicked()
         {
-            selectedTowerConfigId = 0;
-            RefreshSelected();
-
             TowerBuildManager.Instance.CancelSelect();
+        }
+
+        private void OnBuildSelectionChanged(int towerConfigId)
+        {
+            selectedTowerConfigId = towerConfigId;
+            RefreshSelected();
         }
 
         private void RefreshSelected()

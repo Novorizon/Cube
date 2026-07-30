@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TMPro;
+using UI;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,24 +16,44 @@ namespace Game
         private Image iconImage;
 
         [SerializeField]
+        private Image normalFrame;
+
+        [SerializeField]
         private Image selectedFrame;
 
         [SerializeField]
         private TMP_Text nameText;
 
         [SerializeField]
+        private TMP_Text descriptionText;
+
+        [SerializeField]
         private TMP_Text costText;
 
         [SerializeField]
-        private RectTransform skillContentRoot;
+        private TMP_Text damageValueText;
+
+        [SerializeField]
+        private GameObject[] skillSlots;
+
+        [SerializeField]
+        private BattleSlotContentView[] skillViews;
+
+        [SerializeField]
+        private TooltipTrigger tooltipTrigger;
 
         public int TowerId { get; private set; }
 
         private Action<int> clickedCallback;
-        private readonly List<GameObject> skillInstances = new List<GameObject>();
         private bool affordable = true;
 
-        public void Init(int towerId, string towerName, int cost, Action<int> clickedCallback)
+        public void Init(
+            int towerId,
+            string towerName,
+            string description,
+            int cost,
+            int damage,
+            Action<int> clickedCallback)
         {
             TowerId = towerId;
             this.clickedCallback = clickedCallback;
@@ -42,9 +63,19 @@ namespace Game
                 nameText.text = towerName;
             }
 
+            if (descriptionText != null)
+            {
+                descriptionText.text = description;
+            }
+
             if (costText != null)
             {
                 costText.text = cost.ToString();
+            }
+
+            if (damageValueText != null)
+            {
+                damageValueText.text = damage.ToString();
             }
 
             if (button != null)
@@ -52,6 +83,8 @@ namespace Game
                 button.onClick.RemoveListener(OnButtonClicked);
                 button.onClick.AddListener(OnButtonClicked);
             }
+
+            tooltipTrigger?.Bind(CreateTooltipData);
         }
 
         public void SetIcon(Sprite sprite)
@@ -65,6 +98,11 @@ namespace Game
 
         public void SetSelected(bool selected)
         {
+            if (normalFrame != null)
+            {
+                normalFrame.gameObject.SetActive(!selected);
+            }
+
             if (selectedFrame != null)
             {
                 selectedFrame.gameObject.SetActive(selected);
@@ -80,48 +118,47 @@ namespace Game
             }
         }
 
-        public void SetSkills(IReadOnlyList<SkillConfig> skills, GameObject skillPrefab, Func<string, Sprite> loadIcon)
+        public void SetSkills(IReadOnlyList<SkillConfig> skills, Func<string, Sprite> loadIcon)
         {
-            ClearSkills();
-
-            if (skillContentRoot == null || skillPrefab == null || skills == null)
+            int slotCount = Mathf.Max(skillSlots?.Length ?? 0, skillViews?.Length ?? 0);
+            for (int i = 0; i < slotCount; i++)
             {
-                return;
-            }
+                SkillConfig config = skills != null && i < skills.Count ? skills[i] : null;
+                BattleSlotContentView contentView = skillViews != null && i < skillViews.Length
+                    ? skillViews[i]
+                    : null;
+                GameObject slot = skillSlots != null && i < skillSlots.Length
+                    ? skillSlots[i]
+                    : contentView != null ? contentView.gameObject : null;
 
-            for (int i = 0; i < skills.Count; i++)
-            {
-                SkillConfig config = skills[i];
-                if (config == null)
-                {
-                    continue;
-                }
-
-                GameObject instance = Instantiate(skillPrefab, skillContentRoot, false);
-                instance.name = $"Skill_{config.Id}";
-                skillInstances.Add(instance);
-
-                BattleSlotContentView contentView = instance.GetComponent<BattleSlotContentView>();
                 if (contentView != null)
                 {
-                    Sprite icon = loadIcon?.Invoke(config.IconLocation);
-                    contentView.SetIcon(icon);
+                    contentView.SetIcon(config != null ? loadIcon?.Invoke(config.IconLocation) : null);
                 }
-                else
+
+                if (slot != null)
                 {
-                    Debug.LogError($"Tower skill prefab is missing {nameof(BattleSlotContentView)}.", skillPrefab);
+                    slot.SetActive(config != null);
                 }
+            }
+
+            if (skills != null && skills.Count > slotCount)
+            {
+                Debug.LogWarning(
+                    $"Tower card has {slotCount} authored skill slots, so only the first {slotCount} of {skills.Count} skills are shown.",
+                    this);
             }
         }
 
         private void OnDestroy()
         {
+            tooltipTrigger?.ClearBinding();
+
             if (button != null)
             {
                 button.onClick.RemoveListener(OnButtonClicked);
             }
 
-            ClearSkills();
             clickedCallback = null;
         }
 
@@ -130,17 +167,14 @@ namespace Game
             clickedCallback?.Invoke(TowerId);
         }
 
-        private void ClearSkills()
+        private TooltipData CreateTooltipData()
         {
-            for (int i = skillInstances.Count - 1; i >= 0; i--)
+            return new TooltipData
             {
-                if (skillInstances[i] != null)
-                {
-                    Destroy(skillInstances[i]);
-                }
-            }
-
-            skillInstances.Clear();
+                Title = LocalizedConfigText.TowerName(TowerId),
+                Description = LocalizedConfigText.TowerDescription(TowerId),
+                Icon = iconImage != null ? iconImage.sprite : null,
+            };
         }
     }
 }

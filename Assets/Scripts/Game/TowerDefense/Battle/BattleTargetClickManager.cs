@@ -76,22 +76,39 @@ namespace Game
                 return;
             }
 
-            if (TowerBuildManager.Instance.HasSelectedTower)
-            {
-                return;
-            }
-
             if (ignoreClickOnUi && IsPointerOverUi())
             {
                 return;
             }
 
-            TrySelectTarget(screenPosition);
+            if (TowerBuildManager.Instance.HasSelectedTower)
+            {
+                if (TrySelectTarget(screenPosition, false))
+                {
+                    TowerBuildManager.Instance.CancelSelect();
+                }
+
+                return;
+            }
+
+            TrySelectTarget(screenPosition, false);
         }
 
         public void ClearSelection()
         {
             Messager.Instance.Notify(BattleMessageTopic.TargetInfoCleared, new TargetInfoClearMessage());
+        }
+
+        public bool ShowTowerInfo(Tower tower)
+        {
+            TdTargetRuntimeInfo info = BuildTowerInfo(tower);
+            if (info.Type == TdTargetInfoType.None)
+            {
+                return false;
+            }
+
+            NotifyTargetInfo(info);
+            return true;
         }
 
         private void OnBattleSelectPerformed(InputAction.CallbackContext context)
@@ -110,14 +127,14 @@ namespace Game
             return WorldPointerPicker.IsPointerOverUi();
         }
 
-        private void TrySelectTarget(Vector2 screenPosition)
+        private bool TrySelectTarget(Vector2 screenPosition, bool clearOnMiss)
         {
             Camera camera = GetTargetCamera();
 
             if (camera == null)
             {
                 Debug.LogWarning("Select target failed. Target camera is null.");
-                return;
+                return false;
             }
 
             Ray ray = camera.ScreenPointToRay(screenPosition);
@@ -125,8 +142,12 @@ namespace Game
 
             if (hits == null || hits.Length == 0)
             {
-                ClearSelection();
-                return;
+                if (clearOnMiss)
+                {
+                    ClearSelection();
+                }
+
+                return false;
             }
 
             System.Array.Sort(hits, CompareRaycastHitDistance);
@@ -141,21 +162,53 @@ namespace Game
 
                 if (TryShowTowerInfo(hitCollider))
                 {
-                    return;
+                    return true;
                 }
 
                 if (TryShowNpcInfo(hitCollider))
                 {
-                    return;
+                    return true;
                 }
 
                 if (TryShowBaseInfo(hitCollider))
                 {
-                    return;
+                    return true;
+                }
+
+                if (TryShowTowerInfoFromTile(hitCollider))
+                {
+                    return true;
                 }
             }
 
-            ClearSelection();
+            if (clearOnMiss)
+            {
+                ClearSelection();
+            }
+
+            return false;
+        }
+
+        private bool TryShowTowerInfoFromTile(Collider hitCollider)
+        {
+            if (hitCollider == null || !TileView.TryGetValidFrom(hitCollider.transform, out TileView tileView))
+            {
+                return false;
+            }
+
+            if (!MapManager.Instance.TryGetTower(tileView.Coord, out Tower tower) || tower == null)
+            {
+                return false;
+            }
+
+            TdTargetRuntimeInfo info = BuildTowerInfo(tower);
+            if (info.Type == TdTargetInfoType.None)
+            {
+                return false;
+            }
+
+            NotifyTargetInfo(info);
+            return true;
         }
 
         private int CompareRaycastHitDistance(RaycastHit a, RaycastHit b)
@@ -187,8 +240,7 @@ namespace Game
 
             if (info.Type == TdTargetInfoType.None)
             {
-                ClearSelection();
-                return true;
+                return false;
             }
 
             NotifyTargetInfo(info);
@@ -208,8 +260,7 @@ namespace Game
 
             if (info.Type == TdTargetInfoType.None)
             {
-                ClearSelection();
-                return true;
+                return false;
             }
 
             NotifyTargetInfo(info);
@@ -269,6 +320,7 @@ namespace Game
                 Icon = LoadIconSprite(config.IconLocation),
                 PreviewPrefabLocation = levelConfig.PrefabLocation,
                 Coord = tower.Coord,
+                ActionGroupId = config.ActionGroupId,
                 Level = tower.Level,
                 Attack = levelConfig.Damage,
                 AttackAdd = attackAdd,
@@ -276,19 +328,17 @@ namespace Game
                 AttackInterval = levelConfig.AttackInterval,
                 UpgradeCost = nextLevelConfig != null ? nextLevelConfig.UpgradeCost : 0,
                 SellGold = sellGold,
-                CanUpgrade = nextLevelConfig != null,
-                CanSell = true
+                CanUpgrade = config.CanUpgrade && nextLevelConfig != null,
+                CanSell = levelConfig.SellGoldRate > 0f
             };
 
             info.InfoSlots = new List<TdInfoSlotData>
             {
-                new TdInfoSlotData("level", LocalizationManager.Get("ui.td.info.level"), info.Level.ToString()),
                 new TdInfoSlotData("attack", LocalizationManager.Get("ui.td.info.attack"), info.Attack.ToString(), info.AttackAdd > 0 ? $"+{info.AttackAdd}" : string.Empty),
                 new TdInfoSlotData("range", LocalizationManager.Get("ui.td.info.range"), $"{info.Range:0.#}"),
-                new TdInfoSlotData("speed", LocalizationManager.Get("ui.td.info.attack_speed"), $"{info.AttackInterval:0.#}s"),
-                new TdInfoSlotData("upgradeCost", LocalizationManager.Get("ui.td.info.upgrade"), info.CanUpgrade ? info.UpgradeCost.ToString() : "--"),
-                new TdInfoSlotData("sellGold", LocalizationManager.Get("ui.td.info.sell"), info.SellGold.ToString())
+                new TdInfoSlotData("speed", LocalizationManager.Get("ui.td.info.attack_speed"), $"{info.AttackInterval:0.#}s")
             };
+            info.Actions = BattleTargetActionResolver.Resolve(info.ActionGroupId, info);
 
             return info;
         }
@@ -307,6 +357,7 @@ namespace Game
                 Name = LocalizedConfigText.NpcName(npc.Config.Id),
                 Description = LocalizedConfigText.NpcDescription(npc.Config.Id),
                 PreviewPrefabLocation = npc.Config.PrefabLocation,
+                ActionGroupId = npc.Config.ActionGroupId,
                 CurrentHp = npc.Data.CurrentHp,
                 MaxHp = npc.Data.MaxHp,
                 Attack = npc.Data.DamageToBase,
@@ -325,6 +376,7 @@ namespace Game
                 new TdInfoSlotData("moveSpeed", LocalizationManager.Get("ui.td.info.move_speed"), $"{npc.Data.MoveSpeed:0.#}"),
                 new TdInfoSlotData("reward", LocalizationManager.Get("ui.td.info.kill_gold"), npc.Data.RewardGold.ToString())
             };
+            info.Actions = BattleTargetActionResolver.Resolve(info.ActionGroupId, info);
 
             return info;
         }
@@ -340,6 +392,7 @@ namespace Game
                 Description = LocalizationManager.Get("base.default.desc"),
                 Icon = config != null ? LoadIconSprite(config.IconLocation) : null,
                 PreviewPrefabLocation = config != null ? config.PrefabLocation : string.Empty,
+                ActionGroupId = config != null ? config.ActionGroupId : 0,
                 CurrentHp = BaseManager.Instance.CurrentLife,
                 MaxHp = BaseManager.Instance.MaxLife,
                 CanUpgrade = false,
@@ -356,6 +409,7 @@ namespace Game
             {
                 new TdInfoSlotData("hp", LocalizationManager.Get("ui.td.info.hp"), $"{Mathf.Max(0, info.CurrentHp)}/{info.MaxHp}")
             };
+            info.Actions = BattleTargetActionResolver.Resolve(info.ActionGroupId, info);
 
             return info;
         }

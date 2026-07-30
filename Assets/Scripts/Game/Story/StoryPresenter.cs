@@ -8,11 +8,15 @@ namespace Game
 {
     public sealed class StoryPresenter
     {
-        public async Task PresentAsync(StoryConfig config, Action completed)
+        public async Task PresentAsync(
+            StoryConfig config,
+            int initialStepIndex,
+            Action<int> stepChanged,
+            Action completed)
         {
             UIHandle handle = await UIManager.Instance.Panels.ShowAsync(
                 StoryPanel.PrefabPath,
-                new StoryPanel.Args(config, completed),
+                new StoryPanel.Args(config, initialStepIndex, stepChanged, completed),
                 new PanelOptions
                 {
                     UseOutsideClickDetector = false,
@@ -26,9 +30,13 @@ namespace Game
             }
         }
 
-        public void Present(StoryConfig config, Action completed)
+        public void Present(
+            StoryConfig config,
+            int initialStepIndex,
+            Action<int> stepChanged,
+            Action completed)
         {
-            PresentAsync(config, completed).Forget();
+            PresentAsync(config, initialStepIndex, stepChanged, completed).Forget();
         }
     }
 }

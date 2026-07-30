@@ -40,6 +40,7 @@ namespace Game
         protected override void OnClose()
         {
             ClearDropHighlights();
+            SetTooltipsSuppressed(false);
             DestroyDragIcon();
             draggingSlotIndex = -1;
         }
@@ -173,6 +174,7 @@ namespace Game
             }
 
             draggingSlotIndex = slotIndex;
+            SetTooltipsSuppressed(true);
             CreateDragIcon(slotViews[slotIndex]);
             UpdateDragIcon(eventData);
         }
@@ -187,6 +189,7 @@ namespace Game
             ClearDropHighlights();
             DestroyDragIcon();
             draggingSlotIndex = -1;
+            SetTooltipsSuppressed(false);
         }
 
         private void DropOnSlot(int targetSlotIndex, PointerEventData eventData)
@@ -250,6 +253,14 @@ namespace Game
             for (int i = 0; i < slotViews.Count; i++)
             {
                 slotViews[i]?.SetDropHighlighted(false);
+            }
+        }
+
+        private void SetTooltipsSuppressed(bool value)
+        {
+            for (int i = 0; i < slotViews.Count; i++)
+            {
+                slotViews[i]?.SetTooltipSuppressed(value);
             }
         }
 

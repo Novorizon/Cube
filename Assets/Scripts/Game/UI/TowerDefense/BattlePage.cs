@@ -33,8 +33,7 @@ namespace Game
 
         public event Action<int> TowerBuildClicked;
         public event Action<int> SkillClicked;
-        public event Action<TdTargetRuntimeInfo> TowerUpgradeTargetClicked;
-        public event Action<TdTargetRuntimeInfo> TowerSellTargetClicked;
+        public event Action<TdTargetActionRequest> TargetActionClicked;
         public event Action<float> SpeedChanged;
         public event Action<bool> AutoNextWaveChanged;
         public event Action<int> ItemClicked;
@@ -80,8 +79,7 @@ namespace Game
 
             TowerBuildClicked = null;
             SkillClicked = null;
-            TowerUpgradeTargetClicked = null;
-            TowerSellTargetClicked = null;
+            TargetActionClicked = null;
             SpeedChanged = null;
             AutoNextWaveChanged = null;
             ItemClicked = null;
@@ -166,8 +164,7 @@ namespace Game
 
             if (targetInfoPanel != null)
             {
-                targetInfoPanel.UpgradeTargetClicked += OnTowerUpgradeTargetClicked;
-                targetInfoPanel.SellTargetClicked += OnTowerSellTargetClicked;
+                targetInfoPanel.TargetActionClicked += OnTargetActionClicked;
             }
 
             if (battleControlPanel != null)
@@ -197,8 +194,7 @@ namespace Game
 
             if (targetInfoPanel != null)
             {
-                targetInfoPanel.UpgradeTargetClicked -= OnTowerUpgradeTargetClicked;
-                targetInfoPanel.SellTargetClicked -= OnTowerSellTargetClicked;
+                targetInfoPanel.TargetActionClicked -= OnTargetActionClicked;
             }
 
             if (battleControlPanel != null)
@@ -234,8 +230,7 @@ namespace Game
 
         private void OnTowerBuildClicked(int towerId) => TowerBuildClicked?.Invoke(towerId);
         private void OnSkillClicked(int skillId) => SkillClicked?.Invoke(skillId);
-        private void OnTowerUpgradeTargetClicked(TdTargetRuntimeInfo info) => TowerUpgradeTargetClicked?.Invoke(info);
-        private void OnTowerSellTargetClicked(TdTargetRuntimeInfo info) => TowerSellTargetClicked?.Invoke(info);
+        private void OnTargetActionClicked(TdTargetActionRequest request) => TargetActionClicked?.Invoke(request);
         private void OnSpeedChanged(float speed) => SpeedChanged?.Invoke(speed);
         private void OnAutoNextWaveChanged(bool value) => AutoNextWaveChanged?.Invoke(value);
         private void OnItemClicked(int itemId) => ItemClicked?.Invoke(itemId);

@@ -9,7 +9,8 @@
     "iconLocation": "",
     "hitEffect": "",
     "deadEffect": "Assets/Arts/Effects/BaseDestroyedEffect.prefab",
-    "enable": true
+    "enable": true,
+    "actionGroupId": 0
   },
   {
     "id": 30200002,
@@ -21,7 +22,8 @@
     "iconLocation": "",
     "hitEffect": "",
     "deadEffect": "Assets/Arts/Effects/BaseDestroyedEffect.prefab",
-    "enable": true
+    "enable": true,
+    "actionGroupId": 0
   },
   {
     "id": 30200003,
@@ -33,6 +35,7 @@
     "iconLocation": "",
     "hitEffect": "",
     "deadEffect": "Assets/Arts/Effects/BaseDestroyedEffect.prefab",
-    "enable": true
+    "enable": true,
+    "actionGroupId": 0
   }
 ]

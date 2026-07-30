@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Game.Framework;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace Game
@@ -48,6 +50,7 @@ namespace Game
             BindButton(buildButton, buildClicked);
             BindButton(toolKitButton, toolKitClicked);
             BindButton(techButton, techClicked);
+            BindGuideTargets();
             BindHotSlots();
             bagChangedSubscription = Messager.Instance.Subscribe<WorldMessageTopic, BagChangedMessage>(
                 WorldMessageTopic.BagChanged,
@@ -104,6 +107,19 @@ namespace Game
             DisposeRuntimeBindings();
         }
 
+        private void Update()
+        {
+            if (GameInputManager.Instance.CurrentMode != InputMode.World ||
+                bagDragController.IsDragging ||
+                IsTextInputFocused() ||
+                !TryGetPressedHotSlotIndex(Keyboard.current, out int slotIndex))
+            {
+                return;
+            }
+
+            TryUseHotSlot(slotIndex);
+        }
+
         private void BindHotSlots()
         {
             for (int i = 0; i < hotSlotRects.Length && i < BagManager.QuickSlotCount; i++)
@@ -115,11 +131,97 @@ namespace Game
                 }
 
                 BagSlotView view = new BagSlotView(i, slotRect, bagDragController);
+                GuideTarget.Attach(slotRect.gameObject, $"world.hotBar.slot.{i + 1}");
                 view.Bind(
-                    slotIndex => BagManager.Instance.TryUseSlot(slotIndex),
+                    TryUseHotSlot,
                     (fromSlotIndex, toSlotIndex) => BagManager.Instance.TryMoveOrSwapSlot(fromSlotIndex, toSlotIndex));
                 hotSlotViews.Add(view);
             }
+        }
+
+        private static void TryUseHotSlot(int slotIndex)
+        {
+            BagManager.Instance.TryUseSlot(slotIndex);
+        }
+
+        private static bool TryGetPressedHotSlotIndex(Keyboard keyboard, out int slotIndex)
+        {
+            slotIndex = -1;
+            if (keyboard == null)
+            {
+                return false;
+            }
+
+            if (keyboard.digit1Key.wasPressedThisFrame)
+            {
+                slotIndex = 0;
+            }
+            else if (keyboard.digit2Key.wasPressedThisFrame)
+            {
+                slotIndex = 1;
+            }
+            else if (keyboard.digit3Key.wasPressedThisFrame)
+            {
+                slotIndex = 2;
+            }
+            else if (keyboard.digit4Key.wasPressedThisFrame)
+            {
+                slotIndex = 3;
+            }
+            else if (keyboard.digit5Key.wasPressedThisFrame)
+            {
+                slotIndex = 4;
+            }
+            else if (keyboard.digit6Key.wasPressedThisFrame)
+            {
+                slotIndex = 5;
+            }
+            else if (keyboard.digit7Key.wasPressedThisFrame)
+            {
+                slotIndex = 6;
+            }
+            else if (keyboard.digit8Key.wasPressedThisFrame)
+            {
+                slotIndex = 7;
+            }
+            else if (keyboard.digit9Key.wasPressedThisFrame)
+            {
+                slotIndex = 8;
+            }
+            else if (keyboard.digit0Key.wasPressedThisFrame)
+            {
+                slotIndex = 9;
+            }
+
+            return slotIndex >= 0;
+        }
+
+        private static bool IsTextInputFocused()
+        {
+            GameObject selectedObject = EventSystem.current != null
+                ? EventSystem.current.currentSelectedGameObject
+                : null;
+            if (selectedObject == null)
+            {
+                return false;
+            }
+
+            TMP_InputField tmpInput = selectedObject.GetComponentInParent<TMP_InputField>();
+            if (tmpInput != null && tmpInput.isFocused)
+            {
+                return true;
+            }
+
+            InputField legacyInput = selectedObject.GetComponentInParent<InputField>();
+            return legacyInput != null && legacyInput.isFocused;
+        }
+
+        private void BindGuideTargets()
+        {
+            GuideTarget.Attach(bagButton != null ? bagButton.gameObject : null, "world.bottomBar.bag");
+            GuideTarget.Attach(buildButton != null ? buildButton.gameObject : null, "world.bottomBar.build");
+            GuideTarget.Attach(toolKitButton != null ? toolKitButton.gameObject : null, "world.bottomBar.toolKit");
+            GuideTarget.Attach(techButton != null ? techButton.gameObject : null, "world.bottomBar.tech");
         }
 
         private void OnBagChanged(BagChangedMessage message)

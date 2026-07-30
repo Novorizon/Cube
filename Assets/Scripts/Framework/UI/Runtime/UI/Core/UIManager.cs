@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -40,6 +41,8 @@ namespace UI
         public PanelManager Panels { get; private set; }
         public OverlayManager Overlays { get; private set; }
         public ToastManager Toasts { get; private set; }
+        public TooltipManager Tooltips { get; private set; }
+        public UIViewportService Viewport { get; private set; }
 
         IUIAssetLoader loader = new ResourcesUIAssetLoader();
         readonly Dictionary<UILayer, Transform> layerRoots = new Dictionary<UILayer, Transform>();
@@ -63,10 +66,12 @@ namespace UI
             instance = this;
             DontDestroyOnLoad(gameObject);
 
+            Viewport = new UIViewportService(DeviceManager.Instance);
             EnsureEventSystem();
             EnsureCanvasHierarchy();
             RebuildManagers(factory != null ? factory.NextId : 1, factory != null ? factory.NextVersion : 1);
         }
+
         void OnDestroy()
         {
             if (instance == this)
@@ -75,6 +80,7 @@ namespace UI
             }
 
             Toasts?.Shutdown();
+            Tooltips?.Shutdown();
             Overlays?.ForceHideBlocking(true);
             Popups?.CloseAll(true);
             Panels?.HideAll(true);
@@ -82,11 +88,14 @@ namespace UI
             Bus.Clear();
 
             factory?.DestroyAll();
+            Viewport?.Shutdown();
+            Viewport = null;
         }
         public void SetSettings(UISettings uiSettings)
         {
             settings = uiSettings;
             EnsureCanvasHierarchy();
+            Tooltips?.ApplySettings(settings);
         }
 
         public void UseResourceManagerLoader()
@@ -104,6 +113,7 @@ namespace UI
 
             int startId = factory != null ? factory.NextId : 1;
             int startVersion = factory != null ? factory.NextVersion : 1;
+            Tooltips?.Shutdown();
             factory?.DestroyAll();
             loader = assetLoader;
             RebuildManagers(startId, startVersion);
@@ -111,6 +121,8 @@ namespace UI
 
         public bool HandleBack()
         {
+            Tooltips?.HideAll();
+
             if (Popups != null && Popups.CloseTop(UICloseReason.Back))
             {
                 return true;
@@ -131,6 +143,7 @@ namespace UI
 
         public void ClearAll(bool destroy = false)
         {
+            Tooltips?.HideAll();
             Toasts?.Clear(true);
             Overlays?.ForceHideBlocking(destroy);
             Popups?.CloseAll(destroy);
@@ -157,6 +170,7 @@ namespace UI
             Panels = new PanelManager(factory);
             Overlays = new OverlayManager(factory);
             Toasts = new ToastManager(factory);
+            Tooltips = new TooltipManager(factory, settings);
             EnsureOutsideClickDetector();
         }
 
@@ -216,29 +230,33 @@ namespace UI
                 canvasGo.transform.SetParent(transform, false);
 
                 rootCanvas = canvasGo.AddComponent<Canvas>();
-                rootCanvas.renderMode = settings != null ? settings.renderMode : RenderMode.ScreenSpaceOverlay;
-                rootCanvas.worldCamera = ResolveCamera();
-
-                if (settings != null)
-                {
-                    rootCanvas.planeDistance = settings.canvasPlaneDistance;
-                }
-
-                CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
-                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-
-                if (settings != null)
-                {
-                    scaler.referenceResolution = new Vector2(settings.referenceWidth, settings.referenceHeight);
-                    scaler.screenMatchMode = settings.screenMatchMode;
-                    scaler.matchWidthOrHeight = settings.matchWidthOrHeight;
-                }
-
-                canvasGo.AddComponent<GraphicRaycaster>();
             }
-            else
+
+            rootCanvas.renderMode = settings != null ? settings.renderMode : RenderMode.ScreenSpaceOverlay;
+            rootCanvas.worldCamera = ResolveCamera();
+
+            if (settings != null)
             {
-                rootCanvas.worldCamera = ResolveCamera();
+                rootCanvas.planeDistance = settings.canvasPlaneDistance;
+            }
+
+            CanvasScaler scaler = rootCanvas.GetComponent<CanvasScaler>();
+            if (scaler == null)
+            {
+                scaler = rootCanvas.gameObject.AddComponent<CanvasScaler>();
+            }
+
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            if (settings != null)
+            {
+                scaler.referenceResolution = new Vector2(settings.referenceWidth, settings.referenceHeight);
+                scaler.screenMatchMode = settings.screenMatchMode;
+                scaler.matchWidthOrHeight = settings.matchWidthOrHeight;
+            }
+
+            if (rootCanvas.GetComponent<GraphicRaycaster>() == null)
+            {
+                rootCanvas.gameObject.AddComponent<GraphicRaycaster>();
             }
 
             CreateOrUpdatePanelOutsideBlocker(rootCanvas.transform);
@@ -247,6 +265,7 @@ namespace UI
             CreateOrUpdateLayer(rootCanvas.transform, UILayer.Popup);
             CreateOrUpdateLayer(rootCanvas.transform, UILayer.Panel);
             CreateOrUpdateLayer(rootCanvas.transform, UILayer.Toast);
+            CreateOrUpdateLayer(rootCanvas.transform, UILayer.Tooltip);
             CreateOrUpdateLayer(rootCanvas.transform, UILayer.Overlay);
         }
 

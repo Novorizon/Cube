@@ -9,7 +9,7 @@ namespace Game
     {
         public const string PrefabPath = "Assets/Arts/UI/Panels/Menu/SavePanel.prefab";
 
-        [SerializeField] private Button closeButton;
+        [SerializeField] private Button returnButton;
         [SerializeField] private Button saveButton;
         [SerializeField] private TMP_Text statusText;
         private string statusKey = "ui.save.status.ready";
@@ -18,7 +18,7 @@ namespace Game
 
         protected override void OnCreate()
         {
-            Bind(closeButton, CloseSelf, nameof(closeButton));
+            Bind(returnButton, CloseSelf, nameof(returnButton));
             Bind(saveButton, Save, nameof(saveButton));
             LocalizationManager.LanguageChanged += RefreshStatus;
         }

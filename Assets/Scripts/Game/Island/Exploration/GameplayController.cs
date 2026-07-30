@@ -25,6 +25,11 @@ namespace Game
             ? cameraController.FollowMode
             : CameraFollowMode.FollowPlayer;
         public bool UsePathSmoothing => navigation != null ? navigation.UsePathSmoothing : usePathSmoothing;
+        public Vector3 PlayerPosition => navigation != null ? navigation.Position : Vector3.zero;
+        public float PlayerRotationY => navigation != null && navigation.Player != null
+            ? navigation.Player.eulerAngles.y
+            : 0f;
+        public Camera WorldCamera => cameraController != null ? cameraController.MainCamera : null;
 
         public static void Ensure()
         {
@@ -128,13 +133,34 @@ namespace Game
             cameraController.ToggleFollowMode();
         }
 
+        public void FocusCamera(Vector3 worldPosition)
+        {
+            InitializeControllers();
+            cameraController.FocusWorldPosition(worldPosition);
+        }
+
+        public bool TryNavigateTo(Vector3Int coord)
+        {
+            InitializeControllers();
+            cameraController.Ensure();
+            navigation.Ensure();
+            if (!MapManager.Instance.IsInsideMap(coord) || !navigation.TryMoveTo(coord))
+            {
+                return false;
+            }
+
+            resourceInteraction.Cancel();
+            StorageManager.Instance.MarkDirty();
+            return true;
+        }
+
         public SavePlayerData CreatePlayerSaveData()
         {
             InitializeControllers();
             return navigation.CreateSaveData();
         }
 
-        public bool TryPlantSelectedFarm(int cropId)
+        public RequirementResult TryPlantSelectedFarm(int cropId)
         {
             InitializeControllers();
             return placement.TryPlantSelectedFarm(cropId);
@@ -146,10 +172,10 @@ namespace Game
             placement.SelectBuilding(buildingId);
         }
 
-        public void SelectFarmAreaMode()
+        public RequirementResult SelectFarmAreaMode()
         {
             InitializeControllers();
-            placement.SelectFarmAreaMode();
+            return placement.SelectFarmAreaMode();
         }
 
         public void ClearSelectedBuilding()

@@ -108,6 +108,7 @@ Project audit / cleanup:
 - Exclusive group is for same-level independent panels, currently Build / ToolKit / Production / Quest / TechTree / Menu. Bag is a BottomBar child node and is coordinated locally with those panels.
 - Stack group is for panel-level return history. Do not split ordinary child nodes into `UIPanel` just to use Stack.
 - Sound / Language / Save currently exist as independent UIPanel and can use Stack short term. Product-wise they are closer to Menu internal pages and can later become serialized child nodes under Menu.
+- Tooltip 使用 `UIManager.Instance.Tooltips`、全局唯一 `TooltipView` 和 `UILayer.Tooltip = 35`；外部 API 是 `Show` / `Hide`。每个 Tooltip 都必须有 `TooltipData` 来源：固定内容来自 Trigger，动态塔 / 物品 / 技能由各自可复用 View 按业务 ID 统一 `Bind`，已有 Pointer 组件可直接调用 Manager；不要误解成只有塔需要提供数据。`TooltipTrigger` 不带 UI 前缀且没有视觉职责。Tooltip prefab 必须关闭 raycast，并在离开、点击、拖拽、禁用或 UI 清理时隐藏。
 
 ## Current Feature Status
 
@@ -155,8 +156,9 @@ Bag slot 0-9 是 HotBar，10+ 是 Bag；BottomBar 持有唯一 BagDragController
 Story:
 
 ```text
-StoryManager 从 Story / StoryLine Luban 表加载配置
-StoryPanel 当前运行时创建 UI 节点，不要假设 prefab 内已有标题/正文/按钮节点
+StoryManager 从 Story / StoryStep Luban 表加载配置，StoryStep 是正式推进单位，不使用 Beat
+StoryPanel prefab 已绑定文字卡片、静态插画视口和 GuideOverlay；支持 Text / Illustration / Mixed / Guide
+StoryData 保存 CurrentStoryId、CurrentStepIndex、CompletedStoryIds，可从未完成 Step 恢复
 DialogManager / EventTriggerSystem 目前只是占位
 ```
 

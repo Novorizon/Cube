@@ -20,6 +20,8 @@
     <var name="showInBuildPanel" type="bool" comment="client" />
     <var name="defaultUnlocked" type="bool" comment="client" />
     <var name="unlockSourceType" type="int" comment="client" />
+    <var name="showOnMiniMap" type="bool" comment="client" />
+    <var name="miniMapIconLocation" type="string" comment="client" />
   </bean>
 
   <table name="TbWorldBuilding" value="WorldBuildingConfig" input="world_building.xlsx" mode="map" index="id" />

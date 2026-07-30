@@ -35,6 +35,8 @@ public sealed partial class WorldBuildingConfig : Luban.BeanBase
         ShowInBuildPanel = _buf.ReadBool();
         DefaultUnlocked = _buf.ReadBool();
         UnlockSourceType = _buf.ReadInt();
+        ShowOnMiniMap = _buf.ReadBool();
+        MiniMapIconLocation = _buf.ReadString();
     }
 
     public static WorldBuildingConfig DeserializeWorldBuildingConfig(ByteBuf _buf)
@@ -118,6 +120,14 @@ public sealed partial class WorldBuildingConfig : Luban.BeanBase
     /// client
     /// </summary>
     public readonly int UnlockSourceType;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly bool ShowOnMiniMap;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly string MiniMapIconLocation;
    
     public const int __ID__ = 624800552;
     public override int GetTypeId() => __ID__;
@@ -148,6 +158,8 @@ public sealed partial class WorldBuildingConfig : Luban.BeanBase
         + "showInBuildPanel:" + ShowInBuildPanel + ","
         + "defaultUnlocked:" + DefaultUnlocked + ","
         + "unlockSourceType:" + UnlockSourceType + ","
+        + "showOnMiniMap:" + ShowOnMiniMap + ","
+        + "miniMapIconLocation:" + MiniMapIconLocation + ","
         + "}";
     }
 }

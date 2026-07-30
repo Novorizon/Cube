@@ -11,7 +11,6 @@ namespace Game
 
         private const float VolumeStep = 0.1f;
 
-        [SerializeField] private Button closeButton;
         [SerializeField] private Button returnButton;
         [SerializeField] private Button decreaseButton;
         [SerializeField] private Button increaseButton;
@@ -24,7 +23,6 @@ namespace Game
 
         protected override void OnCreate()
         {
-            Bind(closeButton, CloseSelf, nameof(closeButton));
             Bind(returnButton, CloseSelf, nameof(returnButton));
             Bind(decreaseButton, DecreaseVolume, nameof(decreaseButton));
             Bind(increaseButton, IncreaseVolume, nameof(increaseButton));
@@ -39,7 +37,6 @@ namespace Game
         {
             LocalizationManager.LanguageChanged -= Refresh;
             GameAudioSettings.VolumeChanged -= OnVolumeChanged;
-            Unbind(closeButton, CloseSelf);
             Unbind(returnButton, CloseSelf);
             Unbind(decreaseButton, DecreaseVolume);
             Unbind(increaseButton, IncreaseVolume);

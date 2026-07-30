@@ -4,7 +4,7 @@ namespace Game
     {
         public int Id;
         public string Title;
-        public string[] Lines;
+        public StoryStep[] Steps = System.Array.Empty<StoryStep>();
         public StoryTriggerMode TriggerMode = StoryTriggerMode.Manual;
         public int TriggerTargetId;
         public QuestEventType CompleteQuestEventType = QuestEventType.None;

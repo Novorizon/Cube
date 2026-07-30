@@ -26,7 +26,7 @@ namespace Game
 
         private GameObject root;
         private Farm selectedFarm;
-        private Func<int, bool> seedClicked;
+        private Func<int, RequirementResult> seedClicked;
         private float nextRefreshTime;
 
         public GameObject Root => root;
@@ -89,7 +89,9 @@ namespace Game
         {
             ClearSeedEntries();
             root = gameObject;
-            seedClicked = cropId => GameplayController.Instance != null && GameplayController.Instance.TryPlantSelectedFarm(cropId);
+            seedClicked = cropId => GameplayController.Instance != null
+                ? GameplayController.Instance.TryPlantSelectedFarm(cropId)
+                : FarmRequirementChecker.GameplayUnavailable();
 
             if (root == null)
             {
@@ -296,7 +298,8 @@ namespace Game
             int need = crop.SeedItemId > 0 ? GetSeedCostPerCell(crop) * cellCount : 0;
             int have = crop.SeedItemId > 0 ? ItemManager.Instance.GetCount(crop.SeedItemId) : 0;
             bool enoughSeed = crop.SeedItemId <= 0 || need <= 0 || have >= need;
-            bool canPlant = farm != null && !farm.HasCrop && enoughSeed;
+            RequirementResult requirement = FarmRequirementChecker.CheckCanPlant(farm, crop.Id);
+            bool canPlant = requirement.Succeeded;
 
             Color textColor = canPlant ? new Color(0.18f, 0.13f, 0.07f, 1f) : new Color(0.42f, 0.36f, 0.28f, 1f);
             string seedCost = FormatSeedCost(crop.SeedItemId, have, need);
@@ -312,12 +315,19 @@ namespace Game
             entry.SetInfo($"{seedCost}{output}{state}", textColor);
             entry.SetClick(() =>
             {
-                if (seedClicked != null && seedClicked(crop.Id))
+                RequirementResult clickResult = seedClicked != null
+                    ? seedClicked(crop.Id)
+                    : FarmRequirementChecker.GameplayUnavailable();
+                if (RequirementToast.TryPass(clickResult))
                 {
                     Refresh();
                     WorldMainPanel.Instance?.RefreshNow();
                 }
-            }, canPlant);
+                else
+                {
+                    Refresh();
+                }
+            }, true);
             entry.SetBackgroundAlpha(canPlant ? 0.96f : 0.58f);
         }
 

@@ -102,6 +102,12 @@ namespace Game.Editor
             [JsonProperty("iconLocation")]
             public string IconLocation { get; set; }
 
+            [JsonProperty("showOnMiniMap")]
+            public bool? ShowOnMiniMap { get; set; }
+
+            [JsonProperty("miniMapIconLocation")]
+            public string MiniMapIconLocation { get; set; }
+
             [JsonProperty("blocksBuild")]
             public bool BlocksBuild { get; set; }
 
@@ -418,6 +424,9 @@ namespace Game.Editor
         private Vector3 decorationLocalScale = Vector3.one;
 
         [HideInInspector, SerializeField]
+        private MiniMapVisibility decorationMiniMapVisibility = MiniMapVisibility.Inherit;
+
+        [HideInInspector, SerializeField]
         private int selectedWorldResourceId;
 
         [HideInInspector, SerializeField]
@@ -434,6 +443,9 @@ namespace Game.Editor
 
         [HideInInspector, SerializeField]
         private bool resourceBlocksMove = true;
+
+        [HideInInspector, SerializeField]
+        private MiniMapVisibility resourceMiniMapVisibility = MiniMapVisibility.Inherit;
 
         private int DecorationCount => CountObjects(MapObjectType.Decoration);
         private int ResourceObjectCount => CountObjects(MapObjectType.Resource);
@@ -474,6 +486,9 @@ namespace Game.Editor
         }
 
         private MapData currentMap;
+        private Texture2D miniMapPreviewTexture;
+        private MapData miniMapPreviewSource;
+        private readonly List<string> miniMapValidationIssues = new List<string>();
 
         private MapCellData selectedTile;
         private Vector3Int selectedCoord;
@@ -772,6 +787,15 @@ namespace Game.Editor
                         EditorGUILayout.LabelField("Resource Mode", GetObjectResourceSummary(mapObject));
                     }
                     EditorGUILayout.LabelField("Blocks", $"Build {mapObject.BlocksBuild} | Move {mapObject.BlocksMove}");
+                    EditorGUI.BeginChangeCheck();
+                    MiniMapVisibility miniMapVisibility = (MiniMapVisibility)EditorGUILayout.EnumPopup(
+                        "Mini Map",
+                        mapObject.MiniMapVisibility);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        mapObject.MiniMapVisibility = miniMapVisibility;
+                        Repaint();
+                    }
                     EditorGUILayout.LabelField("Pos", FormatVector(mapObject.LocalPosition));
                     EditorGUILayout.LabelField("Rot", FormatVector(mapObject.LocalEuler));
                     EditorGUILayout.LabelField("Scale", FormatVector(mapObject.LocalScale));
@@ -968,10 +992,281 @@ namespace Game.Editor
             using (new EditorGUILayout.VerticalScope(GUILayout.Width(RightDockPanelWidth), GUILayout.ExpandHeight(true)))
             {
                 SirenixEditorGUI.BeginBox();
+                DrawMiniMapEditorPreview();
+                GUILayout.Space(8f);
                 DrawRightDockSelectionPanel();
                 GUILayout.FlexibleSpace();
                 SirenixEditorGUI.EndBox();
             }
+        }
+
+        private void DrawMiniMapEditorPreview()
+        {
+            EditorGUILayout.LabelField("Mini Map Preview", EditorStyles.boldLabel);
+            if (currentMap == null)
+            {
+                ReleaseMiniMapPreview();
+                EditorGUILayout.HelpBox("Create or import a map to preview its mini map.", MessageType.Info);
+                return;
+            }
+
+            if (miniMapPreviewTexture == null || miniMapPreviewSource != currentMap)
+            {
+                RefreshMiniMapPreview();
+            }
+
+            if (miniMapPreviewTexture != null)
+            {
+                Rect previewRect = GUILayoutUtility.GetRect(
+                    320f,
+                    320f,
+                    GUILayout.Width(320f),
+                    GUILayout.Height(320f));
+                EditorGUI.DrawPreviewTexture(previewRect, miniMapPreviewTexture, null, ScaleMode.ScaleToFit);
+            }
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Refresh"))
+                {
+                    RefreshMiniMapPreview();
+                }
+
+                if (GUILayout.Button("Validate"))
+                {
+                    ValidateMiniMapPreview(true);
+                }
+            }
+
+            if (miniMapValidationIssues.Count == 0)
+            {
+                EditorGUILayout.HelpBox(
+                    "Terrain and visible object settings are valid. Runtime icons are overlaid without extra marker records.",
+                    MessageType.Info);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(
+                    $"{miniMapValidationIssues.Count} mini map warning(s). First: {miniMapValidationIssues[0]}",
+                    MessageType.Warning);
+            }
+        }
+
+        private void RefreshMiniMapPreview()
+        {
+            ReleaseMiniMapPreview();
+            if (currentMap == null)
+            {
+                return;
+            }
+
+            miniMapPreviewTexture = MiniMapTextureBuilder.Build(currentMap);
+            miniMapPreviewSource = currentMap;
+            if (miniMapPreviewTexture == null)
+            {
+                return;
+            }
+
+            TryLoadDecorationConfig();
+            if (SupportsResourcesTab)
+            {
+                TryLoadWorldResourceItems();
+            }
+
+            if (currentMap.Objects != null)
+            {
+                for (int i = 0; i < currentMap.Objects.Count; i++)
+                {
+                    MapObjectData mapObject = currentMap.Objects[i];
+                    if (!ShouldShowObjectOnMiniMap(mapObject))
+                    {
+                        continue;
+                    }
+
+                    PaintMiniMapPreviewObject(mapObject);
+                }
+            }
+
+            miniMapPreviewTexture.Apply(false, false);
+            ValidateMiniMapPreview(false);
+            Repaint();
+        }
+
+        private void PaintMiniMapPreviewObject(MapObjectData mapObject)
+        {
+            if (mapObject == null ||
+                currentMap == null ||
+                mapObject.X < 0 ||
+                mapObject.X >= currentMap.Width ||
+                mapObject.Z < 0 ||
+                mapObject.Z >= currentMap.Depth)
+            {
+                return;
+            }
+
+            int pixelX = Mathf.Clamp(
+                Mathf.FloorToInt((mapObject.X + 0.5f) * miniMapPreviewTexture.width / currentMap.Width),
+                0,
+                miniMapPreviewTexture.width - 1);
+            int pixelZ = Mathf.Clamp(
+                Mathf.FloorToInt((mapObject.Z + 0.5f) * miniMapPreviewTexture.height / currentMap.Depth),
+                0,
+                miniMapPreviewTexture.height - 1);
+            int radius = Mathf.Max(1, miniMapPreviewTexture.width / currentMap.Width / 2);
+            Color color = GetMiniMapPreviewObjectColor(mapObject.ObjectType);
+
+            for (int offsetZ = -radius; offsetZ <= radius; offsetZ++)
+            {
+                int z = pixelZ + offsetZ;
+                if (z < 0 || z >= miniMapPreviewTexture.height)
+                {
+                    continue;
+                }
+
+                for (int offsetX = -radius; offsetX <= radius; offsetX++)
+                {
+                    int x = pixelX + offsetX;
+                    if (x >= 0 && x < miniMapPreviewTexture.width)
+                    {
+                        miniMapPreviewTexture.SetPixel(x, z, color);
+                    }
+                }
+            }
+        }
+
+        private bool ShouldShowObjectOnMiniMap(MapObjectData mapObject)
+        {
+            if (mapObject == null || mapObject.MiniMapVisibility == MiniMapVisibility.Hide)
+            {
+                return false;
+            }
+
+            if (mapObject.MiniMapVisibility == MiniMapVisibility.Show)
+            {
+                return true;
+            }
+
+            switch (mapObject.ObjectType)
+            {
+                case MapObjectType.Decoration:
+                    MapDecorationPrefabConfig.DecorationPrefabItem decoration =
+                        decorationConfig != null ? decorationConfig.GetItem(mapObject.ConfigId) : null;
+                    return decoration != null && decoration.ShowOnMiniMap;
+                case MapObjectType.Resource:
+                    WorldResourceEditorItem resource = GetWorldResourceItem(mapObject.ConfigId);
+                    return resource != null && (resource.ShowOnMiniMap ?? true);
+                case MapObjectType.Building:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static Color GetMiniMapPreviewObjectColor(MapObjectType objectType)
+        {
+            switch (objectType)
+            {
+                case MapObjectType.Resource:
+                    return new Color(0.24f, 0.92f, 0.40f, 1f);
+                case MapObjectType.Building:
+                    return new Color(0.30f, 0.68f, 1f, 1f);
+                case MapObjectType.Interactable:
+                    return new Color(1f, 0.66f, 0.20f, 1f);
+                default:
+                    return new Color(0.95f, 0.82f, 0.34f, 1f);
+            }
+        }
+
+        private void ValidateMiniMapPreview(bool logDetails)
+        {
+            miniMapValidationIssues.Clear();
+            if (currentMap == null)
+            {
+                return;
+            }
+
+            TryLoadDecorationConfig();
+            if (SupportsResourcesTab)
+            {
+                TryLoadWorldResourceItems();
+            }
+
+            if (currentMap.Objects != null)
+            {
+                for (int i = 0; i < currentMap.Objects.Count; i++)
+                {
+                    MapObjectData mapObject = currentMap.Objects[i];
+                    if (mapObject == null)
+                    {
+                        continue;
+                    }
+
+                    if (mapObject.X < 0 ||
+                        mapObject.X >= currentMap.Width ||
+                        mapObject.Z < 0 ||
+                        mapObject.Z >= currentMap.Depth)
+                    {
+                        miniMapValidationIssues.Add(
+                            $"Object {mapObject.ObjectId} is outside map bounds at ({mapObject.X}, {mapObject.Z}).");
+                        continue;
+                    }
+
+                    if (!ShouldShowObjectOnMiniMap(mapObject))
+                    {
+                        continue;
+                    }
+
+                    if (mapObject.ObjectType == MapObjectType.Decoration)
+                    {
+                        MapDecorationPrefabConfig.DecorationPrefabItem decoration =
+                            decorationConfig != null ? decorationConfig.GetItem(mapObject.ConfigId) : null;
+                        if (decoration == null || decoration.MiniMapIcon == null)
+                        {
+                            miniMapValidationIssues.Add(
+                                $"Decoration {mapObject.ConfigId} has no mini map icon; runtime color fallback will be used.");
+                        }
+                    }
+                    else if (mapObject.ObjectType == MapObjectType.Resource)
+                    {
+                        WorldResourceEditorItem resource = GetWorldResourceItem(mapObject.ConfigId);
+                        string iconPath = resource == null || string.IsNullOrWhiteSpace(resource.MiniMapIconLocation)
+                            ? resource?.IconLocation
+                            : resource.MiniMapIconLocation;
+                        if (string.IsNullOrWhiteSpace(iconPath) ||
+                            AssetDatabase.LoadAssetAtPath<Sprite>(iconPath) == null)
+                        {
+                            miniMapValidationIssues.Add(
+                                $"Resource {mapObject.ConfigId} has no valid mini map icon; runtime color fallback will be used.");
+                        }
+                    }
+                }
+            }
+
+            if (logDetails)
+            {
+                if (miniMapValidationIssues.Count == 0)
+                {
+                    Debug.Log($"Mini map validation passed: {currentMap.Name}.");
+                }
+                else
+                {
+                    Debug.LogWarning(
+                        $"Mini map validation found {miniMapValidationIssues.Count} warning(s):\n" +
+                        string.Join("\n", miniMapValidationIssues));
+                }
+            }
+        }
+
+        private void ReleaseMiniMapPreview()
+        {
+            if (miniMapPreviewTexture != null)
+            {
+                DestroyImmediate(miniMapPreviewTexture);
+                miniMapPreviewTexture = null;
+            }
+
+            miniMapPreviewSource = null;
+            miniMapValidationIssues.Clear();
         }
 
         protected override void OnEnable()
@@ -993,6 +1288,7 @@ namespace Game.Editor
             base.OnDisable();
             SceneView.duringSceneGui -= OnSceneGUI;
             paintedThisDrag.Clear();
+            ReleaseMiniMapPreview();
         }
 
         private void DrawMapToolButtons()
@@ -1348,9 +1644,13 @@ namespace Game.Editor
 
                 DrawDecorationSelector();
                 EditorGUILayout.LabelField("Selected Decoration", SelectedDecorationName);
+                DrawSelectedDecorationMiniMapDefaults();
                 decorationLocalPosition = EditorGUILayout.Vector3Field("Local Position", decorationLocalPosition);
                 decorationLocalEuler = EditorGUILayout.Vector3Field("Local Euler", decorationLocalEuler);
                 decorationLocalScale = EditorGUILayout.Vector3Field("Local Scale", decorationLocalScale);
+                decorationMiniMapVisibility = (MiniMapVisibility)EditorGUILayout.EnumPopup(
+                    "Mini Map Override",
+                    decorationMiniMapVisibility);
                 EditorGUILayout.LabelField("Decoration Count", DecorationCount.ToString());
                 GUILayout.Space(4f);
 
@@ -1586,7 +1886,20 @@ namespace Game.Editor
                 return;
             }
 
-            currentMap.Objects.Add(new MapObjectData(item.Id, selectedCoord, decorationLocalPosition, decorationLocalEuler, decorationLocalScale));
+            MapObjectData mapObject = new MapObjectData(
+                CreateNextMapObjectId(),
+                MapObjectType.Decoration,
+                item.Id,
+                selectedCoord,
+                decorationLocalPosition,
+                decorationLocalEuler,
+                decorationLocalScale)
+            {
+                BlocksBuild = item.BlocksBuild,
+                BlocksMove = item.BlocksMove,
+                MiniMapVisibility = decorationMiniMapVisibility,
+            };
+            currentMap.Objects.Add(mapObject);
             RebuildObjectIndex();
             RefreshDecorations();
         }
@@ -1619,6 +1932,33 @@ namespace Game.Editor
             decorationLocalPosition = GetDecorationDefaultLocalPosition(item);
             decorationLocalEuler = item.DefaultLocalEuler;
             decorationLocalScale = item.DefaultLocalScale;
+            decorationMiniMapVisibility = MiniMapVisibility.Inherit;
+        }
+
+        private void DrawSelectedDecorationMiniMapDefaults()
+        {
+            MapDecorationPrefabConfig.DecorationPrefabItem item = GetSelectedDecorationItem();
+            if (item == null || decorationConfig == null)
+            {
+                return;
+            }
+
+            bool showOnMiniMap = EditorGUILayout.Toggle("Mini Map Default", item.ShowOnMiniMap);
+            Sprite miniMapIcon = (Sprite)EditorGUILayout.ObjectField(
+                "Mini Map Icon",
+                item.MiniMapIcon,
+                typeof(Sprite),
+                false);
+            if (showOnMiniMap == item.ShowOnMiniMap && miniMapIcon == item.MiniMapIcon)
+            {
+                return;
+            }
+
+            Undo.RecordObject(decorationConfig, "Edit Decoration Mini Map Defaults");
+            item.ShowOnMiniMap = showOnMiniMap;
+            item.MiniMapIcon = miniMapIcon;
+            decorationConfig.RebuildCache();
+            EditorUtility.SetDirty(decorationConfig);
         }
 
         private Vector3 GetDecorationDefaultLocalPosition(MapDecorationPrefabConfig.DecorationPrefabItem item)
@@ -1681,6 +2021,17 @@ namespace Game.Editor
                 resourceLocalScale = EditorGUILayout.Vector3Field("Local Scale", resourceLocalScale);
                 resourceBlocksBuild = EditorGUILayout.Toggle("Blocks Build", resourceBlocksBuild);
                 resourceBlocksMove = EditorGUILayout.Toggle("Blocks Move", resourceBlocksMove);
+                WorldResourceEditorItem selectedResource = GetSelectedWorldResourceItem();
+                EditorGUILayout.LabelField(
+                    "Mini Map Default",
+                    selectedResource != null && (selectedResource.ShowOnMiniMap ?? true) ? "Show" : "Hide");
+                if (selectedResource != null && !string.IsNullOrWhiteSpace(selectedResource.MiniMapIconLocation))
+                {
+                    EditorGUILayout.LabelField("Mini Map Icon", selectedResource.MiniMapIconLocation);
+                }
+                resourceMiniMapVisibility = (MiniMapVisibility)EditorGUILayout.EnumPopup(
+                    "Mini Map Override",
+                    resourceMiniMapVisibility);
                 EditorGUILayout.LabelField("Resource Count", ResourceObjectCount.ToString());
                 GUILayout.Space(4f);
 
@@ -1909,6 +2260,7 @@ namespace Game.Editor
             {
                 BlocksBuild = resourceBlocksBuild,
                 BlocksMove = resourceBlocksMove,
+                MiniMapVisibility = resourceMiniMapVisibility,
             };
 
             currentMap.Objects.Add(mapObject);
@@ -1952,6 +2304,7 @@ namespace Game.Editor
             if (item == null) return;
             resourceBlocksBuild = item.BlocksBuild;
             resourceBlocksMove = item.BlocksMove;
+            resourceMiniMapVisibility = MiniMapVisibility.Inherit;
         }
 
         private void ToggleBrush()

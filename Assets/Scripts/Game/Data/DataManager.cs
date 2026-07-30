@@ -16,6 +16,7 @@ namespace Game
         public ConfigTableReader<NpcDropConfig> NpcDrop { get; private set; }
         public ConfigTableReader<TowerConfig> Tower { get; private set; }
         public ConfigTableReader<TowerLevelConfig> TowerLevel { get; private set; }
+        public ConfigTableReader<BattleTargetActionConfig> BattleTargetAction { get; private set; }
         public ConfigTableReader<ItemConfig> Item { get; private set; }
         public IReadOnlyDictionary<string, LocalizationConfig> Localization { get; private set; }
         public ConfigTableReader<StorageCapacityConfig> StorageCapacity { get; private set; }
@@ -33,7 +34,7 @@ namespace Game
         public ConfigTableReader<BlueprintTableConfig> Blueprint { get; private set; }
         public ConfigTableReader<BlueprintItemTableConfig> BlueprintItem { get; private set; }
         public ConfigTableReader<StoryTableConfig> Story { get; private set; }
-        public ConfigTableReader<StoryLineTableConfig> StoryLine { get; private set; }
+        public ConfigTableReader<StoryStepTableConfig> StoryStep { get; private set; }
         public ConfigTableReader<BaseConfig> Base { get; private set; }
         public ConfigTableReader<MapConfig> Map { get; private set; }
         public ConfigTableReader<SkillConfig> Skill { get; private set; }
@@ -68,6 +69,7 @@ namespace Game
             NpcDrop = new ConfigTableReader<NpcDropConfig>("TbNpcDrop", tables.TbNpcDrop.DataMap);
             Tower = new ConfigTableReader<TowerConfig>("TbTower", tables.TbTower.DataMap);
             TowerLevel = new ConfigTableReader<TowerLevelConfig>("TbTowerLevel", tables.TbTowerLevel.DataMap);
+            BattleTargetAction = new ConfigTableReader<BattleTargetActionConfig>("TbBattleTargetAction", tables.TbBattleTargetAction.DataMap);
             Item = new ConfigTableReader<ItemConfig>("TbItem", tables.TbItem.DataMap);
             Localization = tables.TbLocalization.DataMap;
             StorageCapacity = new ConfigTableReader<StorageCapacityConfig>("TbStorageCapacity", tables.TbStorageCapacity.DataMap);
@@ -85,7 +87,7 @@ namespace Game
             Blueprint = new ConfigTableReader<BlueprintTableConfig>("TbBlueprint", tables.TbBlueprint.DataMap);
             BlueprintItem = new ConfigTableReader<BlueprintItemTableConfig>("TbBlueprintItem", tables.TbBlueprintItem.DataMap);
             Story = new ConfigTableReader<StoryTableConfig>("TbStory", tables.TbStory.DataMap);
-            StoryLine = new ConfigTableReader<StoryLineTableConfig>("TbStoryLine", tables.TbStoryLine.DataMap);
+            StoryStep = new ConfigTableReader<StoryStepTableConfig>("TbStoryStep", tables.TbStoryStep.DataMap);
             Base = new ConfigTableReader<BaseConfig>("TbBase", tables.TbBase.DataMap);
             Map = new ConfigTableReader<MapConfig>("TbMap", tables.TbMap.DataMap);
             Skill = new ConfigTableReader<SkillConfig>("TbSkill", tables.TbSkill.DataMap);

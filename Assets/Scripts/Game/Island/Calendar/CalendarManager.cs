@@ -5,16 +5,16 @@ namespace Game
 {
     public sealed class CalendarManager
     {
-        public const int HoursPerDay = 24;
-        public const int MinutesPerHour = 60;
-        public const int DaysPerMonth = 28;
-        public const int MonthsPerSeason = 1;
-        public const int SeasonsPerYear = 4;
-        public const int MonthsPerYear = MonthsPerSeason * SeasonsPerYear;
-        public const int DayStartHour = 6;
-        public const int NightStartHour = 18;
-        public const int DayNightDiskZeroHour = 12;
-        public const float RealSecondsPerDay = 600f;
+        public const int HoursPerDay = GameConfig.Calendar.HoursPerDay;
+        public const int MinutesPerHour = GameConfig.Calendar.MinutesPerHour;
+        public const int DaysPerMonth = GameConfig.Calendar.DaysPerMonth;
+        public const int MonthsPerSeason = GameConfig.Calendar.MonthsPerSeason;
+        public const int SeasonsPerYear = GameConfig.Calendar.SeasonsPerYear;
+        public const int MonthsPerYear = GameConfig.Calendar.MonthsPerYear;
+        public const int DayStartHour = GameConfig.Calendar.DayStartHour;
+        public const int NightStartHour = GameConfig.Calendar.NightStartHour;
+        public const int DayNightDiskZeroHour = GameConfig.Calendar.DayNightDiskZeroHour;
+        public const float RealSecondsPerDay = GameConfig.Calendar.RealSecondsPerDay;
 
         public static CalendarManager Instance { get; } = new CalendarManager();
 

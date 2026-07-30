@@ -12,11 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61f38f52fd371ee4f888001f2c8ec2d1, type: 3}
   m_Name: UISettings
   m_EditorClassIdentifier: 
-  referenceWidth: 1080
-  referenceHeight: 1920
+  referenceWidth: 1920
+  referenceHeight: 1080
   screenMatchMode: 0
   matchWidthOrHeight: 0.5
   renderMode: 0
   canvasPlaneDistance: 100
   explicitWorldCamera: {fileID: 0}
   sortingOrderStep: 100
+  tooltipPrefabPath: Assets/Arts/UI/Panels/Common/Tooltip.prefab
+  tooltipInitialDelay: 0.55
+  tooltipReshowDelay: 0.08
+  tooltipWarmDuration: 0.75
+  tooltipOffset: {x: 16, y: 8}
+  tooltipScreenPadding: 12

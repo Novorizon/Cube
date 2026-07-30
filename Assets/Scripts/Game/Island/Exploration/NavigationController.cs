@@ -315,7 +315,12 @@ namespace Game
 
         private void BeginPath(IReadOnlyList<Vector3Int> resolvedPath, Action onArrived, Func<bool> shouldStop)
         {
-            actionProvider?.Invoke()?.Stop(ActionStopReason.Movement, ActionExitMode.ToMove);
+            ActionController actionController = actionProvider?.Invoke();
+            if (actionController != null && actionController.IsRunning)
+            {
+                actionController.Stop(ActionStopReason.Movement, ActionExitMode.ToMove);
+            }
+
             path.Clear();
             smoothedPath.Clear();
             IReadOnlyList<Vector3Int> movementPath = resolvedPath;

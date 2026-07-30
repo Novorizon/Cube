@@ -103,6 +103,7 @@ namespace Game
                     ? LocalizationManager.Get("ui.td.settings.sound_off")
                     : LocalizationManager.Get("ui.td.settings.sound_on");
             }
+
         }
 
         private void OnVolumeChanged(float volume)
@@ -126,5 +127,6 @@ namespace Game
         {
             button?.onClick.RemoveListener(action);
         }
+
     }
 }

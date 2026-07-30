@@ -1,5 +1,6 @@
 using Game.Framework;
 using System.Collections.Generic;
+using UI;
 using UnityEngine;
 
 namespace Game
@@ -84,15 +85,15 @@ namespace Game
             return true;
         }
 
-        public bool TryPlantSelectedFarm(int cropId)
+        public RequirementResult TryPlantSelectedFarm(int cropId)
         {
-            bool success = FarmManager.Instance.TryPlant(selectedFarm, cropId);
+            bool success = FarmManager.Instance.TryPlant(selectedFarm, cropId, out RequirementResult requirement);
             if (success)
             {
                 WorldMainPanel.Instance?.RefreshNow();
             }
 
-            return success;
+            return requirement;
         }
 
         public void SelectBuilding(int buildingId)
@@ -106,8 +107,14 @@ namespace Game
             WorldMainPanel.Instance?.RefreshNow();
         }
 
-        public void SelectFarmAreaMode()
+        public RequirementResult SelectFarmAreaMode()
         {
+            RequirementResult requirement = FarmRequirementChecker.CheckCanEnterCultivation(out _);
+            if (!requirement.Succeeded)
+            {
+                return requirement;
+            }
+
             StopCultivateAction(ActionStopReason.Replaced);
             selectedBuildingId = 0;
             ClearSelectedObject();
@@ -116,6 +123,7 @@ namespace Game
             SetFarmAreaMode(true);
             HideSeedPanel();
             WorldMainPanel.Instance?.RefreshNow();
+            return RequirementResult.Success();
         }
 
         public void ClearSelectedBuilding()
@@ -167,6 +175,7 @@ namespace Game
 
             if (farmAreaMode)
             {
+                RequirementToast.TryPass(FarmRequirementChecker.DragRequired());
                 return;
             }
 
@@ -231,18 +240,20 @@ namespace Game
             if (!pressHasTile || !TryPickTileCoord(out Vector3Int endCoord))
             {
                 Debug.Log("Create farm area failed. Drag start or end is not a valid tile.");
+                RequirementToast.TryPass(FarmRequirementChecker.InvalidDrag());
                 return;
             }
 
-            if (!HasHouse())
+            RequirementResult entryRequirement = FarmRequirementChecker.CheckCanEnterCultivation(out _);
+            if (!RequirementToast.TryPass(entryRequirement))
             {
-                Debug.Log("Create farm area failed. No active house exists.");
                 return;
             }
 
             if (selectedBuildingId > 0)
             {
                 Debug.Log("Create farm area failed. Building mode is active.");
+                RequirementToast.TryPass(FarmRequirementChecker.BuildingModeActive());
                 return;
             }
 
@@ -251,6 +262,7 @@ namespace Game
                     out int cultivateToolItemId))
             {
                 Debug.Log("Create farm area failed. Missing hoe in toolkit.");
+                RequirementToast.TryPass(FarmRequirementChecker.CheckCanEnterCultivation(out _));
                 return;
             }
 
@@ -267,6 +279,7 @@ namespace Game
                         () => CompleteCultivateFarm(startCoord, endCoord, cultivateToolItemId))))
             {
                 Debug.Log("Create farm area failed. Another action is active.");
+                RequirementToast.TryPass(FarmRequirementChecker.ActionUnavailable());
                 return;
             }
         }
@@ -279,7 +292,10 @@ namespace Game
                 ItemManager.Instance.NotifyUseCompleted(toolItemId);
                 SetFarmAreaMode(false);
                 ShowSeedPanel();
+                return;
             }
+
+            RequirementToast.TryPass(FarmRequirementChecker.NoBuildableCells());
         }
 
         private void StopCultivateAction(ActionStopReason reason)

@@ -121,6 +121,39 @@ namespace Game
             return itemId > 0;
         }
 
+        public bool TryFindOwnedTool(ToolType toolType, out int itemId)
+        {
+            itemId = 0;
+            int bestLevel = -1;
+            IReadOnlyDictionary<int, ItemStack> ownedItems = ItemManager.Instance.GetAllItems();
+            if (ownedItems == null)
+            {
+                return false;
+            }
+
+            foreach (KeyValuePair<int, ItemStack> pair in ownedItems)
+            {
+                ItemStack item = pair.Value;
+                if (item == null ||
+                    item.ItemId <= 0 ||
+                    item.Count <= 0 ||
+                    !ToolKitDefinitions.TryGetTool(item.ItemId, out ToolDefinition definition) ||
+                    definition == null ||
+                    definition.ToolType != toolType)
+                {
+                    continue;
+                }
+
+                if (definition.Level > bestLevel)
+                {
+                    bestLevel = definition.Level;
+                    itemId = item.ItemId;
+                }
+            }
+
+            return itemId > 0;
+        }
+
         public bool TryUseToolForAction(ToolKitActionType actionType, out int itemId)
         {
             itemId = 0;

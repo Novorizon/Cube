@@ -1,0 +1,20 @@
+[
+  {
+    "id": 100001,
+    "groupId": 100,
+    "actionType": 1,
+    "name": "升级",
+    "iconLocation": "Assets/Arts/UI/ui_icons_no_text_transparent_rgba/upgrade_button_blank.png",
+    "sortOrder": 10,
+    "enable": true
+  },
+  {
+    "id": 100002,
+    "groupId": 100,
+    "actionType": 2,
+    "name": "出售",
+    "iconLocation": "Assets/Arts/UI/ui_icons_no_text_transparent_rgba/sell_button_blank.png",
+    "sortOrder": 20,
+    "enable": true
+  }
+]

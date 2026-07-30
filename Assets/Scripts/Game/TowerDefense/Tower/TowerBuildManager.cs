@@ -1,4 +1,5 @@
 ﻿using Game.Framework;
+using System;
 using UI;
 using UnityEngine;
 
@@ -17,6 +18,8 @@ namespace Game
         private Vector3Int previewCoord;
         private bool hasPreviewCoord;
         private bool previewCanBuild;
+
+        public event Action<int> SelectionChanged;
 
         private readonly Color canBuildPreviewColor = new Color(1f, 1f, 1f, 0.75f);
         private readonly Color cannotBuildPreviewColor = new Color(1f, 0.2f, 0.2f, 0.75f);
@@ -116,6 +119,7 @@ namespace Game
             selectedTowerLevelConfig = levelConfig;
 
             CreatePreview(config, levelConfig);
+            SelectionChanged?.Invoke(towerConfigId);
         }
 
         public void CancelSelect()
@@ -129,6 +133,7 @@ namespace Game
             previewCanBuild = false;
 
             HidePreview();
+            SelectionChanged?.Invoke(0);
         }
 
         public void UpdatePreview(TileView tileView)
@@ -319,6 +324,12 @@ namespace Game
             if (currentLevelConfig == null)
             {
                 Toast.Warning(LocalizationManager.Get("ui.td.toast.sell_failed_level_config"));
+                return false;
+            }
+
+            if (currentLevelConfig.SellGoldRate <= 0f)
+            {
+                Toast.Warning(LocalizationManager.GetOrFallback("ui.td.toast.sell_not_allowed", "当前防御塔不可出售"));
                 return false;
             }
 

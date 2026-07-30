@@ -1,16 +1,30 @@
 using Game.Framework;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Game
 {
     public sealed class FarmAreaPreview
     {
         private readonly PlacementMaterials materials;
-        private readonly List<GameObject> views = new List<GameObject>();
+        private readonly List<Vector3> vertices = new List<Vector3>();
+        private readonly List<Vector3> normals = new List<Vector3>();
+        private readonly List<Vector2> uvs = new List<Vector2>();
+        private readonly List<int> validTriangles = new List<int>();
+        private readonly List<int> invalidTriangles = new List<int>();
+
         private GameObject root;
-        private GameObject prefab;
-        private bool missingPrefabLogged;
+        private MeshFilter meshFilter;
+        private MeshRenderer meshRenderer;
+        private Mesh mesh;
+        private Material validMaterial;
+        private Material invalidMaterial;
+        private bool materialsAssigned;
+        private Vector3Int lastMinCoord;
+        private Vector3Int lastMaxCoord;
+        private float lastTileSize;
+        private bool hasLastArea;
 
         public FarmAreaPreview(PlacementMaterials materials)
         {
@@ -20,104 +34,251 @@ namespace Game
         public void Show(Vector3Int a, Vector3Int b)
         {
             EnsureRoot();
-            EnsurePrefab();
-            Material validMaterial = materials.Valid;
-            Material invalidMaterial = materials.Invalid;
-            if (root == null || prefab == null || validMaterial == null || invalidMaterial == null)
+            EnsureMaterials();
+            if (root == null || mesh == null || validMaterial == null || invalidMaterial == null)
             {
                 Hide();
                 return;
             }
 
-            int minX = Mathf.Min(a.x, b.x);
-            int maxX = Mathf.Max(a.x, b.x);
-            int minZ = Mathf.Min(a.z, b.z);
-            int maxZ = Mathf.Max(a.z, b.z);
-            int neededCount = Mathf.Max(1, (maxX - minX + 1) * (maxZ - minZ + 1));
-            EnsureViewCount(neededCount);
+            Vector3Int minCoord = new Vector3Int(
+                Mathf.Min(a.x, b.x),
+                a.y,
+                Mathf.Min(a.z, b.z));
+            Vector3Int maxCoord = new Vector3Int(
+                Mathf.Max(a.x, b.x),
+                a.y,
+                Mathf.Max(a.z, b.z));
+            float tileSize = MapManager.Instance.TileSize;
 
-            int index = 0;
-            for (int x = minX; x <= maxX; x++)
+            root.SetActive(true);
+            if (hasLastArea &&
+                minCoord == lastMinCoord &&
+                maxCoord == lastMaxCoord &&
+                Mathf.Approximately(tileSize, lastTileSize))
             {
-                for (int z = minZ; z <= maxZ; z++)
-                {
-                    Vector3Int coord = new Vector3Int(x, a.y, z);
-                    GameObject view = views[index++];
-                    view.SetActive(true);
-                    view.transform.position = MapManager.Instance.GetTileWorldPosition(coord) +
-                                              Vector3.up * (MapManager.Instance.TileSize * 1.03f);
-                    view.transform.rotation = Quaternion.identity;
-                    view.transform.localScale = Vector3.one * MapManager.Instance.TileSize;
-                    PlacementVisualUtility.ApplyMaterial(
-                        view,
-                        MapManager.Instance.CanPlaceMapObject(coord) ? validMaterial : invalidMaterial);
-                }
+                return;
             }
 
-            for (int i = index; i < views.Count; i++)
-            {
-                if (views[i] != null)
-                {
-                    views[i].SetActive(false);
-                }
-            }
+            BuildMesh(minCoord, maxCoord, tileSize);
+            lastMinCoord = minCoord;
+            lastMaxCoord = maxCoord;
+            lastTileSize = tileSize;
+            hasLastArea = true;
         }
 
         public void Hide()
         {
-            for (int i = 0; i < views.Count; i++)
+            if (root != null)
             {
-                if (views[i] != null)
-                {
-                    views[i].SetActive(false);
-                }
+                root.SetActive(false);
             }
         }
 
         public void Clear()
         {
+            if (mesh != null)
+            {
+                Object.Destroy(mesh);
+            }
+
+            if (validMaterial != null)
+            {
+                Object.Destroy(validMaterial);
+            }
+
+            if (invalidMaterial != null)
+            {
+                Object.Destroy(invalidMaterial);
+            }
+
             if (root != null)
             {
                 Object.Destroy(root);
             }
 
             root = null;
-            prefab = null;
-            views.Clear();
-            missingPrefabLogged = false;
+            meshFilter = null;
+            meshRenderer = null;
+            mesh = null;
+            validMaterial = null;
+            invalidMaterial = null;
+            materialsAssigned = false;
+            hasLastArea = false;
+            ClearMeshData();
         }
 
         private void EnsureRoot()
         {
-            if (root == null)
-            {
-                root = new GameObject("FarmAreaPreview");
-            }
-        }
-
-        private void EnsurePrefab()
-        {
-            if (prefab != null || missingPrefabLogged)
+            if (root != null)
             {
                 return;
             }
 
-            prefab = ResourceManager.Instance.LoadGameObject(FarmManager.FarmPlotPrefabPath);
-            if (prefab == null)
+            root = new GameObject("FarmAreaPreview");
+            meshFilter = root.AddComponent<MeshFilter>();
+            meshRenderer = root.AddComponent<MeshRenderer>();
+            meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
+            meshRenderer.receiveShadows = false;
+            meshRenderer.lightProbeUsage = LightProbeUsage.Off;
+            meshRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+
+            mesh = new Mesh
             {
-                Debug.LogError($"Missing farm area preview prefab: {FarmManager.FarmPlotPrefabPath}");
-                missingPrefabLogged = true;
+                name = "FarmAreaPreviewMesh",
+            };
+            mesh.MarkDynamic();
+            meshFilter.sharedMesh = mesh;
+        }
+
+        private void EnsureMaterials()
+        {
+            if (validMaterial == null)
+            {
+                validMaterial = CreatePreviewMaterial(
+                    materials.Valid,
+                    "FarmAreaPreview_Valid",
+                    GameConfig.World.FarmPreviewValidGridStrength);
+            }
+
+            if (invalidMaterial == null)
+            {
+                invalidMaterial = CreatePreviewMaterial(
+                    materials.Invalid,
+                    "FarmAreaPreview_Invalid",
+                    GameConfig.World.FarmPreviewInvalidGridStrength);
+            }
+
+            if (!materialsAssigned &&
+                meshRenderer != null &&
+                validMaterial != null &&
+                invalidMaterial != null)
+            {
+                meshRenderer.sharedMaterials = new[]
+                {
+                    validMaterial,
+                    invalidMaterial,
+                };
+                materialsAssigned = true;
             }
         }
 
-        private void EnsureViewCount(int count)
+        private void BuildMesh(Vector3Int minCoord, Vector3Int maxCoord, float tileSize)
         {
-            while (views.Count < count)
+            ClearMeshData();
+            int cellCount = Mathf.Max(
+                1,
+                (maxCoord.x - minCoord.x + 1) * (maxCoord.z - minCoord.z + 1));
+            EnsureMeshDataCapacity(cellCount);
+
+            float halfTileSize = tileSize * 0.5f;
+            float surfaceLift = tileSize * GameConfig.World.FarmPreviewSurfaceLiftInTiles;
+            for (int x = minCoord.x; x <= maxCoord.x; x++)
             {
-                GameObject view = Object.Instantiate(prefab, root.transform);
-                view.name = $"FarmAreaPreview_{views.Count}";
-                PlacementVisualUtility.RemoveColliders(view);
-                views.Add(view);
+                for (int z = minCoord.z; z <= maxCoord.z; z++)
+                {
+                    Vector3Int coord = new Vector3Int(x, minCoord.y, z);
+                    Vector3 center = MapManager.Instance.GetTileSurfaceWorldPosition(coord) +
+                                     Vector3.up * surfaceLift;
+                    List<int> triangles = MapManager.Instance.CanPlaceMapObject(coord)
+                        ? validTriangles
+                        : invalidTriangles;
+                    AddCell(center, halfTileSize, triangles);
+                }
+            }
+
+            mesh.Clear();
+            mesh.indexFormat = vertices.Count > ushort.MaxValue
+                ? IndexFormat.UInt32
+                : IndexFormat.UInt16;
+            mesh.SetVertices(vertices);
+            mesh.SetNormals(normals);
+            mesh.SetUVs(0, uvs);
+            mesh.subMeshCount = 2;
+            mesh.SetTriangles(validTriangles, 0, true);
+            mesh.SetTriangles(invalidTriangles, 1, true);
+            mesh.RecalculateBounds();
+        }
+
+        private void AddCell(Vector3 center, float halfTileSize, List<int> triangles)
+        {
+            int startIndex = vertices.Count;
+            vertices.Add(center + new Vector3(-halfTileSize, 0f, -halfTileSize));
+            vertices.Add(center + new Vector3(-halfTileSize, 0f, halfTileSize));
+            vertices.Add(center + new Vector3(halfTileSize, 0f, halfTileSize));
+            vertices.Add(center + new Vector3(halfTileSize, 0f, -halfTileSize));
+
+            normals.Add(Vector3.up);
+            normals.Add(Vector3.up);
+            normals.Add(Vector3.up);
+            normals.Add(Vector3.up);
+
+            uvs.Add(new Vector2(0f, 0f));
+            uvs.Add(new Vector2(0f, 1f));
+            uvs.Add(new Vector2(1f, 1f));
+            uvs.Add(new Vector2(1f, 0f));
+
+            triangles.Add(startIndex);
+            triangles.Add(startIndex + 1);
+            triangles.Add(startIndex + 2);
+            triangles.Add(startIndex);
+            triangles.Add(startIndex + 2);
+            triangles.Add(startIndex + 3);
+        }
+
+        private void EnsureMeshDataCapacity(int cellCount)
+        {
+            int vertexCount = cellCount * 4;
+            int triangleIndexCount = cellCount * 6;
+            if (vertices.Capacity < vertexCount)
+            {
+                vertices.Capacity = vertexCount;
+                normals.Capacity = vertexCount;
+                uvs.Capacity = vertexCount;
+            }
+
+            if (validTriangles.Capacity < triangleIndexCount)
+            {
+                validTriangles.Capacity = triangleIndexCount;
+                invalidTriangles.Capacity = triangleIndexCount;
+            }
+        }
+
+        private void ClearMeshData()
+        {
+            vertices.Clear();
+            normals.Clear();
+            uvs.Clear();
+            validTriangles.Clear();
+            invalidTriangles.Clear();
+        }
+
+        private static Material CreatePreviewMaterial(
+            Material source,
+            string materialName,
+            float gridStrength)
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            Material material = new Material(source)
+            {
+                name = materialName,
+            };
+            SetFloatIfPresent(material, "_GridScale", GameConfig.World.FarmPreviewGridScale);
+            SetFloatIfPresent(material, "_GridStrength", gridStrength);
+            SetFloatIfPresent(material, "_GridWidth", GameConfig.World.FarmPreviewGridWidth);
+            SetFloatIfPresent(material, "_RimStrength", GameConfig.World.FarmPreviewRimStrength);
+            return material;
+        }
+
+        private static void SetFloatIfPresent(Material material, string propertyName, float value)
+        {
+            if (material != null && material.HasProperty(propertyName))
+            {
+                material.SetFloat(propertyName, value);
             }
         }
     }

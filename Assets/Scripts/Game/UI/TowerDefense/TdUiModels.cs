@@ -13,6 +13,30 @@ namespace Game
         Item = 4,
     }
 
+    public enum TdTargetActionType
+    {
+        None = 0,
+        UpgradeTower = 1,
+        SellTower = 2,
+    }
+
+    [Serializable]
+    public struct TdTargetActionData
+    {
+        public int ConfigId;
+        public TdTargetActionType Type;
+        public string Name;
+        public string IconLocation;
+        public bool Interactable;
+    }
+
+    [Serializable]
+    public struct TdTargetActionRequest
+    {
+        public TdTargetActionData Action;
+        public TdTargetRuntimeInfo Target;
+    }
+
     [Serializable]
     public struct TdInfoSlotData
     {
@@ -54,6 +78,7 @@ namespace Game
         public Sprite Icon;
         public string PreviewPrefabLocation;
         public Vector3Int Coord;
+        public int ActionGroupId;
 
         public int Level;
         public int CurrentHp;
@@ -70,6 +95,7 @@ namespace Game
         public bool CanSell;
 
         public List<TdInfoSlotData> InfoSlots;
+        public List<TdTargetActionData> Actions;
     }
 
     [Serializable]

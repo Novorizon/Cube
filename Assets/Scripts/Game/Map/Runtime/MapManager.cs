@@ -5,6 +5,7 @@
 /// Description閿涙艾婀撮崶鍓ь吀閻炲棗娅?///------------------------------------
 
 using Game.Framework;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -35,6 +36,9 @@ namespace Game
         private float tileSize = 1f;
 
         private bool initialized = false;
+
+        public event Action<MapObjectData> MapObjectAdded;
+        public event Action<MapObjectData> MapObjectRemoved;
 
         public bool Initialized
         {
@@ -836,6 +840,7 @@ namespace Game
 
             currentMap.Objects.Add(mapObject);
             AddObjectToIndex(mapObject);
+            MapObjectAdded?.Invoke(mapObject);
             return true;
         }
 
@@ -878,6 +883,7 @@ namespace Game
 
                 currentMap.Objects.RemoveAt(i);
                 RemoveObjectFromIndex(mapObject);
+                MapObjectRemoved?.Invoke(mapObject);
                 return true;
             }
 
@@ -893,6 +899,12 @@ namespace Game
         {
             Vector3Int coord = new Vector3Int(x, y, z);
             return TryGetTileData(coord, out tileData);
+        }
+
+        public bool TryGetDecorationConfig(int configId, out MapDecorationPrefabConfig.DecorationPrefabItem item)
+        {
+            item = decorationPrefabConfig != null ? decorationPrefabConfig.GetItem(configId) : null;
+            return item != null;
         }
 
         public bool TryGetTileView(Vector3Int coord, out TileView tileView)
@@ -1066,6 +1078,19 @@ namespace Game
         public Vector3 GetTileWorldPosition(Vector3Int coord)
         {
             return GetWorldPosition(coord.x, coord.y, coord.z);
+        }
+
+        public Vector3 GetTileSurfaceWorldPosition(Vector3Int coord)
+        {
+            Vector3 position = GetTileWorldPosition(coord);
+            if (tileDataMap.TryGetValue(coord, out TileData tileData) && tileData != null)
+            {
+                position.y = GetTileTopWorldY(tileData);
+                return position;
+            }
+
+            position.y += tileSize;
+            return position;
         }
 
         public Vector3 GetTileWorldPosition(MapCellData MapCellData)

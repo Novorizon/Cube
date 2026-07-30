@@ -21,6 +21,7 @@ public partial class Tables
     public TbAbilitySpecialValueConfig TbAbilitySpecialValueConfig {get; }
     public TbAbilitySystemEnumConfig TbAbilitySystemEnumConfig {get; }
     public TbBase TbBase {get; }
+    public TbBattleTargetAction TbBattleTargetAction {get; }
     public TbBlueprint TbBlueprint {get; }
     public TbBlueprintItem TbBlueprintItem {get; }
     public TbGather TbGather {get; }
@@ -39,7 +40,7 @@ public partial class Tables
     public TbSkillSystemEnum TbSkillSystemEnum {get; }
     public TbStorageCapacity TbStorageCapacity {get; }
     public TbStory TbStory {get; }
-    public TbStoryLine TbStoryLine {get; }
+    public TbStoryStep TbStoryStep {get; }
     public TbTechNode TbTechNode {get; }
     public TbTower TbTower {get; }
     public TbTowerLevel TbTowerLevel {get; }
@@ -60,6 +61,7 @@ public partial class Tables
         TbAbilitySpecialValueConfig = new TbAbilitySpecialValueConfig(loader("tbabilityspecialvalueconfig"));
         TbAbilitySystemEnumConfig = new TbAbilitySystemEnumConfig(loader("tbabilitysystemenumconfig"));
         TbBase = new TbBase(loader("tbbase"));
+        TbBattleTargetAction = new TbBattleTargetAction(loader("tbbattletargetaction"));
         TbBlueprint = new TbBlueprint(loader("tbblueprint"));
         TbBlueprintItem = new TbBlueprintItem(loader("tbblueprintitem"));
         TbGather = new TbGather(loader("tbgather"));
@@ -78,7 +80,7 @@ public partial class Tables
         TbSkillSystemEnum = new TbSkillSystemEnum(loader("tbskillsystemenum"));
         TbStorageCapacity = new TbStorageCapacity(loader("tbstoragecapacity"));
         TbStory = new TbStory(loader("tbstory"));
-        TbStoryLine = new TbStoryLine(loader("tbstoryline"));
+        TbStoryStep = new TbStoryStep(loader("tbstorystep"));
         TbTechNode = new TbTechNode(loader("tbtechnode"));
         TbTower = new TbTower(loader("tbtower"));
         TbTowerLevel = new TbTowerLevel(loader("tbtowerlevel"));
@@ -101,6 +103,7 @@ public partial class Tables
         TbAbilitySpecialValueConfig.ResolveRef(this);
         TbAbilitySystemEnumConfig.ResolveRef(this);
         TbBase.ResolveRef(this);
+        TbBattleTargetAction.ResolveRef(this);
         TbBlueprint.ResolveRef(this);
         TbBlueprintItem.ResolveRef(this);
         TbGather.ResolveRef(this);
@@ -119,7 +122,7 @@ public partial class Tables
         TbSkillSystemEnum.ResolveRef(this);
         TbStorageCapacity.ResolveRef(this);
         TbStory.ResolveRef(this);
-        TbStoryLine.ResolveRef(this);
+        TbStoryStep.ResolveRef(this);
         TbTechNode.ResolveRef(this);
         TbTower.ResolveRef(this);
         TbTowerLevel.ResolveRef(this);

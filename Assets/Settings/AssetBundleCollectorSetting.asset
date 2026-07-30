@@ -96,6 +96,14 @@ MonoBehaviour:
         FilterRuleName: CollectAll
         AssetTags: 
         UserData: 
+      - CollectPath: Assets/Arts/UI/Texture/Story
+        CollectorGUID: e4c66af2f23c482db2173286f5b48a21
+        CollectorType: 0
+        AddressRuleName: AddressByFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectAll
+        AssetTags: 
+        UserData: 
     - GroupName: Data
       GroupDesc: 
       AssetTags: 

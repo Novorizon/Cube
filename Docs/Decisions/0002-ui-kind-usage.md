@@ -10,6 +10,7 @@ Panel    当前流程上的浮动功能面板
 Popup    必须先处理的小确认或详情
 Overlay  全局覆盖、阻塞或转场
 Toast    自动消失的小提示
+Tooltip  延迟显示、不中断输入的悬浮说明
 ```
 
 ## 当前归类
@@ -59,6 +60,17 @@ Toast：
 获得物品
 科技解锁成功
 ```
+
+Tooltip：
+
+```text
+物品 / 工具属性
+技能说明
+建筑和科技节点说明
+按钮用途与快捷键
+```
+
+Tooltip 使用全局唯一 `TooltipView`，不为每个按钮创建独立 UI 层；目标只挂轻量 `TooltipTrigger` 或直接调用 `TooltipManager`。Tooltip 不进入 Popup / Panel 的关闭和 blocker 逻辑。
 
 Sound、Language、Save 不是 Toast。
 

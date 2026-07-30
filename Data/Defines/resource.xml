@@ -13,6 +13,8 @@
     <var name="blocksBuild" type="bool" comment="client" />
     <var name="blocksMove" type="bool" comment="client" />
     <var name="enable" type="bool" comment="client" />
+    <var name="showOnMiniMap" type="bool" comment="client" />
+    <var name="miniMapIconLocation" type="string" comment="client" />
   </bean>
 
   <table name="TbResource" value="ResourceConfig" input="resource.xlsx" mode="map" index="id" />

@@ -57,6 +57,8 @@ Assets/Arts/UI/Icons/Skills         战斗技能图标
 
 `BattlePage.prefab` 是完整战斗流程的 `UIPage`。`TopPanel`、建塔、道具、目标信息、技能、战斗控制和小地图分别是内嵌 `UIPanel`，由 `UIEmbeddedPanelGroup` 统一传递生命周期；Panel 内的 Slot、进度条、卡片和模型描述组件使用 `MonoBehaviour`。`TopPanel` 按当前 Prefab 的 `Base/Hp`、`Coin`、`Wave`、`Enemy` 层级显式绑定，避免依赖同名节点扫描。
 
+建塔列表的公共 `TowerCard.prefab` 根节点挂一个 `TooltipTrigger`，由 `TowerBuildCardView` 在 `Init` 中统一执行一次 `tooltipTrigger.Bind(CreateTooltipData)`；这段绑定属于可复用的卡片类型，不是为每座塔实例分别编写。`CreateTooltipData` 按实例的 `TowerId` 读取内容，名称和描述分别使用 `localization.xlsx` 中的 `tower.{id}.name`、`tower.{id}.desc`。不增加 Tooltip 专用 Excel 表，也不为每种塔创建不同的卡片 Prefab。
+
 `BattleControlPanel/SystemButton` 复用经营大地图的系统菜单 `WorldMenuPanel.prefab`，通过 `PanelManager` 打开；语言和音量继续进入同一套 Menu 子面板与共享设置 API。结算仍是独立 Popup：
 
 ```text
@@ -64,7 +66,27 @@ Assets/Arts/UI/Panels/Menu/MenuPanel.prefab
 BattleResultPopup.prefab
 ```
 
+同一个 `WorldMenuPanel` 会按运行模式切换入口：
+
+- 经营大地图显示 `Save`，隐藏 `Retreat`。
+- 战场显示 `Retreat`，隐藏 `Save`；战斗过程中不能从系统菜单存档。
+- `Retreat` 的中文统一为“撤退”，不使用含义过弱的“返回大地图”，也不使用可能被理解为正常结算的 `Finish`。
+- 点击撤退必须先确认；确认文案明确说明当前战斗立即结束且不获得本场奖励。确认后调用 `MapManager.RetreatFromBattle()` 清理战斗运行时并重新加载进入战斗前的世界地图，不触发胜利、失败或奖励结算流程。
+- Prefab 节点为 `MenuPanel/Content/Scroll View/Viewport/Content/Retreat`，序列化字段为 `WorldMenuPanel.retreatButton`。菜单入口必须存在于 Prefab，运行时只切换显隐，不创建或克隆该入口。
+
+撤退相关文本来自 `localization.xlsx`：
+
+```text
+ui.td.menu.retreat
+ui.td.menu.retreat_confirm_message
+ui.common.cancel
+```
+
 战斗 UI 的运行时节点引用必须全部来自 Prefab 序列化。`BattleUiPrefabBinder` 负责一次性绑定和校验 Prefab；运行时代码不得用名称或层级扫描兜底。
+
+目标操作区属于 `InfoPanel/Action`，使用 Prefab 中预先制作的 `Action1`、`Action2`、`Action3` 三个按钮，不在运行时创建或克隆按钮。目标配置只填写 `actionGroupId`，`battle_target_action.xlsx` 决定该组包含哪些动作；点击目标后再根据实时状态过滤动作，没有动作时隐藏整个 `Action`。当前塔组 `100` 包含升级和出售：升级同时要求 `tower.canUpgrade` 且 `tower_level.xlsx` 存在下一级，价格读取下一级的 `upgradeCostItemId/upgradeCost`；出售要求当前等级 `sellGoldRate > 0`，返还金额按等级数据实时计算。动作表不重复保存价格或出售金额。
+
+`ItemPanel` 是与 `InfoPanel` 平级的独立道具面板，只显示当前持有且可在战斗中使用的道具；目标操作与道具使用不共享组件或事件。
 
 当前已接入暂停、倍速、音量持久化、语言切换、自动下一波、技能冷却、目标信息、道具执行器入口和世界血条。暂停控制在运行时显示 `PauseButton`，暂停后切换为 `PlayButton`，恢复时回到暂停图标。小地图仍保持禁用，不属于当前实现范围。目标模型预览使用 `BattleTargetPreviewDescriptor` 显式声明 Renderer、Animator 和需要禁用的运行时组件，并使用独立 Layer/Camera/Light culling mask。
 

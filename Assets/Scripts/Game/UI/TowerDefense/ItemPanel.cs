@@ -23,7 +23,6 @@ namespace Game
         private readonly Dictionary<int, CommonSlotView> slots = new Dictionary<int, CommonSlotView>();
         private readonly List<CommonSlotView> slotPool = new List<CommonSlotView>();
         private readonly HashSet<string> missingIconWarnings = new HashSet<string>();
-        private int usedSlotCount;
         private bool subscribed;
 
         public event Action<int> ItemClicked;
@@ -72,16 +71,19 @@ namespace Game
 
         public void SetItemCount(int itemId, int count)
         {
+            if (count <= 0 || !TryGetBattleItemConfig(itemId, out ItemConfig config))
+            {
+                ReleaseSlot(itemId);
+                return;
+            }
+
             if (slots.TryGetValue(itemId, out CommonSlotView slot))
             {
                 slot.SetCount(count);
                 return;
             }
 
-            if (count > 0)
-            {
-                CreateOrUpdateSlot(itemId, count);
-            }
+            CreateOrUpdateSlot(config, count);
         }
 
         public bool TryGetSlotTransform(int itemId, out RectTransform target)
@@ -104,19 +106,17 @@ namespace Game
 
         private void CreateOrUpdateSlot(int itemId, int count)
         {
-            if (itemId == ItemIds.Gold)
+            if (count <= 0 || !TryGetBattleItemConfig(itemId, out ItemConfig config))
             {
                 return;
             }
 
-            ItemConfig config = DataManager.Instance.Item.Get(itemId);
+            CreateOrUpdateSlot(config, count);
+        }
 
-            if (config == null)
-            {
-                return;
-            }
-
-            if (slots.TryGetValue(itemId, out CommonSlotView existingSlot))
+        private void CreateOrUpdateSlot(ItemConfig config, int count)
+        {
+            if (slots.TryGetValue(config.Id, out CommonSlotView existingSlot))
             {
                 existingSlot.SetCount(count);
                 return;
@@ -130,7 +130,7 @@ namespace Game
 
             CommonSlotView slot = AcquireSlot();
             slot.Init(config.Id, LocalizedConfigText.ItemName(config.Id), count, LoadIcon(config.IconLocation), itemContentPrefab, OnItemClicked);
-            slots[itemId] = slot;
+            slots[config.Id] = slot;
         }
 
         private void OnItemClicked(int itemId)
@@ -144,47 +144,99 @@ namespace Game
             {
                 if (slot != null)
                 {
-                    slot.gameObject.SetActive(true);
                     slot.ClearContent();
+                    slot.gameObject.SetActive(false);
                 }
             }
 
             slots.Clear();
-            usedSlotCount = 0;
         }
 
         private CommonSlotView AcquireSlot()
         {
-            if (usedSlotCount < slotPool.Count)
+            for (int i = 0; i < slotPool.Count; i++)
             {
-                CommonSlotView slot = slotPool[usedSlotCount];
-                usedSlotCount++;
-                slot.gameObject.SetActive(true);
-                return slot;
+                CommonSlotView pooledSlot = slotPool[i];
+                if (pooledSlot != null && !pooledSlot.gameObject.activeSelf)
+                {
+                    pooledSlot.gameObject.SetActive(true);
+                    return pooledSlot;
+                }
             }
 
             CommonSlotView instance = Instantiate(slotPrefab, contentRoot);
             slotPool.Add(instance);
-            usedSlotCount++;
             return instance;
         }
 
         private void RegisterInitialSlots()
         {
             slotPool.Clear();
-            if (initialSlots == null)
+
+            if (contentRoot == null)
+            {
+                contentRoot = transform as RectTransform;
+            }
+
+            if (initialSlots != null)
+            {
+                for (int i = 0; i < initialSlots.Length; i++)
+                {
+                    RegisterInitialSlot(initialSlots[i]);
+                }
+            }
+
+            if (contentRoot != null)
+            {
+                CommonSlotView[] authoredSlots = contentRoot.GetComponentsInChildren<CommonSlotView>(true);
+                for (int i = 0; i < authoredSlots.Length; i++)
+                {
+                    RegisterInitialSlot(authoredSlots[i]);
+                }
+            }
+
+            Clear();
+        }
+
+        private void RegisterInitialSlot(CommonSlotView slot)
+        {
+            if (slot != null && !slotPool.Contains(slot))
+            {
+                slotPool.Add(slot);
+            }
+        }
+
+        private void ReleaseSlot(int itemId)
+        {
+            if (!slots.TryGetValue(itemId, out CommonSlotView slot))
             {
                 return;
             }
 
-            for (int i = 0; i < initialSlots.Length; i++)
+            slots.Remove(itemId);
+            if (slot != null)
             {
-                CommonSlotView slot = initialSlots[i];
-                if (slot != null && !slotPool.Contains(slot))
-                {
-                    slotPool.Add(slot);
-                }
+                slot.ClearContent();
+                slot.gameObject.SetActive(false);
             }
+        }
+
+        private static bool TryGetBattleItemConfig(int itemId, out ItemConfig config)
+        {
+            config = null;
+            if (itemId == ItemIds.Gold || DataManager.Instance.Item == null)
+            {
+                return false;
+            }
+
+            config = DataManager.Instance.Item.Get(itemId);
+            if (config == null)
+            {
+                return false;
+            }
+
+            ItemUseScope scope = (ItemUseScope)config.UseScope;
+            return scope == ItemUseScope.BattleOnly || scope == ItemUseScope.Both;
         }
 
         private Sprite LoadIcon(string location)

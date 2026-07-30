@@ -21,11 +21,13 @@ Docs/CodexProjectMemory.md
 | Story 剧情播放和触发 | `Modules/Story.md`、`Product/ProgressionAndQuests.md` |
 | Quest / Blueprint | `Modules/QuestStoryBlueprint.md`、`Product/ProgressionAndQuests.md` |
 | 数据表、Luban、本地化 | `Architecture/DataPipeline.md`、`Architecture/ExcelDataDictionary.md` |
+| 项目级代码参数、时间比例、表现微调 | `Architecture/GameConfig.md` |
 | 地图运行时、小地图标记 | `Architecture/MapRuntime.md`、`Decisions/0003-map-object-vs-marker.md` |
 | 地块美术 | `Modules/MapAndTileArt.md` |
 | 塔防和技能 | `Product/TowerDefenseMode.md`、`Modules/TowerDefense.md`、`Modules/AbilityAndSkill.md` |
 | 命名、移动脚本、Prefab 安全 | `Decisions/0001-naming-rules.md`、`Architecture/CodebaseOverview.md` |
 | 项目中期审核、风险清单 | `Audits/ProjectMidpointAudit-2026-07-09.md` |
+| 项目模块盘点、开发文档排期、飞书表格导入 | `Planning/项目开发模块与文档排期_飞书粘贴版.tsv` |
 
 ## 文档结构
 
@@ -36,6 +38,7 @@ Docs
   Modules        具体业务模块
   Decisions      需要反复引用的决策
   Audits         阶段性审核、风险清单、整理记录
+  Planning       模块清单、排期和可导入协作表格
   Human          人类阅读入口 HTML
 ```
 

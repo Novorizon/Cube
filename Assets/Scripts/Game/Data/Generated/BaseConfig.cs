@@ -26,6 +26,7 @@ public sealed partial class BaseConfig : Luban.BeanBase
         HitEffect = _buf.ReadString();
         DeadEffect = _buf.ReadString();
         Enable = _buf.ReadBool();
+        ActionGroupId = _buf.ReadInt();
     }
 
     public static BaseConfig DeserializeBaseConfig(ByteBuf _buf)
@@ -73,6 +74,10 @@ public sealed partial class BaseConfig : Luban.BeanBase
     /// client
     /// </summary>
     public readonly bool Enable;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly int ActionGroupId;
    
     public const int __ID__ = 712913299;
     public override int GetTypeId() => __ID__;
@@ -94,6 +99,7 @@ public sealed partial class BaseConfig : Luban.BeanBase
         + "hitEffect:" + HitEffect + ","
         + "deadEffect:" + DeadEffect + ","
         + "enable:" + Enable + ","
+        + "actionGroupId:" + ActionGroupId + ","
         + "}";
     }
 }

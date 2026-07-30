@@ -456,17 +456,26 @@
 | 4 | EnterArea | 进入区域触发。 |
 | 5 | TalkNpc | 与 NPC 对话触发。 |
 
-### `story_line.xlsx`
+### `story_step.xlsx`
 
-剧情正文行。
+剧情推进 Step。一个 Story 可以混排文本、静态插画、插画镜头运动和轻量引导。
 
 | 字段 | 类型 | 含义 |
 | --- | --- | --- |
-| `id` | int | 台词行 Id。 |
+| `id` | int | Step Id。 |
 | `storyId` | int | 所属 `story.id`。 |
-| `lineIndex` | int | 播放顺序，越小越先；相同时按 `id`。 |
-| `text` | string | 当前行正文，目前直接显示，尚未明确改成本地化 key。 |
-| `enable` | bool | 是否启用该行。 |
+| `stepIndex` | int | 播放顺序，越小越先；相同时按 `id`。 |
+| `stepType` | int | `0=Text`、`1=Illustration`、`2=Mixed`、`3=Guide`。 |
+| `text` | string | 当前 Step 的剧情正文；插画或引导 Step 可留空。 |
+| `illustrationPath` | string | 静态剧情插画的 Texture2D 资源路径。 |
+| `motionPreset` | int | `0=None`、`1=ZoomOut`、`2=PanLeftToRight`、`3=PanRightToLeft`、`4=ZoomIn`。 |
+| `motionDuration` | float | 插画镜头运动时长，单位为秒。 |
+| `advanceMode` | int | `0=Click`、`1=MotionComplete`、`2=AutoAfterDelay`、`3=GuideTargetClicked`。 |
+| `autoAdvanceDelay` | float | 自动推进等待时间，单位为秒。 |
+| `guideTargetId` | string | 轻量引导目标的稳定 Id。 |
+| `guideText` | string | 引导提示文本。 |
+| `allowTargetInteraction` | bool | 引导时目标是否可以被点击。 |
+| `enable` | bool | 是否启用该 Step。 |
 
 ## 塔防基地
 
@@ -486,6 +495,7 @@
 | `hitEffect` | string | 受击特效资源标识/路径。 |
 | `deadEffect` | string | 摧毁特效资源标识/路径。 |
 | `enable` | bool | 是否启用。 |
+| `actionGroupId` | int | 点击基地后显示的目标操作组；`0` 表示没有操作。 |
 
 ## 塔防关卡
 
@@ -526,6 +536,7 @@
 | `attackInterval` | float | 两次攻击之间的秒数。 |
 | `maxHp` | int | 最大生命值。 |
 | `rewardGold` | int | 击杀后直接加入塔防金币的数量。 |
+| `actionGroupId` | int | 点击 NPC 后显示的目标操作组；`0` 表示没有操作。 |
 
 #### 枚举值
 
@@ -585,8 +596,9 @@ NPC 死亡物品掉落。
 | `hitEffect` | string | 旧版命中特效；当前战斗使用等级表。 |
 | `upgradeCost` | int | 旧版升级成本；当前升级使用等级表。 |
 | `SellGoldRate` | float | 旧版出售返还比例；字段首字母大写是当前 schema 的历史格式。 |
-| `canUpgrade` | bool | 旧版是否可升级；当前主要由下一等级是否存在决定。 |
+| `canUpgrade` | bool | 是否允许升级；运行时还要求 `tower_level.xlsx` 存在下一级。 |
 | `iconLocation` | string | 防御塔 UI 图标完整路径。 |
+| `actionGroupId` | int | 点击塔后显示的目标操作组；`0` 表示没有操作，当前塔统一使用 `100`。 |
 
 #### `towerType` 枚举值
 
@@ -621,6 +633,25 @@ NPC 死亡物品掉落。
 | `hitEffect` | string | 命中特效资源标识或路径。 |
 | `skillId` | int | 本等级使用的 `skill.id`；`0` 表示只普通攻击。 |
 | `enable` | bool | 是否启用该等级。 |
+
+### `battle_target_action.xlsx`
+
+目标信息面板的通用操作组。目标主表只引用 `groupId`，动作是否最终显示还会经过对应动作处理器的实时条件判断。该表不保存升级价格、出售金额等业务数值。
+
+| 字段 | 类型 | 含义 |
+| --- | --- | --- |
+| `id` | int | 动作配置行 Id。 |
+| `groupId` | int | 操作组 Id；同组动作会按顺序显示。 |
+| `actionType` | int | 动作类型，见下表。 |
+| `name` | string | 动作名称，主要用于策划识别和调试。 |
+| `iconLocation` | string | 按钮图标完整资源路径。 |
+| `sortOrder` | int | 显示顺序，越小越靠前；相同时按 `id`。 |
+| `enable` | bool | 是否启用该动作行。 |
+
+| `actionType` | 名称 | 运行时条件与数据来源 |
+| ---: | --- | --- |
+| 1 | UpgradeTower | 目标必须是塔，`tower.canUpgrade = true`，且存在下一级；费用读取下一级 `upgradeCostItemId/upgradeCost`。 |
+| 2 | SellTower | 目标必须是塔，且当前等级 `sellGoldRate > 0`；返还值按累计建造/升级成本实时计算。 |
 
 ## 塔防波次
 
@@ -897,11 +928,12 @@ Skill 配表枚举说明表，本身主要供人和工具查值，运行时转�
 | 蓝图、任务与剧情 | `blueprint.id` | `blueprint_item.blueprintId` → `item.id` |
 |  | `quest.id` | `quest_objective.questId` |
 |  | `quest.rewardGroupId` | `reward.groupId` |
-|  | `story.id` | `story_line.storyId` |
+|  | `story.id` | `story_step.storyId` |
 | 塔防与技能 | `map.baseId` | `base.id` |
 |  | `wave.npcConfigId` | `npc.id` |
 |  | `npc.id` | `npc_drop.npcId` → `item.id` |
 |  | `tower.id` | `tower_level.towerId` |
+|  | `tower.actionGroupId` / `npc.actionGroupId` / `base.actionGroupId` | `battle_target_action.groupId` |
 |  | `tower_level.skillId` | `skill.id` |
 |  | `skill.abilityActionGroupId` | `skill_action.groupId` |
 |  | `skill.intrinsicModifierId` | `skill_modifier.id` |

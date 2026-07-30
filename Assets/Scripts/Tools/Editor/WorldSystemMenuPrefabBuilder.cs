@@ -10,7 +10,7 @@ namespace Game.Editor
     public static class WorldSystemMenuPrefabBuilder
     {
         private const string PanelsFolder = "Assets/Arts/UI/Panels";
-        private const string MenuPanelPath = PanelsFolder + "/MenuPanel.prefab";
+        private const string MenuPanelPath = WorldMenuPanel.PrefabPath;
         private static readonly Dictionary<Transform, float> NextElementY = new Dictionary<Transform, float>();
 
         [MenuItem("Tools/Game UI/Rebuild System Menu Panels")]
@@ -56,13 +56,17 @@ namespace Game.Editor
                 Button followRoleButton = EnsureButton(content, "FollowRole", "FollowRole");
                 Button saveButton = EnsureButton(content, "Save", "Save");
                 Button gmButton = EnsureButton(content, "GM", "GM");
+                Button retreatButton = EnsureButton(content, "Retreat", "Retreat");
                 Button closeButton = EnsureButton(content, "Close", "Close");
+                retreatButton.transform.SetSiblingIndex(closeButton.transform.GetSiblingIndex());
+                retreatButton.gameObject.SetActive(false);
 
                 SerializedObject serialized = new SerializedObject(panel);
                 SetObject(serialized, "soundButton", soundButton);
                 SetObject(serialized, "languageButton", languageButton);
                 SetObject(serialized, "saveButton", saveButton);
                 SetObject(serialized, "gmButton", gmButton);
+                SetObject(serialized, "retreatButton", retreatButton);
                 SetObject(serialized, "closeButton", closeButton);
                 SetObject(serialized, "cameraModeButton", followRoleButton);
                 SetObject(serialized, "cameraModeButtonText", followRoleButton.GetComponentInChildren<TMP_Text>(true));
@@ -97,10 +101,8 @@ namespace Game.Editor
             Button decreaseButton = CreateButton(content, "Decrease", "Volume -");
             Button increaseButton = CreateButton(content, "Increase", "Volume +");
             Button returnButton = CreateButton(content, "Return", "Return");
-            Button closeButton = CreateButton(content, "Close", "Close");
 
             SerializedObject serialized = new SerializedObject(root.GetComponent<WorldSoundPanel>());
-            SetObject(serialized, "closeButton", closeButton);
             SetObject(serialized, "returnButton", returnButton);
             SetObject(serialized, "decreaseButton", decreaseButton);
             SetObject(serialized, "increaseButton", increaseButton);
@@ -120,10 +122,10 @@ namespace Game.Editor
             TMP_Text languageText = CreateText(content, "LanguageText", "Current: Chinese", 24, 42f);
             Button chineseButton = CreateButton(content, "Chinese", "Chinese");
             Button englishButton = CreateButton(content, "English", "English");
-            Button closeButton = CreateButton(content, "Close", "Close");
+            Button returnButton = CreateButton(content, "Return", "Return");
 
             SerializedObject serialized = new SerializedObject(root.GetComponent<WorldLanguagePanel>());
-            SetObject(serialized, "closeButton", closeButton);
+            SetObject(serialized, "returnButton", returnButton);
             SetObject(serialized, "englishButton", englishButton);
             SetObject(serialized, "chineseButton", chineseButton);
             SetObject(serialized, "languageText", languageText);
@@ -138,10 +140,10 @@ namespace Game.Editor
             Transform content = root.transform.Find("Content");
             TMP_Text statusText = CreateText(content, "StatusText", "Ready", 24, 42f);
             Button saveButton = CreateButton(content, "Save", "Save");
-            Button closeButton = CreateButton(content, "Close", "Close");
+            Button returnButton = CreateButton(content, "Return", "Return");
 
             SerializedObject serialized = new SerializedObject(root.GetComponent<WorldSavePanel>());
-            SetObject(serialized, "closeButton", closeButton);
+            SetObject(serialized, "returnButton", returnButton);
             SetObject(serialized, "saveButton", saveButton);
             SetObject(serialized, "statusText", statusText);
             serialized.ApplyModifiedPropertiesWithoutUndo();

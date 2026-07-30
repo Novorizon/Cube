@@ -41,7 +41,9 @@ namespace Game.Editor
             { "Language", new TextBinding("ui.menu.language", "Language") },
             { "Save", new TextBinding("ui.menu.save", "Save") },
             { "GM", new TextBinding("ui.menu.gm", "GM") },
+            { "Retreat", new TextBinding("ui.td.menu.retreat", "Retreat") },
             { "Close", new TextBinding("ui.common.close", "Close") },
+            { "Return", new TextBinding("ui.common.return", "Return") },
             { "Volume -", new TextBinding("ui.sound.decrease", "Volume -") },
             { "Volume +", new TextBinding("ui.sound.increase", "Volume +") },
             { "Chinese", new TextBinding("ui.language.chinese", "Chinese") },
@@ -155,6 +157,7 @@ namespace Game.Editor
             count += BindButtonText(root.transform, "Language", "ui.menu.language", "Language");
             count += BindButtonText(root.transform, "Save", "ui.menu.save", "Save");
             count += BindButtonText(root.transform, "GM", "ui.menu.gm", "GM");
+            count += BindButtonText(root.transform, "Retreat", "ui.td.menu.retreat", "Retreat");
             count += BindButtonText(root.transform, "Close", "ui.menu.close", "Close");
             return count;
         }
@@ -165,7 +168,7 @@ namespace Game.Editor
             count += BindTextObject(root.transform, "Title", "ui.sound.title", "Sound");
             count += BindButtonText(root.transform, "Decrease", "ui.sound.decrease", "Volume -");
             count += BindButtonText(root.transform, "Increase", "ui.sound.increase", "Volume +");
-            count += BindButtonText(root.transform, "Close", "ui.common.close", "Close");
+            count += BindButtonText(root.transform, "Return", "ui.common.return", "Return");
             return count;
         }
 
@@ -175,7 +178,7 @@ namespace Game.Editor
             count += BindTextObject(root.transform, "Title", "ui.language.title", "Language");
             count += BindButtonText(root.transform, "Chinese", "ui.language.chinese", "Chinese");
             count += BindButtonText(root.transform, "English", "ui.language.english", "English");
-            count += BindButtonText(root.transform, "Close", "ui.common.close", "Close");
+            count += BindButtonText(root.transform, "Return", "ui.common.return", "Return");
             return count;
         }
 
@@ -184,7 +187,7 @@ namespace Game.Editor
             int count = 0;
             count += BindTextObject(root.transform, "Title", "ui.save.title", "Save");
             count += BindButtonText(root.transform, "Save", "ui.save.button", "Save");
-            count += BindButtonText(root.transform, "Close", "ui.common.close", "Close");
+            count += BindButtonText(root.transform, "Return", "ui.common.return", "Return");
             return count;
         }
 
@@ -260,7 +263,7 @@ namespace Game.Editor
 
         private static int BindButtonText(Transform root, string buttonName, string key, string fallback)
         {
-            Transform button = FindByName(root, buttonName);
+            Transform button = FindActiveByName(root, buttonName) ?? FindByName(root, buttonName);
             if (button == null)
             {
                 return 0;
@@ -380,6 +383,30 @@ namespace Game.Editor
             for (int i = 0; i < root.childCount; i++)
             {
                 Transform result = FindByName(root.GetChild(i), name);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
+        private static Transform FindActiveByName(Transform root, string name)
+        {
+            if (root == null)
+            {
+                return null;
+            }
+
+            if (root.name == name && root.gameObject.activeInHierarchy)
+            {
+                return root;
+            }
+
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform result = FindActiveByName(root.GetChild(i), name);
                 if (result != null)
                 {
                     return result;

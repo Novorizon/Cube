@@ -231,19 +231,23 @@ namespace Game
 
         public bool TryPlant(Farm farm, int cropId)
         {
-            if (farm == null || farm.CellCount <= 0)
+            return TryPlant(farm, cropId, out _);
+        }
+
+        public bool TryPlant(Farm farm, int cropId, out RequirementResult requirement)
+        {
+            requirement = FarmRequirementChecker.CheckCanPlant(farm, cropId);
+            if (!requirement.Succeeded)
             {
                 return false;
             }
 
-            if (!crops.TryGetValue(cropId, out WorldCropDefinition crop) || crop == null)
-            {
-                return false;
-            }
+            WorldCropDefinition crop = crops[cropId];
 
             int seedCost = crop.SeedItemId > 0 ? GetSeedCostPerCell(crop) * farm.CellCount : 0;
             if (crop.SeedItemId > 0 && seedCost > 0 && !ItemManager.Instance.TryConsumeItem(crop.SeedItemId, seedCost))
             {
+                requirement = FarmRequirementChecker.CheckCanPlant(farm, cropId);
                 return false;
             }
 
@@ -257,6 +261,7 @@ namespace Game
             }
 
             StorageManager.Instance.MarkDirty();
+            requirement = RequirementResult.Success();
             return true;
         }
 

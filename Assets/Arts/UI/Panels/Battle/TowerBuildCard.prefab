@@ -472,10 +472,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   button: {fileID: 4557343227182873387}
   iconImage: {fileID: 7063821344991513037}
+  normalFrame: {fileID: 0}
   selectedFrame: {fileID: 4367317431004591791}
   nameText: {fileID: 6136863014969797347}
+  descriptionText: {fileID: 0}
   costText: {fileID: 5615531710015667785}
-  skillContentRoot: {fileID: 7125937390159745201}
+  damageValueText: {fileID: 0}
+  skillSlots: []
+  skillViews: []
+  tooltipTrigger: {fileID: 0}
 --- !u!114 &4351028929116546562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -491,8 +496,8 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 150
-  m_PreferredHeight: 180
+  m_PreferredWidth: 128
+  m_PreferredHeight: 128
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1

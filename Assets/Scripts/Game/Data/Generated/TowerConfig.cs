@@ -34,6 +34,7 @@ public sealed partial class TowerConfig : Luban.BeanBase
         SellGoldRate = _buf.ReadFloat();
         CanUpgrade = _buf.ReadBool();
         IconLocation = _buf.ReadString();
+        ActionGroupId = _buf.ReadInt();
     }
 
     public static TowerConfig DeserializeTowerConfig(ByteBuf _buf)
@@ -113,6 +114,10 @@ public sealed partial class TowerConfig : Luban.BeanBase
     /// client
     /// </summary>
     public readonly string IconLocation;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly int ActionGroupId;
    
     public const int __ID__ = -1246506101;
     public override int GetTypeId() => __ID__;
@@ -142,6 +147,7 @@ public sealed partial class TowerConfig : Luban.BeanBase
         + "SellGoldRate:" + SellGoldRate + ","
         + "canUpgrade:" + CanUpgrade + ","
         + "iconLocation:" + IconLocation + ","
+        + "actionGroupId:" + ActionGroupId + ","
         + "}";
     }
 }

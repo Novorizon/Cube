@@ -31,6 +31,7 @@ namespace Game
 
         public Camera MainCamera => mainCamera;
         public CameraFollowMode FollowMode => followMode;
+        public Vector3 Pivot => pivot;
 
         public void Ensure()
         {
@@ -98,6 +99,19 @@ namespace Game
             }
 
             pivot = new Vector3(targetPosition.Value.x, 0f, targetPosition.Value.z);
+            ApplyTransform();
+        }
+
+        public void FocusWorldPosition(Vector3 worldPosition)
+        {
+            Ensure();
+            if (mainCamera == null)
+            {
+                return;
+            }
+
+            followMode = CameraFollowMode.Free;
+            pivot = new Vector3(worldPosition.x, 0f, worldPosition.z);
             ApplyTransform();
         }
 

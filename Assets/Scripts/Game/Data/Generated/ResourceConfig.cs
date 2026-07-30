@@ -28,6 +28,8 @@ public sealed partial class ResourceConfig : Luban.BeanBase
         BlocksBuild = _buf.ReadBool();
         BlocksMove = _buf.ReadBool();
         Enable = _buf.ReadBool();
+        ShowOnMiniMap = _buf.ReadBool();
+        MiniMapIconLocation = _buf.ReadString();
     }
 
     public static ResourceConfig DeserializeResourceConfig(ByteBuf _buf)
@@ -83,6 +85,14 @@ public sealed partial class ResourceConfig : Luban.BeanBase
     /// client
     /// </summary>
     public readonly bool Enable;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly bool ShowOnMiniMap;
+    /// <summary>
+    /// client
+    /// </summary>
+    public readonly string MiniMapIconLocation;
    
     public const int __ID__ = -1505018608;
     public override int GetTypeId() => __ID__;
@@ -106,6 +116,8 @@ public sealed partial class ResourceConfig : Luban.BeanBase
         + "blocksBuild:" + BlocksBuild + ","
         + "blocksMove:" + BlocksMove + ","
         + "enable:" + Enable + ","
+        + "showOnMiniMap:" + ShowOnMiniMap + ","
+        + "miniMapIconLocation:" + MiniMapIconLocation + ","
         + "}";
     }
 }

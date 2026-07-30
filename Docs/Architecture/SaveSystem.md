@@ -96,10 +96,11 @@ StorageManager.StoryData
 
 ```text
 CurrentStoryId
+CurrentStepIndex
 CompletedStoryIds
 ```
 
-注意：当前不支持剧情中途读档续播。后续如果要支持，需要补充当前行索引和恢复 StoryPanel 的流程；如果不支持中途续播，则保存时不应长期保留未完成 Story 的 `CurrentStoryId`。
+剧情 Step 改变时会保存 `CurrentStepIndex`。世界 UI 就绪后，`StoryManager.TryStartAutoStories()` 会先恢复未完成的 `CurrentStoryId`，并从该 Step 重新打开 StoryPanel；旧存档缺少字段时默认值为 0。
 
 
 

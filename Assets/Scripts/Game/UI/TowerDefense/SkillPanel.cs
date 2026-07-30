@@ -17,8 +17,12 @@ namespace Game
         [SerializeField]
         private CommonSlotView[] initialSlots;
 
+        [Header("HUD Layout")]
         [SerializeField]
-        private GameObject skillContentPrefab;
+        private int featuredSkillId = 50000001;
+
+        [SerializeField, Min(0)]
+        private int maxVisibleSlots = 5;
 
         private readonly Dictionary<int, CommonSlotView> slots = new Dictionary<int, CommonSlotView>();
         private readonly Dictionary<int, SkillConfig> slotConfigs = new Dictionary<int, SkillConfig>();
@@ -63,22 +67,32 @@ namespace Game
                 return;
             }
 
+            List<SkillConfig> visibleSkills = new List<SkillConfig>();
             foreach (KeyValuePair<int, SkillConfig> pair in DataManager.Instance.Skill.GetAll())
             {
-                SkillConfig config = pair.Value;
-                if (!ShouldShowInHud(config))
+                if (ShouldShowInHud(pair.Value))
                 {
-                    continue;
+                    visibleSkills.Add(pair.Value);
                 }
+            }
 
-                if (skillContentPrefab == null)
-                {
-                    Debug.LogError($"[{nameof(SkillPanel)}] skillContentPrefab is not assigned.", this);
-                    return;
-                }
+            visibleSkills.Sort(CompareHudSkills);
+            int visibleCount = maxVisibleSlots > 0
+                ? Mathf.Min(maxVisibleSlots, visibleSkills.Count)
+                : visibleSkills.Count;
 
+            if (visibleCount < visibleSkills.Count)
+            {
+                Debug.LogWarning(
+                    $"[{nameof(SkillPanel)}] {visibleSkills.Count} skills are eligible for the HUD, but only {visibleCount} slots are configured.",
+                    this);
+            }
+
+            for (int i = 0; i < visibleCount; i++)
+            {
+                SkillConfig config = visibleSkills[i];
                 CommonSlotView slot = AcquireSlot();
-                slot.Init(config.Id, LocalizedConfigText.SkillName(config.Id), GetAvailableCastCount(config), LoadIcon(config.IconLocation), skillContentPrefab, OnSkillClicked);
+                slot.Init(config.Id, LocalizedConfigText.SkillName(config.Id), GetAvailableCastCount(config), LoadIcon(config.IconLocation), OnSkillClicked);
                 slots[config.Id] = slot;
                 slotConfigs[config.Id] = config;
             }
@@ -176,6 +190,33 @@ namespace Game
             }
 
             return (config.Behavior & 8) == 0;
+        }
+
+        private int CompareHudSkills(SkillConfig left, SkillConfig right)
+        {
+            if (ReferenceEquals(left, right))
+            {
+                return 0;
+            }
+
+            if (left == null)
+            {
+                return 1;
+            }
+
+            if (right == null)
+            {
+                return -1;
+            }
+
+            bool leftFeatured = featuredSkillId > 0 && left.Id == featuredSkillId;
+            bool rightFeatured = featuredSkillId > 0 && right.Id == featuredSkillId;
+            if (leftFeatured != rightFeatured)
+            {
+                return leftFeatured ? -1 : 1;
+            }
+
+            return left.Id.CompareTo(right.Id);
         }
 
         private static int GetAvailableCastCount(SkillConfig config)

@@ -19,6 +19,61 @@ Overlay
 Toast
 : 自动消失、不中断操作的小提示，例如保存成功、资源不足、获得物品、科技解锁成功。Sound、Language、Save 这类设置界面不是 Toast。
 
+Tooltip
+: 鼠标停留一段时间后显示的上下文说明，例如物品名称、工具描述、技能属性和按钮用途。Tooltip 不阻塞输入，不进入 Panel / Popup 关闭栈，也不等同于自动消失的 Toast。
+
+## 条件失败提示
+
+需要告诉玩家“为什么不能执行”的业务功能，统一返回
+`Assets/Scripts/Game/Core/RequirementResult.cs`，再由
+`Assets/Scripts/Game/UI/Toasts/Toast.cs` 中的 `RequirementToast.TryPass` 转成 Warning
+Toast。
+
+职责边界：
+
+```text
+RequirementResult
+  只描述成功或失败
+  携带稳定错误 Code、本地化 key、中英文 fallback 和格式参数
+
+各业务 RequirementChecker
+  拥有本业务规则
+  检查不产生副作用
+  入口 UI 和最终执行路径复用同一检查
+
+RequirementToast
+  只负责把失败结果显示为 Toast
+  不认识农田、建造、科技等业务
+```
+
+调用方式：
+
+```csharp
+RequirementResult result = feature.TryExecute();
+if (RequirementToast.TryPass(result))
+{
+    Refresh();
+}
+```
+
+不要建立一个同时知道农田、建造、生产、科技全部规则的全局条件管理器。通用层只统一
+结果结构和展示方式；每个模块继续使用自己的 `FarmRequirementChecker`、
+`BuildingRequirementChecker` 等检查器。这样其它功能可以复用 Toast 协议，同时不会把
+业务依赖集中成新的大型耦合类。
+
+规则：
+
+- UI 预检查用于尽早反馈，真正产生消耗或状态变化的业务方法必须再次检查并返回同一个
+  `RequirementResult`。
+- `Code` 用于日志、测试或后续埋点，玩家文本使用 `LocalizationKey`，不要根据显示文本
+  判断错误类型。
+- 新提示应补入 `Data/Excel/localization.xlsx`；fallback 只保证配表尚未生成或 key 缺失
+  时仍能显示可理解的信息。
+- 如果禁用按钮会让玩家无法知道原因，可以保留点击能力并只做灰态表现，点击后显示具体
+  条件 Toast；是否完全禁用仍由业务交互设计决定。
+- 一次操作只显示当前最直接的一条失败原因；Toast 自身通过相同内容的 MergeKey 合并
+  连续重复提示。
+
 ### Page 内嵌 Panel
 
 一个全屏 Page 可以由多个职责独立的 `UIPanel` 组成。例如塔防采用：
@@ -43,6 +98,137 @@ BattlePage : UIPage
 当前 UI 框架以 `prefabPath` 作为运行时身份，`Show`、`Hide`、`IsShown` 都按路径工作。
 
 这不是明显性能问题：运行时主要是字典查找和少量字符串 key，比加载 prefab 和实例化 UI 的成本低很多。相比改成脚本类名，`prefabPath` 更能区分同脚本不同 prefab、不同皮肤、不同入口实例。后续如果需要更强管理能力，可以在业务层增加枚举或配置表映射到 `prefabPath`，不建议直接把框架身份改成脚本类名。
+
+## 屏幕与安全区
+
+屏幕适配的统一入口是：
+
+```text
+DeviceManager.Instance.Screen       通用设备 / 屏幕事实
+UIManager.Instance.Viewport
+```
+
+`DeviceManager` 位于 `Assets/Scripts/Framework/Device`，启动时采集平台、设备类别、设备
+型号、操作系统、处理器、内存和显卡概况，并持续维护 `DeviceScreenInfo`。只有游戏窗口
+尺寸、显示器分辨率、安全区、方向、全屏模式或 DPI 发生变化时才触发 `ScreenChanged`。
+不采集设备唯一标识。
+
+`UIViewportService` 由 `UIManager` 持有，只订阅 `DeviceManager.ScreenChanged` 并把通用
+屏幕信息转换为 UI 视口语义；UI 框架不再各自读取 `Screen`。当前快照
+`UIViewportInfo` 提供：
+
+```text
+PixelSize
+SafeAreaPixels
+SafeAreaNormalized
+SafeInsetsPixels
+AspectRatio
+Orientation
+IsPortrait
+```
+
+通用安全区组件是 `UISafeAreaFitter`，位于
+`Assets/Scripts/Framework/UI/Runtime/UI/Viewport`。原塔防专用安全区脚本已迁入这里并保留
+原 `.meta` GUID，因此现有 prefab 引用不需要重绑。需要避开刘海、圆角或系统手势区域的
+全屏容器可以直接挂该组件。当前经营 `WorldMainPanel` 与塔防 `BattlePage` 的根节点都已
+使用该组件。
+
+职责边界：
+
+- 框架层只提供屏幕度量、变化通知、CanvasScaler 配置和通用安全区约束。
+- 业务层决定 Compact / Normal / Wide 等布局语义，以及哪些内容允许换行、缩小或隐藏。
+- `UIView` / `UIPanel` 不写具体响应式布局；需要监听时由具体视图或组合组件订阅
+  `Viewport.Changed`。
+- 普通分辨率适配优先使用 CanvasScaler、锚点、LayoutGroup、ContentSizeFitter 和 TMP
+  preferred size，不为每个面板编写坐标调整脚本。
+
+布局输入按以下顺序进入同一次布局求解，不让多个脚本反复改最终坐标：
+
+```text
+屏幕尺寸 / 方向 / 安全区
+  -> 选择布局档位并确定根容器约束
+  -> 写入本地化文本、字体和动态内容
+  -> Unity LayoutGroup / TMP 完成一次重排
+  -> 根据最终 Rect 定位 Tooltip、引导和其它浮层
+```
+
+仅切换语言时只更新内容并重排；仅改变分辨率或方向时只更新屏幕约束并重排。
+
+## Tooltip
+
+Tooltip 使用全局唯一显示层和唯一 `TooltipView`：
+
+```text
+UILayer.Panel    25
+UILayer.Toast    30
+UILayer.Tooltip  35
+UILayer.Overlay  40
+```
+
+代码和 prefab：
+
+```text
+Assets/Scripts/Framework/UI/Runtime/UI/Tooltip
+Assets/Arts/UI/Panels/Common/Tooltip.prefab
+Assets/Scripts/Tools/Editor/TooltipPrefabBuilder.cs
+```
+
+职责：
+
+```text
+TooltipManager  延迟、所有权、取消、显示、隐藏和定位
+TooltipTrigger  只监听 Pointer 事件，没有视觉节点，不带 UI 前缀
+TooltipView     全局唯一的实际显示视图
+TooltipData     一次显示需要的标题、描述、图标、Values 和 Footer
+TooltipValue    一条结构化表现值，例如“伤害: 25”
+```
+
+业务调用入口：
+
+```csharp
+UIManager.Instance.Tooltips.Show(owner, anchor, dataProvider, options);
+UIManager.Instance.Tooltips.Hide(owner);
+```
+
+### TooltipData 来源
+
+每个 Tooltip 都必须有一个 `TooltipData` 来源，不存在“只有某种 UI 需要提供数据、其它 UI 自动拥有内容”的例外。区别只在于内容从哪里取得：
+
+```text
+固定按钮             TooltipTrigger 的序列化静态内容
+动态塔 / 物品 / 技能  复用 View 按 TowerId / ItemId / SkillId 调用 Bind
+已有 Pointer 处理组件 直接向 TooltipManager 传入 dataProvider
+```
+
+`Bind` 写在可复用的 View 类型中，不为每个运行时实例重复写一套。例如所有建塔卡片共用一次绑定：
+
+```csharp
+tooltipTrigger.Bind(CreateTooltipData);
+
+private TooltipData CreateTooltipData()
+{
+    return new TooltipData
+    {
+        Title = LocalizedConfigText.TowerName(TowerId),
+        Description = LocalizedConfigText.TowerDescription(TowerId),
+        Icon = iconImage != null ? iconImage.sprite : null,
+    };
+}
+```
+
+这里的 `TowerId` 属于塔卡片业务，通用 `TooltipTrigger` 不应认识它。物品格和技能格同理，分别由自己的可复用 View 提供内容。写死 `"箭塔"` 的 Lambda 只能作为 API 示例，正式内容必须通过 `localization.xlsx` 和 `LocalizedConfigText` 获取。
+
+规则：
+
+- 每个目标不创建独立 Tooltip UI 层；所有目标共享一个 `TooltipView`。
+- 普通按钮可以挂轻量 `TooltipTrigger`；已经实现 `IPointerEnterHandler` / `IPointerExitHandler` 的组件直接调用 `TooltipManager`。
+- `TooltipTrigger` 不查询游戏业务数据；业务层通过 `Func<TooltipData>` 提供已经本地化的表现数据。
+- Tooltip prefab 的稳定节点使用序列化字段绑定，不在运行时 `Find`。
+- Tooltip 的 `CanvasGroup.blocksRaycasts` 和 `interactable` 必须为 `false`，避免出现后抢走源按钮射线并造成闪烁。
+- 首次默认延迟 `0.55` 秒；刚查看过 Tooltip 时相邻目标使用 `0.08` 秒 reshow delay；warm window 默认 `0.75` 秒。
+- 鼠标离开、点击、开始拖拽、目标禁用、Back、`UIManager.ClearAll`、资源加载器重建时隐藏或取消等待。
+- Tooltip 默认锚定到目标旁边，按 Right / Left / Above / Below 自动选择空间并限制在 Canvas 内；它不跟随鼠标遮挡源目标。
+- 阻塞型 Overlay 显示期间不打开 Tooltip，Overlay 层级始终高于 Tooltip。
 
 ## 关闭方式
 
@@ -164,6 +350,8 @@ Bag 入口不在该表中，由 `WorldBottomBarPanel` 本地处理。
 ## 当前系统设置
 
 当前代码结构中 Menu、Sound、Language、Save、GM 是独立 `UIPanel`，短期可以走 `WorldMenuPanel.SettingsStackGroupId` 的 Stack。
+
+Sound、Language、Save 子面板各自只绑定一个 prefab 序列化的 `Return` 按钮；点击后优先 `PopStack(SettingsStackGroupId)` 返回设置菜单，栈不存在时才隐藏当前面板。不要同时保留 `Close` 与 `Return` 两套有效监听。
 
 `SoundPanel` 直接使用 prefab 序列化的 `Slider` 组件引用，不在运行时按名称查找或创建控件；因此 Slider 及其子节点允许改名和调整层级。
 

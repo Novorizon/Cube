@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="">
+  <bean name="StoryStepTableConfig">
+    <var name="id" type="int" comment="client" />
+    <var name="storyId" type="int" comment="client" />
+    <var name="stepIndex" type="int" comment="client" />
+    <var name="stepType" type="int" comment="client" />
+    <var name="text" type="string" comment="client" />
+    <var name="illustrationPath" type="string" comment="client" />
+    <var name="motionPreset" type="int" comment="client" />
+    <var name="motionDuration" type="float" comment="client" />
+    <var name="advanceMode" type="int" comment="client" />
+    <var name="autoAdvanceDelay" type="float" comment="client" />
+    <var name="guideTargetId" type="string" comment="client" />
+    <var name="guideText" type="string" comment="client" />
+    <var name="allowTargetInteraction" type="bool" comment="client" />
+    <var name="enable" type="bool" comment="client" />
+  </bean>
+
+  <table name="TbStoryStep" value="StoryStepTableConfig" input="story_step.xlsx" mode="map" index="id" />
+</module>

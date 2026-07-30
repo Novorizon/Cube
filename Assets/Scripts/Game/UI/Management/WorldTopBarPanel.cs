@@ -6,27 +6,72 @@ using UnityEngine.UI;
 
 namespace Game
 {
+    public enum WeatherType
+    {
+        Sunny = 0,
+        Cloudy = 1,
+        Rain = 2,
+        Storm = 3,
+        Snow = 4,
+        Fog = 5,
+    }
+
     public sealed class WorldTopBarPanel : MonoBehaviour
     {
-        [SerializeField] private TMP_Text dateText;
-        [SerializeField] private TMP_Text timeText;
-        [SerializeField] private TMP_Text weatherText;
-        [SerializeField] private RectTransform seasonImage;
-        [SerializeField] private RectTransform dayNightSky;
-        [SerializeField] private Button menuButton;
-
-        private Vector2 seasonImageBaseAnchoredPosition;
-        private float dayNightSkyBaseRotationZ;
-
-        private void Awake()
+        [Serializable]
+        private struct SeasonIconBinding
         {
-            CacheBaseTransforms();
+            [SerializeField] private Season season;
+            [SerializeField] private Sprite icon;
+
+            public Season Season => season;
+            public Sprite Icon => icon;
         }
 
-        public void Initialize(Action menuClicked)
+        [Serializable]
+        private struct WeatherIconBinding
         {
-            CacheBaseTransforms();
-            BindMenu(menuClicked);
+            [SerializeField] private WeatherType weather;
+            [SerializeField] private Sprite icon;
+
+            public WeatherType Weather => weather;
+            public Sprite Icon => icon;
+        }
+
+        [Header("Calendar")]
+        [SerializeField] private TMP_Text yearText;
+        [SerializeField] private TMP_Text monthDayText;
+        [SerializeField] private TMP_Text seasonText;
+        [SerializeField] private TMP_Text timeText;
+
+        [Header("Weather")]
+        [SerializeField] private TMP_Text weatherText;
+        [SerializeField] private TMP_Text temperatureText;
+        [SerializeField] private WeatherType initialWeather = WeatherType.Sunny;
+        [SerializeField] private int initialTemperatureCelsius = 22;
+
+        [Header("Icons")]
+        [SerializeField] private Image seasonIcon;
+        [SerializeField] private SeasonIconBinding[] seasonIconBindings;
+        [SerializeField] private Image weatherIcon;
+        [SerializeField] private WeatherIconBinding[] weatherIconBindings;
+
+        [Header("Season Background")]
+        [SerializeField] private Image seasonBackground;
+        [SerializeField] private Sprite defaultSeasonBackground;
+        [SerializeField] private SeasonIconBinding[] seasonBackgroundBindings;
+
+        [Header("Day/Night")]
+        [SerializeField] private RectTransform dayNightSky;
+        [SerializeField] private float dayNightSkyNoonRotationZ;
+
+        private WeatherType currentWeather;
+        private int currentTemperatureCelsius;
+        private bool weatherInitialized;
+
+        public void Initialize()
+        {
+            EnsureWeatherInitialized();
             RefreshCalendarWidget();
             RefreshWeather();
         }
@@ -34,9 +79,7 @@ namespace Game
         public void RefreshCalendarWidget()
         {
             CalendarManager calendar = CalendarManager.Instance;
-            SetDate(FormatTopBarDate(calendar));
-            SetTime(calendar != null ? calendar.GetTimeText() : string.Empty);
-            SetSeasonProgress(GetSeasonProgress(calendar));
+            SetCalendar(calendar);
             SetDayNightRotation(GetSkyDiskRotationZ(calendar));
         }
 
@@ -44,32 +87,44 @@ namespace Game
         {
             CalendarManager calendar = CalendarManager.Instance;
             SetTime(calendar != null ? calendar.GetTimeText() : string.Empty);
-            SetSeasonProgress(GetSeasonProgress(calendar));
             SetDayNightRotation(GetSkyDiskRotationZ(calendar));
         }
 
         public void RefreshWeather()
         {
-            SetWeather(FormatTopBarWeather());
+            EnsureWeatherInitialized();
+            ApplyWeather();
         }
 
-        private void BindMenu(Action clicked)
+        public void SetWeather(WeatherType weather, int temperatureCelsius)
         {
-            if (menuButton == null)
+            currentWeather = weather;
+            currentTemperatureCelsius = temperatureCelsius;
+            weatherInitialized = true;
+            ApplyWeather();
+        }
+
+        private void SetCalendar(CalendarManager calendar)
+        {
+            if (calendar == null)
             {
+                SetText(yearText, string.Empty);
+                SetText(monthDayText, string.Empty);
+                SetText(seasonText, string.Empty);
+                SetText(timeText, string.Empty);
+                SetIcon(seasonIcon, null);
+                SetSeasonBackground(defaultSeasonBackground);
                 return;
             }
 
-            menuButton.onClick.RemoveAllListeners();
-            menuButton.onClick.AddListener(() => clicked?.Invoke());
-        }
-
-        private void SetDate(string value)
-        {
-            if (dateText != null)
-            {
-                dateText.text = value;
-            }
+            bool english = LocalizationManager.CurrentLanguage == LocalizationManager.English;
+            SetText(yearText, english ? $"Year {calendar.Year}" : $"第{calendar.Year}年");
+            SetText(monthDayText, english ? $"{calendar.Month}/{calendar.Day}" : $"{calendar.Month}月{calendar.Day}日");
+            SetText(seasonText, CalendarManager.GetSeasonName(calendar.Season));
+            SetTextColor(seasonText, GetSeasonTextColor(calendar.Season));
+            SetTime(calendar.GetTimeText());
+            SetIcon(seasonIcon, GetSeasonIcon(calendar.Season));
+            SetSeasonBackground(GetSeasonBackground(calendar.Season));
         }
 
         private void SetTime(string value)
@@ -80,25 +135,23 @@ namespace Game
             }
         }
 
-        private void SetWeather(string value)
+        private void ApplyWeather()
         {
-            if (weatherText != null)
-            {
-                weatherText.text = value;
-            }
+            SetText(weatherText, GetWeatherName(currentWeather));
+            SetText(temperatureText, currentTemperatureCelsius.ToString());
+            SetIcon(weatherIcon, GetWeatherIcon(currentWeather));
         }
 
-        private void SetSeasonProgress(float yearProgress)
+        private void EnsureWeatherInitialized()
         {
-            if (seasonImage == null)
+            if (weatherInitialized)
             {
                 return;
             }
 
-            float clampedProgress = Mathf.Clamp01(yearProgress);
-            float seasonWidth = GetSeasonWidth();
-            float maxOffset = seasonWidth * (CalendarManager.SeasonsPerYear - 1);
-            seasonImage.anchoredPosition = seasonImageBaseAnchoredPosition + new Vector2(-clampedProgress * maxOffset, 0f);
+            currentWeather = initialWeather;
+            currentTemperatureCelsius = initialTemperatureCelsius;
+            weatherInitialized = true;
         }
 
         private void SetDayNightRotation(float rotationZ)
@@ -108,65 +161,139 @@ namespace Game
                 return;
             }
 
-            dayNightSky.localEulerAngles = new Vector3(0f, 0f, dayNightSkyBaseRotationZ + rotationZ);
+            dayNightSky.localRotation = Quaternion.Euler(
+                0f,
+                0f,
+                dayNightSkyNoonRotationZ + rotationZ);
         }
 
-        private void CacheBaseTransforms()
+        private Sprite GetSeasonIcon(Season season)
         {
-            seasonImageBaseAnchoredPosition = seasonImage != null ? seasonImage.anchoredPosition : Vector2.zero;
-            dayNightSkyBaseRotationZ = dayNightSky != null ? dayNightSky.localEulerAngles.z : 0f;
+            return GetSeasonSprite(seasonIconBindings, season);
         }
 
-        private float GetSeasonWidth()
+        private Sprite GetSeasonBackground(Season season)
         {
-            if (seasonImage == null)
+            Sprite background = GetSeasonSprite(seasonBackgroundBindings, season);
+            return background != null ? background : defaultSeasonBackground;
+        }
+
+        private static Sprite GetSeasonSprite(SeasonIconBinding[] bindings, Season season)
+        {
+            if (bindings == null)
             {
-                return 0f;
+                return null;
             }
 
-            if (seasonImage.parent is RectTransform viewport && viewport.rect.width > 0f)
+            for (int i = 0; i < bindings.Length; i++)
             {
-                return viewport.rect.width;
+                SeasonIconBinding binding = bindings[i];
+                if (binding.Season == season)
+                {
+                    return binding.Icon;
+                }
             }
 
-            float imageWidth = seasonImage.rect.width > 0f ? seasonImage.rect.width : Mathf.Abs(seasonImage.sizeDelta.x);
-            return imageWidth / CalendarManager.SeasonsPerYear;
+            return null;
+        }
+
+        private void SetSeasonBackground(Sprite background)
+        {
+            if (seasonBackground == null)
+            {
+                return;
+            }
+
+            seasonBackground.sprite = background;
+            seasonBackground.enabled = background != null;
+        }
+
+        private Sprite GetWeatherIcon(WeatherType weather)
+        {
+            if (weatherIconBindings == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < weatherIconBindings.Length; i++)
+            {
+                WeatherIconBinding binding = weatherIconBindings[i];
+                if (binding.Weather == weather)
+                {
+                    return binding.Icon;
+                }
+            }
+
+            return null;
+        }
+
+        private static string GetWeatherName(WeatherType weather)
+        {
+            bool english = LocalizationManager.CurrentLanguage == LocalizationManager.English;
+            switch (weather)
+            {
+                case WeatherType.Sunny:
+                    return LocalizationManager.Get("ui.weather.sunny");
+                case WeatherType.Cloudy:
+                    return LocalizationManager.GetOrFallback("ui.weather.cloudy", english ? "Cloudy" : "多云");
+                case WeatherType.Rain:
+                    return LocalizationManager.GetOrFallback("ui.weather.rain", english ? "Rain" : "下雨");
+                case WeatherType.Storm:
+                    return LocalizationManager.GetOrFallback("ui.weather.storm", english ? "Storm" : "雷暴");
+                case WeatherType.Snow:
+                    return LocalizationManager.GetOrFallback("ui.weather.snow", english ? "Snow" : "下雪");
+                case WeatherType.Fog:
+                    return LocalizationManager.GetOrFallback("ui.weather.fog", english ? "Fog" : "有雾");
+                default:
+                    return string.Empty;
+            }
+        }
+
+        private static Color32 GetSeasonTextColor(Season season)
+        {
+            switch (season)
+            {
+                case Season.Spring:
+                    return new Color32(0x4A, 0x8F, 0x3C, 0xFF);
+                case Season.Summer:
+                    return new Color32(0xE2, 0xA7, 0x2B, 0xFF);
+                case Season.Autumn:
+                    return new Color32(0xC8, 0x6A, 0x2A, 0xFF);
+                case Season.Winter:
+                    return new Color32(0x4F, 0x86, 0xB8, 0xFF);
+                default:
+                    return new Color32(0x2B, 0x26, 0x1D, 0xFF);
+            }
+        }
+
+        private static void SetText(TMP_Text target, string value)
+        {
+            if (target != null)
+            {
+                target.text = value;
+            }
+        }
+
+        private static void SetTextColor(TMP_Text target, Color color)
+        {
+            if (target != null)
+            {
+                target.color = color;
+            }
+        }
+
+        private static void SetIcon(Image target, Sprite icon)
+        {
+            if (target != null)
+            {
+                target.sprite = icon;
+                target.enabled = icon != null;
+            }
         }
 
         private static float GetSkyDiskRotationZ(CalendarManager calendar)
         {
             return calendar != null ? calendar.SmoothDayNightDiskRotationZ : 0f;
-        }
-
-        private static float GetSeasonProgress(CalendarManager calendar)
-        {
-            if (calendar == null)
-            {
-                return 0f;
-            }
-
-            float totalDays = CalendarManager.DaysPerMonth * CalendarManager.MonthsPerYear;
-            return totalDays > 1f
-                ? ((calendar.DayOfYear - 1) + calendar.TimeOfDay) / (totalDays - 1f)
-                : 0f;
-        }
-
-        private static string FormatTopBarDate(CalendarManager calendar)
-        {
-            if (calendar == null)
-            {
-                return string.Empty;
-            }
-
-            string seasonName = CalendarManager.GetSeasonName(calendar.Season);
-            return LocalizationManager.CurrentLanguage == LocalizationManager.English
-                ? $"Year {calendar.Year}\n{seasonName}\n{calendar.Month}/{calendar.Day}"
-                : $"\u7B2C{calendar.Year}\u5E74\n{seasonName}\n{calendar.Month}\u6708{calendar.Day}\u65E5";
-        }
-
-        private static string FormatTopBarWeather()
-        {
-            return $"{LocalizationManager.Get("ui.topbar.weather")}\n{LocalizationManager.Format("ui.topbar.weather_value", LocalizationManager.Get("ui.weather.sunny"), 22)}";
         }
     }
 }
