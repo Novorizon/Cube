@@ -38,7 +38,6 @@ namespace Game
         protected override void OnOpen(object args)
         {
             BindStaticLayout();
-            WorldFloatingPanelLayout.AlignBottomToHotBarGrid(GetComponent<RectTransform>());
             RefreshNow();
         }
 

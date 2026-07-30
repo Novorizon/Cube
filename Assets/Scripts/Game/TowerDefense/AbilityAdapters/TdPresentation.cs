@@ -89,12 +89,7 @@ namespace Game
                 return;
             }
 
-            AudioManager.Instance.PlaySound(
-                soundName,
-                new AudioPlayOptions
-                {
-                    Position = position,
-                });
+            AudioManager.Instance.PlaySound(soundName, new AudioPlayOptions { Position = position });
         }
 
         private static bool IsValidEffect(string effectName)

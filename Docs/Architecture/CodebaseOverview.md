@@ -29,6 +29,7 @@ Assets/Scripts/Bootstrap/GameEntry.cs
 跨玩法基础设施放在 `Assets/Scripts/Framework`：
 
 ```text
+Audio
 Device
 Effect
 Event
@@ -44,7 +45,8 @@ Logger.cs
 NetLogger.cs
 ```
 
-Framework 不写具体经营、任务、塔防规则。UI 框架细节见 `Docs/Architecture/UIFramework.md`。
+Framework 不写具体经营、任务、塔防规则。`Audio/AudioManager` 是背景音乐和普通音效的统一入口，
+用法见 `Docs/Architecture/AudioSystem.md`。UI 框架细节见 `Docs/Architecture/UIFramework.md`。
 
 `Device/DeviceManager` 是设备与屏幕事实的统一来源：平台、设备类别、系统与显卡概况，
 以及当前游戏窗口尺寸、安全区、方向和全屏状态。它不包含画质档位、UI 布局档位或玩法

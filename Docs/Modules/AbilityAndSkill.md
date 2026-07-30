@@ -275,7 +275,7 @@ JsonAbilityDefinitionProvider  ┘
 
 ### P1：当前业务表现与技能语义
 
-- [ ] **实际音效适配**：`TdPresentation.PlaySound` 当前只输出日志。接入正式音频服务，并统一 Excel 数字声音 ID 与 JSON 资源名的解析规则。
+- [ ] **音效资源标识规范**：`TdPresentation.PlaySound` 已接入 `AudioManager.PlaySound`，并按请求位置播放 3D 音效；当前 `soundName` 会直接作为 YooAsset 完整资源路径加载。后续仍需统一 Excel 数字声音 ID 与 JSON 资源名的解析规则。
 - [ ] **Modifier 表现字段拆分**：将单一 `effectLocation` 拆为 `onApplyEffect`、`loopEffect`、`onRemoveEffect`。当前 Modifier 使用非循环 `IceHitEffect.prefab` 作为持续句柄，粒子结束后空对象会保留到 Modifier 销毁；Action 命中特效与 Modifier 特效还可能重复播放。
 - [ ] **Projectile 逻辑与表现绑定**：投射物表现必须跟随 Core Projectile 位置并在销毁时停止；线性投射物改为线段/扫掠检测，避免低帧率或高速穿透；Tracking Projectile 增加最大距离或寿命；处理战斗结束后异步加载的一次性特效。
 - [ ] **Poison Cloud 设计确认**：当前实现是“释放瞬间给范围内单位添加 6 秒 DoT”，不是持续地面云，后来进入范围的单位不会中毒。若设计要求真正毒云，应使用 Thinker/区域 Modifier；否则修改名称和说明，避免配置语义误解。

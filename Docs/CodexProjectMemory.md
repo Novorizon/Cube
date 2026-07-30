@@ -93,6 +93,7 @@ Project audit / cleanup:
 - Do not manually edit Luban generated code or generated data as a lasting solution.
 - Move Unity scripts with `.meta`; do not delete and recreate scripts that may be referenced by Prefabs.
 - UI nodes should be wired through serialized fields. Do not reintroduce runtime `Transform.Find` for stable HUD nodes.
+- Keep method declaration and invocation arguments on one line whenever reasonably readable. Wrap only when the line is clearly too long or an argument expression is complex; do not mechanically place every argument on its own line.
 - Avoid changing Prefab layout from runtime code unless the script is explicitly responsible for generated lists, grids, or layout.
 - The current shell is Windows PowerShell 5.1. Prefer simple commands and single-quoted `rg` patterns; split complex searches instead of using dense quoted regex.
 

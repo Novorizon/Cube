@@ -69,6 +69,7 @@ Story -> Quest -> 采集 -> Blueprint -> 建造 / 农田 / 科技 -> 更多内�
 - 制作 / 生产配置使用 `Blueprint`，不要新增 `Recipe` 或 `WorldRecipe`。
 - 重新生成配置统一执行 `Data/gen_all.bat`，不要单独建议执行 `Data/gen_client.bat`。
 - UI 节点优先通过 prefab 序列化字段绑定，不运行时按名字动态 `Find` 常驻节点。
+- 方法声明和方法调用的参数列表尽量保持在同一行；仅在单行明显过长或参数表达式复杂时换行，不要机械地让每个参数单独占一行。
 - 移动 Unity 脚本必须保留 `.meta`，不要为了整理随意重命名已挂 Prefab 的脚本。
 - 重要框架规则、业务流程、命名约定、易踩坑细节或长期设计决策发生变化时，必须同步更新对应 Markdown 源文档；改完后重新生成 `Docs/Human/index.html`。不要只把长期规则写在聊天记录或 HTML 里。
 
