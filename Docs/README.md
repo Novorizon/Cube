@@ -15,6 +15,7 @@ Docs/CodexProjectMemory.md
 | 任务 | 继续阅读 |
 | --- | --- |
 | UI 框架、关闭规则、Stack、Exclusive | `Architecture/UIFramework.md` |
+| 背景音乐、普通音效、音量设置 | `Architecture/AudioSystem.md` |
 | 不确定模块该看哪些表、工具、文件 | `Architecture/ModuleWorkMap.md` |
 | 经营主界面、Bag、Build、ToolKit、Quest、TechTree | `Modules/ManagementUI.md` |
 | 岛屿经营业务、资源、工具、农田、建筑 | `Product/ManagementMode.md`、`Modules/Island.md` |

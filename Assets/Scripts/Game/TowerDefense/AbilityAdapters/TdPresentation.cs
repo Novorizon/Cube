@@ -84,12 +84,17 @@ namespace Game
 
         public void PlaySound(string soundName, Vector3 position)
         {
-            if (string.IsNullOrEmpty(soundName))
+            if (string.IsNullOrWhiteSpace(soundName))
             {
                 return;
             }
 
-            Debug.Log($"Ability sound requested: {soundName}, position: {position}");
+            AudioManager.Instance.PlaySound(
+                soundName,
+                new AudioPlayOptions
+                {
+                    Position = position,
+                });
         }
 
         private static bool IsValidEffect(string effectName)

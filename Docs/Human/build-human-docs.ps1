@@ -11,6 +11,7 @@ $docSpecs = @(
     [ordered]@{ Group = '架构'; Title = '代码库概览'; Path = 'Architecture/CodebaseOverview.md'; Summary = '代码分层、目录边界和 Unity 安全规则。' },
     [ordered]@{ Group = '架构'; Title = '模块工作索引'; Path = 'Architecture/ModuleWorkMap.md'; Summary = '模块对应的文档、代码、配置表、工具和生成物总览。' },
     [ordered]@{ Group = '架构'; Title = 'UI 框架'; Path = 'Architecture/UIFramework.md'; Summary = 'UI 类型、关闭规则、Stack、Exclusive 和 prefabPath 语义。' },
+    [ordered]@{ Group = '架构'; Title = '音频系统'; Path = 'Architecture/AudioSystem.md'; Summary = '背景音乐、普通音效、播放参数、句柄和音量设置。' },
     [ordered]@{ Group = '架构'; Title = '数据流水线'; Path = 'Architecture/DataPipeline.md'; Summary = 'Luban、Excel、本地化和生成数据规则。' },
     [ordered]@{ Group = '架构'; Title = 'Excel 数据字典'; Path = 'Architecture/ExcelDataDictionary.md'; Summary = '每个 Excel、每个字段、表间关系和当前接入状态。' },
     [ordered]@{ Group = '架构'; Title = '地图运行时'; Path = 'Architecture/MapRuntime.md'; Summary = '地图运行时生成、MapData.Objects 和地图标记边界。' },
