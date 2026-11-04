@@ -2,6 +2,10 @@
 
 本文记录当前存档边界。需要改具体存档字段时，先读代码。
 
+## 会话生命周期
+
+项目入口按 `Initialize -> LoadSession -> BeginSession -> EndSession` 管理存档。`LoadSession` 区分缺档、恢复成功和恢复失败；恢复失败会终止启动并保留旧文件。`BeginSession` 在地图和主界面就绪后开启写入权限。手动/自动保存都要求 `SessionReady`，初始化未完成和会话结束后不会保存。详见 `Docs/Architecture/GameLifecycle.md`。
+
 ## 主要代码
 
 ```text
@@ -101,6 +105,7 @@ CompletedStoryIds
 ```
 
 剧情 Step 改变时会保存 `CurrentStepIndex`。世界 UI 就绪后，`StoryManager.TryStartAutoStories()` 会先恢复未完成的 `CurrentStoryId`，并从该 Step 重新打开 StoryPanel；旧存档缺少字段时默认值为 0。
+
 
 
 
