@@ -230,42 +230,33 @@ namespace Game
 
         public bool TakeDamage(Npc npc, int damage)
         {
-            if (npc == null || npc.Data == null)
+            bool wasAlive = npc != null && npc.Data != null && !npc.Data.Dead && npc.Data.CurrentHp > 0;
+            int applied = ApplyFinalDamage(npc, damage, out bool killed);
+            if (wasAlive && killed)
             {
-                return false;
+                AbilityManager.Instance.NotifyNpcDeath(npc);
             }
-
-            NpcData data = npc.Data;
-
-            if (data.Dead)
-            {
-                return false;
-            }
-
-            if (damage <= 0)
-            {
-                return false;
-            }
-
-            data.CurrentHp -= damage;
-
-            if (data.CurrentHp < 0)
-            {
-                data.CurrentHp = 0;
-            }
-
-            Debug.Log($"Npc damaged. Id: {npc.Config?.Id}, Damage: {damage}, Hp: {data.CurrentHp}/{data.MaxHp}");
-
-            if (data.CurrentHp > 0)
-            {
-                return true;
-            }
-
-            _ = KillNpcAsync(npc);
-            return true;
+            return applied > 0;
         }
 
-        public async Task KillNpcAsync(Npc npc)
+        // The combat runtime owns damage/death notifications when it calls this settlement entry.
+        internal int ApplyFinalDamage(Npc npc, int damage, out bool killed)
+        {
+            killed = false;
+            if (npc == null || npc.Data == null || npc.Data.Dead || npc.Data.CurrentHp <= 0 || damage <= 0) return 0;
+            NpcData data = npc.Data;
+            int before = data.CurrentHp;
+            data.CurrentHp = Mathf.Max(0, data.CurrentHp - damage);
+            int applied = before - data.CurrentHp;
+            killed = data.CurrentHp <= 0;
+            Debug.Log($"Npc damaged. Id: {npc.Config?.Id}, Damage: {applied}, Hp: {data.CurrentHp}/{data.MaxHp}");
+            if (killed) _ = KillNpcAsync(npc, false);
+            return applied;
+        }
+
+        public Task KillNpcAsync(Npc npc) => KillNpcAsync(npc, true);
+
+        private async Task KillNpcAsync(Npc npc, bool notifyRuntime)
         {
             if (npc == null || npc.Data == null)
             {
@@ -279,7 +270,13 @@ namespace Game
                 return;
             }
 
+            data.CurrentHp = 0;
             data.Dead = true;
+            if (notifyRuntime)
+            {
+                try { AbilityManager.Instance.NotifyNpcDeath(npc); }
+                catch (System.Exception exception) { Debug.LogException(exception); }
+            }
             data.Moving = false;
             data.Attacking = false;
 
@@ -369,7 +366,7 @@ namespace Game
                 return;
             }
 
-            if (AbilityManager.Instance.IsStunned(npc) || AbilityManager.Instance.IsCommandRestricted(npc))
+            if (AbilityManager.Instance.IsUnitActionRestricted(npc))
             {
                 data.Attacking = false;
                 SetWalk(npc, false);
@@ -384,7 +381,7 @@ namespace Game
                 }
             }
 
-            if (AbilityManager.Instance.IsRooted(npc))
+            if (AbilityManager.Instance.IsMovementRestricted(npc))
             {
                 SetWalk(npc, false);
                 return;
@@ -470,7 +467,7 @@ namespace Game
                 return false;
             }
 
-            if (AbilityManager.Instance.IsStunned(npc))
+            if (AbilityManager.Instance.IsAttackRestricted(npc))
             {
                 data.Attacking = false;
                 return false;
@@ -503,7 +500,7 @@ namespace Game
                 return true;
             }
 
-            data.AttackTimer = data.AttackInterval;
+            data.AttackTimer = data.AttackInterval * AbilityManager.Instance.GetAttackIntervalMultiplier(npc);
 
             DoEnemyAttackBase(npc);
 
@@ -636,3 +633,4 @@ namespace Game
         }
     }
 }
+

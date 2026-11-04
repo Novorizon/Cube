@@ -19,7 +19,7 @@ namespace Game.Ability
         {
             // Runtime teardown must release the modifier without executing gameplay actions such
             // as expiry damage, healing, or spawning another modifier after battle settlement.
-            if (Engine != null && Engine.IsClearingRuntime)
+            if (Engine == null || Engine.IsClearingRuntime || !Modifier.IsRuntimeCurrent)
             {
                 return;
             }
@@ -51,7 +51,7 @@ namespace Game.Ability
 
             // Trigger actions prefer the event target but fall back to the modifier parent.
             IUnit target = modifierEvent.Target ?? Parent;
-            ActionRunner.Execute(Modifier.Definition.TriggerActions, CreateContext(target));
+            ActionRunner.Execute(Modifier.Definition.TriggerActions, CreateContext(target, modifierEvent));
         }
 
         private bool ShouldHandleEvent(ModifierEvent modifierEvent)
@@ -92,9 +92,13 @@ namespace Game.Ability
             }
         }
 
-        private CastContext CreateContext(IUnit target)
+        private CastContext CreateContext(IUnit target, ModifierEvent modifierEvent = null)
         {
-            return ActionRunner.CreateSingleTargetContext(Engine, Ability, Caster, target, Parent != null ? Parent.Position : UnityEngine.Vector3.zero);
+            CastContext context = ActionRunner.CreateSingleTargetContext(Engine, Ability, Caster, target, Parent != null ? Parent.Position : UnityEngine.Vector3.zero);
+            context.Modifier = Modifier;
+            context.Level = Modifier.Level;
+            context.Event = modifierEvent;
+            return context;
         }
 
         private static bool IsSameUnit(IUnit left, IUnit right)
@@ -104,3 +108,4 @@ namespace Game.Ability
         }
     }
 }
+

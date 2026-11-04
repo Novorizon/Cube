@@ -101,7 +101,7 @@ namespace Game
                 return;
             }
 
-            if (AbilityManager.Instance.IsActionRestricted(tower))
+            if (AbilityManager.Instance.IsActionRestricted(tower) || AbilityManager.Instance.IsAbilityExecuting(tower))
             {
                 return;
             }
@@ -123,33 +123,11 @@ namespace Game
                 return;
             }
 
-            Ability.CastResult skillResult = null;
-            bool skillApplied = false;
-            if (config.SkillId > 0)
-            {
-                skillResult = AbilityManager.Instance.CastTowerAbilityOnTarget(tower, config.SkillId, target);
-                skillApplied = skillResult == null || skillResult.Success;
-
-                if (skillApplied)
-                {
-                    Debug.Log($"Tower cast skill. towerConfigId: {tower.ConfigId}, level: {tower.Level}, skillId: {config.SkillId}, target: {target.name}");
-                }
-                else if (skillResult.FailureReason != Ability.CastFailureReason.Cooldown)
-                {
-                    Debug.LogWarning($"Tower cast skill failed; basic attack will continue. towerConfigId: {tower.ConfigId}, level: {tower.Level}, skillId: {config.SkillId}, reason: {skillResult.FailureReason}, message: {skillResult.Message}");
-                }
-            }
-
-            // TowerLevelConfig is the single source for the attack cadence, base damage, range,
-            // and projectile presentation. A configured ability only adds extra hit behavior.
-            Vector3 startPosition = tower.transform.position + Vector3.up * 0.8f;
-            Vector3 targetPosition = target.transform.position + Vector3.up * 0.6f;
-            _ = BattleEffect.PlayProjectileWithHitAsync(config.AttackEffect, config.HitEffect, startPosition, targetPosition);
-
-            AbilityManager.Instance.ApplyTowerAttackDamage(tower, target, config.Damage);
+            // Freeze the attack request at launch. Damage and the optional on-hit skill settle after travel.
+            AbilityAttackHandle attack = AbilityManager.Instance.LaunchTowerAttack(tower, target, config.Damage, config.AttackEffect, config.HitEffect, config.SkillId);
+            if (!attack.IsValid) return;
             tower.Data.AttackTimer = Mathf.Max(0.05f, config.AttackInterval * AbilityManager.Instance.GetAttackIntervalMultiplier(tower));
-
-            Debug.Log($"Tower basic attack. towerConfigId: {tower.ConfigId}, level: {tower.Level}, target: {target.name}, damage: {config.Damage}, skillApplied: {skillApplied}");
+            Debug.Log($"Tower attack launched. towerConfigId: {tower.ConfigId}, level: {tower.Level}, target: {target.name}, damage: {config.Damage}, attackId: {attack.AttackId}");
         }
 
         private Npc FindTarget(Tower tower, float range)
@@ -225,3 +203,4 @@ namespace Game
 
     }
 }
+

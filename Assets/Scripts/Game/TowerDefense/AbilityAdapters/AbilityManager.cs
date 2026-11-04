@@ -12,27 +12,32 @@ namespace Game
     /// Game-layer facade for the ability runtime.
     /// It adapts TD managers/config tables to Game.Ability and is the intended business entry point.
     /// </summary>
-    public sealed class AbilityManager : Singleton<AbilityManager>
+    public sealed partial class AbilityManager : Singleton<AbilityManager>
     {
         private const float GlobalSearchRadius = 9999f;
 
         // Keep stable adapters per live Game object so modifiers can compare units by EntityId.
         private readonly Dictionary<int, TdUnit> npcUnits = new Dictionary<int, TdUnit>();
         private readonly Dictionary<int, TdUnit> towerUnits = new Dictionary<int, TdUnit>();
-        private readonly List<IUnit> searchResults = new List<IUnit>();
         private readonly HashSet<int> activeNpcObjectIds = new HashSet<int>();
         private readonly HashSet<int> activeTowerObjectIds = new HashSet<int>();
         private readonly List<int> staleObjectIds = new List<int>();
         private readonly List<IAbilityDefinitionProvider> additionalDefinitionProviders = new List<IAbilityDefinitionProvider>();
 
         private TdUnit baseUnit;
+        private TdPresentation presentation;
         private int nextRuntimeEntityId;
         private bool lifecycleEventsSubscribed;
         private bool initialized;
+        private bool battleAvailable;
+        private int battleSession;
+        private string jsonManifestPath;
 
+        /// <summary>Scripting/debug interop. Gameplay/UI code should use controlled handles and facade operations.</summary>
         public AbilitySystem Engine { get; } = new AbilitySystem();
         public AbilityDefinitionRegistry DefinitionRegistry { get; private set; }
         public bool IsInitialized => initialized;
+        public bool IsAvailable => initialized && battleAvailable && !BattleFlowManager.Instance.HasEnded && Engine.IsRuntimeAvailable;
 
         public void GetBindingDebugSnapshot(IList<AbilityBindingDebugInfo> results)
         {
@@ -84,6 +89,9 @@ namespace Game
         public bool Initialize()
         {
             UnsubscribeFromLifecycleEvents();
+            initialized = false;
+            battleAvailable = false;
+            ClearBattleRuntime();
             npcUnits.Clear();
             towerUnits.Clear();
             activeNpcObjectIds.Clear();
@@ -93,7 +101,8 @@ namespace Game
             nextRuntimeEntityId = 1;
 
             // Core runtime only sees interfaces; all project-specific lookup stays in adapters.
-            Engine.Initialize(new TdWorld(this), new TdPresentation());
+            presentation = new TdPresentation();
+            Engine.Initialize(new TdWorld(this), presentation);
             if (!RegisterDefinitions())
             {
                 initialized = false;
@@ -102,6 +111,7 @@ namespace Game
             }
 
             initialized = true;
+            battleAvailable = true;
             SubscribeToLifecycleEvents();
             SynchronizeUnitBindings();
             Debug.Log("AbilityManager initialized.");
@@ -123,27 +133,38 @@ namespace Game
             return true;
         }
 
+        /// <summary>Opt in before Initialize, using the project's configured ResourceManager asset location.</summary>
+        public bool ConfigureJsonSources(string manifestAssetPath)
+        {
+            if (initialized || !TdJsonAbilityManifestProvider.IsHandAuthoredAssetPath(manifestAssetPath)) return false;
+            jsonManifestPath = manifestAssetPath;
+            return true;
+        }
+
         public void Release()
         {
             UnsubscribeFromLifecycleEvents();
-            ClearBattleRuntime();
             initialized = false;
+            battleAvailable = false;
+            ClearBattleRuntime();
         }
 
         public void Update(float deltaTime)
         {
-            if (!initialized)
+            if (!IsAvailable)
             {
                 return;
             }
 
             SynchronizeUnitBindings();
             Engine.Update(deltaTime);
+            PruneControlledEffects();
+            PruneTowerAttacks();
         }
 
         public TdUnit GetUnit(Npc npc)
         {
-            if (npc == null)
+            if (!IsAvailable || npc == null)
             {
                 return null;
             }
@@ -157,8 +178,10 @@ namespace Game
 
             if (unit == null)
             {
+                if (!IsRegisteredNpc(npc)) return null;
                 unit = new TdUnit(AllocateRuntimeEntityId(), npc);
                 npcUnits[entityId] = unit;
+                Engine.RegisterUnit(unit);
             }
 
             return unit;
@@ -166,7 +189,7 @@ namespace Game
 
         public TdUnit GetUnit(Tower tower)
         {
-            if (tower == null)
+            if (!IsAvailable || tower == null)
             {
                 return null;
             }
@@ -180,8 +203,10 @@ namespace Game
 
             if (unit == null)
             {
+                if (!IsRegisteredTower(tower)) return null;
                 unit = new TdUnit(AllocateRuntimeEntityId(), tower);
                 towerUnits[entityId] = unit;
+                Engine.RegisterUnit(unit);
             }
 
             return unit;
@@ -189,9 +214,11 @@ namespace Game
 
         public TdUnit GetBaseUnit()
         {
+            if (!IsAvailable || !BaseManager.Instance.HasBaseObject) return null;
             if (baseUnit == null)
             {
-                baseUnit = TdUnit.CreateBaseUnit();
+                baseUnit = TdUnit.CreateBaseUnit(AllocateRuntimeEntityId());
+                Engine.RegisterUnit(baseUnit);
             }
 
             return baseUnit;
@@ -214,8 +241,11 @@ namespace Game
                 return false;
             }
 
-            Engine.RemoveUnit(baseUnit);
+            TdUnit removed = baseUnit;
             baseUnit = null;
+            removed.Invalidate();
+            try { Engine.RemoveUnit(removed); }
+            catch (Exception exception) { Debug.LogException(exception); }
             return true;
         }
 
@@ -226,7 +256,7 @@ namespace Game
 
         public RuntimeAbility AddAbilityToTower(Tower tower, int skillId, int level = 0)
         {
-            int resolvedLevel = level > 0 ? level : tower != null ? tower.Level : 1;
+            int resolvedLevel = level > 0 ? level : 1;
             return AddAbility(GetUnit(tower), skillId, resolvedLevel);
         }
 
@@ -237,7 +267,7 @@ namespace Game
 
         public RuntimeAbility AddAbility(IUnit owner, int skillId, int level = 1)
         {
-            if (!initialized || owner == null)
+            if (!IsAvailable || owner == null)
             {
                 return null;
             }
@@ -250,7 +280,8 @@ namespace Game
 
             // Current config still uses Skill ids. They are translated to ability names at the edge.
             IResourceOwner resourceOwner = config.CostResourceId > 0 ? new TdResourceOwner(config.CostResourceId) : null;
-            return Engine.AddAbility(owner, AbilityConfigConverter.AbilityName(skillId), level, resourceOwner);
+            string name = AbilityConfigConverter.AbilityName(skillId);
+            return Engine.FindAbility(owner, name) ?? Engine.AddAbility(owner, name, level, resourceOwner);
         }
 
         public CastResult CastAbility(IUnit caster, int skillId, int level = 1)
@@ -293,12 +324,12 @@ namespace Game
 
         public CastResult CastTowerAbilityAtBestTarget(Tower tower, int skillId)
         {
-            return CastAbilityAtBestTarget(GetUnit(tower), skillId, tower != null ? tower.Level : 1);
+            return CastAbilityAtBestTarget(GetUnit(tower), skillId);
         }
 
         public CastResult CastTowerAbilityOnTarget(Tower tower, int skillId, Npc target)
         {
-            return CastAbilityOnTarget(GetUnit(tower), skillId, GetUnit(target), tower != null ? tower.Level : 1);
+            return CastAbilityOnTarget(GetUnit(tower), skillId, GetUnit(target));
         }
 
         public CastResult CastBaseAbilityAtBestTarget(int skillId)
@@ -311,7 +342,7 @@ namespace Game
             remaining = 0f;
             duration = 0f;
 
-            RuntimeAbility ability = EnsureAbility(GetBaseUnit(), skillId);
+            RuntimeAbility ability = IsAvailable && baseUnit != null ? Engine.FindAbility(baseUnit, AbilityConfigConverter.AbilityName(skillId)) : null;
             if (ability == null)
             {
                 return false;
@@ -325,49 +356,17 @@ namespace Game
         public CastResult CastAbilityAtBestTarget(IUnit caster, int skillId, int level = 1)
         {
             RuntimeAbility ability = EnsureAbility(caster, skillId, level);
-            if (ability == null)
-            {
-                return CastResult.Fail(CastFailureReason.MissingAbility);
-            }
-
-            // Convenience helper for existing AI/TD logic. Explicit casts should use Engine/target APIs.
-            AbilityDefinition definition = ability.Definition;
-            AbilityBehavior behavior = definition.Behavior;
-
-            if ((behavior & AbilityBehavior.Passive) != 0)
-            {
-                return CastResult.Fail(CastFailureReason.AbilityPassive);
-            }
-
-            if ((behavior & AbilityBehavior.UnitTarget) != 0)
-            {
-                IUnit target = FindNearestTarget(caster, ability);
-                if (target == null)
-                {
-                    return CastResult.Fail(CastFailureReason.InvalidTarget, "No valid target.");
-                }
-
-                return Engine.CastAbilityOnTarget(caster, definition.Name, target);
-            }
-
-            if ((behavior & AbilityBehavior.PointTarget) != 0)
-            {
-                IUnit target = FindNearestTarget(caster, ability);
-                Vector3 position = target != null ? target.Position : caster.Position;
-                return Engine.CastAbilityOnPosition(caster, definition.Name, position);
-            }
-
-            return Engine.CastAbility(caster, definition.Name);
+            return ability == null ? MissingOwnedAbility() : CastExistingAtBestTarget(ability);
         }
 
         public bool HasState(Npc npc, UnitState state)
         {
-            return Engine.HasState(GetUnit(npc), state);
+            return IsAvailable && Engine.HasState(FindUnit(npc), state);
         }
 
         public bool HasState(Tower tower, UnitState state)
         {
-            return Engine.HasState(GetUnit(tower), state);
+            return IsAvailable && Engine.HasState(FindUnit(tower), state);
         }
 
         public bool IsStunned(Npc npc)
@@ -392,23 +391,22 @@ namespace Game
 
         public bool IsActionRestricted(Tower tower)
         {
-            TdUnit unit = GetUnit(tower);
-            return Engine.HasState(unit, UnitState.Stunned) ||
-                   Engine.HasState(unit, UnitState.CommandRestricted);
+            return IsAttackRestricted(FindUnit(tower));
         }
 
         public bool IsMovementRestricted(Npc npc)
         {
-            TdUnit unit = GetUnit(npc);
-            return Engine.HasState(unit, UnitState.Stunned) ||
+            TdUnit unit = FindUnit(npc);
+            return !IsAvailable || Engine.HasState(unit, UnitState.Stunned) ||
                    Engine.HasState(unit, UnitState.Rooted) ||
-                   Engine.HasState(unit, UnitState.CommandRestricted);
+                   Engine.HasState(unit, UnitState.OutOfGame) || Engine.HasState(unit, UnitState.CommandRestricted);
         }
 
         public DamageResult ApplyTowerAttackDamage(Tower tower, Npc target, float damage)
         {
-            // Route attack damage through the same modifier-aware pipeline as ability damage.
-            return Engine.ApplyDamage(new DamageInfo
+            if (!IsAvailable || IsActionRestricted(tower)) return null;
+            // One attack entry emits start, settlement and landed notifications exactly once.
+            return Engine.ApplyAttackDamage(new DamageInfo
             {
                 Engine = Engine,
                 Attacker = GetUnit(tower),
@@ -422,7 +420,8 @@ namespace Game
 
         public DamageResult ApplyNpcAttackDamageToBase(Npc npc, float damage)
         {
-            return Engine.ApplyDamage(new DamageInfo
+            if (!IsAvailable || IsAttackRestricted(npc)) return null;
+            return Engine.ApplyAttackDamage(new DamageInfo
             {
                 Engine = Engine,
                 Attacker = GetUnit(npc),
@@ -436,14 +435,16 @@ namespace Game
 
         public float GetMoveSpeedMultiplier(Npc npc)
         {
-            TdUnit unit = GetUnit(npc);
+            TdUnit unit = FindUnit(npc);
+            if (!IsAvailable || unit == null) return 1f;
             float bonus = Engine.GetModifierProperty(unit, ModifierProperty.MoveSpeedBonusPercent, null);
             return Mathf.Max(0f, 1f + bonus / 100f);
         }
 
         public float GetAttackIntervalMultiplier(Tower tower)
         {
-            TdUnit unit = GetUnit(tower);
+            TdUnit unit = FindUnit(tower);
+            if (!IsAvailable || unit == null) return 1f;
             float attackSpeedBonus = Engine.GetModifierProperty(unit, ModifierProperty.AttackSpeedBonus, null);
             return 1f / Mathf.Max(0.01f, 1f + attackSpeedBonus / 100f);
         }
@@ -453,9 +454,19 @@ namespace Game
             Engine.RegisterAbilityScript(AbilityConfigConverter.AbilityName(skillId), factory);
         }
 
+        public void RegisterAbilityScript(string internalName, Func<AbilityScript> factory)
+        {
+            Engine.RegisterAbilityScript(internalName, factory);
+        }
+
         public void RegisterModifierScript(int modifierId, Func<ModifierScript> factory)
         {
             Engine.RegisterModifierScript(AbilityConfigConverter.ModifierName(modifierId), factory);
+        }
+
+        public void RegisterModifierScript(string internalName, Func<ModifierScript> factory)
+        {
+            Engine.RegisterModifierScript(internalName, factory);
         }
 
         public bool TryGetAbilityDefinition(int skillId, out AbilityDefinition definition)
@@ -470,25 +481,28 @@ namespace Game
 
         public Modifier AddModifierToNpc(Npc npc, int modifierId, float duration = float.NaN)
         {
+            if (!IsAvailable) return null;
             TdUnit unit = GetUnit(npc);
             return Engine.AddModifier(unit, unit, AbilityConfigConverter.ModifierName(modifierId), duration);
         }
 
         public Modifier AddModifierToTower(Tower tower, int modifierId, float duration = float.NaN)
         {
+            if (!IsAvailable) return null;
             TdUnit unit = GetUnit(tower);
             return Engine.AddModifier(unit, unit, AbilityConfigConverter.ModifierName(modifierId), duration);
         }
 
         public Modifier AddModifierToBase(int modifierId, float duration = float.NaN)
         {
+            if (!IsAvailable) return null;
             TdUnit unit = GetBaseUnit();
             return Engine.AddModifier(unit, unit, AbilityConfigConverter.ModifierName(modifierId), duration);
         }
 
         private RuntimeAbility EnsureAbility(IUnit caster, int skillId, int level = 1)
         {
-            if (!initialized || caster == null)
+            if (!IsAvailable || caster == null)
             {
                 return null;
             }
@@ -498,7 +512,6 @@ namespace Game
             RuntimeAbility ability = Engine.FindAbility(caster, abilityName);
             if (ability != null)
             {
-                ability.SetLevel(Mathf.Max(1, level));
                 return ability;
             }
 
@@ -524,6 +537,8 @@ namespace Game
             BaseManager.Instance.BaseLoaded += OnBaseLoaded;
             BaseManager.Instance.BaseRemoving += OnBaseRemoving;
             BattleFlowManager.Instance.BattleCompleted += OnBattleCompleted;
+            BattleFlowManager.Instance.BattleStarted += OnBattleStarted;
+            Engine.EventRaised += OnRuntimeEvent;
             lifecycleEventsSubscribed = true;
         }
 
@@ -541,6 +556,8 @@ namespace Game
             BaseManager.Instance.BaseLoaded -= OnBaseLoaded;
             BaseManager.Instance.BaseRemoving -= OnBaseRemoving;
             BattleFlowManager.Instance.BattleCompleted -= OnBattleCompleted;
+            BattleFlowManager.Instance.BattleStarted -= OnBattleStarted;
+            Engine.EventRaised -= OnRuntimeEvent;
             lifecycleEventsSubscribed = false;
         }
 
@@ -574,17 +591,33 @@ namespace Game
             UnregisterBaseUnit();
         }
 
+        private void OnBattleStarted()
+        {
+            if (!initialized) return;
+            battleAvailable = true;
+            SynchronizeUnitBindings();
+        }
+
         private void OnBattleCompleted(BattleEndedMessage message)
         {
+            battleAvailable = false;
             ClearBattleRuntime();
         }
 
         private void ClearBattleRuntime()
         {
-            Engine.ClearRuntime();
+            battleSession++;
+            controlledEffects.Clear();
+            pendingTowerAttacks.Clear();
+            nextEffectHandle = 0;
+            foreach (TdUnit unit in npcUnits.Values) unit.Invalidate();
+            foreach (TdUnit unit in towerUnits.Values) unit.Invalidate();
+            baseUnit?.Invalidate();
+            try { Engine.ClearRuntime(); }
+            catch (Exception exception) { Debug.LogException(exception); }
+            presentation?.Clear();
             npcUnits.Clear();
             towerUnits.Clear();
-            searchResults.Clear();
             activeNpcObjectIds.Clear();
             activeTowerObjectIds.Clear();
             staleObjectIds.Clear();
@@ -684,8 +717,10 @@ namespace Game
                 return false;
             }
 
-            Engine.RemoveUnit(unit);
             npcUnits.Remove(objectId);
+            unit.Invalidate();
+            try { Engine.RemoveUnit(unit); }
+            catch (Exception exception) { Debug.LogException(exception); }
             return true;
         }
 
@@ -696,8 +731,10 @@ namespace Game
                 return false;
             }
 
-            Engine.RemoveUnit(unit);
             towerUnits.Remove(objectId);
+            unit.Invalidate();
+            try { Engine.RemoveUnit(unit); }
+            catch (Exception exception) { Debug.LogException(exception); }
             return true;
         }
 
@@ -727,7 +764,8 @@ namespace Game
                 radius = GlobalSearchRadius;
             }
 
-            searchResults.Clear();
+            // Cast selection can re-enter through custom state/property scripts. Keep candidates local.
+            List<IUnit> searchResults = new List<IUnit>();
             Engine.FindUnits(caster.Position, radius, query, searchResults);
 
             IUnit nearest = null;
@@ -750,7 +788,6 @@ namespace Game
                 }
             }
 
-            searchResults.Clear();
             return nearest;
         }
 
@@ -764,12 +801,15 @@ namespace Game
                     DataManager.Instance.SkillModifier)
             };
             providers.AddRange(additionalDefinitionProviders);
+            if (!string.IsNullOrEmpty(jsonManifestPath)) providers.Add(new TdJsonAbilityManifestProvider(jsonManifestPath));
 
             DefinitionRegistry = new AbilityDefinitionRegistry();
             DefinitionRegistry.LoadProviders(providers);
-            for (int i = 0; i < DefinitionRegistry.Validation.Issues.Count; i++)
+            bool applied = DefinitionRegistry.ApplyTo(Engine);
+            AbilityValidationReport report = DefinitionRegistry.LastApplyValidation ?? DefinitionRegistry.Validation;
+            for (int i = 0; i < report.Issues.Count; i++)
             {
-                AbilityValidationIssue issue = DefinitionRegistry.Validation.Issues[i];
+                AbilityValidationIssue issue = report.Issues[i];
                 string message = "[Ability Provider][" + issue.Code + "] " + issue.Message +
                                  (issue.Source != null ? " | " + issue.Source : string.Empty) +
                                  (!string.IsNullOrEmpty(issue.ReferenceChain) ? " | " + issue.ReferenceChain : string.Empty);
@@ -778,7 +818,8 @@ namespace Game
                 else Debug.Log(message);
             }
 
-            return DefinitionRegistry.ApplyTo(Engine);
+            return applied;
         }
     }
 }
+

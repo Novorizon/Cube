@@ -11,6 +11,7 @@ namespace Game.Ability
         public IUnit Parent => Modifier != null ? Modifier.Parent : null;
         public IUnit Caster => Modifier != null ? Modifier.Caster : null;
         public Ability Ability => Modifier != null ? Modifier.Ability : null;
+        public int Level => Modifier != null ? Modifier.Level : 1;
 
         internal void Bind(Modifier modifier)
         {
@@ -65,3 +66,4 @@ namespace Game.Ability
     {
     }
 }
+

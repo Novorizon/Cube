@@ -61,6 +61,15 @@ namespace Game.Ability
             return Ability != null ? Ability.Definition.ChannelTime.GetValue(Ability.Level) : 0f;
         }
 
+        public virtual float GetCastBackswing()
+        {
+            return Ability != null ? Ability.Definition.CastBackswing.GetValue(Ability.Level) : 0f;
+        }
+
+        /// <summary>Return false to cancel before mana, charges, or cooldown are consumed.</summary>
+        public virtual bool OnAbilityPhaseStart(CastContext context) { return true; }
+        public virtual void OnAbilityPhaseInterrupted() { }
+
         public virtual void OnSpellStart(CastContext context) { }
         public virtual void OnChannelThink(float deltaTime) { }
         public virtual void OnChannelFinish(bool interrupted) { }
@@ -83,3 +92,4 @@ namespace Game.Ability
     {
     }
 }
+

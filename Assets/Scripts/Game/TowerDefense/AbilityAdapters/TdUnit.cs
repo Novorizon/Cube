@@ -18,7 +18,7 @@ namespace Game
     /// Adapter that exposes Npc, Tower, and Base as ability-system units.
     /// It is also the only place where damage/heal results mutate real TD game state.
     /// </summary>
-    public sealed class TdUnit : IUnit
+    public sealed class TdUnit : IUnit, ICombatUnit
     {
         public const int PlayerTeamId = 1;
         public const int EnemyTeamId = 2;
@@ -28,6 +28,7 @@ namespace Game
         private readonly Tower tower;
         private readonly TdUnitKind kind;
         private readonly int entityId;
+        private bool invalidated;
 
         public TdUnit(Npc npc)
             : this(npc != null ? npc.GetInstanceID() : 0, npc)
@@ -53,15 +54,15 @@ namespace Game
             kind = TdUnitKind.Tower;
         }
 
-        private TdUnit()
+        private TdUnit(int runtimeEntityId)
         {
-            entityId = BaseEntityId;
+            entityId = runtimeEntityId;
             kind = TdUnitKind.Base;
         }
 
-        public static TdUnit CreateBaseUnit()
+        public static TdUnit CreateBaseUnit(int runtimeEntityId = BaseEntityId)
         {
-            return new TdUnit();
+            return new TdUnit(runtimeEntityId);
         }
 
         public TdUnitKind Kind => kind;
@@ -76,6 +77,7 @@ namespace Game
         {
             get
             {
+                if (invalidated) return false;
                 switch (kind)
                 {
                     case TdUnitKind.Npc:
@@ -125,10 +127,19 @@ namespace Game
             }
         }
 
+        internal void Invalidate() => invalidated = true;
+
+        public float CurrentHealth => kind == TdUnitKind.Npc ? npc?.Data?.CurrentHp ?? 0 : kind == TdUnitKind.Base ? BaseManager.Instance.CurrentLife : 0;
+        public float MaxHealth => kind == TdUnitKind.Npc ? npc?.Data?.MaxHp ?? 0 : kind == TdUnitKind.Base ? BaseManager.Instance.MaxLife : 0;
+        public float BaseArmor => 0f;
+        public float BaseMagicResistancePercent => 0f;
+        public float BasePhysicalDamageBlock => kind == TdUnitKind.Base ? BaseManager.Instance.Defense : 0f;
+
         public bool IsAlive
         {
             get
             {
+                if (invalidated) return false;
                 switch (kind)
                 {
                     case TdUnitKind.Npc:
@@ -176,57 +187,48 @@ namespace Game
             return true;
         }
 
-        public void ApplyDamage(DamageResult result)
+        public void ApplyDamage(DamageResult result) => ApplyFinalDamage(result);
+
+        public DamageApplicationResult ApplyFinalDamage(DamageResult result)
         {
-            if (result == null || result.Blocked)
-            {
-                return;
-            }
-
-            int damage = Mathf.RoundToInt(result.FinalAmount);
-            if (damage <= 0)
-            {
-                return;
-            }
-
-            // The engine has already handled immunity and modifiers; apply the final integer damage.
+            if (!IsValidBinding || !IsAlive || result == null || result.Blocked || float.IsNaN(result.FinalAmount) || float.IsInfinity(result.FinalAmount)) return new DamageApplicationResult(0f);
+            int damage = RoundHealthAmount(result.FinalAmount);
+            if (damage <= 0) return new DamageApplicationResult(0f);
+            int applied = 0;
+            bool killed = false;
             switch (kind)
             {
                 case TdUnitKind.Npc:
-                    NpcManager.Instance.TakeDamage(npc, damage);
+                    applied = NpcManager.Instance.ApplyFinalDamage(npc, damage, out killed);
                     break;
-
                 case TdUnitKind.Base:
-                    BaseManager.Instance.TakeDamage(damage);
+                    applied = BaseManager.Instance.ApplyFinalDamage(damage, out killed);
                     break;
             }
+            return new DamageApplicationResult(applied, killed);
         }
 
-        public void Heal(HealInfo info)
+        public void Heal(HealInfo info) => ApplyFinalHeal(info);
+
+        public HealApplicationResult ApplyFinalHeal(HealInfo info)
         {
-            if (info == null || info.Amount <= 0f)
-            {
-                return;
-            }
-
-            int amount = Mathf.RoundToInt(info.Amount);
-            if (amount <= 0)
-            {
-                return;
-            }
-
-            // Healing is rounded at the adapter boundary to match existing integer HP data.
+            if (!IsValidBinding || !IsAlive || info == null || info.Amount <= 0f || float.IsNaN(info.Amount) || float.IsInfinity(info.Amount)) return new HealApplicationResult(0f);
+            int amount = RoundHealthAmount(info.Amount);
+            if (amount <= 0) return new HealApplicationResult(0f);
+            int applied = 0;
             switch (kind)
             {
                 case TdUnitKind.Npc:
-                    HealNpc(amount);
+                    applied = HealNpc(amount);
                     break;
-
                 case TdUnitKind.Base:
-                    BaseManager.Instance.Heal(amount);
+                    applied = BaseManager.Instance.ApplyFinalHeal(amount);
                     break;
             }
+            return new HealApplicationResult(applied);
         }
+
+        private static int RoundHealthAmount(float amount) => (int)System.Math.Min(int.MaxValue, System.Math.Max(0d, System.Math.Round((double)amount)));
 
         private UnitType GetNpcUnitType()
         {
@@ -248,20 +250,23 @@ namespace Game
             return UnitType.Basic;
         }
 
-        private void HealNpc(int amount)
+        private int HealNpc(int amount)
         {
             if (npc == null || npc.Data == null || npc.Data.Dead)
             {
-                return;
+                return 0;
             }
 
             int before = npc.Data.CurrentHp;
-            npc.Data.CurrentHp = Mathf.Min(npc.Data.MaxHp, npc.Data.CurrentHp + amount);
+            npc.Data.CurrentHp = (int)System.Math.Min(npc.Data.MaxHp, (long)npc.Data.CurrentHp + amount);
 
-            if (npc.Data.CurrentHp != before)
+            int applied = npc.Data.CurrentHp - before;
+            if (applied > 0)
             {
                 Debug.Log($"Npc healed. Id: {npc.Config?.Id}, Heal: {npc.Data.CurrentHp - before}, Hp: {npc.Data.CurrentHp}/{npc.Data.MaxHp}");
             }
+            return applied;
         }
     }
 }
+

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Game.Ability.Configuration
 {
@@ -32,14 +31,9 @@ namespace Game.Ability.Configuration
                 return bundle;
             }
 
-            JsonAbilityDocument document;
-            try
+            if (!AbilityJsonSchemaValidator.TryDeserialize(json, out JsonAbilityDocument document, out string schemaError))
             {
-                document = JsonUtility.FromJson<JsonAbilityDocument>(json);
-            }
-            catch (Exception exception)
-            {
-                bundle.Validation.Add(AbilityValidationSeverity.Error, "ABILITYJSON002", "Invalid JSON: " + exception.Message + ".", Source());
+                bundle.Validation.Add(AbilityValidationSeverity.Error, "ABILITYJSON012", schemaError, Source());
                 return bundle;
             }
 
@@ -80,6 +74,8 @@ namespace Game.Ability.Configuration
                     Speed = source.speed,
                     Radius = source.radius,
                     Distance = source.distance,
+                    MaxLifetime = source.maxLifetime,
+                    TrackingTargetPolicy = (TrackingTargetPolicy)source.trackingTargetPolicy,
                     DeleteOnHit = source.deleteOnHit,
                     ProvidesVision = source.providesVision,
                     VisionRadius = source.visionRadius,
@@ -127,7 +123,7 @@ namespace Game.Ability.Configuration
                     RemoveOnDeath = source.removeOnDeath,
                     Duration = source.duration,
                     Interval = source.interval,
-                    MaxStack = Math.Max(1, source.maxStack),
+                    MaxStack = source.maxStack,
                     Attributes = (ModifierAttribute)source.attributes,
                     States = (UnitState)source.states,
                     TriggerEventType = (ModifierEventType)source.triggerEventType,
@@ -137,6 +133,7 @@ namespace Game.Ability.Configuration
                     AuraRadius = source.auraRadius,
                     AuraDuration = source.auraDuration,
                     AuraThinkInterval = source.auraThinkInterval,
+                    AuraIncrementsStacks = source.auraIncrementsStacks,
                     AuraTargetTeam = (TargetTeam)source.auraTargetTeam,
                     AuraTargetType = (UnitType)source.auraTargetType,
                     AuraTargetFlags = (TargetFlags)source.auraTargetFlags
@@ -145,13 +142,13 @@ namespace Game.Ability.Configuration
                 for (int propertyIndex = 0; propertyIndex < properties.Length; propertyIndex++)
                 {
                     JsonModifierProperty property = properties[propertyIndex];
-                    if (property != null && Enum.IsDefined(typeof(ModifierProperty), property.property) && property.property != 0)
+                    if (property != null && Enum.IsDefined(typeof(ModifierProperty), property.property) && property.property != 0 && !definition.Properties.ContainsKey((ModifierProperty)property.property))
                     {
                         definition.Properties[(ModifierProperty)property.property] = property.value;
                     }
                     else
                     {
-                        bundle.Validation.Add(AbilityValidationSeverity.Error, "ABILITYJSON007", "Modifier " + source.name + " contains an unsupported property value.", Source());
+                        bundle.Validation.Add(AbilityValidationSeverity.Error, "ABILITYJSON007", "Modifier " + source.name + " contains an unsupported or duplicate property value.", Source());
                     }
                 }
 
@@ -164,6 +161,7 @@ namespace Game.Ability.Configuration
                 {
                     Definition = definition,
                     IsPrivate = source.isPrivate,
+                    RequiresCustomScript = source.requiresCustomScript,
                     Origin = Origin(document, source.id)
                 });
             }
@@ -187,7 +185,7 @@ namespace Game.Ability.Configuration
                     DisplayName = source.displayName,
                     Description = source.description,
                     Icon = source.icon,
-                    MaxLevel = Math.Max(1, source.maxLevel),
+                    MaxLevel = source.maxLevel,
                     Behavior = (AbilityBehavior)source.behavior,
                     TargetTeam = (TargetTeam)source.targetTeam,
                     TargetType = (UnitType)source.targetType,
@@ -226,9 +224,12 @@ namespace Game.Ability.Configuration
                 }
 
                 AddActions(source.actions, definition.Actions, source.name + ".actions", projectiles, bundle);
+                AddActions(source.onToggleOn, definition.OnToggleOnActions, source.name + ".onToggleOn", projectiles, bundle);
+                AddActions(source.onToggleOff, definition.OnToggleOffActions, source.name + ".onToggleOff", projectiles, bundle);
                 bundle.Abilities.Add(new AbilityDefinitionRegistration
                 {
                     Definition = definition,
+                    RequiresCustomScript = source.requiresCustomScript,
                     Origin = Origin(document, source.id)
                 });
             }
@@ -255,6 +256,7 @@ namespace Game.Ability.Configuration
                 {
                     ActionType = (ActionType)source.actionType,
                     Target = (ActionTarget)source.target,
+                    ValueSource = (ActionValueSource)source.valueSource,
                     Value = Level(source.value),
                     ValueSpecialName = source.valueSpecialName,
                     Duration = Level(source.duration, float.NaN),
@@ -262,6 +264,7 @@ namespace Game.Ability.Configuration
                     DamageType = (DamageType)source.damageType,
                     DamageFlags = (DamageFlags)source.damageFlags,
                     ModifierName = source.modifierName,
+                    ProjectileName = source.projectileName,
                     PurgePositiveBuffs = source.purgePositiveBuffs,
                     PurgeDebuffs = source.purgeDebuffs,
                     PurgeOnlyPurgable = source.purgeOnlyPurgable,
@@ -270,19 +273,8 @@ namespace Game.Ability.Configuration
                 };
                 if (!string.IsNullOrEmpty(source.projectileName))
                 {
-                    if (!projectiles.TryGetValue(source.projectileName, out ProjectileDefinition projectile))
-                    {
-                        bundle.Validation.Add(
-                            AbilityValidationSeverity.Error,
-                            "ABILITYJSON011",
-                            owner + " references missing local projectile " + source.projectileName + ". JSON projectile references must be in the same document.",
-                            Source(),
-                            owner + " -> projectile:" + source.projectileName);
-                    }
-                    else
-                    {
-                        action.Projectile = projectile;
-                    }
+                    // Named references may resolve from another provider at final graph validation.
+                    if (projectiles.TryGetValue(source.projectileName, out ProjectileDefinition projectile)) action.Projectile = projectile;
                 }
 
                 target.Add(action);
@@ -339,10 +331,11 @@ namespace Game.Ability.Configuration
         public string displayName;
         public string description;
         public string icon;
+        public bool requiresCustomScript;
         public int maxLevel = 1;
-        public int behavior;
-        public int targetTeam;
-        public int targetType;
+        public int behavior = (int)AbilityBehavior.NoTarget;
+        public int targetTeam = (int)TargetTeam.Enemy;
+        public int targetType = (int)UnitType.All;
         public int targetFlags;
         public JsonLevelValue castRange;
         public JsonLevelValue aoeRadius;
@@ -355,6 +348,8 @@ namespace Game.Ability.Configuration
         public string intrinsicModifierName;
         public JsonSpecialValue[] specialValues;
         public JsonAction[] actions;
+        public JsonAction[] onToggleOn;
+        public JsonAction[] onToggleOff;
     }
 
     [Serializable]
@@ -364,6 +359,7 @@ namespace Game.Ability.Configuration
         public string name;
         public string displayName;
         public bool isPrivate;
+        public bool requiresCustomScript;
         public bool isHidden;
         public bool isDebuff;
         public bool isPurgable = true;
@@ -386,6 +382,7 @@ namespace Game.Ability.Configuration
         public float auraRadius;
         public float auraDuration = 0.5f;
         public float auraThinkInterval = 0.25f;
+        public bool auraIncrementsStacks;
         public int auraTargetTeam = (int)TargetTeam.Friendly;
         public int auraTargetType = (int)UnitType.All;
         public int auraTargetFlags;
@@ -400,6 +397,8 @@ namespace Game.Ability.Configuration
         public float speed = 900f;
         public float radius = 96f;
         public float distance = 1200f;
+        public float maxLifetime = 10f;
+        public int trackingTargetPolicy;
         public bool deleteOnHit = true;
         public bool providesVision;
         public float visionRadius;
@@ -415,6 +414,7 @@ namespace Game.Ability.Configuration
     {
         public int actionType;
         public int target = (int)ActionTarget.ContextTargets;
+        public int valueSource;
         public JsonLevelValue value;
         public string valueSpecialName;
         public JsonLevelValue duration;
@@ -460,3 +460,4 @@ namespace Game.Ability.Configuration
         public float value;
     }
 }
+

@@ -9,10 +9,12 @@ namespace Game
     /// <summary>
     /// Presentation adapter for effects and sounds requested by the ability runtime.
     /// </summary>
-    public sealed class TdPresentation : IPresentation, ITrackedPresentation
+    public sealed class TdPresentation : IPresentation, ITrackedPresentation, IProjectilePresentation
     {
         private static readonly HashSet<string> InvalidEffectWarnings = new HashSet<string>();
         private readonly List<TdPresentationHandle> persistentHandles = new List<TdPresentationHandle>();
+        private readonly List<GameObject> oneShotEffects = new List<GameObject>();
+        private int lifetime;
 
         public void PlayEffect(string effectName, Vector3 position)
         {
@@ -31,7 +33,7 @@ namespace Game
                 return;
             }
 
-            BattleEffect.PlayEffectAsync(effectName, position).Forget();
+            LoadOneShotEffectAsync(effectName, position, lifetime).Forget();
         }
 
         public void PlayEffect(string effectName, IUnit target)
@@ -55,6 +57,25 @@ namespace Game
             persistentHandles.Add(handle);
             LoadPersistentEffectAsync(handle, target).Forget();
             return handle;
+        }
+
+        public IProjectilePresentationHandle PlayProjectileEffect(string effectName, Projectile projectile)
+        {
+            if (projectile == null || !IsValidEffect(effectName)) return null;
+            TdPresentationHandle handle = new TdPresentationHandle(effectName, projectile.Position, OnHandleStopped);
+            persistentHandles.Add(handle);
+            LoadPersistentEffectAsync(handle, null).Forget();
+            return handle;
+        }
+
+        public void Clear()
+        {
+            lifetime++;
+            TdPresentationHandle[] handles = persistentHandles.ToArray();
+            persistentHandles.Clear();
+            foreach (TdPresentationHandle handle in handles) handle.Stop();
+            for (int i = 0; i < oneShotEffects.Count; i++) if (oneShotEffects[i] != null) Object.Destroy(oneShotEffects[i]);
+            oneShotEffects.Clear();
         }
 
         public void GetActivePresentationHandles(IList<PresentationHandleInfo> results)
@@ -113,7 +134,7 @@ namespace Game
 
         private static async Task LoadPersistentEffectAsync(TdPresentationHandle handle, IUnit target)
         {
-            GameObject effect = await EffectManager.Instance.PlayEffectAsync(handle.EffectName, target.Position, false);
+            GameObject effect = await EffectManager.Instance.PlayEffectAsync(handle.EffectName, handle.Position, false);
             if (effect == null)
             {
                 handle.Stop();
@@ -129,9 +150,23 @@ namespace Game
             Transform targetTransform = ResolveTransform(target);
             if (targetTransform != null)
             {
+                handle.SetPosition(target.Position);
                 effect.transform.SetParent(targetTransform, true);
             }
             handle.Attach(effect);
+        }
+
+        private async Task LoadOneShotEffectAsync(string effectName, Vector3 position, int expectedLifetime)
+        {
+            GameObject effect = await EffectManager.Instance.PlayEffectAsync(effectName, position);
+            if (effect == null) return;
+            if (expectedLifetime != lifetime)
+            {
+                Object.Destroy(effect);
+                return;
+            }
+            oneShotEffects.RemoveAll(item => item == null);
+            oneShotEffects.Add(effect);
         }
 
         private static Transform ResolveTransform(IUnit target)
@@ -151,7 +186,7 @@ namespace Game
             persistentHandles.Remove(handle);
         }
 
-        private sealed class TdPresentationHandle : IPresentationHandle
+        private sealed class TdPresentationHandle : IPresentationHandle, IProjectilePresentationHandle
         {
             private readonly System.Action<TdPresentationHandle> stopped;
             private GameObject effect;
@@ -160,6 +195,15 @@ namespace Game
             {
                 EffectName = effectName;
                 TargetEntityId = target != null ? target.EntityId : 0;
+                Position = target != null ? target.Position : Vector3.zero;
+                IsActive = true;
+                this.stopped = stopped;
+            }
+
+            public TdPresentationHandle(string effectName, Vector3 position, System.Action<TdPresentationHandle> stopped)
+            {
+                EffectName = effectName;
+                Position = position;
                 IsActive = true;
                 this.stopped = stopped;
             }
@@ -167,6 +211,14 @@ namespace Game
             public string EffectName { get; }
             public int TargetEntityId { get; }
             public bool IsActive { get; private set; }
+            public Vector3 Position { get; private set; }
+
+            public void SetPosition(Vector3 position)
+            {
+                if (!IsActive) return;
+                Position = position;
+                if (effect != null) effect.transform.position = position;
+            }
 
             public void Attach(GameObject instance)
             {
@@ -177,6 +229,7 @@ namespace Game
                 }
 
                 effect = instance;
+                if (effect != null) effect.transform.position = Position;
             }
 
             public void Stop()
@@ -197,3 +250,4 @@ namespace Game
         }
     }
 }
+

@@ -74,6 +74,9 @@ namespace Game.Ability
         public readonly Dictionary<string, LevelValue> SpecialValues = new Dictionary<string, LevelValue>();
         // Data-driven actions for simple abilities that do not need custom AbilityScript code.
         public readonly List<ActionDefinition> Actions = new List<ActionDefinition>();
+        // Toggle lifecycle is distinct from a normal cast; it never implicitly runs Actions.
+        public readonly List<ActionDefinition> OnToggleOnActions = new List<ActionDefinition>();
+        public readonly List<ActionDefinition> OnToggleOffActions = new List<ActionDefinition>();
 
         public float GetSpecialValue(string name, int level)
         {
@@ -96,6 +99,8 @@ namespace Game.Ability
         public ActionTarget Target = ActionTarget.ContextTargets;
         public LevelValue Value = LevelValue.Constant(0f);
         public string ValueSpecialName;
+        // Event sources multiply the configured number, e.g. 0.2 * applied damage.
+        public ActionValueSource ValueSource = ActionValueSource.LevelOrSpecial;
         public LevelValue Duration = LevelValue.Constant(float.NaN);
         public string DurationSpecialName;
         public DamageType DamageType = DamageType.Magical;
@@ -104,28 +109,61 @@ namespace Game.Ability
         public bool PurgePositiveBuffs;
         public bool PurgeDebuffs = true;
         public bool PurgeOnlyPurgable = true;
+        public string ProjectileName;
         public ProjectileDefinition Projectile;
         public string EffectName;
         public string SoundName;
 
         public float ResolveValue(Ability ability)
         {
-            if (ability == null)
-            {
-                return 0f;
-            }
-
-            return !string.IsNullOrEmpty(ValueSpecialName) ? ability.GetSpecialValue(ValueSpecialName) : Value.GetValue(ability.Level);
+            if (ValueSource != ActionValueSource.LevelOrSpecial) throw new InvalidOperationException("Event-valued actions must be resolved with a CastContext.");
+            return ResolveNumber(ValueSpecialName, Value, ability, ability != null ? ability.Level : 1);
         }
 
         public float ResolveDuration(Ability ability)
         {
-            if (ability == null)
+            return ResolveNumber(DurationSpecialName, Duration, ability, ability != null ? ability.Level : 1);
+        }
+
+        public float ResolveValue(CastContext context)
+        {
+            float value = ResolveNumber(ValueSpecialName, Value, context.Ability, context.Level);
+            if (ValueSource == ActionValueSource.LevelOrSpecial) return value;
+            if (context.Event == null) throw new InvalidOperationException("Event-valued action requires a modifier event context.");
+            switch (ValueSource)
             {
-                return float.NaN;
+                case ActionValueSource.EventDamage:
+                    if (context.Event.DamageResult == null) throw new InvalidOperationException("EventDamage requires a damage result.");
+                    return value * context.Event.DamageResult.AppliedAmount;
+                case ActionValueSource.EventHealing:
+                    if (context.Event.HealInfo == null) throw new InvalidOperationException("EventHealing requires a heal result.");
+                    return value * context.Event.HealInfo.Amount;
+                case ActionValueSource.EventValue:
+                    return value * context.Event.Value;
+                default:
+                    throw new InvalidOperationException("Unknown action value source: " + ValueSource);
+            }
+        }
+
+        public float ResolveDuration(CastContext context)
+        {
+            return ResolveNumber(DurationSpecialName, Duration, context.Ability, context.Level);
+        }
+
+        private static float ResolveNumber(string specialName, LevelValue value, Ability ability, int level)
+        {
+            if (string.IsNullOrEmpty(specialName))
+            {
+                return value.GetValue(Math.Max(1, level));
             }
 
-            return !string.IsNullOrEmpty(DurationSpecialName) ? ability.GetSpecialValue(DurationSpecialName) : Duration.GetValue(ability.Level);
+            if (ability == null || !ability.Definition.SpecialValues.TryGetValue(specialName, out LevelValue special))
+            {
+                // A missing duration must never silently become zero (the permanent sentinel).
+                throw new InvalidOperationException("Action references missing special value '" + specialName + "'.");
+            }
+
+            return special.GetValue(Math.Max(1, level));
         }
     }
 
@@ -162,6 +200,8 @@ namespace Game.Ability
         public float AuraRadius;
         public float AuraDuration = 0.5f;
         public float AuraThinkInterval = 0.25f;
+        // Maintenance refresh normally renews duration only. Pulse stacking is opt-in.
+        public bool AuraIncrementsStacks;
         public TargetTeam AuraTargetTeam = TargetTeam.Friendly;
         public UnitType AuraTargetType = UnitType.All;
         public TargetFlags AuraTargetFlags = TargetFlags.None;
@@ -177,6 +217,8 @@ namespace Game.Ability
         public float Speed = 900f;
         public float Radius = 96f;
         public float Distance = 1200f;
+        public float MaxLifetime = 10f;
+        public TrackingTargetPolicy TrackingTargetPolicy = TrackingTargetPolicy.KeepTracking;
         public bool DeleteOnHit = true;
         public bool ProvidesVision;
         public float VisionRadius;
@@ -187,3 +229,4 @@ namespace Game.Ability
         public string SoundName;
     }
 }
+

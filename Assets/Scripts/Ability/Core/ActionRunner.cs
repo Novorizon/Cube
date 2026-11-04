@@ -17,19 +17,42 @@ namespace Game.Ability
                 return;
             }
 
-            for (int i = 0; i < actions.Count; i++)
+            if (context.Engine == null) return;
+            using (context.Engine.BeginExecution())
             {
-                Execute(actions[i], context);
+                ActionLifetime lifetime = new ActionLifetime(context);
+                for (int i = 0; i < actions.Count && lifetime.IsValid; i++)
+                {
+                    if (!ExecuteWithBudget(actions[i], context)) break;
+                }
             }
         }
 
         public static void Execute(ActionDefinition action, CastContext context)
         {
-            if (action == null || context == null || context.Engine == null || context.Ability == null)
+            if (action == null || context == null || context.Engine == null || !context.Engine.IsRuntimeAvailable)
             {
                 return;
             }
 
+            using (context.Engine.BeginExecution())
+            {
+                ExecuteWithBudget(action, context);
+            }
+        }
+
+        private static bool ExecuteWithBudget(ActionDefinition action, CastContext context)
+        {
+            if (action == null) return true;
+            if (!new ActionLifetime(context).IsValid) return false;
+            if (!context.Engine.TryConsumeExecutionBudget("Configured action")) return false;
+            ExecuteAction(action, context);
+            return true;
+        }
+
+        private static void ExecuteAction(ActionDefinition action, CastContext context)
+        {
+            ActionLifetime lifetime = new ActionLifetime(context);
             // Every execution rents its own target list. Nested modifier/projectile callbacks may
             // execute another action immediately, so a shared static scratch list is not reentrant.
             List<IUnit> targets = ListPool<IUnit>.Get();
@@ -66,12 +89,12 @@ namespace Game.Ability
                         break;
                 }
 
-                if (action.ActionType != ActionType.PlayEffect)
+                if (lifetime.IsValid && action.ActionType != ActionType.PlayEffect)
                 {
                     ExecuteEffect(action, context, targets);
                 }
 
-                if (action.ActionType != ActionType.PlaySound)
+                if (lifetime.IsValid && action.ActionType != ActionType.PlaySound)
                 {
                     ExecuteSound(action, context);
                 }
@@ -88,6 +111,7 @@ namespace Game.Ability
             {
                 Engine = engine,
                 Ability = ability,
+                Level = ability != null ? ability.Level : 1,
                 Caster = caster,
                 Target = target,
                 TargetPosition = target != null ? target.Position : position
@@ -103,8 +127,9 @@ namespace Game.Ability
 
         private static void ExecuteDamage(ActionDefinition action, CastContext context, List<IUnit> targets)
         {
-            float amount = action.ResolveValue(context.Ability);
-            for (int i = 0; i < targets.Count; i++)
+            ActionLifetime lifetime = new ActionLifetime(context);
+            float amount = action.ResolveValue(context);
+            for (int i = 0; i < targets.Count && lifetime.IsValid; i++)
             {
                 context.Engine.ApplyDamage(new DamageInfo
                 {
@@ -121,8 +146,9 @@ namespace Game.Ability
 
         private static void ExecuteHeal(ActionDefinition action, CastContext context, List<IUnit> targets)
         {
-            float amount = action.ResolveValue(context.Ability);
-            for (int i = 0; i < targets.Count; i++)
+            ActionLifetime lifetime = new ActionLifetime(context);
+            float amount = action.ResolveValue(context);
+            for (int i = 0; i < targets.Count && lifetime.IsValid; i++)
             {
                 context.Engine.Heal(new HealInfo
                 {
@@ -141,16 +167,18 @@ namespace Game.Ability
                 return;
             }
 
-            float duration = action.ResolveDuration(context.Ability);
-            for (int i = 0; i < targets.Count; i++)
+            float duration = action.ResolveDuration(context);
+            ActionLifetime lifetime = new ActionLifetime(context);
+            for (int i = 0; i < targets.Count && lifetime.IsValid; i++)
             {
-                context.Engine.AddModifier(context.Caster, targets[i], context.Ability, action.ModifierName, new ModifierApplyOptions { Duration = duration });
+                context.Engine.AddModifier(context.Caster, targets[i], context.Ability, action.ModifierName, new ModifierApplyOptions { Duration = duration, Level = Mathf.Max(1, context.Level) });
             }
         }
 
         private static void ExecutePurge(ActionDefinition action, CastContext context, List<IUnit> targets)
         {
-            for (int i = 0; i < targets.Count; i++)
+            ActionLifetime lifetime = new ActionLifetime(context);
+            for (int i = 0; i < targets.Count && lifetime.IsValid; i++)
             {
                 context.Engine.Purge(targets[i], action.PurgePositiveBuffs, action.PurgeDebuffs, action.PurgeOnlyPurgable);
             }
@@ -163,7 +191,8 @@ namespace Game.Ability
                 return;
             }
 
-            for (int i = 0; i < targets.Count; i++)
+            ActionLifetime lifetime = new ActionLifetime(context);
+            for (int i = 0; i < targets.Count && lifetime.IsValid; i++)
             {
                 context.Engine.CreateTrackingProjectile(context.Ability, context.Caster, targets[i], action.Projectile);
             }
@@ -187,7 +216,8 @@ namespace Game.Ability
                 direction = Vector3.forward;
             }
 
-            context.Engine.CreateLinearProjectile(context.Ability, context.Caster, context.Caster.Position, direction, action.Projectile);
+            Vector3 origin = context.Caster != null ? context.Caster.Position : context.Modifier != null && context.Modifier.Parent != null ? context.Modifier.Parent.Position : context.TargetPosition;
+            context.Engine.CreateLinearProjectile(context.Ability, context.Caster, origin, direction, action.Projectile);
         }
 
         private static void ExecuteEffect(ActionDefinition action, CastContext context, List<IUnit> targets)
@@ -203,7 +233,8 @@ namespace Game.Ability
                 return;
             }
 
-            for (int i = 0; i < targets.Count; i++)
+            ActionLifetime lifetime = new ActionLifetime(context);
+            for (int i = 0; i < targets.Count && lifetime.IsValid; i++)
             {
                 context.Engine.Presentation.PlayEffect(action.EffectName, targets[i]);
             }
@@ -228,21 +259,22 @@ namespace Game.Ability
                 case ActionTarget.Caster:
                     AddTarget(context.Caster, targets);
                     break;
+                case ActionTarget.Parent:
+                    AddTarget(context.Modifier != null ? context.Modifier.Parent : null, targets);
+                    break;
+                case ActionTarget.EventSource:
+                    AddTarget(context.Event != null ? context.Event.Source : null, targets);
+                    break;
+                case ActionTarget.EventTarget:
+                    AddTarget(context.Event != null ? context.Event.Target : null, targets);
+                    break;
                 case ActionTarget.PrimaryTarget:
                     AddTarget(context.Target, targets);
-                    if (targets.Count == 0 && context.Targets.Count > 0)
-                    {
-                        AddTarget(context.Targets[0], targets);
-                    }
                     break;
                 case ActionTarget.ContextTargets:
                     for (int i = 0; i < context.Targets.Count; i++)
                     {
                         AddTarget(context.Targets[i], targets);
-                    }
-                    if (targets.Count == 0)
-                    {
-                        AddTarget(context.Target, targets);
                     }
                     break;
             }
@@ -254,6 +286,12 @@ namespace Game.Ability
             {
                 case ActionTarget.Caster:
                     return context.Caster != null ? context.Caster.Position : context.TargetPosition;
+                case ActionTarget.Parent:
+                    return context.Modifier != null && context.Modifier.Parent != null ? context.Modifier.Parent.Position : context.TargetPosition;
+                case ActionTarget.EventSource:
+                    return context.Event != null && context.Event.Source != null ? context.Event.Source.Position : context.TargetPosition;
+                case ActionTarget.EventTarget:
+                    return context.Event != null && context.Event.Target != null ? context.Event.Target.Position : context.TargetPosition;
                 case ActionTarget.PrimaryTarget:
                     return context.Target != null ? context.Target.Position : context.TargetPosition;
                 default:
@@ -263,10 +301,36 @@ namespace Game.Ability
 
         private static void AddTarget(IUnit target, List<IUnit> targets)
         {
-            if (target != null && !targets.Contains(target))
+            if (target == null) return;
+            for (int i = 0; i < targets.Count; i++)
             {
-                targets.Add(target);
+                if (ReferenceEquals(targets[i], target) || targets[i].EntityId == target.EntityId) return;
             }
+
+            targets.Add(target);
+        }
+
+        // Destroy actions intentionally start with a destroyed modifier. Other lifecycle
+        // actions stop if their source is removed by an earlier callback in the same list.
+        private readonly struct ActionLifetime
+        {
+            private readonly CastContext context;
+            private readonly long generation;
+            private readonly Modifier modifier;
+            private readonly bool allowDestroyedModifier;
+
+            public ActionLifetime(CastContext context)
+            {
+                this.context = context;
+                generation = context.Engine.RuntimeGeneration;
+                modifier = context.Modifier;
+                allowDestroyedModifier = modifier != null && modifier.IsDestroyed;
+            }
+
+            public bool IsValid => context.Engine.IsRuntimeAvailable && context.Engine.RuntimeGeneration == generation &&
+                (modifier != null ? modifier.IsRuntimeCurrent && (allowDestroyedModifier || !modifier.IsDestroyed) :
+                    (context.Ability == null || !context.Ability.IsRemoved) && !context.Engine.IsUnitRemoving(context.Caster));
         }
     }
 }
+

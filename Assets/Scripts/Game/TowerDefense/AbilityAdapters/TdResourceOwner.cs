@@ -24,12 +24,13 @@ namespace Game
                     return 0f;
                 }
 
-                return BattleItemManager.Instance.GetCount(resourceItemId);
+                return Mathf.Max(0, BattleItemManager.Instance.GetCount(resourceItemId));
             }
         }
 
         public bool HasMana(float amount)
         {
+            if (float.IsNaN(amount) || float.IsInfinity(amount) || (double)amount > int.MaxValue) return false;
             if (amount <= 0f)
             {
                 return true;
@@ -45,6 +46,7 @@ namespace Game
 
         public bool SpendMana(float amount)
         {
+            if (float.IsNaN(amount) || float.IsInfinity(amount) || (double)amount > int.MaxValue) return false;
             if (amount <= 0f)
             {
                 return true;
@@ -59,3 +61,4 @@ namespace Game
         }
     }
 }
+

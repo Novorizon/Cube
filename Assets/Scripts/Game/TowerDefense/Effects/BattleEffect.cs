@@ -44,28 +44,36 @@ namespace Game
             await DelayByGameTimeAsync(visualProjectileEffect.Duration);
         }
 
-        public static async Task PlayProjectileWithHitAsync(string projectileEffectName, string hitEffectName, Vector3 startPosition, Vector3 targetPosition)
+        public static async Task PlayProjectileWithHitAsync(string projectileEffectName, string hitEffectName, Vector3 startPosition, Vector3 targetPosition, System.Func<bool> isActive = null, System.Action onImpact = null)
         {
-            GameObject projectile = await EffectManager.Instance.PlayEffectAsync(projectileEffectName, startPosition, false);
-            if (projectile == null)
+            if (isActive != null && !isActive()) return;
+            GameObject projectile = null;
+            try
             {
-                await EffectManager.Instance.PlayEffectAsync(hitEffectName, targetPosition);
-                return;
+                projectile = await EffectManager.Instance.PlayEffectAsync(projectileEffectName, startPosition, false);
+                if (isActive != null && !isActive()) return;
+                VisualProjectileEffect visual = projectile != null ? projectile.GetComponent<VisualProjectileEffect>() : null;
+                if (visual != null)
+                {
+                    visual.Play(startPosition, targetPosition);
+                    float elapsed = 0f;
+                    while (elapsed < visual.Duration)
+                    {
+                        if (isActive != null && !isActive()) return;
+                        elapsed += Time.deltaTime;
+                        await Task.Yield();
+                    }
+                }
+                if (isActive != null && !isActive()) return;
+                onImpact?.Invoke();
+                if (isActive != null && !isActive()) return;
+                GameObject hit = await EffectManager.Instance.PlayEffectAsync(hitEffectName, targetPosition);
+                if (hit != null && isActive != null && !isActive()) Object.Destroy(hit);
             }
-
-            VisualProjectileEffect visualProjectileEffect = projectile.GetComponent<VisualProjectileEffect>();
-            if (visualProjectileEffect == null)
+            finally
             {
-                Object.Destroy(projectile);
-                await EffectManager.Instance.PlayEffectAsync(hitEffectName, targetPosition);
-                return;
+                if (projectile != null) Object.Destroy(projectile);
             }
-
-            visualProjectileEffect.Play(startPosition, targetPosition);
-
-            await DelayByGameTimeAsync(visualProjectileEffect.Duration);
-
-            await EffectManager.Instance.PlayEffectAsync(hitEffectName, targetPosition);
         }
 
         private static async Task DelayByGameTimeAsync(float seconds)

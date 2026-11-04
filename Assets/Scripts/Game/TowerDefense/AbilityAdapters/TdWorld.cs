@@ -21,7 +21,7 @@ namespace Game
 
         public void FindUnits(Vector3 center, float radius, TargetQuery query, IList<IUnit> results)
         {
-            if (results == null || owner == null)
+            if (results == null || owner == null || !owner.IsAvailable)
             {
                 return;
             }
@@ -53,7 +53,7 @@ namespace Game
                     continue;
                 }
 
-                TdUnit unit = owner.GetUnit(npc);
+                TdUnit unit = owner.FindUnit(npc);
                 if (unit != null)
                 {
                     results.Add(unit);
@@ -77,7 +77,7 @@ namespace Game
                     continue;
                 }
 
-                TdUnit unit = owner.GetUnit(tower);
+                TdUnit unit = owner.FindUnit(tower);
                 if (unit != null)
                 {
                     results.Add(unit);
@@ -97,7 +97,7 @@ namespace Game
                 return;
             }
 
-            TdUnit unit = owner.GetBaseUnit();
+            TdUnit unit = owner.FindBoundBaseUnit();
             if (unit != null)
             {
                 results.Add(unit);
@@ -115,3 +115,4 @@ namespace Game
         }
     }
 }
+

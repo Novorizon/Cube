@@ -169,7 +169,8 @@ namespace Game.Ability
         Death = 11,
         ProjectileHit = 12,
         ModifierAdded = 13,
-        ModifierRemoved = 14
+        ModifierRemoved = 14,
+        Respawn = 15
     }
 
     /// <summary>
@@ -206,7 +207,9 @@ namespace Game.Ability
         Channeling = 16,
         Casting = 17,
         CustomRejected = 18,
-        CommandRestricted = 19
+        CommandRestricted = 19,
+        RuntimeUnavailable = 20,
+        QueueFull = 21
     }
 
     /// <summary>
@@ -216,7 +219,8 @@ namespace Game.Ability
     {
         Idle = 0,
         Casting = 1,
-        Channeling = 2
+        Channeling = 2,
+        Backswing = 3
     }
 
     /// <summary>
@@ -244,7 +248,12 @@ namespace Game.Ability
         ProjectileHit = 18,
         ProjectileDestroyed = 19,
         ThinkerCreated = 20,
-        ThinkerDestroyed = 21
+        ThinkerDestroyed = 21,
+        CastInterrupted = 22,
+        CastCompleted = 23,
+        ExecutionAborted = 24,
+        UnitDied = 25,
+        UnitRespawned = 26
     }
 
     /// <summary>
@@ -272,6 +281,18 @@ namespace Game.Ability
         Caster = 1,
         PrimaryTarget = 2,
         ContextTargets = 3,
-        Point = 4
+        Point = 4,
+        Parent = 5,
+        EventSource = 6,
+        EventTarget = 7
+    }
+
+    public enum ActionValueSource
+    {
+        LevelOrSpecial = 0,
+        EventDamage = 1,
+        EventHealing = 2,
+        EventValue = 3
     }
 }
+

@@ -15,6 +15,7 @@ namespace Game.Ability
         public Vector3 Direction;
         public bool HasTargetPosition;
         public bool Queue;
+        public bool AllowHidden;
     }
 
     /// <summary>
@@ -25,6 +26,8 @@ namespace Game.Ability
         public bool Success;
         public CastFailureReason FailureReason;
         public string Message;
+        public long CastId;
+        public bool Queued;
 
         public static CastResult Ok()
         {
@@ -51,6 +54,11 @@ namespace Game.Ability
         public IUnit Target;
         public Vector3 TargetPosition;
         public Vector3 Direction;
+        public int Level = 1;
+        public long CastId;
+        public Modifier Modifier;
+        public ModifierEvent Event;
+        internal bool IsTerminated;
         public IReadOnlyList<IUnit> Targets => targets;
 
         internal void AddTarget(IUnit target)
@@ -70,6 +78,8 @@ namespace Game.Ability
     {
         public float Duration = float.NaN;
         public int StackCount = 1;
+        public int Level = 1;
+        public bool IncrementStacksOnRefresh = true;
         public bool IsAura;
         public Modifier SourceModifier;
         public readonly Dictionary<string, float> Numbers = new Dictionary<string, float>();
@@ -88,6 +98,8 @@ namespace Game.Ability
         public float Amount;
         public DamageType DamageType = DamageType.Magical;
         public DamageFlags Flags = DamageFlags.None;
+        public DamageCategory Category = DamageCategory.Spell;
+        public long AttackId;
     }
 
     /// <summary>
@@ -104,6 +116,10 @@ namespace Game.Ability
         public DamageFlags Flags;
         public bool Blocked;
         public string BlockReason;
+        public DamageCategory Category;
+        public long AttackId;
+        public float AppliedAmount;
+        public bool Killed;
     }
 
     /// <summary>
@@ -123,6 +139,8 @@ namespace Game.Ability
     public sealed class ModifierEvent
     {
         public ModifierEventType EventType;
+        public long CastId;
+        public long AttackId;
         public AbilitySystem Engine;
         public IUnit Source;
         public IUnit Target;
@@ -185,6 +203,8 @@ namespace Game.Ability
     public sealed class RuntimeEvent
     {
         public RuntimeEventType EventType;
+        public long CastId;
+        public long AttackId;
         public Ability Ability;
         public Modifier Modifier;
         public Projectile Projectile;
@@ -197,3 +217,4 @@ namespace Game.Ability
         public string Message;
     }
 }
+
