@@ -101,7 +101,7 @@ DOTNET_TieredCompilation=0 dotnet Tools/AbilityVerification/Performance/bin/Rele
 
 0.2.0 的 Core 预期 316 项、PackageSmoke 预期 7 项；具体数量会随新回归增长，以零失败和没有静默跳过为准。性能程序输出源码指纹，比较时保留配置与完整结果。可用 fixture 名称过滤执行，但完整验收必须运行全套。
 
-本轮英雄范围及原作差异见 [英雄 JSON 说明](../Data/AbilityJsonSources/Heroes/README.md)，新增等级属性覆盖旧格式兼容、深复制、非法配置拒绝、实时升降级和光环传递。单位目标技能验证可见性并在拒绝时不扣费；范围/直线技能仍能命中隐藏单位，已发射风暴之锤继续跟踪。编辑器设计另见 [Odin 规划](AbilityEditorOdinPlan.md)，尚未安装或实现编辑器。
+本轮英雄范围及原作差异见 [英雄 JSON 说明](../Data/AbilityJsonSources/Heroes/README.md)，新增等级属性覆盖旧格式兼容、深复制、非法配置拒绝、实时升降级和光环传递。单位目标技能验证可见性并在拒绝时不扣费；范围/直线技能仍能命中隐藏单位，已发射风暴之锤继续跟踪。编辑器设计另见 [Odin 规划](AbilityEditorOdinPlan.md)，首版已实现于可选 Editor 包，使用与真实 Unity 交互门槛见 [编辑器指南](AbilityEditorGuide.md)。
 
 Cube 原仓库另有 `dotnet run --project Tools/AbilityVerification/Business/BusinessTests.csproj`，预期 49 项。它不进入独立验证 ZIP，独立包不需要该业务层。
 

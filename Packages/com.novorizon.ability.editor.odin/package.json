@@ -1,0 +1,8 @@
+{
+  "name": "com.novorizon.ability.editor.odin",
+  "version": "0.1.0",
+  "displayName": "Ability Studio · Odin",
+  "description": "An optional Editor-only JSON skill workspace. Requires Ability Runtime 0.2.0 and separately installed Odin Inspector 3.x.",
+  "unity": "2022.3",
+  "keywords": ["ability", "editor", "odin", "json"]
+}

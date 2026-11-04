@@ -92,7 +92,7 @@ AutoCast、独立层到期、投射物视野尚未实现，相关配置明确拒
 
 仓库 `Data/AbilityJsonSources/Validation` 提供多种真实JSON技能、跨来源引用和外部脚本样例。`Assets/Tests/EditMode/Ability` 测试从这些文件加载并检查实际结算。它们是业务和测试资料，不是包运行依赖。
 
-`Data/AbilityJsonSources/Heroes` 另提供 Dota 2 和 Warcraft III 的 7 位英雄、14 个参考技能，每英雄文件可独立发布。具体实现和原作差异写在该目录 README 与配置 description 中；它们不是完整英雄套装或特定补丁的复刻。验证工程还提供 `Docs/AbilityEditorOdinPlan.md`，编辑器作为可选独立 Editor 包规划，运行时不依赖 Odin。
+`Data/AbilityJsonSources/Heroes` 另提供 Dota 2 和 Warcraft III 的 7 位英雄、14 个参考技能，每英雄文件可独立发布。具体实现和原作差异写在该目录 README 与配置 description 中；它们不是完整英雄套装或特定补丁的复刻。验证工程还提供 `Docs/AbilityEditorOdinPlan.md`，首版编辑器已实现于 Packages/com.novorizon.ability.editor.odin，入口 Tools / Ability / Skill Studio；使用与验收见 Docs/AbilityEditorGuide.md，运行时不依赖 Odin。
 
 `Tools/AbilityVerification/PackageSmoke/run.sh` 只把本目录复制到空临时项目，以另一个程序集自建全部接口和脚本，验证无需项目源码也可使用包。Core/Business 离线检查和性能基准在同一验证目录。
 

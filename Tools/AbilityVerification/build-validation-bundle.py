@@ -12,12 +12,14 @@ SOURCE_REPOSITORY = "https://github.com/Novorizon/Cube"
 SOURCE_REVISION = "working-tree snapshot; identify exact files with CHECKSUMS.sha256"
 SOURCE_DIRECTORIES = (
     "Assets/Scripts/Ability",
+    "Packages/com.novorizon.ability.editor.odin",
     "Assets/Tests/EditMode/Ability",
     "Data/AbilityJsonSources/Validation",
     "Data/AbilityJsonSources/Heroes",
     "Tools/AbilityVerification/Core",
     "Tools/AbilityVerification/PackageSmoke",
     "Tools/AbilityVerification/Performance",
+    "Tools/AbilityVerification/Editor",
 )
 
 
@@ -81,7 +83,7 @@ DOTNET_TieredCompilation=0 dotnet Tools/AbilityVerification/Performance/bin/Rele
 
 ## 全面验收
 
-若包含 `Docs/AbilityValidation.md`，请按其中的架构、规则、时序、异常、性能和 Unity 交付门槛执行。英雄技能与差异见 `Data/AbilityJsonSources/Heroes/README.md`；其它组合样例见 `Data/AbilityJsonSources/Validation/README.md`；包的公开 API 说明见 `Assets/Scripts/Ability/README.md`。`Docs/AbilityEditorOdinPlan.md` 是可选 Odin 编辑器的规划，当前没有引入 Odin 依赖或编辑器实现。
+完整运行时验收见 Docs/AbilityValidation.md，英雄差异见 Data/AbilityJsonSources/Heroes/README.md。可选编辑器位于 Packages/com.novorizon.ability.editor.odin，安装与交互验收见 Docs/AbilityEditorGuide.md；入口 Tools / Ability / Skill Studio。请单独安装项目已有授权的 Odin Inspector 3.x，归档不分发 Sirenix DLL。编辑器只在 Editor 编译，Runtime 不依赖 Odin。源码检查可运行 dotnet run --project Tools/AbilityVerification/Editor/EditorTests.csproj；UI 参考编译需要本机 Odin 引用，不能替代真实 Unity GUI 验收。
 
 源码来源与归档范围见 `SOURCE.md`，文件 SHA-256 校验见 `CHECKSUMS.sha256`。授权条件以归档中的原始 LICENSE 为准。
 """
@@ -108,12 +110,13 @@ def main():
     entries = {}
     for relative in SOURCE_DIRECTORIES:
         entries.update(collect_directory(repository, relative))
-    for relative in ("Tools/AbilityVerification/build-package.py", "Tools/AbilityVerification/build-validation-bundle.py", "Docs/AbilityValidation.md", "Docs/AbilityEditorOdinPlan.md"):
+    for relative in ("Tools/AbilityVerification/build-package.py", "Tools/AbilityVerification/build-validation-bundle.py", "Docs/AbilityValidation.md", "Docs/AbilityEditorOdinPlan.md", "Docs/AbilityEditorGuide.md"):
         path = repository / relative
         if path.is_symlink():
             raise SystemExit("Bundle symlinks are not supported: " + str(path))
         if path.is_file():
             entries[checked_name(relative)] = path.read_bytes()
+    entries[".gitignore"] = b"**/bin/\n**/obj/\nLibrary/\nTemp/\nLogs/\n.vs/\n"
     entries["LICENSE"] = license_path.read_bytes()
     entries["README.md"] = readme(manifest["version"]).encode("utf-8")
     entries["SOURCE.md"] = ("# Source and scope\n\n"

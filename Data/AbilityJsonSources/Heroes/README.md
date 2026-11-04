@@ -59,7 +59,7 @@ dotnet run --project Tools/AbilityVerification/Core/AbilityTests.csproj -- Modif
 
 ## 编辑器规划与参考来源
 
-[Odin 编辑器规划](../../../Docs/AbilityEditorOdinPlan.md) 以这些 JSON 的实际作者需求作为 MVP 验收：不手写枚举整数、等级表、动作上下文、引用、生产校验、可靠保存与语义往返。当前尚未实现编辑器，也没有给运行时引入 Odin 依赖。
+[Odin 编辑器规划](../../../Docs/AbilityEditorOdinPlan.md) 以这些 JSON 的实际作者需求作为 MVP 验收：不手写枚举整数、等级表、动作上下文、引用、生产校验、可靠保存与语义往返。首版编辑器已实现，入口 Tools / Ability / Skill Studio；见 [使用指南](../../../Docs/AbilityEditorGuide.md)。运行时没有 Odin 依赖，真实 Unity GUI 与交互仍需验收。
 
 机制参考采用官方英雄介绍与经典 Warcraft III 表格，下面页面不是本包特定补丁数值的一致性证明：
 

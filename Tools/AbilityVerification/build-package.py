@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a standalone runtime ZIP or UPM tarball, excluding host project code."""
+"""Build the standalone runtime or optional Odin editor package as ZIP / UPM tarball."""
 import argparse
 import gzip
 import json
@@ -10,13 +10,14 @@ import zipfile
 
 def main():
     repository = Path(__file__).resolve().parents[2]
-    source = repository / "Assets" / "Scripts" / "Ability"
-    manifest = json.loads((source / "package.json").read_text(encoding="utf-8"))
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=Path.cwd() / (manifest["name"] + "-" + manifest["version"] + ".tgz"))
+    parser.add_argument("--package", choices=("runtime", "editor"), default="runtime")
+    parser.add_argument("--output", type=Path)
     parser.add_argument("--format", choices=("tgz", "zip"), help="Defaults to ZIP for a .zip output, otherwise UPM tarball.")
     args = parser.parse_args()
-    output = args.output.resolve()
+    source = repository / ("Assets/Scripts/Ability" if args.package == "runtime" else "Packages/com.novorizon.ability.editor.odin")
+    manifest = json.loads((source / "package.json").read_text(encoding="utf-8"))
+    output = (args.output or Path.cwd() / (manifest["name"] + "-" + manifest["version"] + ".tgz")).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     if output == source or source in output.parents:
         raise SystemExit("Output must be outside the package source directory.")
