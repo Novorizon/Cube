@@ -74,6 +74,8 @@ if (preview.Success) engine.IssueOrder(order);
 
 特殊链式选敌等不能直接表达的行为，在业务程序集继承 `AbilityScript` / `ModifierScript` 后注册工厂；JSON 可继续提供跳数、范围、衰减等参数。需要通用新机制时才扩展包，不把项目资源路径、角色类型或某个技能ID写进包。
 
+0.2.0 增加 Modifier 的 `levelProperties`，例如 `[{"property":6,"value":{"values":[1.5,3,4.5]}}]` 表示按来源技能当前等级读取护甲。旧 `properties` 固定 float 继续兼容，同一属性不能在两处重复；无来源技能时使用施加等级，层数只乘一次。光环子效果也实时跟随来源等级，不缓存等级属性结果。
+
 `actions` 在施法执行时运行，`onProjectileHit` 只在该技能自己的弹体命中时运行，避免多个技能串触发。`triggerExcludedDamageFlags` 可按 modifier 过滤反射等事件；其他监听者仍会收到自己的事件。
 
 JSON 必须经过严格解析和最终图校验；未知字段/拼写、类型、特殊值引用、立即创建环、不支持能力都应报错。发布会复制定义图，运行时按只读约定使用。资源路径如何加载由项目决定，包只接收字符串和 `IPresentation`。
@@ -89,6 +91,8 @@ AutoCast、独立层到期、投射物视野尚未实现，相关配置明确拒
 ## 验证材料
 
 仓库 `Data/AbilityJsonSources/Validation` 提供多种真实JSON技能、跨来源引用和外部脚本样例。`Assets/Tests/EditMode/Ability` 测试从这些文件加载并检查实际结算。它们是业务和测试资料，不是包运行依赖。
+
+`Data/AbilityJsonSources/Heroes` 另提供 Dota 2 和 Warcraft III 的 7 位英雄、14 个参考技能，每英雄文件可独立发布。具体实现和原作差异写在该目录 README 与配置 description 中；它们不是完整英雄套装或特定补丁的复刻。验证工程还提供 `Docs/AbilityEditorOdinPlan.md`，编辑器作为可选独立 Editor 包规划，运行时不依赖 Odin。
 
 `Tools/AbilityVerification/PackageSmoke/run.sh` 只把本目录复制到空临时项目，以另一个程序集自建全部接口和脚本，验证无需项目源码也可使用包。Core/Business 离线检查和性能基准在同一验证目录。
 

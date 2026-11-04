@@ -25,6 +25,8 @@ The world uses a fixed 4-unit spatial grid over a 2-unit-spaced field. It return
 
 `results/baseline.json` was captured before the modifier lookup/event-dispatch optimization. It is intentionally retained with its abort diagnostics: truncated event chains are correctness failures, not valid fast results. Some baseline aura operations also abort and therefore do not complete equivalent work. Compare these rows as diagnostics, rather than claiming a precise aura speedup from incomplete work.
 
+`results/hero-level-properties.json` is a fresh capture after runtime 0.2.0 added optional level-scaled modifier properties. All 33 setup/execution paths complete without budget aborts; query-only allocation remains zero, and the common query-plus-update retains 24 bytes in this host. These are the same synthetic static-modifier scenes, not simultaneous casts of the 14 hero reference skills. The historical baseline/optimized records retain their original source fingerprints; compare the new result as a separate capture rather than silently relabeling older measurements.
+
 The baseline host was Debian 13 x64, .NET 8.0.33, AMD EPYC 9V74, 4 CPUs available to the container, workstation GC / Interactive latency. It is a shared virtualized host; timing can vary with contention. Managed-byte counts and scaling trends are more reliable than sub-millisecond timing differences.
 
 For the common query-plus-update operation, the captured medians are:

@@ -10,5 +10,6 @@
     <type fullname="Game.Ability.Configuration.JsonCharge" preserve="all" />
     <type fullname="Game.Ability.Configuration.JsonSpecialValue" preserve="all" />
     <type fullname="Game.Ability.Configuration.JsonModifierProperty" preserve="all" />
+    <type fullname="Game.Ability.Configuration.JsonModifierLevelProperty" preserve="all" />
   </assembly>
 </linker>

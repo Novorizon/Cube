@@ -153,6 +153,21 @@ namespace Game.Ability.Configuration
                     }
                 }
 
+                JsonModifierLevelProperty[] levelProperties = source.levelProperties ?? Array.Empty<JsonModifierLevelProperty>();
+                for (int propertyIndex = 0; propertyIndex < levelProperties.Length; propertyIndex++)
+                {
+                    JsonModifierLevelProperty property = levelProperties[propertyIndex];
+                    ModifierProperty key = property != null ? (ModifierProperty)property.property : ModifierProperty.None;
+                    if (property != null && property.value != null && Enum.IsDefined(typeof(ModifierProperty), key) && key != ModifierProperty.None && !definition.Properties.ContainsKey(key) && !definition.LevelProperties.ContainsKey(key))
+                    {
+                        definition.LevelProperties.Add(key, Level(property.value));
+                    }
+                    else
+                    {
+                        bundle.Validation.Add(AbilityValidationSeverity.Error, "ABILITYJSON013", "Modifier " + source.name + " contains a missing, unsupported or duplicate level property value.", Source());
+                    }
+                }
+
                 AddActions(source.onCreated, definition.OnCreatedActions, source.name + ".onCreated", projectiles, bundle);
                 AddActions(source.onRefresh, definition.OnRefreshActions, source.name + ".onRefresh", projectiles, bundle);
                 AddActions(source.onDestroy, definition.OnDestroyActions, source.name + ".onDestroy", projectiles, bundle);
@@ -373,6 +388,7 @@ namespace Game.Ability.Configuration
         public int attributes;
         public int states;
         public JsonModifierProperty[] properties;
+        public JsonModifierLevelProperty[] levelProperties;
         public JsonAction[] onCreated;
         public JsonAction[] onRefresh;
         public JsonAction[] onDestroy;
@@ -462,6 +478,13 @@ namespace Game.Ability.Configuration
     {
         public int property;
         public float value;
+    }
+
+    [Serializable]
+    public sealed class JsonModifierLevelProperty
+    {
+        public int property;
+        public JsonLevelValue value;
     }
 }
 

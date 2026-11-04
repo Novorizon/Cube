@@ -186,6 +186,8 @@ namespace Game.Ability
         public int MaxStack = 1;
         public ModifierAttribute Attributes = ModifierAttribute.None;
         public readonly Dictionary<ModifierProperty, float> Properties = new Dictionary<ModifierProperty, float>();
+        // Uses the source modifier's current level; cannot duplicate a fixed property key.
+        public readonly Dictionary<ModifierProperty, LevelValue> LevelProperties = new Dictionary<ModifierProperty, LevelValue>();
         public UnitState States = UnitState.None;
         // Lifecycle action lists let config-only modifiers cover common buff/debuff behavior.
         public readonly List<ActionDefinition> OnCreatedActions = new List<ActionDefinition>();
@@ -209,6 +211,12 @@ namespace Game.Ability
         public TargetTeam AuraTargetTeam = TargetTeam.Friendly;
         public UnitType AuraTargetType = UnitType.All;
         public TargetFlags AuraTargetFlags = TargetFlags.None;
+
+        public float GetPropertyValue(ModifierProperty property, int level)
+        {
+            if (LevelProperties.TryGetValue(property, out LevelValue value)) return value != null ? value.GetValue(Math.Max(1, level)) : 0f;
+            return Properties.TryGetValue(property, out float constant) ? constant : 0f;
+        }
     }
 
     /// <summary>

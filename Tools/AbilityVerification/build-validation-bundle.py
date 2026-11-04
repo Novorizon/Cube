@@ -9,11 +9,12 @@ import zipfile
 
 
 SOURCE_REPOSITORY = "https://github.com/Novorizon/Cube"
-SOURCE_REVISION = "4fefa2038106734ba917f1340d4dbc14eb7c92c9"
+SOURCE_REVISION = "working-tree snapshot; identify exact files with CHECKSUMS.sha256"
 SOURCE_DIRECTORIES = (
     "Assets/Scripts/Ability",
     "Assets/Tests/EditMode/Ability",
     "Data/AbilityJsonSources/Validation",
+    "Data/AbilityJsonSources/Heroes",
     "Tools/AbilityVerification/Core",
     "Tools/AbilityVerification/PackageSmoke",
     "Tools/AbilityVerification/Performance",
@@ -54,7 +55,7 @@ def readme(version):
 
 导入后，由业务自己的程序集实现 `IUnit`、`IWorld`、资源和表现接口，并调用公开 API。特殊技能脚本也放在业务程序集注册；不需要修改技能包。
 
-本目录不是完整 Unity 项目：它没有 ProjectSettings、Packages/manifest.json 或具体场景。请先新建一个干净的 Unity 2022.3 项目进行导入验收。若要运行真实 EditMode 测试，将 `Assets/Tests/EditMode/Ability` 复制到该项目相同位置，将 `Data/AbilityJsonSources/Validation` 复制到项目根的相同位置，安装 Unity Test Framework，然后使用 Test Runner。不要把便携宿主中的 Unity/NUnit 替身复制到 Unity 的 Assets 中。
+本目录不是完整 Unity 项目：它没有 ProjectSettings、Packages/manifest.json 或具体场景。请先新建一个干净的 Unity 2022.3 项目进行导入验收。若要运行真实 EditMode 测试，将 `Assets/Tests/EditMode/Ability` 复制到该项目相同位置，将 `Data/AbilityJsonSources` 复制到项目根的相同位置，安装 Unity Test Framework，然后使用 Test Runner。不要把便携宿主中的 Unity/NUnit 替身复制到 Unity 的 Assets 中。
 
 ## 脱离 Cube 运行源码检查
 
@@ -65,7 +66,7 @@ dotnet run --project Tools/AbilityVerification/Core/AbilityTests.csproj
 bash Tools/AbilityVerification/PackageSmoke/run.sh
 ```
 
-第一条使用最小 Unity/NUnit 兼容层运行真实 EditMode fixture 源码；第二条仅复制 Ability 目录，在空目录编译独立的外部消费者。前一版本的检查规模为核心 223 项、独立包 7 项，实际结果以本次命令输出为准。可用 `DOTNET=/absolute/path/to/dotnet bash .../run.sh` 指定 SDK 路径。
+第一条使用最小 Unity/NUnit 兼容层运行真实 EditMode fixture 源码；第二条仅复制 Ability 目录，在空目录编译独立的外部消费者。完整运行全部 fixture，实际数量以本次命令输出为准。可用 `DOTNET=/absolute/path/to/dotnet bash .../run.sh` 指定 SDK 路径。
 
 这些检查不是 Unity Test Runner、Unity 编译、PlayMode、资源加载或 IL2CPP 验证。完整 Cube 中的 Business 检查有项目依赖，未收录在此独立工程。
 
@@ -80,7 +81,7 @@ DOTNET_TieredCompilation=0 dotnet Tools/AbilityVerification/Performance/bin/Rele
 
 ## 全面验收
 
-若包含 `Docs/AbilityValidation.md`，请按其中的架构、规则、时序、异常、性能和 Unity 交付门槛执行。JSON 技能样例与扩展边界见 `Data/AbilityJsonSources/Validation/README.md`；包的公开 API 说明见 `Assets/Scripts/Ability/README.md`。
+若包含 `Docs/AbilityValidation.md`，请按其中的架构、规则、时序、异常、性能和 Unity 交付门槛执行。英雄技能与差异见 `Data/AbilityJsonSources/Heroes/README.md`；其它组合样例见 `Data/AbilityJsonSources/Validation/README.md`；包的公开 API 说明见 `Assets/Scripts/Ability/README.md`。`Docs/AbilityEditorOdinPlan.md` 是可选 Odin 编辑器的规划，当前没有引入 Odin 依赖或编辑器实现。
 
 源码来源与归档范围见 `SOURCE.md`，文件 SHA-256 校验见 `CHECKSUMS.sha256`。授权条件以归档中的原始 LICENSE 为准。
 """
@@ -107,7 +108,7 @@ def main():
     entries = {}
     for relative in SOURCE_DIRECTORIES:
         entries.update(collect_directory(repository, relative))
-    for relative in ("Tools/AbilityVerification/build-package.py", "Tools/AbilityVerification/build-validation-bundle.py", "Docs/AbilityValidation.md"):
+    for relative in ("Tools/AbilityVerification/build-package.py", "Tools/AbilityVerification/build-validation-bundle.py", "Docs/AbilityValidation.md", "Docs/AbilityEditorOdinPlan.md"):
         path = repository / relative
         if path.is_symlink():
             raise SystemExit("Bundle symlinks are not supported: " + str(path))

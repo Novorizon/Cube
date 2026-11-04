@@ -94,6 +94,13 @@ namespace Game.Ability.Configuration
                     Number(property.Value, property.Key.ToString());
                     if (property.Key == ModifierProperty.HealthRegen && property.Value < 0f && !pair.Value.RequiresCustomScript) Error("Negative HealthRegen requires an explicit custom modifier script; the built-in regeneration consumer heals only.");
                 }
+                foreach (KeyValuePair<ModifierProperty, LevelValue> property in definition.LevelProperties)
+                {
+                    Defined(property.Key, "LevelProperty");
+                    if (property.Key == ModifierProperty.None) Error("LevelProperty.None has no consumer.");
+                    if (definition.Properties.ContainsKey(property.Key)) Error("A property cannot appear in both Properties and LevelProperties: " + property.Key + ".");
+                    Level(property.Value, "LevelProperties." + property.Key, property.Key == ModifierProperty.HealthRegen && !pair.Value.RequiresCustomScript);
+                }
                 Defined(definition.TriggerEventType, "TriggerEventType"); Defined(definition.TriggerEventScope, "TriggerEventScope");
                 Flags(definition.TriggerExcludedDamageFlags, "TriggerExcludedDamageFlags");
                 if (definition.TriggerExcludedDamageFlags != DamageFlags.None && definition.TriggerEventType != ModifierEventType.DamageCalculated && definition.TriggerEventType != ModifierEventType.DamageDealt && definition.TriggerEventType != ModifierEventType.DamageTaken) Error("TriggerExcludedDamageFlags requires a damage event.");

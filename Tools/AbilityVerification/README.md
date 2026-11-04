@@ -18,6 +18,8 @@ For a ZIP, use `python3 Tools/AbilityVerification/build-package.py --output /tmp
 
 The [acceptance report and validation matrix](../../Docs/AbilityValidation.md) records current evidence and remaining architecture, randomized testing, Unity, IL2CPP and target-device performance gates.
 
+The [hero JSON reference pack](../../Data/AbilityJsonSources/Heroes/README.md) implements 14 skills across seven Dota 2 / Warcraft III heroes. Its fixtures load the actual files and verify independent/combined publication and runtime behavior. Runtime 0.2.0 adds level-scaled modifier properties without any hero-specific Core code. The [Odin editor plan](../../Docs/AbilityEditorOdinPlan.md) uses these files as authoring and round-trip acceptance cases; no Odin dependency or editor implementation is installed.
+
 The separate [performance probe](Performance/README.md) runs production Ability code with portable world/unit adapters and records warmed timing, managed allocation and execution-budget diagnostics. Its synthetic .NET results do not establish Unity or target-device frame rates.
 
 The core tool compiles production Ability code and the real EditMode test sources into **separate assemblies**, using a small Unity math/JSON substitute and the subset of NUnit assertions used by these fixtures. A fixture-name filter can be passed after `--`. JSON provider tests execute the actual strict production JSON reader; the Unity JSON substitute is only a compatibility surface for other code.

@@ -31,13 +31,8 @@ namespace Game.Ability
                 return 0f;
             }
 
-            if (!Modifier.Definition.Properties.TryGetValue(property, out float value))
-            {
-                return 0f;
-            }
-
             // Default modifier properties stack additively by stack count.
-            return value * Modifier.StackCount;
+            return Modifier.Definition.GetPropertyValue(property, Level) * Modifier.StackCount;
         }
 
         public virtual bool CheckState(UnitState state)

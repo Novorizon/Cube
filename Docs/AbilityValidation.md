@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | 编译边界 | asmdef 无用户程序集引用；仅依赖 System、Unity 和本包；只拷出 Ability 后，外部消费者独立编译并运行 7 项检查 | 真实空 Unity 2022.3 项目导入及编译尚未运行 |
 | 架构合理性 | 定义发布、运行时、业务适配器分开；外部程序集可以提供单位、世界、资源、表现和脚本 | 配置校验还保留 `TowerAbilityBindingRecord`、`TowerBindings`、塔攻击间隔与冷却比较；没有外部编译依赖，但属于应迁出或泛化的业务语义 |
-| 规则正确性 | 223 项 Core 检查通过；真实 JSON 样例经过解析、发布和运行时；有生命周期、重入、异常、投射物、光环、战斗与索引回归 | 使用最小 Unity/NUnit 兼容宿主；没有真实 Test Runner 结果，没有系统性随机长序列验证 |
+| 规则正确性 | 0.2.0 在全新解压验证目录运行 316 项 Core 检查通过；包含 14 个英雄技能、等级属性、视野、目标关系、控制、周期和光环边界 | 使用最小 Unity/NUnit 兼容宿主；没有真实 Test Runner 结果，没有系统性随机长序列验证 |
 | Cube 业务接入 | 原仓库 49 项业务检查通过，实际修改的适配器与 Manager 独立编译 | 外围资源服务和 Unity 是替身；该套检查依赖 Cube，独立验证 ZIP 不收录 |
 | 性能 | 已记录 .NET Release 基线、优化后结果、源码指纹及 33 个场景的执行预算诊断；优化后均无预算中止 | 缺真实伤害/proc 链、新命中峰值、Modifier 高频增删、Unity 物理/表现、目标设备和长时内存数据 |
 | AOT 与资源 | 有 JSON DTO 保留配置及资源/表现接口 | 未运行 IL2CPP、高裁剪、真实资源加载及场景清理 |
@@ -57,7 +57,7 @@
 ## 4. Unity 与 IL2CPP 门槛（尚未运行）
 
 1. 用 Unity 2022.3 新建空项目，解压运行时 ZIP，在 Package Manager 的 Add package from disk 中选择 `com.novorizon.ability/package.json`。只保留一种安装方式，避免同名程序集重复。
-2. 从验证 ZIP 复制 `Assets/Tests/EditMode/Ability` 和根 `Data/AbilityJsonSources/Validation`；项目启用 Unity Test Framework。使用真实 Test Runner 运行全部 EditMode fixtures，保留 XML 和 Editor 日志。
+2. 从验证 ZIP 复制 `Assets/Tests/EditMode/Ability` 和根 `Data/AbilityJsonSources`（含 Validation 和 Heroes）；项目启用 Unity Test Framework。使用真实 Test Runner 运行全部 EditMode fixtures，保留 XML 和 Editor 日志。
 3. 加入 PlayMode 集成场景：实际帧更新、真实单位生命周期、异步资源取消、移动/销毁表现、场景卸载及重复进入战斗。当前没有这些场景，不能声称已自动化覆盖。
 4. 构建目标平台 IL2CPP Player，在所需裁剪等级下测试严格 JSON DTO、外部脚本工厂、伤害/周期/弹道、资源回调和清理。`link.xml` 存在不等于构建验证通过。
 
@@ -99,7 +99,9 @@ dotnet build Tools/AbilityVerification/Performance/AbilityPerformance.csproj -c 
 DOTNET_TieredCompilation=0 dotnet Tools/AbilityVerification/Performance/bin/Release/net8.0/AbilityPerformance.dll --label current --output ability-current.json
 ```
 
-Core 预期 223 项、PackageSmoke 预期 7 项；具体数量会随新回归增长，以零失败和没有静默跳过为准。性能程序输出源码指纹，比较时保留配置与完整结果。可用 fixture 名称过滤执行，但完整验收必须运行全套。
+0.2.0 的 Core 预期 316 项、PackageSmoke 预期 7 项；具体数量会随新回归增长，以零失败和没有静默跳过为准。性能程序输出源码指纹，比较时保留配置与完整结果。可用 fixture 名称过滤执行，但完整验收必须运行全套。
+
+本轮英雄范围及原作差异见 [英雄 JSON 说明](../Data/AbilityJsonSources/Heroes/README.md)，新增等级属性覆盖旧格式兼容、深复制、非法配置拒绝、实时升降级和光环传递。单位目标技能验证可见性并在拒绝时不扣费；范围/直线技能仍能命中隐藏单位，已发射风暴之锤继续跟踪。编辑器设计另见 [Odin 规划](AbilityEditorOdinPlan.md)，尚未安装或实现编辑器。
 
 Cube 原仓库另有 `dotnet run --project Tools/AbilityVerification/Business/BusinessTests.csproj`，预期 49 项。它不进入独立验证 ZIP，独立包不需要该业务层。
 

@@ -44,6 +44,7 @@ namespace Game.Ability.Configuration
                 AuraIncrementsStacks = source.AuraIncrementsStacks, AuraTargetTeam = source.AuraTargetTeam, AuraTargetType = source.AuraTargetType, AuraTargetFlags = source.AuraTargetFlags
             };
             foreach (KeyValuePair<ModifierProperty, float> pair in source.Properties) result.Properties.Add(pair.Key, pair.Value);
+            foreach (KeyValuePair<ModifierProperty, LevelValue> pair in source.LevelProperties) result.LevelProperties.Add(pair.Key, Clone(pair.Value));
             CloneActions(source.OnCreatedActions, result.OnCreatedActions);
             CloneActions(source.OnRefreshActions, result.OnRefreshActions);
             CloneActions(source.OnDestroyActions, result.OnDestroyActions);
