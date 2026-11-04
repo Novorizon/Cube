@@ -52,6 +52,21 @@ internal static class Program
         manager.GrantAbility(baseOwner, AbilityKey.FromLegacyId(99), 4);
         Check(manager.TryGetBaseAbilityCooldown(99, out _, out _) && manager.TryGetAbilityStatus(baseOwner, AbilityKey.FromLegacyId(99), out status) && status.Level == 4, "legacy cooldown query preserves a high-level ability");
         manager.GrantAbility(owner, AbilityKey.ByName("point"), resourceItemId: ItemIds.Gold);
+        Check(manager.TryGetAbilityMetadata(AbilityKey.ByName("point"), out AbilityMetadata metadata) && (metadata.Usage & AbilityUsage.PositionTarget) != 0 && metadata.ResourceCost == 10f && metadata.CastRange == 10f, "metadata exposes targeting and tuning without mutable definitions");
+        int previewEvents = 0;
+        Action<RuntimeEvent> previewListener = _ => previewEvents++;
+        manager.Engine.EventRaised += previewListener;
+        int previewSpent = BattleItemManager.Instance.Consumed;
+        AbilityCommandResult preview = manager.CheckCastAtPosition(owner, AbilityKey.ByName("point"), Vector3.right);
+        manager.Engine.EventRaised -= previewListener;
+        Check(preview.Accepted && preview.CastId == 0 && previewEvents == 0 && BattleItemManager.Instance.Consumed == previewSpent, "facade preview validates without orders events or resource consumption");
+        manager.GrantAbility(owner, AbilityKey.ByName("timer"), resourceItemId: ItemIds.Gold);
+        Check(manager.TrySetActivated(owner, AbilityKey.ByName("timer"), false) && !manager.CheckCast(owner, AbilityKey.ByName("timer")).Accepted && manager.TrySetActivated(owner, AbilityKey.ByName("timer"), true), "facade controls activation and checks disabled abilities");
+        manager.Cast(owner, AbilityKey.ByName("timer"));
+        manager.Update(1f);
+        AbilityEffectHandle cooldownReduction = manager.ApplyStatusEffect(owner, "cdr");
+        Check(manager.TryGetAbilityStatus(owner, AbilityKey.ByName("timer"), out AbilityStatus timer) && timer.CooldownDuration == 10f && timer.CooldownRemaining == 9f && timer.ExecutionPhase == AbilityExecutionPhase.Idle && timer.MaxCharges == 2 && timer.ChargeRestoreDuration == 4f && timer.ChargeRestoreRemaining == 3f && timer.ResourceCost == 2f, "facade status keeps actual cooldown duration while exposing typed phase and charge recovery");
+        manager.RemoveStatusEffect(cooldownReduction);
         int spentBefore = BattleItemManager.Instance.Consumed;
         AbilityCommandResult noTarget = manager.CastAtBestTarget(owner, AbilityKey.ByName("point"));
         Check(!noTarget.Accepted && noTarget.Failure == AbilityCommandFailure.InvalidTarget && BattleItemManager.Instance.Consumed == spentBefore, "automatic point cast with no target cannot spend resources");
@@ -222,10 +237,14 @@ internal static class Program
             AddAbility(bundle, new AbilityDefinition { Name = "skill_99", MaxLevel = 5 });
             AddAbility(bundle, new AbilityDefinition { Name = "slow", CastPoint = LevelValue.Constant(1) });
             AddAbility(bundle, new AbilityDefinition { Name = "point", Behavior = AbilityBehavior.PointTarget, TargetType = UnitType.Hero, CastRange = LevelValue.Constant(10), ManaCost = LevelValue.Constant(10) });
+            AddAbility(bundle, new AbilityDefinition { Name = "timer", Cooldown = LevelValue.Constant(10), ManaCost = LevelValue.Constant(2), Charges = new ChargeDefinition { MaxCharges = 2, RestoreTime = 4 } });
             AddAbility(bundle, new AbilityDefinition { Name = "optional", Behavior = AbilityBehavior.OptionalUnitTarget, TargetType = UnitType.Building, CastRange = LevelValue.Constant(10) });
             AddAbility(bundle, new AbilityDefinition { Name = "optional.empty", Behavior = AbilityBehavior.OptionalUnitTarget, TargetType = UnitType.Hero, CastRange = LevelValue.Constant(10) });
             bundle.Modifiers.Add(new ModifierDefinitionRegistration { Definition = new ModifierDefinition { Name = "buff", Duration = 5 }, Origin = new AbilityDefinitionOrigin { SourceType = AbilityDefinitionSourceType.Code } });
             bundle.Modifiers.Add(new ModifierDefinitionRegistration { Definition = new ModifierDefinition { Name = "disarm", Duration = 5, States = UnitState.Disarmed }, Origin = new AbilityDefinitionOrigin { SourceType = AbilityDefinitionSourceType.Code } });
+            ModifierDefinition reduction = new ModifierDefinition { Name = "cdr", Duration = 5 };
+            reduction.Properties[ModifierProperty.CooldownReductionPercent] = 50f;
+            bundle.Modifiers.Add(new ModifierDefinitionRegistration { Definition = reduction, Origin = new AbilityDefinitionOrigin { SourceType = AbilityDefinitionSourceType.Code } });
             return bundle;
         }
         private static void AddAbility(AbilityDefinitionBundle bundle, AbilityDefinition definition, string id = null)

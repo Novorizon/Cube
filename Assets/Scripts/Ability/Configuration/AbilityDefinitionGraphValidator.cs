@@ -60,10 +60,14 @@ namespace Game.Ability.Configuration
                 }
                 Reference(definition.IntrinsicModifierName, "intrinsic modifier", false);
                 Actions(definition.Actions);
+                Actions(definition.OnProjectileHitActions, triggerContext: true);
+                for (int i = 0; i < definition.OnProjectileHitActions.Count; i++)
+                    if (definition.OnProjectileHitActions[i] != null && definition.OnProjectileHitActions[i].ValueSource != ActionValueSource.LevelOrSpecial) Error("Projectile hit actions do not carry committed damage or healing values.");
                 Actions(definition.OnToggleOnActions);
                 Actions(definition.OnToggleOffActions);
                 HashSet<string> reachable = new HashSet<string>(StringComparer.Ordinal);
                 SpecialActions(definition.Actions, definition, reachable);
+                SpecialActions(definition.OnProjectileHitActions, definition, reachable);
                 SpecialActions(definition.OnToggleOnActions, definition, reachable);
                 SpecialActions(definition.OnToggleOffActions, definition, reachable);
                 SpecialModifier(definition.IntrinsicModifierName, definition, reachable);
@@ -91,6 +95,8 @@ namespace Game.Ability.Configuration
                     if (property.Key == ModifierProperty.HealthRegen && property.Value < 0f && !pair.Value.RequiresCustomScript) Error("Negative HealthRegen requires an explicit custom modifier script; the built-in regeneration consumer heals only.");
                 }
                 Defined(definition.TriggerEventType, "TriggerEventType"); Defined(definition.TriggerEventScope, "TriggerEventScope");
+                Flags(definition.TriggerExcludedDamageFlags, "TriggerExcludedDamageFlags");
+                if (definition.TriggerExcludedDamageFlags != DamageFlags.None && definition.TriggerEventType != ModifierEventType.DamageCalculated && definition.TriggerEventType != ModifierEventType.DamageDealt && definition.TriggerEventType != ModifierEventType.DamageTaken) Error("TriggerExcludedDamageFlags requires a damage event.");
                 if (definition.IntervalActions.Count > 0 && definition.Interval <= 0f) Error("IntervalActions require a positive Interval.");
                 if (definition.TriggerActions.Count > 0 && definition.TriggerEventType == ModifierEventType.None) Error("TriggerActions require a TriggerEventType.");
                 Reference(definition.AuraModifierName, "aura modifier", false);

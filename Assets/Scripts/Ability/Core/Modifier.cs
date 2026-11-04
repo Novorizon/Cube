@@ -37,6 +37,7 @@ namespace Game.Ability
         private bool HasAura => !string.IsNullOrEmpty(Definition.AuraModifierName);
         private float AuraInterval => Mathf.Max(0.05f, Definition.AuraThinkInterval);
         internal bool IsRuntimeCurrent => Engine.RuntimeGeneration == runtimeGeneration;
+        internal bool RequiresPropertyContext => !(Script is DefaultModifierScript) && !(Script is ConfiguredModifierScript);
 
         internal Modifier(AbilitySystem engine, ModifierDefinition definition, IUnit caster, IUnit parent, Ability ability, ModifierScript script, ModifierApplyOptions options)
         {
@@ -64,6 +65,7 @@ namespace Game.Ability
         {
             if (isRegistered || IsDestroyed) return;
             isRegistered = true;
+            Engine.RegisterAuraChild(this);
             Script.OnCreated(options);
             if (!CanContinue()) return;
 
@@ -118,11 +120,18 @@ namespace Game.Ability
         {
             using (Engine.BeginExecution())
             {
-                TickTimeline(deltaTime);
+                TickTimeline(deltaTime, Engine.HasAuraLease(this));
             }
         }
 
-        private void TickTimeline(float deltaTime)
+        // Aura coverage is sampled before any object ticks. A covered child still runs its
+        // own interval/regen timeline, but its duration represents linger after coverage ends.
+        internal void RenewAuraLease()
+        {
+            if (HasDuration) RemainingTime = Duration;
+        }
+
+        private void TickTimeline(float deltaTime, bool hasAuraLease)
         {
             if (!CanContinue() || deltaTime <= 0f || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime)) return;
 
@@ -130,11 +139,11 @@ namespace Game.Ability
             int callbacks = 0;
             while (unprocessedTime > 0f && CanContinue())
             {
-                float step = HasDuration ? Mathf.Min(unprocessedTime, Mathf.Max(0f, RemainingTime)) : unprocessedTime;
+                float step = HasDuration && !hasAuraLease ? Mathf.Min(unprocessedTime, Mathf.Max(0f, RemainingTime)) : unprocessedTime;
                 if (HasInterval) step = Mathf.Min(step, Mathf.Max(0f, intervalTimer));
                 if (HasAura) step = Mathf.Min(step, Mathf.Max(0f, auraTimer));
 
-                AdvanceTime(step);
+                AdvanceTime(step, hasAuraLease);
                 unprocessedTime = Mathf.Max(0f, unprocessedTime - step);
                 if (!CanContinue()) return;
 
@@ -146,7 +155,7 @@ namespace Game.Ability
                     // This bounds long-frame work without accumulating permanent callback debt.
                     if (callbacks >= Mathf.Max(1, Engine.MaxPeriodicCallbacksPerUpdate))
                     {
-                        SkipTime(unprocessedTime);
+                        SkipTime(unprocessedTime, hasAuraLease);
                         return;
                     }
 
@@ -155,7 +164,7 @@ namespace Game.Ability
                         intervalTimer = Definition.Interval;
                         if (!Engine.TryConsumeExecutionBudget("Modifier interval"))
                         {
-                            SkipTime(unprocessedTime);
+                            SkipTime(unprocessedTime, hasAuraLease);
                             return;
                         }
 
@@ -169,7 +178,7 @@ namespace Game.Ability
                         auraTimer = AuraInterval;
                         if (callbacks >= Mathf.Max(1, Engine.MaxPeriodicCallbacksPerUpdate) || !Engine.TryConsumeExecutionBudget("Aura refresh"))
                         {
-                            SkipTime(unprocessedTime);
+                            SkipTime(unprocessedTime, hasAuraLease);
                             return;
                         }
 
@@ -180,7 +189,7 @@ namespace Game.Ability
                 }
 
                 // Boundary callbacks run before expiry. Refresh may have installed a new lifetime.
-                if (HasDuration && IsDue(RemainingTime, Duration))
+                if (HasDuration && !hasAuraLease && IsDue(RemainingTime, Duration))
                 {
                     Engine.RemoveModifier(this);
                     return;
@@ -192,6 +201,7 @@ namespace Game.Ability
         {
             if (IsDestroyed) return;
             IsDestroyed = true;
+            Engine.UnregisterAuraChild(this);
             IPresentationHandle handle = sustainedPresentation;
             sustainedPresentation = null;
             try { handle?.Stop(); }
@@ -216,18 +226,19 @@ namespace Game.Ability
             return false;
         }
 
-        private void AdvanceTime(float deltaTime)
+        private void AdvanceTime(float deltaTime, bool hasAuraLease)
         {
             if (deltaTime <= 0f) return;
             ElapsedTime += deltaTime;
-            if (HasDuration) RemainingTime -= deltaTime;
+            if (HasDuration && !hasAuraLease) RemainingTime -= deltaTime;
             if (HasInterval) intervalTimer -= deltaTime;
             if (HasAura) auraTimer -= deltaTime;
 
             // Regeneration belongs to active time, not a frame extending beyond expiry.
             if (Parent != null && Parent.IsAlive)
             {
-                float regeneration = GetProperty(ModifierProperty.HealthRegen, new ModifierPropertyContext { Engine = Engine, Unit = Parent, Ability = Ability });
+                ModifierPropertyContext context = RequiresPropertyContext ? new ModifierPropertyContext { Engine = Engine, Unit = Parent, Ability = Ability } : null;
+                float regeneration = GetProperty(ModifierProperty.HealthRegen, context);
                 if (regeneration > 0f && !float.IsNaN(regeneration) && !float.IsInfinity(regeneration) && CanContinue())
                 {
                     Engine.Heal(new HealInfo { Source = Caster, Target = Parent, Ability = Ability, Amount = regeneration * deltaTime });
@@ -235,14 +246,14 @@ namespace Game.Ability
             }
         }
 
-        private void SkipTime(float deltaTime)
+        private void SkipTime(float deltaTime, bool hasAuraLease)
         {
-            float activeTime = HasDuration ? Mathf.Min(deltaTime, Mathf.Max(0f, RemainingTime)) : deltaTime;
-            AdvanceTime(activeTime);
+            float activeTime = HasDuration && !hasAuraLease ? Mathf.Min(deltaTime, Mathf.Max(0f, RemainingTime)) : deltaTime;
+            AdvanceTime(activeTime, hasAuraLease);
             if (!CanContinue()) return;
             if (HasInterval && intervalTimer <= 0f) intervalTimer = NextTimer(intervalTimer, Definition.Interval);
             if (HasAura && auraTimer <= 0f) auraTimer = NextTimer(auraTimer, AuraInterval);
-            if (HasDuration && IsDue(RemainingTime, Duration)) Engine.RemoveModifier(this);
+            if (HasDuration && !hasAuraLease && IsDue(RemainingTime, Duration)) Engine.RemoveModifier(this);
         }
 
         private static bool IsDue(float timer, float period)

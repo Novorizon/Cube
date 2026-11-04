@@ -328,8 +328,9 @@ namespace Game.Ability
             }
 
             public bool IsValid => context.Engine.IsRuntimeAvailable && context.Engine.RuntimeGeneration == generation &&
-                (modifier != null ? modifier.IsRuntimeCurrent && (allowDestroyedModifier || !modifier.IsDestroyed) :
-                    (context.Ability == null || !context.Ability.IsRemoved) && !context.Engine.IsUnitRemoving(context.Caster));
+                (context.Projectile != null ? !context.Projectile.Destroyed && context.Engine.ContainsProjectile(context.Projectile) && !context.Engine.IsUnitRemoving(context.Caster) :
+                    modifier != null ? modifier.IsRuntimeCurrent && (allowDestroyedModifier || !modifier.IsDestroyed) :
+                        (context.Ability == null || !context.Ability.IsRemoved) && !context.Engine.IsUnitRemoving(context.Caster));
         }
     }
 }

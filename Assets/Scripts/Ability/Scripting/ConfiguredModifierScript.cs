@@ -54,8 +54,11 @@ namespace Game.Ability
             ActionRunner.Execute(Modifier.Definition.TriggerActions, CreateContext(target, modifierEvent));
         }
 
-        private bool ShouldHandleEvent(ModifierEvent modifierEvent)
+        internal bool ShouldHandleEvent(ModifierEvent modifierEvent)
         {
+            DamageFlags flags = modifierEvent.DamageResult != null ? modifierEvent.DamageResult.Flags : modifierEvent.DamageInfo != null ? modifierEvent.DamageInfo.Flags : DamageFlags.None;
+            if ((flags & Modifier.Definition.TriggerExcludedDamageFlags) != 0) return false;
+
             if (Modifier.Definition.TriggerEventScope == ModifierEventScope.Global)
             {
                 return true;

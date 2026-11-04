@@ -26,6 +26,7 @@ namespace Game.Ability.Configuration
             };
             foreach (KeyValuePair<string, LevelValue> pair in source.SpecialValues) result.SpecialValues.Add(pair.Key, Clone(pair.Value));
             CloneActions(source.Actions, result.Actions);
+            CloneActions(source.OnProjectileHitActions, result.OnProjectileHitActions);
             CloneActions(source.OnToggleOnActions, result.OnToggleOnActions);
             CloneActions(source.OnToggleOffActions, result.OnToggleOffActions);
             return result;
@@ -38,6 +39,7 @@ namespace Game.Ability.Configuration
                 Name = source.Name, DisplayName = source.DisplayName, IsHidden = source.IsHidden, IsDebuff = source.IsDebuff, IsPurgable = source.IsPurgable,
                 RemoveOnDeath = source.RemoveOnDeath, Duration = source.Duration, Interval = source.Interval, MaxStack = source.MaxStack, Attributes = source.Attributes, States = source.States,
                 TriggerEventType = source.TriggerEventType, TriggerEventScope = source.TriggerEventScope, SustainedEffectName = source.SustainedEffectName,
+                TriggerExcludedDamageFlags = source.TriggerExcludedDamageFlags,
                 AuraModifierName = source.AuraModifierName, AuraRadius = source.AuraRadius, AuraDuration = source.AuraDuration, AuraThinkInterval = source.AuraThinkInterval,
                 AuraIncrementsStacks = source.AuraIncrementsStacks, AuraTargetTeam = source.AuraTargetTeam, AuraTargetType = source.AuraTargetType, AuraTargetFlags = source.AuraTargetFlags
             };

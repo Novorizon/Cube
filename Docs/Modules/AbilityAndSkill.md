@@ -2,7 +2,7 @@
 
 ## 定位与边界
 
-`Assets/Scripts/Ability` 是 Dota 风格的通用技能运行时；业务接入位于 `Game/TowerDefense/AbilityAdapters`。Core 不引用 Npc、Tower、DataManager、业务单例或资源服务。业务对象通过适配器接入。依赖方向固定为：业务调用/生命周期 → 门面与适配器 → Core；Core 通过中立接口返回查询、实际结算及表现请求。
+`Assets/Scripts/Ability` 是可独立导入 Unity 的 Dota 风格技能包，提供 UPM package.json。包不引用 Npc、Tower、DataManager、业务单例或资源服务。业务可以直接使用公开 Ability/Modifier/CastResult API，并在自己的程序集实现接口或适配器；不需要为了新项目修改包。当前 Cube 的 `Game/TowerDefense/AbilityAdapters` 是项目自己选择的接入层，不是包运行依赖。依赖方向是业务→技能包，包通过抽象接口请求项目能力。
 
 `Assets/Scripts/Skill` 是历史实现，本次不迁移或删除。新单位类型应增加适配器，不能让 Core 认识业务类型。
 
@@ -41,7 +41,7 @@ partial 文件只分区职责，仍是一个 Engine，不建立第二套适配�
 
 独立Modifier携带等级，常量动作不依赖Ability。有来源技能时查询其等级，脚本需要快照可在OnCreated保存。刷新键区分Parent、Name、Caster、Ability、光环身份及SourceAura，null不是通配符。初始和后续叠层都限制MaxStack。
 
-光环默认只续期，`auraIncrementsStacks=true`才按脉冲涨层。周期回调按时间线推进，边界刷新不会再扣掉整帧；每次回调后检查死亡/销毁。再生只作用于有效时间。兼容约定仍是Duration<=0不自动到期，永久建议用-1，缺失SpecialValue必须报错。
+光环默认只续期，`auraIncrementsStacks=true`才按脉冲涨层。已有子效果在 Update 开始采样覆盖，覆盖期间保留完整离开滞留时间，离开后的帧才倒计时；维护续租在帧尾执行，不因 source/child 更新顺序重复扣时。不同来源的 Multiple 子效果独立，同一来源维护同一个实例。周期回调按时间线推进，边界刷新不会再扣掉整帧；每次回调后检查死亡/销毁。再生只作用于有效时间。兼容约定仍是Duration<=0不自动到期，永久建议用-1，缺失SpecialValue必须报错。
 
 Update先取其他对象快照再推进Ability；回调新建对象从下一Update老化，不追扣整帧。引导回调裁剪到有效剩余时间，前摇跨帧仅用溢出时间推进引导。未来固定步长调度应保持同一契约。
 
@@ -69,13 +69,17 @@ requiresCustomScript必须有实际工厂。Validation是当前图报告，LastA
 
 新JSON字段：onToggleOn/onToggleOff；auraIncrementsStacks；maxLifetime/trackingTargetPolicy；Action.valueSource。valueSource=0等级/特殊值，1实际事件伤害，2实际治疗，3事件Value，事件量乘配置Value/SpecialValue因子。目标Parent=5、EventSource=6、EventTarget=7；事件引用仅允许在匹配Trigger使用。
 
+`onProjectileHit` 是所属技能的命中动作，施法生成弹体后不会立即伤害，多技能弹道互不串触发。Modifier 的 `triggerExcludedDamageFlags` 可过滤 Reflected 等标志，避免反伤依靠熔断结束。九种JSON组合技能、混合来源及外部脚本连锁闪电见 `Data/AbilityJsonSources/Validation`，场景测试直接加载同一文件。
+
 严格读取的DTO通过link.xml保留反射构造/字段，避免IL2CPP剥离；实际目标平台仍需构建验证。
 
 Initialize前可显式ConfigureJsonSources(manifestAssetPath)。manifest schemaVersion=1，sources项包含enabled/完整assetPath，从ResourceManager已配置位置加载。手写资产不能放生成的Assets/Data/Json；启用项缺失初始化失败，禁用项不加载。不扫描示例目录、不假定YooAsset收集配置存在。
 
-## 业务门面
+## 当前项目业务接入（非包依赖）
 
-新调用使用AbilityKey（名称/StableId）、战斗session句柄、AbilityStatus和业务DTO。授予、升级、查询、施法、停止分离；TryGet不创建/改等级。CastId/Queued及中立CommandUpdated连接回执和后续结果。旧int/原始Core返回值仅为兼容路径。
+Cube 可选择 AbilityKey（名称/StableId）、战斗session句柄、AbilityStatus和业务DTO。授予、升级、查询、施法、停止分离；TryGet不创建/改等级。CastId/Queued及CommandUpdated连接回执和后续结果。业务直接依赖包的公开类型同样是有效接入，不要求再套一层“不认识技能类型”的接口。Actor绑定与UI选择哪些技能属于项目职责。
+
+包的 EvaluateOrder 与真实施法共享预校验，不触发 OrderIssued、前摇钩子、ID分配、支付或队列变更。CastFilter/getter须遵守只读扩展契约。CooldownDuration记录本次启动的时长；ChargeRestoreRemaining提供恢复倒计时。
 
 JSON消耗通过业务授予时资源绑定提供，技能栏、本地化/图标和Tower模板仍由业务配置决定。来源无关接口不代表旧Excel TowerLevel已支持字符串键，不能私改生成列或把JSON伪装数字表行。
 
@@ -97,4 +101,8 @@ Workbench检查器/表单/快照沿用现有管线；快照查询脚本真实属
 
 新增EditMode回归覆盖订单、仲裁/队列、异常重入、计时/再生、独立Modifier/光环、预算/清理、结算、攻击/死亡、投射物和严格发布。便携.NET源码宿主使用最小Unity/NUnit兼容层，只验证这些源码断言和编译，不等于Unity Test Runner。
 
-发布前必须在Unity2022实际编译并执行EditMode/PlayMode、异步表现及真实塔防验收，覆盖七个既有技能与启用JSON资源/UI绑定。Modifier索引、空间索引和减少分配另行压测优化，不能为省分配退回不可重入共享列表。
+包内现按单位建立Modifier索引并用成员集合判断登记；事件只派发给实际监听者，自定义脚本保持原注册顺序及全局事件契约。快照池保持嵌套隔离与异常释放，执行作用域是值类型；只对内置静态读取跳过上下文分配，不缓存动态结果。
+
+`Tools/AbilityVerification/Performance` 提供完整基准、环境、源码指纹和原始前后数据。1000单位×3个Modifier的合成查询+更新由36.849ms/48,528,104B降至0.543ms/24B，所有优化后场景无执行预算截断。它使用固定网格世界替身、Release/.NET8、关闭分层JIT以稳定对比，不是Unity帧率；事件/光环基线有截断，不能用其宣称严格等价加速。
+
+发布前必须在Unity2022实际执行EditMode/PlayMode、异步表现、真实场景和IL2CPP验证，并在目标设备用Profiler测CPU/GC。项目自己的IWorld若线性扫描全部角色，仍需按规模实现空间索引；真实渲染、资源和物理成本未包含在合成结果中。

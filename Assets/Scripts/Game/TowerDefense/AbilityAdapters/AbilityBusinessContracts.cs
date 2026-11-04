@@ -67,21 +67,53 @@ namespace Game
         public bool IsValid => AttackId > 0;
     }
 
+    public enum AbilityExecutionPhase { Idle, Casting, Channeling, Backswing }
+
+    [Flags]
+    public enum AbilityUsage
+    {
+        None = 0, NoTarget = 1, UnitTarget = 2, PositionTarget = 4, OptionalUnitTarget = 8,
+        Directional = 16, Passive = 32, Hidden = 64, Toggle = 128, Channelled = 256, Immediate = 512, Area = 1024
+    }
+
+    /// <summary>Definition metadata at the requested level. Instance status includes script and modifier adjustments.</summary>
+    public readonly struct AbilityMetadata
+    {
+        internal AbilityMetadata(string name, int maxLevel, AbilityUsage usage, float resourceCost, float castRange, float areaRadius)
+        {
+            Name = name; MaxLevel = maxLevel; Usage = usage; ResourceCost = resourceCost; CastRange = castRange; AreaRadius = areaRadius;
+        }
+        public string Name { get; }
+        public int MaxLevel { get; }
+        public AbilityUsage Usage { get; }
+        public float ResourceCost { get; }
+        public float CastRange { get; }
+        public float AreaRadius { get; }
+    }
+
     public readonly struct AbilityStatus
     {
-        internal AbilityStatus(string name, int level, string phase, float remaining, float duration, int charges, bool activated, bool toggleEnabled)
+        internal AbilityStatus(string name, int level, AbilityExecutionPhase phase, float remaining, float duration, int charges, bool activated, bool toggleEnabled, int maxCharges = 0, float chargeRestoreRemaining = 0f, float chargeRestoreDuration = 0f, float resourceCost = 0f, float castRange = 0f)
         {
-            Name = name; Level = level; Phase = phase; CooldownRemaining = remaining; CooldownDuration = duration;
+            Name = name; Level = level; ExecutionPhase = phase; CooldownRemaining = remaining; CooldownDuration = duration;
             Charges = charges; Activated = activated; ToggleEnabled = toggleEnabled;
+            MaxCharges = maxCharges; ChargeRestoreRemaining = chargeRestoreRemaining; ChargeRestoreDuration = chargeRestoreDuration; ResourceCost = resourceCost; CastRange = castRange;
         }
         public string Name { get; }
         public int Level { get; }
-        public string Phase { get; }
+        public AbilityExecutionPhase ExecutionPhase { get; }
+        // Compatibility for earlier consumers; fixed literals do not allocate on status polling.
+        public string Phase => ExecutionPhase == AbilityExecutionPhase.Casting ? "Casting" : ExecutionPhase == AbilityExecutionPhase.Channeling ? "Channeling" : ExecutionPhase == AbilityExecutionPhase.Backswing ? "Backswing" : "Idle";
         public float CooldownRemaining { get; }
         public float CooldownDuration { get; }
         public int Charges { get; }
         public bool Activated { get; }
         public bool ToggleEnabled { get; }
+        public int MaxCharges { get; }
+        public float ChargeRestoreRemaining { get; }
+        public float ChargeRestoreDuration { get; }
+        public float ResourceCost { get; }
+        public float CastRange { get; }
     }
 
     public readonly struct AbilityDamageOutcome

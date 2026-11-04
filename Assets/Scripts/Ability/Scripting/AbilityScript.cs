@@ -26,6 +26,7 @@ namespace Game.Ability
             return Ability != null ? Ability.Definition.IntrinsicModifierName : null;
         }
 
+        /// <summary>Read-only validation used by both previews and actual orders. Do not mutate gameplay state here.</summary>
         public virtual CastResult CastFilter(CastContext context)
         {
             return CastResult.Ok();

@@ -22,6 +22,9 @@ namespace Game.Ability
         public bool Activated { get; private set; } = true;
         public bool ToggleEnabled { get; private set; }
         public float CooldownRemaining { get; private set; }
+        /// <summary>The duration captured when this cooldown began; changing modifiers cannot rescale its UI progress.</summary>
+        public float CooldownDuration => cooldownDuration;
+        public float ChargeRestoreRemaining => Mathf.Max(0f, chargeRestoreRemaining);
         public int Charges { get; private set; }
 
         private CastOrder pendingOrder;
@@ -182,16 +185,7 @@ namespace Game.Ability
 
         internal CastResult BeginOrder(CastOrder order, long castId)
         {
-            CastResult result = CanCastBasic(order.AllowHidden);
-            if (!result.Success) return Reject(order, result, castId);
-            if (!Targeting.BuildCastContext(Engine, this, order, out CastContext context, out result)) return Reject(order, result, castId);
-            if (!IsOperational) return Reject(order, CastResult.Fail(CastFailureReason.RuntimeUnavailable), castId);
-            context.CastId = castId;
-            context.Level = Level;
-            result = Script.CastFilter(context) ?? CastResult.Ok();
-            if (!result.Success) return Reject(order, result, castId);
-            if (!IsOperational) return Reject(order, CastResult.Fail(CastFailureReason.RuntimeUnavailable), castId);
-            result = CanCastBasic(order.AllowHidden);
+            CastResult result = Engine.EvaluateOrderContext(this, order, out CastContext context, castId);
             if (!result.Success) return Reject(order, result, castId);
 
             CastId = castId;

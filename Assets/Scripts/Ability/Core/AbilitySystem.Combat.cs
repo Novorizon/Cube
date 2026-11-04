@@ -166,24 +166,29 @@ namespace Game.Ability
         private void AdjustCalculatedDamage(DamageInfo request, DamageResult result)
         {
             long generation = RuntimeGeneration;
-            Modifier[] listeners = modifiers.ToArray();
-            for (int i = 0; i < listeners.Length; i++)
+            var value = new ModifierEvent { EventType = ModifierEventType.DamageCalculated, Engine = this, Source = request.Attacker, Target = request.Victim, DamageInfo = request, DamageResult = result };
+            List<Modifier> listeners = RentModifierEventListeners(value);
+            try
             {
-                Modifier modifier = listeners[i];
-                if (generation != RuntimeGeneration || !IsRuntimeAvailable || IsUnitRemoving(request.Victim)) return;
-                if (modifier == null || modifier.IsDestroyed || !modifiers.Contains(modifier)) continue;
-                if (!TryConsumeExecutionBudget("DamageCalculated")) { Block(result, "Execution budget exhausted during damage calculation."); return; }
-                DamageResult editable = CombatSnapshots.Clone(result);
-                modifier.Script.OnEvent(new ModifierEvent
+                for (int i = 0; i < listeners.Count; i++)
                 {
-                    EventType = ModifierEventType.DamageCalculated, AttackId = request.AttackId, Engine = this, Source = request.Attacker,
-                    Target = request.Victim, Ability = request.Ability, DamageInfo = CombatSnapshots.Clone(request), DamageResult = editable
-                });
-                // Only these channels are writable. Target, attribution, type and flags remain frozen.
-                result.FinalAmount = CombatSnapshots.NonNegative(editable.FinalAmount);
-                result.Blocked |= editable.Blocked;
-                if (editable.Blocked) result.BlockReason = editable.BlockReason;
+                    Modifier modifier = listeners[i];
+                    if (generation != RuntimeGeneration || !IsRuntimeAvailable || IsUnitRemoving(request.Victim)) return;
+                    if (modifier == null || modifier.IsDestroyed || !IsModifierRegistered(modifier)) continue;
+                    if (!TryConsumeExecutionBudget("DamageCalculated")) { Block(result, "Execution budget exhausted during damage calculation."); return; }
+                    DamageResult editable = CombatSnapshots.Clone(result);
+                    modifier.Script.OnEvent(new ModifierEvent
+                    {
+                        EventType = ModifierEventType.DamageCalculated, AttackId = request.AttackId, Engine = this, Source = request.Attacker,
+                        Target = request.Victim, Ability = request.Ability, DamageInfo = CombatSnapshots.Clone(request), DamageResult = editable
+                    });
+                    // Only these channels are writable. Target, attribution, type and flags remain frozen.
+                    result.FinalAmount = CombatSnapshots.NonNegative(editable.FinalAmount);
+                    result.Blocked |= editable.Blocked;
+                    if (editable.Blocked) result.BlockReason = editable.BlockReason;
+                }
             }
+            finally { RuntimeSnapshotPool<Modifier>.Release(listeners); }
         }
 
         private void PublishDamage(ModifierEventType type, DamageInfo request, DamageResult result)

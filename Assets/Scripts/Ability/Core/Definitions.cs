@@ -74,6 +74,8 @@ namespace Game.Ability
         public readonly Dictionary<string, LevelValue> SpecialValues = new Dictionary<string, LevelValue>();
         // Data-driven actions for simple abilities that do not need custom AbilityScript code.
         public readonly List<ActionDefinition> Actions = new List<ActionDefinition>();
+        // Hit behavior belongs to the launching ability, not a caster-wide event listener.
+        public readonly List<ActionDefinition> OnProjectileHitActions = new List<ActionDefinition>();
         // Toggle lifecycle is distinct from a normal cast; it never implicitly runs Actions.
         public readonly List<ActionDefinition> OnToggleOnActions = new List<ActionDefinition>();
         public readonly List<ActionDefinition> OnToggleOffActions = new List<ActionDefinition>();
@@ -192,6 +194,8 @@ namespace Game.Ability
         public readonly List<ActionDefinition> IntervalActions = new List<ActionDefinition>();
         public ModifierEventType TriggerEventType = ModifierEventType.None;
         public ModifierEventScope TriggerEventScope = ModifierEventScope.Related;
+        // A reflected hit is still observable; reactive skills can opt out of reflecting it again.
+        public DamageFlags TriggerExcludedDamageFlags = DamageFlags.None;
         public readonly List<ActionDefinition> TriggerActions = new List<ActionDefinition>();
         // Persistent presentation owned by each Modifier runtime instance.
         public string SustainedEffectName;

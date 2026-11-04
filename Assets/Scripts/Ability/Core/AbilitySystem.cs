@@ -182,6 +182,8 @@ namespace Game.Ability
                 modifiers.Clear();
                 projectiles.Clear();
                 thinkers.Clear();
+                ClearRuntimeIndexes();
+                ResetAuraState();
                 registeredUnits.Clear();
                 IsClearingRuntime = false;
             }
@@ -353,37 +355,50 @@ namespace Game.Ability
             if (!IsRuntimeAvailable || deltaTime <= 0f || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime)) return;
             long generation = RuntimeGeneration;
             // Objects created by callbacks begin aging on the next update, never retroactively.
-            Modifier[] modifierSnapshot = modifiers.ToArray();
-            Thinker[] thinkerSnapshot = thinkers.ToArray();
-            Projectile[] projectileSnapshot = projectiles.ToArray();
-            var abilitySnapshot = new List<Ability>();
-            foreach (List<Ability> bucket in abilitiesByUnit.Values) abilitySnapshot.AddRange(bucket);
-            foreach (Ability ability in abilitySnapshot)
+            List<Modifier> modifierSnapshot = RuntimeSnapshotPool<Modifier>.Rent(modifiers);
+            List<Thinker> thinkerSnapshot = RuntimeSnapshotPool<Thinker>.Rent(thinkers);
+            List<Projectile> projectileSnapshot = RuntimeSnapshotPool<Projectile>.Rent(projectiles);
+            List<Ability> abilitySnapshot = RuntimeSnapshotPool<Ability>.Rent();
+            try
             {
-                if (generation != RuntimeGeneration) return;
-                if (IsAbilityRegistered(ability))
+                foreach (List<Ability> bucket in abilitiesByUnit.Values) abilitySnapshot.AddRange(bucket);
+                BeginAuraUpdate();
+                foreach (Ability ability in abilitySnapshot)
                 {
-                    using (BeginExecution()) ability.Tick(deltaTime);
+                    if (generation != RuntimeGeneration) return;
+                    if (IsAbilityRegistered(ability))
+                    {
+                        using (BeginExecution()) ability.Tick(deltaTime);
+                    }
                 }
+                foreach (Modifier modifier in modifierSnapshot)
+                {
+                    if (generation != RuntimeGeneration) return;
+                    if (modifier != null && !modifier.IsDestroyed && IsModifierRegistered(modifier)) modifier.Tick(deltaTime);
+                }
+                foreach (Thinker thinker in thinkerSnapshot)
+                {
+                    if (generation != RuntimeGeneration) return;
+                    if (thinker == null || !registeredThinkers.Contains(thinker)) continue;
+                    thinker.Tick(deltaTime);
+                    if (thinker.IsDestroyed) RemoveThinker(thinker);
+                }
+                foreach (Projectile projectile in projectileSnapshot)
+                {
+                    if (generation != RuntimeGeneration) return;
+                    if (projectile == null || !ContainsProjectile(projectile)) continue;
+                    using (BeginExecution()) projectile.Tick(this, deltaTime);
+                    if (projectile.Destroyed) RemoveProjectile(projectile);
+                }
+                if (generation == RuntimeGeneration) FlushAuraUpdates();
             }
-            foreach (Modifier modifier in modifierSnapshot)
+            finally
             {
-                if (generation != RuntimeGeneration) return;
-                if (modifier != null && !modifier.IsDestroyed && modifiers.Contains(modifier)) modifier.Tick(deltaTime);
-            }
-            foreach (Thinker thinker in thinkerSnapshot)
-            {
-                if (generation != RuntimeGeneration) return;
-                if (thinker == null || !thinkers.Contains(thinker)) continue;
-                thinker.Tick(deltaTime);
-                if (thinker.IsDestroyed) RemoveThinker(thinker);
-            }
-            foreach (Projectile projectile in projectileSnapshot)
-            {
-                if (generation != RuntimeGeneration) return;
-                if (projectile == null || !projectiles.Contains(projectile)) continue;
-                using (BeginExecution()) projectile.Tick(this, deltaTime);
-                if (projectile.Destroyed) RemoveProjectile(projectile);
+                EndAuraUpdate();
+                RuntimeSnapshotPool<Modifier>.Release(modifierSnapshot);
+                RuntimeSnapshotPool<Thinker>.Release(thinkerSnapshot);
+                RuntimeSnapshotPool<Projectile>.Release(projectileSnapshot);
+                RuntimeSnapshotPool<Ability>.Release(abilitySnapshot);
             }
             if (generation == RuntimeGeneration)
             {
@@ -401,7 +416,9 @@ namespace Game.Ability
                 if (generation != RuntimeGeneration || !IsRuntimeAvailable || IsUnitRemoving(parent) || IsUnitRemoving(caster) || (!parent.IsAlive && definition.RemoveOnDeath) || !TryConsumeExecutionBudget("AddModifier.Commit")) return null;
                 var resolvedOptions = options ?? new ModifierApplyOptions();
                 if (float.IsInfinity(resolvedOptions.Duration)) return null;
-                if ((definition.Attributes & ModifierAttribute.Multiple) == 0)
+                // Aura identity includes its source: Multiple permits overlapping sources,
+                // while maintenance pulses from one source renew the same child instance.
+                if ((definition.Attributes & ModifierAttribute.Multiple) == 0 || resolvedOptions.IsAura)
                 {
                     Modifier existing = FindRefreshableModifier(caster, parent, ability, modifierName, resolvedOptions);
                     if (existing != null) { existing.Refresh(options); return existing.IsDestroyed ? null : existing; }
@@ -409,11 +426,12 @@ namespace Game.Ability
                 Modifier modifier = new Modifier(this, definition, caster, parent, ability, CreateModifierScript(modifierName, definition), resolvedOptions);
                 if (generation != RuntimeGeneration || !IsRuntimeAvailable || IsUnitRemoving(parent) || IsUnitRemoving(caster)) return null;
                 modifiers.Add(modifier);
+                IndexModifier(modifier);
                 try { modifier.OnRegistered(resolvedOptions); }
                 catch { RemoveModifier(modifier); throw; }
-                if (modifier.IsDestroyed || !modifiers.Contains(modifier)) return null;
+                if (modifier.IsDestroyed || !IsModifierRegistered(modifier)) return null;
                 DispatchModifierEvent(new ModifierEvent { EventType = ModifierEventType.ModifierAdded, Engine = this, Source = caster, Target = parent, Ability = ability, Modifier = modifier });
-                if (modifier.IsDestroyed || !modifiers.Contains(modifier)) return null;
+                if (modifier.IsDestroyed || !IsModifierRegistered(modifier)) return null;
                 RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.ModifierAdded, Ability = ability, Modifier = modifier, Caster = caster, Target = parent });
                 return modifier.IsDestroyed ? null : modifier;
             }
@@ -427,6 +445,7 @@ namespace Game.Ability
         public bool RemoveModifier(Modifier modifier)
         {
             if (modifier == null || !modifiers.Remove(modifier)) return false;
+            UnindexModifier(modifier);
             try { modifier.Destroy(); }
             finally
             {
@@ -442,13 +461,18 @@ namespace Game.Ability
             {
                 if (unit == null || !IsRuntimeAvailable || !TryConsumeExecutionBudget("Purge")) return 0;
                 int removed = 0;
-                foreach (Modifier modifier in modifiers.ToArray())
+                List<Modifier> snapshot = RentUnitModifiers(unit);
+                try
                 {
-                    if (modifier.IsDestroyed || !IsSameUnit(modifier.Parent, unit) || !modifiers.Contains(modifier)) continue;
-                    bool debuff = modifier.Script.IsDebuff();
-                    if ((debuff && !removeDebuffs) || (!debuff && !removePositiveBuffs) || (onlyPurgable && !modifier.Script.IsPurgable())) continue;
-                    if (RemoveModifier(modifier)) removed++;
+                    foreach (Modifier modifier in snapshot)
+                    {
+                        if (modifier.IsDestroyed || !IsModifierRegistered(modifier)) continue;
+                        bool debuff = modifier.Script.IsDebuff();
+                        if ((debuff && !removeDebuffs) || (!debuff && !removePositiveBuffs) || (onlyPurgable && !modifier.Script.IsPurgable())) continue;
+                        if (RemoveModifier(modifier)) removed++;
+                    }
                 }
+                finally { RuntimeSnapshotPool<Modifier>.Release(snapshot); }
                 return removed;
             }
         }
@@ -461,14 +485,19 @@ namespace Game.Ability
                 if ((state & UnitState.Invulnerable) != 0 && unit.IsInvulnerable) return true;
                 if ((state & UnitState.MagicImmune) != 0 && unit.IsMagicImmune) return true;
                 long generation = RuntimeGeneration;
-                foreach (Modifier modifier in modifiers.ToArray())
+                List<Modifier> snapshot = RentUnitModifiers(unit);
+                try
                 {
-                    if (generation != RuntimeGeneration) return false;
-                    if (modifier.IsDestroyed || !IsSameUnit(modifier.Parent, unit)) continue;
-                    bool matches = modifier.CheckState(state);
-                    if (generation != RuntimeGeneration) return false;
-                    if (matches) return true;
+                    foreach (Modifier modifier in snapshot)
+                    {
+                        if (generation != RuntimeGeneration) return false;
+                        if (modifier.IsDestroyed || !IsModifierRegistered(modifier)) continue;
+                        bool matches = modifier.CheckState(state);
+                        if (generation != RuntimeGeneration) return false;
+                        if (matches) return true;
+                    }
                 }
+                finally { RuntimeSnapshotPool<Modifier>.Release(snapshot); }
                 return false;
             }
         }
@@ -480,15 +509,20 @@ namespace Game.Ability
                 if (unit == null || property == ModifierProperty.None || !TryConsumeExecutionBudget("GetModifierProperty")) return 0f;
                 float total = 0f;
                 long generation = RuntimeGeneration;
-                foreach (Modifier modifier in modifiers.ToArray())
+                List<Modifier> snapshot = RentUnitModifiers(unit);
+                try
                 {
-                    if (generation != RuntimeGeneration) return 0f;
-                    if (modifier.IsDestroyed || !IsSameUnit(modifier.Parent, unit)) continue;
-                    var propertyContext = new ModifierPropertyContext { Engine = this, Unit = unit, Ability = context?.Ability, DamageInfo = CombatSnapshots.Clone(context?.DamageInfo), DamageResult = CombatSnapshots.Clone(context?.DamageResult) };
-                    float value = modifier.GetProperty(property, propertyContext);
-                    if (generation != RuntimeGeneration) return 0f;
-                    if (!float.IsNaN(value) && !float.IsInfinity(value)) total += value;
+                    foreach (Modifier modifier in snapshot)
+                    {
+                        if (generation != RuntimeGeneration) return 0f;
+                        if (modifier.IsDestroyed || !IsModifierRegistered(modifier)) continue;
+                        ModifierPropertyContext propertyContext = modifier.RequiresPropertyContext ? new ModifierPropertyContext { Engine = this, Unit = unit, Ability = context?.Ability, DamageInfo = CombatSnapshots.Clone(context?.DamageInfo), DamageResult = CombatSnapshots.Clone(context?.DamageResult) } : null;
+                        float value = modifier.GetProperty(property, propertyContext);
+                        if (generation != RuntimeGeneration) return 0f;
+                        if (!float.IsNaN(value) && !float.IsInfinity(value)) total += value;
+                    }
                 }
+                finally { RuntimeSnapshotPool<Modifier>.Release(snapshot); }
                 return float.IsNaN(total) || float.IsInfinity(total) ? 0f : total;
             }
         }
@@ -501,16 +535,20 @@ namespace Game.Ability
             }
 
             // World returns broad candidates; TargetQuery applies canonical ability rules.
-            List<IUnit> candidates = new List<IUnit>();
-            World.FindUnits(center, radius, query, candidates);
-            for (int i = 0; i < candidates.Count; i++)
+            List<IUnit> candidates = RuntimeSnapshotPool<IUnit>.Rent();
+            try
             {
-                IUnit unit = candidates[i];
-                if (unit != null && (query == null || query.IsValid(unit)) && !results.Contains(unit))
+                World.FindUnits(center, radius, query, candidates);
+                for (int i = 0; i < candidates.Count; i++)
                 {
-                    results.Add(unit);
+                    IUnit unit = candidates[i];
+                    if (unit != null && (query == null || query.IsValid(unit)) && !results.Contains(unit))
+                    {
+                        results.Add(unit);
+                    }
                 }
             }
+            finally { RuntimeSnapshotPool<IUnit>.Release(candidates); }
         }
 
 
@@ -524,17 +562,19 @@ namespace Game.Ability
                 if (!IsRuntimeAvailable || request?.Definition == null || !IsFinite(request.Origin) || !IsFinite(request.Direction) || IsUnitRemoving(request.Caster) || IsUnitRemoving(request.Source) || IsUnitRemoving(request.Target) || !TryConsumeExecutionBudget("CreateProjectile")) return null;
                 Projectile projectile = new Projectile(request);
                 projectiles.Add(projectile);
+                registeredProjectiles.Add(projectile);
                 try { projectile.OnRegistered(Presentation); }
                 catch { RemoveProjectile(projectile); throw; }
-                if (!projectiles.Contains(projectile)) return null;
+                if (!ContainsProjectile(projectile)) return null;
                 RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.ProjectileCreated, Projectile = projectile, Ability = request.Ability, Caster = request.Caster, Target = request.Target, Position = request.Origin });
-                return projectiles.Contains(projectile) ? projectile : null;
+                return ContainsProjectile(projectile) ? projectile : null;
             }
         }
 
         public bool RemoveProjectile(Projectile projectile)
         {
             if (projectile == null || !projectiles.Remove(projectile)) return false;
+            registeredProjectiles.Remove(projectile);
             try { projectile.Destroy(); }
             finally { RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.ProjectileDestroyed, Projectile = projectile, Ability = projectile.Ability, Caster = projectile.Caster, Position = projectile.Position }); }
             return true;
@@ -557,9 +597,10 @@ namespace Game.Ability
                 if (!IsRuntimeAvailable || request == null || !IsFinite(request.Position) || !CombatSnapshots.IsFinite(request.Duration) || !CombatSnapshots.IsFinite(request.Interval) || !CombatSnapshots.IsFinite(request.Radius) || request.Interval < 0f || request.Radius < 0f || IsUnitRemoving(request.Caster) || !TryConsumeExecutionBudget("CreateThinker")) return null;
                 Thinker thinker = new Thinker(this, request);
                 thinkers.Add(thinker);
+                registeredThinkers.Add(thinker);
                 try { thinker.OnRegistered(); }
                 catch { RemoveThinker(thinker); throw; }
-                if (thinker.IsDestroyed || !thinkers.Contains(thinker)) return null;
+                if (thinker.IsDestroyed || !registeredThinkers.Contains(thinker)) return null;
                 RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.ThinkerCreated, Thinker = thinker, Ability = thinker.Ability, Caster = thinker.Caster, Position = thinker.Position });
                 return thinker.IsDestroyed ? null : thinker;
             }
@@ -571,6 +612,7 @@ namespace Game.Ability
             {
                 return false;
             }
+            registeredThinkers.Remove(thinker);
 
             try { thinker.Destroy(); }
             finally { RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.ThinkerDestroyed, Thinker = thinker, Ability = thinker.Ability, Caster = thinker.Caster, Position = thinker.Position }); }
@@ -579,30 +621,15 @@ namespace Game.Ability
 
         internal void OnProjectileHit(Projectile projectile, IUnit target, Vector3 position)
         {
-            if (projectile == null || projectile.Destroyed || !projectiles.Contains(projectile)) return;
+            if (projectile == null || projectile.Destroyed || !ContainsProjectile(projectile)) return;
             DispatchModifierEvent(new ModifierEvent { EventType = ModifierEventType.ProjectileHit, Engine = this, Source = projectile.Caster, Target = target, Ability = projectile.Ability, Projectile = projectile, Position = position });
-            if (projectile.Destroyed || !projectiles.Contains(projectile)) return;
+            if (projectile.Destroyed || !ContainsProjectile(projectile)) return;
             RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.ProjectileHit, Ability = projectile.Ability, Projectile = projectile, Caster = projectile.Caster, Target = target, Position = position });
         }
 
         internal void RefreshAura(Modifier aura)
         {
-            if (!IsRuntimeAvailable || aura == null || aura.IsDestroyed || !modifiers.Contains(aura) || aura.Definition == null || string.IsNullOrEmpty(aura.Definition.AuraModifierName))
-            {
-                return;
-            }
-
-            // Aura effects are represented as short-lived child modifiers refreshed by the source.
-            ModifierDefinition definition = aura.Definition;
-            TargetQuery query = new TargetQuery { Engine = this, Caster = aura.Parent, Team = definition.AuraTargetTeam, Types = definition.AuraTargetType, Flags = definition.AuraTargetFlags };
-            List<IUnit> units = new List<IUnit>();
-            FindUnits(aura.Parent.Position, definition.AuraRadius, query, units);
-            long generation = RuntimeGeneration;
-            for (int i = 0; i < units.Count; i++)
-            {
-                if (!IsRuntimeAvailable || generation != RuntimeGeneration || aura.IsDestroyed || !modifiers.Contains(aura)) break;
-                AddModifier(aura.Parent, units[i], aura.Ability, definition.AuraModifierName, new ModifierApplyOptions { Duration = Mathf.Max(0.1f, definition.AuraDuration), IsAura = true, SourceModifier = aura, Level = aura.Level, IncrementStacksOnRefresh = definition.AuraIncrementsStacks });
-            }
+            ScheduleAuraRefresh(aura);
         }
 
         internal void DispatchModifierEvent(ModifierEvent modifierEvent)
@@ -611,11 +638,18 @@ namespace Game.Ability
             {
                 if (modifierEvent == null || !IsRuntimeAvailable || !TryConsumeExecutionBudget("DispatchModifierEvent")) return;
                 long generation = RuntimeGeneration;
-                foreach (Modifier modifier in modifiers.ToArray())
+                List<Modifier> listeners = RentModifierEventListeners(modifierEvent);
+                try
                 {
-                    if (generation != RuntimeGeneration || !TryConsumeExecutionBudget("ModifierEvent.Listener")) break;
-                    if (modifier != null && !modifier.IsDestroyed && modifiers.Contains(modifier)) modifier.Script.OnEvent(CombatSnapshots.CloneEvent(modifierEvent));
+                    foreach (Modifier modifier in listeners)
+                    {
+                        if (generation != RuntimeGeneration) break;
+                        if (modifier == null || modifier.IsDestroyed || !IsModifierRegistered(modifier)) continue;
+                        if (!TryConsumeExecutionBudget("ModifierEvent.Listener")) break;
+                        modifier.Script.OnEvent(CombatSnapshots.CloneEvent(modifierEvent));
+                    }
                 }
+                finally { RuntimeSnapshotPool<Modifier>.Release(listeners); }
             }
         }
 
@@ -662,7 +696,7 @@ namespace Game.Ability
                 }
             }
 
-            return definition != null && definition.Actions.Count > 0 ? new ConfiguredAbilityScript() : new DefaultAbilityScript();
+            return definition != null && (definition.Actions.Count > 0 || definition.OnProjectileHitActions.Count > 0) ? new ConfiguredAbilityScript() : new DefaultAbilityScript();
         }
 
         private ModifierScript CreateModifierScript(string modifierName, ModifierDefinition definition)
@@ -681,7 +715,8 @@ namespace Game.Ability
 
         private Modifier FindRefreshableModifier(IUnit caster, IUnit parent, Ability ability, string modifierName, ModifierApplyOptions options)
         {
-            foreach (Modifier modifier in modifiers)
+            if (!modifiersByParent.TryGetValue(parent.EntityId, out List<Modifier> bucket)) return null;
+            foreach (Modifier modifier in bucket)
             {
                 if (modifier.IsDestroyed || !IsSameUnit(modifier.Parent, parent) || modifier.Name != modifierName) continue;
                 if (modifier.IsAuraApplied != options.IsAura || (options.IsAura && !ReferenceEquals(modifier.SourceAura, options.SourceModifier))) continue;

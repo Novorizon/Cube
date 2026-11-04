@@ -181,6 +181,7 @@ namespace Game
                 if (!IsRegisteredNpc(npc)) return null;
                 unit = new TdUnit(AllocateRuntimeEntityId(), npc);
                 npcUnits[entityId] = unit;
+                IndexBinding(unit);
                 Engine.RegisterUnit(unit);
             }
 
@@ -206,6 +207,7 @@ namespace Game
                 if (!IsRegisteredTower(tower)) return null;
                 unit = new TdUnit(AllocateRuntimeEntityId(), tower);
                 towerUnits[entityId] = unit;
+                IndexBinding(unit);
                 Engine.RegisterUnit(unit);
             }
 
@@ -218,6 +220,7 @@ namespace Game
             if (baseUnit == null)
             {
                 baseUnit = TdUnit.CreateBaseUnit(AllocateRuntimeEntityId());
+                IndexBinding(baseUnit);
                 Engine.RegisterUnit(baseUnit);
             }
 
@@ -243,6 +246,7 @@ namespace Game
 
             TdUnit removed = baseUnit;
             baseUnit = null;
+            unitsByRuntimeId.Remove(removed.EntityId);
             removed.Invalidate();
             try { Engine.RemoveUnit(removed); }
             catch (Exception exception) { Debug.LogException(exception); }
@@ -610,6 +614,7 @@ namespace Game
             controlledEffects.Clear();
             pendingTowerAttacks.Clear();
             nextEffectHandle = 0;
+            unitsByRuntimeId.Clear();
             foreach (TdUnit unit in npcUnits.Values) unit.Invalidate();
             foreach (TdUnit unit in towerUnits.Values) unit.Invalidate();
             baseUnit?.Invalidate();
@@ -718,6 +723,7 @@ namespace Game
             }
 
             npcUnits.Remove(objectId);
+            unitsByRuntimeId.Remove(unit.EntityId);
             unit.Invalidate();
             try { Engine.RemoveUnit(unit); }
             catch (Exception exception) { Debug.LogException(exception); }
@@ -732,6 +738,7 @@ namespace Game
             }
 
             towerUnits.Remove(objectId);
+            unitsByRuntimeId.Remove(unit.EntityId);
             unit.Invalidate();
             try { Engine.RemoveUnit(unit); }
             catch (Exception exception) { Debug.LogException(exception); }

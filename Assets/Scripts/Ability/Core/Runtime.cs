@@ -58,6 +58,8 @@ namespace Game.Ability
         public long CastId;
         public Modifier Modifier;
         public ModifierEvent Event;
+        // Retains the independent lifetime of an already launched projectile after ability removal.
+        public Projectile Projectile;
         internal bool IsTerminated;
         public IReadOnlyList<IUnit> Targets => targets;
 

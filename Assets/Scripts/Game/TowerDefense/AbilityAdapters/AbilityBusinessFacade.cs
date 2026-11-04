@@ -6,6 +6,7 @@ namespace Game
 {
     public sealed partial class AbilityManager
     {
+        private readonly System.Collections.Generic.Dictionary<int, TdUnit> unitsByRuntimeId = new System.Collections.Generic.Dictionary<int, TdUnit>();
         private readonly System.Collections.Generic.Dictionary<int, Modifier> controlledEffects = new System.Collections.Generic.Dictionary<int, Modifier>();
         private readonly System.Collections.Generic.List<int> expiredEffectHandles = new System.Collections.Generic.List<int>();
         private int nextEffectHandle;
@@ -47,6 +48,14 @@ namespace Game
             return true;
         }
 
+        public bool TrySetActivated(AbilityOwnerHandle owner, AbilityKey key, bool activated)
+        {
+            RuntimeAbility ability = FindOwnedAbility(owner, key);
+            if (ability == null) return false;
+            ability.SetActivated(activated);
+            return true;
+        }
+
         public bool RemoveAbility(AbilityOwnerHandle owner, AbilityKey key)
         {
             TdUnit unit = ResolveOwner(owner);
@@ -85,8 +94,38 @@ namespace Game
         public bool TryGetAbilityStatus(AbilityOwnerHandle owner, AbilityKey key, out AbilityStatus status)
         {
             RuntimeAbility ability = FindOwnedAbility(owner, key);
-            status = ability == null ? default : new AbilityStatus(ability.Definition.Name, ability.Level, ability.Phase.ToString(), Mathf.Max(0f, ability.CooldownRemaining), Mathf.Max(0f, ability.GetCooldown()), ability.Charges, ability.Activated, ability.ToggleEnabled);
+            status = ability == null ? default : new AbilityStatus(ability.Definition.Name, ability.Level, ToExecutionPhase(ability.Phase), Mathf.Max(0f, ability.CooldownRemaining), ability.CooldownDuration, ability.Charges, ability.Activated, ability.ToggleEnabled,
+                ability.Definition.Charges?.MaxCharges ?? 0, ability.ChargeRestoreRemaining, ability.Definition.Charges?.RestoreTime ?? 0f, ability.GetManaCost(), Mathf.Max(0f, ability.GetCastRange() + Engine.GetModifierProperty(ability.Owner, ModifierProperty.CastRangeBonus, null)));
             return ability != null;
+        }
+
+        public bool TryGetAbilityMetadata(AbilityKey key, out AbilityMetadata metadata, int level = 1)
+        {
+            metadata = default;
+            if (!TryResolveAbilityName(key, out string name) || !Engine.TryGetAbilityDefinition(name, out AbilityDefinition definition)) return false;
+            int resolvedLevel = Mathf.Clamp(level, 1, Mathf.Max(1, definition.MaxLevel));
+            metadata = new AbilityMetadata(definition.Name, definition.MaxLevel, ToUsage(definition.Behavior), definition.ManaCost.GetValue(resolvedLevel), definition.CastRange.GetValue(resolvedLevel), definition.AoeRadius.GetValue(resolvedLevel));
+            return true;
+        }
+
+        public AbilityCommandResult CheckCast(AbilityOwnerHandle owner, AbilityKey key)
+        {
+            RuntimeAbility ability = FindOwnedAbility(owner, key);
+            return ToCommandResult(ability == null ? MissingOwnedAbility() : Engine.EvaluateOrder(new CastOrder { Caster = ability.Owner, AbilityName = ability.Definition.Name }));
+        }
+
+        public AbilityCommandResult CheckCastOnTarget(AbilityOwnerHandle owner, AbilityKey key, AbilityOwnerHandle target)
+        {
+            RuntimeAbility ability = FindOwnedAbility(owner, key);
+            if (ability == null) return ToCommandResult(MissingOwnedAbility());
+            TdUnit targetUnit = ResolveOwner(target);
+            return ToCommandResult(targetUnit == null ? CastResult.Fail(CastFailureReason.InvalidTarget) : Engine.EvaluateOrder(new CastOrder { Caster = ability.Owner, AbilityName = ability.Definition.Name, Target = targetUnit }));
+        }
+
+        public AbilityCommandResult CheckCastAtPosition(AbilityOwnerHandle owner, AbilityKey key, Vector3 position)
+        {
+            RuntimeAbility ability = FindOwnedAbility(owner, key);
+            return ToCommandResult(ability == null ? MissingOwnedAbility() : Engine.EvaluateOrder(new CastOrder { Caster = ability.Owner, AbilityName = ability.Definition.Name, TargetPosition = position, HasTargetPosition = true }));
         }
 
         public AbilityCommandResult Cast(AbilityOwnerHandle owner, AbilityKey key, bool queue = false)
@@ -203,10 +242,37 @@ namespace Game
         private TdUnit ResolveOwner(AbilityOwnerHandle handle)
         {
             if (!IsAvailable || !handle.IsValid || handle.Session != battleSession) return null;
-            if (baseUnit != null && baseUnit.EntityId == handle.EntityId && baseUnit.IsValidBinding) return baseUnit;
-            foreach (TdUnit unit in npcUnits.Values) if (unit.EntityId == handle.EntityId && unit.IsValidBinding) return unit;
-            foreach (TdUnit unit in towerUnits.Values) if (unit.EntityId == handle.EntityId && unit.IsValidBinding) return unit;
-            return null;
+            return unitsByRuntimeId.TryGetValue(handle.EntityId, out TdUnit unit) && unit.IsValidBinding ? unit : null;
+        }
+
+        private void IndexBinding(TdUnit unit) => unitsByRuntimeId[unit.EntityId] = unit;
+
+        private static AbilityExecutionPhase ToExecutionPhase(AbilityPhase phase)
+        {
+            switch (phase)
+            {
+                case AbilityPhase.Casting: return AbilityExecutionPhase.Casting;
+                case AbilityPhase.Channeling: return AbilityExecutionPhase.Channeling;
+                case AbilityPhase.Backswing: return AbilityExecutionPhase.Backswing;
+                default: return AbilityExecutionPhase.Idle;
+            }
+        }
+
+        private static AbilityUsage ToUsage(AbilityBehavior behavior)
+        {
+            AbilityUsage usage = AbilityUsage.None;
+            if ((behavior & AbilityBehavior.NoTarget) != 0) usage |= AbilityUsage.NoTarget;
+            if ((behavior & AbilityBehavior.UnitTarget) != 0) usage |= AbilityUsage.UnitTarget;
+            if ((behavior & AbilityBehavior.PointTarget) != 0) usage |= AbilityUsage.PositionTarget;
+            if ((behavior & AbilityBehavior.OptionalUnitTarget) != 0) usage |= AbilityUsage.OptionalUnitTarget;
+            if ((behavior & AbilityBehavior.Directional) != 0) usage |= AbilityUsage.Directional;
+            if ((behavior & AbilityBehavior.Passive) != 0) usage |= AbilityUsage.Passive;
+            if ((behavior & AbilityBehavior.Hidden) != 0) usage |= AbilityUsage.Hidden;
+            if ((behavior & AbilityBehavior.Toggle) != 0) usage |= AbilityUsage.Toggle;
+            if ((behavior & AbilityBehavior.Channelled) != 0) usage |= AbilityUsage.Channelled;
+            if ((behavior & AbilityBehavior.Immediate) != 0) usage |= AbilityUsage.Immediate;
+            if ((behavior & AbilityBehavior.Aoe) != 0) usage |= AbilityUsage.Area;
+            return usage;
         }
 
         private bool TryResolveAbilityName(AbilityKey key, out string name)

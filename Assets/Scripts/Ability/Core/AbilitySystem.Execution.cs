@@ -41,7 +41,7 @@ namespace Game.Ability
             return CombatSnapshots.IsFinite(value.x) && CombatSnapshots.IsFinite(value.y) && CombatSnapshots.IsFinite(value.z);
         }
 
-        internal IDisposable BeginExecution()
+        internal ExecutionScope BeginExecution()
         {
             if (executionDepth == 0)
             {
@@ -99,7 +99,7 @@ namespace Game.Ability
             return true;
         }
 
-        private sealed class ExecutionScope : IDisposable
+        internal struct ExecutionScope : IDisposable
         {
             private AbilitySystem owner;
             public ExecutionScope(AbilitySystem owner) { this.owner = owner; }

@@ -128,6 +128,7 @@ namespace Game.Ability.Configuration
                     States = (UnitState)source.states,
                     TriggerEventType = (ModifierEventType)source.triggerEventType,
                     TriggerEventScope = (ModifierEventScope)source.triggerEventScope,
+                    TriggerExcludedDamageFlags = (DamageFlags)source.triggerExcludedDamageFlags,
                     SustainedEffectName = source.sustainedEffectName,
                     AuraModifierName = source.auraModifierName,
                     AuraRadius = source.auraRadius,
@@ -224,6 +225,7 @@ namespace Game.Ability.Configuration
                 }
 
                 AddActions(source.actions, definition.Actions, source.name + ".actions", projectiles, bundle);
+                AddActions(source.onProjectileHit, definition.OnProjectileHitActions, source.name + ".onProjectileHit", projectiles, bundle);
                 AddActions(source.onToggleOn, definition.OnToggleOnActions, source.name + ".onToggleOn", projectiles, bundle);
                 AddActions(source.onToggleOff, definition.OnToggleOffActions, source.name + ".onToggleOff", projectiles, bundle);
                 bundle.Abilities.Add(new AbilityDefinitionRegistration
@@ -348,6 +350,7 @@ namespace Game.Ability.Configuration
         public string intrinsicModifierName;
         public JsonSpecialValue[] specialValues;
         public JsonAction[] actions;
+        public JsonAction[] onProjectileHit;
         public JsonAction[] onToggleOn;
         public JsonAction[] onToggleOff;
     }
@@ -376,6 +379,7 @@ namespace Game.Ability.Configuration
         public JsonAction[] intervalActions;
         public int triggerEventType;
         public int triggerEventScope;
+        public int triggerExcludedDamageFlags;
         public JsonAction[] triggerActions;
         public string sustainedEffectName;
         public string auraModifierName;
