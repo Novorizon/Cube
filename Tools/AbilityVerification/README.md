@@ -14,6 +14,10 @@ No external packages are restored. These tools are outside `Assets` and do not e
 
 `python3 Tools/AbilityVerification/build-package.py --output /tmp/ability-runtime.tgz` builds a UPM tarball containing only the runtime directory. It does not bundle project adapters or scenario data. Install the tarball in Unity Package Manager, or use the Git package path `Assets/Scripts/Ability`.
 
+For a ZIP, use `python3 Tools/AbilityVerification/build-package.py --output /tmp/ability-runtime.zip`. Extract it and choose the contained `com.novorizon.ability/package.json` with Unity's Add package from disk. The runtime ZIP includes the original repository license. `build-validation-bundle.py` creates a separate source verification ZIP with Core fixtures, JSON samples, isolated consumption and performance tools; Cube-specific Business checks are excluded.
+
+The [acceptance report and validation matrix](../../Docs/AbilityValidation.md) records current evidence and remaining architecture, randomized testing, Unity, IL2CPP and target-device performance gates.
+
 The separate [performance probe](Performance/README.md) runs production Ability code with portable world/unit adapters and records warmed timing, managed allocation and execution-budget diagnostics. Its synthetic .NET results do not establish Unity or target-device frame rates.
 
 The core tool compiles production Ability code and the real EditMode test sources into **separate assemblies**, using a small Unity math/JSON substitute and the subset of NUnit assertions used by these fixtures. A fixture-name filter can be passed after `--`. JSON provider tests execute the actual strict production JSON reader; the Unity JSON substitute is only a compatibility surface for other code.

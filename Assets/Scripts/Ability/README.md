@@ -20,6 +20,7 @@
 
 - 复制 `Assets/Scripts/Ability` 到新 Unity 项目，保留目录和 asmdef；或从 Package Manager 通过仓库 Git URL 的 `?path=Assets/Scripts/Ability` 安装。
 - 仓库提供 `Tools/AbilityVerification/build-package.py` 生成 UPM `.tgz`，可在 Package Manager 选择 Add package from tarball。
+- ZIP 交付解压后得到 `com.novorizon.ability` 目录。在 Package Manager 选择 Add package from disk，打开其中的 `package.json`；也可以将该目录放入项目的 `Packages` 目录。
 - 当前 Cube 已使用 Assets 目录方式，不要同时再安装同名 UPM 包，避免重复程序集。
 
 ## 最小接入流程
