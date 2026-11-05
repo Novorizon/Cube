@@ -3,11 +3,12 @@ using UnityEngine;
 namespace Game.Ability
 {
     /// <summary>
-    /// Runtime modifier instance attached to one parent unit.
-    /// It owns duration, stacks, interval thinking, aura refresh, and state/property contribution.
+    /// One modifier on one parent. Periodic work advances in lifetime order, so a refresh
+    /// inside a callback takes effect at that callback's time, including at expiry.
     /// </summary>
     public sealed class Modifier
     {
+        private const float TimeEpsilon = 0.000001f;
         public AbilitySystem Engine { get; }
         public string Name => Definition.Name;
         public ModifierDefinition Definition { get; }
@@ -15,6 +16,7 @@ namespace Game.Ability
         public IUnit Caster { get; }
         public IUnit Parent { get; }
         public Ability Ability { get; }
+        public int Level => Ability != null ? Ability.Level : sourceLevel;
         public Modifier SourceAura { get; }
         public bool IsAuraApplied { get; }
         public int StackCount { get; private set; }
@@ -25,28 +27,58 @@ namespace Game.Ability
 
         private float intervalTimer;
         private float auraTimer;
+        private int sourceLevel;
+        private readonly long runtimeGeneration;
+        private bool isRegistered;
         private IPresentationHandle sustainedPresentation;
+
+        private bool HasDuration => Duration > 0f && (Definition.Attributes & ModifierAttribute.Permanent) == 0;
+        private bool HasInterval => Definition.Interval > 0f;
+        private bool HasAura => !string.IsNullOrEmpty(Definition.AuraModifierName);
+        private float AuraInterval => Mathf.Max(0.05f, Definition.AuraThinkInterval);
+        internal bool IsRuntimeCurrent => Engine.RuntimeGeneration == runtimeGeneration;
+        internal bool RequiresPropertyContext => !(Script is DefaultModifierScript) && !(Script is ConfiguredModifierScript);
 
         internal Modifier(AbilitySystem engine, ModifierDefinition definition, IUnit caster, IUnit parent, Ability ability, ModifierScript script, ModifierApplyOptions options)
         {
             Engine = engine;
+            runtimeGeneration = engine.RuntimeGeneration;
             Definition = definition;
             Caster = caster;
             Parent = parent;
             Ability = ability;
+            sourceLevel = Mathf.Max(1, options != null ? options.Level : 1);
             Script = script ?? new DefaultModifierScript();
             SourceAura = options != null ? options.SourceModifier : null;
             IsAuraApplied = options != null && options.IsAura;
-            StackCount = Mathf.Max(1, options != null ? options.StackCount : 1);
+            SetStackCount(options != null ? options.StackCount : 1);
             Duration = ResolveDuration(definition, options);
             RemainingTime = Duration;
             intervalTimer = definition.Interval;
-            auraTimer = 0f;
+            auraTimer = AuraInterval;
             Script.Bind(this);
+        }
+
+        // Called only after the engine owns this instance. OnCreated can now remove itself,
+        // query its own properties, or recursively apply another modifier safely.
+        internal void OnRegistered(ModifierApplyOptions options)
+        {
+            if (isRegistered || IsDestroyed) return;
+            isRegistered = true;
+            Engine.RegisterAuraChild(this);
             Script.OnCreated(options);
-            if (!string.IsNullOrEmpty(definition.SustainedEffectName) && engine.Presentation != null)
+            if (!CanContinue()) return;
+
+            if (!string.IsNullOrEmpty(Definition.SustainedEffectName) && Engine.Presentation != null)
             {
-                sustainedPresentation = engine.Presentation.PlayPersistentEffect(definition.SustainedEffectName, parent);
+                IPresentationHandle handle = Engine.Presentation.PlayPersistentEffect(Definition.SustainedEffectName, Parent);
+                if (IsDestroyed || !Engine.IsRuntimeAvailable) handle?.Stop();
+                else sustainedPresentation = handle;
+            }
+
+            if (CanContinue() && HasAura && Engine.TryConsumeExecutionBudget("Aura refresh"))
+            {
+                Engine.RefreshAura(this);
             }
         }
 
@@ -57,80 +89,123 @@ namespace Game.Ability
 
         public void IncrementStack(int count = 1)
         {
-            SetStackCount(StackCount + Mathf.Max(1, count));
+            // Saturate before adding to avoid integer overflow for caller-supplied counts.
+            long next = (long)StackCount + Mathf.Max(1, count);
+            SetStackCount((int)System.Math.Min(int.MaxValue, next));
         }
 
         public void Refresh(ModifierApplyOptions options)
         {
-            // Refresh handles both duration reset and stack growth according to attributes.
-            if ((Definition.Attributes & ModifierAttribute.NoDurationRefresh) == 0)
+            if (options != null && float.IsInfinity(options.Duration)) throw new System.ArgumentOutOfRangeException(nameof(options), "Modifier duration must be finite, or NaN to use its definition.");
+            if (IsDestroyed) return;
+            using (Engine.BeginExecution())
             {
-                Duration = ResolveDuration(Definition, options);
-                RemainingTime = Duration;
-            }
-
-            if ((Definition.Attributes & ModifierAttribute.StackIndependent) == 0)
-            {
-                int addStack = options != null ? Mathf.Max(1, options.StackCount) : 1;
-                if (Definition.MaxStack > 1)
+                if (options != null) sourceLevel = Mathf.Max(1, options.Level);
+                if ((Definition.Attributes & ModifierAttribute.NoDurationRefresh) == 0)
                 {
-                    SetStackCount(StackCount + addStack);
+                    Duration = ResolveDuration(Definition, options);
+                    RemainingTime = Duration;
                 }
-            }
 
-            Script.OnRefresh(options);
+                if (Definition.MaxStack > 1 && (options == null || options.IncrementStacksOnRefresh))
+                {
+                    IncrementStack(options != null ? options.StackCount : 1);
+                }
+
+                if (Engine.TryConsumeExecutionBudget("Modifier refresh")) Script.OnRefresh(options);
+            }
         }
 
         internal void Tick(float deltaTime)
         {
-            if (IsDestroyed)
+            using (Engine.BeginExecution())
             {
-                return;
+                TickTimeline(deltaTime, Engine.HasAuraLease(this));
             }
+        }
 
-            ElapsedTime += deltaTime;
-            // States and properties disappear automatically once a modifier is removed.
-            if (ShouldRemoveForDeath())
+        // Aura coverage is sampled before any object ticks. A covered child still runs its
+        // own interval/regen timeline, but its duration represents linger after coverage ends.
+        internal void RenewAuraLease()
+        {
+            if (HasDuration) RemainingTime = Duration;
+        }
+
+        private void TickTimeline(float deltaTime, bool hasAuraLease)
+        {
+            if (!CanContinue() || deltaTime <= 0f || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime)) return;
+
+            float unprocessedTime = deltaTime;
+            int callbacks = 0;
+            while (unprocessedTime > 0f && CanContinue())
             {
-                Engine.RemoveModifier(this);
-                return;
-            }
+                float step = HasDuration && !hasAuraLease ? Mathf.Min(unprocessedTime, Mathf.Max(0f, RemainingTime)) : unprocessedTime;
+                if (HasInterval) step = Mathf.Min(step, Mathf.Max(0f, intervalTimer));
+                if (HasAura) step = Mathf.Min(step, Mathf.Max(0f, auraTimer));
 
-            // Interval actions that complete exactly on the expiry boundary still belong to
-            // the modifier's active lifetime. Limit catch-up to the remaining active time so
-            // a long frame cannot execute ticks after expiry, then remove the modifier.
-            float activeDeltaTime = deltaTime;
-            if (Duration > 0f && (Definition.Attributes & ModifierAttribute.Permanent) == 0)
-            {
-                activeDeltaTime = Mathf.Min(deltaTime, Mathf.Max(0f, RemainingTime));
-            }
+                AdvanceTime(step, hasAuraLease);
+                unprocessedTime = Mathf.Max(0f, unprocessedTime - step);
+                if (!CanContinue()) return;
 
-            TickInterval(activeDeltaTime);
-            if (IsDestroyed)
-            {
-                return;
-            }
+                bool intervalDue = HasInterval && IsDue(intervalTimer, Definition.Interval);
+                bool auraDue = HasAura && IsDue(auraTimer, AuraInterval);
+                if (intervalDue || auraDue)
+                {
+                    // Excess historical callbacks are skipped, and their timers still advance.
+                    // This bounds long-frame work without accumulating permanent callback debt.
+                    if (callbacks >= Mathf.Max(1, Engine.MaxPeriodicCallbacksPerUpdate))
+                    {
+                        SkipTime(unprocessedTime, hasAuraLease);
+                        return;
+                    }
 
-            TickDuration(deltaTime);
-            if (IsDestroyed)
-            {
-                return;
-            }
+                    if (intervalDue)
+                    {
+                        intervalTimer = Definition.Interval;
+                        if (!Engine.TryConsumeExecutionBudget("Modifier interval"))
+                        {
+                            SkipTime(unprocessedTime, hasAuraLease);
+                            return;
+                        }
 
-            TickAura(deltaTime);
+                        callbacks++;
+                        Script.OnIntervalThink();
+                        if (!CanContinue()) return;
+                    }
+
+                    if (auraDue && HasAura)
+                    {
+                        auraTimer = AuraInterval;
+                        if (callbacks >= Mathf.Max(1, Engine.MaxPeriodicCallbacksPerUpdate) || !Engine.TryConsumeExecutionBudget("Aura refresh"))
+                        {
+                            SkipTime(unprocessedTime, hasAuraLease);
+                            return;
+                        }
+
+                        callbacks++;
+                        Engine.RefreshAura(this);
+                        if (!CanContinue()) return;
+                    }
+                }
+
+                // Boundary callbacks run before expiry. Refresh may have installed a new lifetime.
+                if (HasDuration && !hasAuraLease && IsDue(RemainingTime, Duration))
+                {
+                    Engine.RemoveModifier(this);
+                    return;
+                }
+            }
         }
 
         internal void Destroy()
         {
-            if (IsDestroyed)
-            {
-                return;
-            }
-
+            if (IsDestroyed) return;
             IsDestroyed = true;
-            sustainedPresentation?.Stop();
+            Engine.UnregisterAuraChild(this);
+            IPresentationHandle handle = sustainedPresentation;
             sustainedPresentation = null;
-            Script.OnDestroy();
+            try { handle?.Stop(); }
+            finally { Script.OnDestroy(); }
         }
 
         internal float GetProperty(ModifierProperty property, ModifierPropertyContext context)
@@ -143,60 +218,53 @@ namespace Game.Ability
             return Script.CheckState(state);
         }
 
-        private void TickDuration(float deltaTime)
+        private bool CanContinue()
         {
-            if (Duration <= 0f || (Definition.Attributes & ModifierAttribute.Permanent) != 0)
-            {
-                return;
-            }
+            if (IsDestroyed || !Engine.IsRuntimeAvailable || !IsRuntimeCurrent) return false;
+            if (Parent != null && (Parent.IsAlive || !Definition.RemoveOnDeath)) return true;
+            Engine.RemoveModifier(this);
+            return false;
+        }
 
-            RemainingTime -= deltaTime;
-            if (RemainingTime <= 0f)
+        private void AdvanceTime(float deltaTime, bool hasAuraLease)
+        {
+            if (deltaTime <= 0f) return;
+            ElapsedTime += deltaTime;
+            if (HasDuration && !hasAuraLease) RemainingTime -= deltaTime;
+            if (HasInterval) intervalTimer -= deltaTime;
+            if (HasAura) auraTimer -= deltaTime;
+
+            // Regeneration belongs to active time, not a frame extending beyond expiry.
+            if (Parent != null && Parent.IsAlive)
             {
-                Engine.RemoveModifier(this);
+                ModifierPropertyContext context = RequiresPropertyContext ? new ModifierPropertyContext { Engine = Engine, Unit = Parent, Ability = Ability } : null;
+                float regeneration = GetProperty(ModifierProperty.HealthRegen, context);
+                if (regeneration > 0f && !float.IsNaN(regeneration) && !float.IsInfinity(regeneration) && CanContinue())
+                {
+                    Engine.Heal(new HealInfo { Source = Caster, Target = Parent, Ability = Ability, Amount = regeneration * deltaTime });
+                }
             }
         }
 
-        private void TickInterval(float deltaTime)
+        private void SkipTime(float deltaTime, bool hasAuraLease)
         {
-            if (Definition.Interval <= 0f)
-            {
-                return;
-            }
-
-            intervalTimer -= deltaTime;
-            while (intervalTimer <= 0f && !IsDestroyed)
-            {
-                intervalTimer += Definition.Interval;
-                Script.OnIntervalThink();
-            }
+            float activeTime = HasDuration && !hasAuraLease ? Mathf.Min(deltaTime, Mathf.Max(0f, RemainingTime)) : deltaTime;
+            AdvanceTime(activeTime, hasAuraLease);
+            if (!CanContinue()) return;
+            if (HasInterval && intervalTimer <= 0f) intervalTimer = NextTimer(intervalTimer, Definition.Interval);
+            if (HasAura && auraTimer <= 0f) auraTimer = NextTimer(auraTimer, AuraInterval);
+            if (HasDuration && !hasAuraLease && IsDue(RemainingTime, Duration)) Engine.RemoveModifier(this);
         }
 
-        private void TickAura(float deltaTime)
+        private static bool IsDue(float timer, float period)
         {
-            if (string.IsNullOrEmpty(Definition.AuraModifierName))
-            {
-                return;
-            }
-
-            auraTimer -= deltaTime;
-            if (auraTimer > 0f)
-            {
-                return;
-            }
-
-            auraTimer = Mathf.Max(0.05f, Definition.AuraThinkInterval);
-            Engine.RefreshAura(this);
+            return timer <= Mathf.Min(TimeEpsilon, period * 0.00001f);
         }
 
-        private bool ShouldRemoveForDeath()
+        private static float NextTimer(float timer, float interval)
         {
-            if (Parent == null)
-            {
-                return true;
-            }
-
-            return !Parent.IsAlive && Definition.RemoveOnDeath;
+            float remainder = -timer % interval;
+            return remainder == 0f ? interval : interval - remainder;
         }
 
         private static float ResolveDuration(ModifierDefinition definition, ModifierApplyOptions options)

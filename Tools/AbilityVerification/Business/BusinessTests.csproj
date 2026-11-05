@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>CS0649</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="AbilityRuntime.csproj" />
+    <ProjectReference Include="VerificationUnity.csproj" />
+    <Compile Include="../../../Assets/Scripts/Game/TowerDefense/AbilityAdapters/*.cs"
+             Exclude="../../../Assets/Scripts/Game/TowerDefense/AbilityAdapters/AbilityConfigConverter.cs;../../../Assets/Scripts/Game/TowerDefense/AbilityAdapters/ExcelAbilityDefinitionProvider.cs" />
+    <Compile Include="../../../Assets/Scripts/Game/TowerDefense/Base/BaseManager.cs" />
+    <Compile Include="../../../Assets/Scripts/Game/TowerDefense/Enemy/NpcManager.cs" />
+    <Compile Include="../../../Assets/Scripts/Game/TowerDefense/Tower/TowerManager.cs" />
+    <Compile Include="../../../Assets/Scripts/Game/TowerDefense/Battle/BattleFlowManager.cs" />
+    <Compile Include="../../../Assets/Scripts/Game/TowerDefense/Effects/BattleEffect.cs" />
+    <Compile Include="GameStubs.cs" />
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+</Project>

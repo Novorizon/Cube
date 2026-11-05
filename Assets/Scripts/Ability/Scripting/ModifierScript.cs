@@ -11,6 +11,7 @@ namespace Game.Ability
         public IUnit Parent => Modifier != null ? Modifier.Parent : null;
         public IUnit Caster => Modifier != null ? Modifier.Caster : null;
         public Ability Ability => Modifier != null ? Modifier.Ability : null;
+        public int Level => Modifier != null ? Modifier.Level : 1;
 
         internal void Bind(Modifier modifier)
         {
@@ -30,13 +31,8 @@ namespace Game.Ability
                 return 0f;
             }
 
-            if (!Modifier.Definition.Properties.TryGetValue(property, out float value))
-            {
-                return 0f;
-            }
-
             // Default modifier properties stack additively by stack count.
-            return value * Modifier.StackCount;
+            return Modifier.Definition.GetPropertyValue(property, Level) * Modifier.StackCount;
         }
 
         public virtual bool CheckState(UnitState state)
@@ -65,3 +61,4 @@ namespace Game.Ability
     {
     }
 }
+

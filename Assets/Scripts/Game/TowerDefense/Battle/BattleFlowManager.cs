@@ -13,6 +13,7 @@ namespace Game
         private BattleEndedMessage lastEndMessage;
 
         public event System.Action<BattleEndedMessage> BattleCompleted;
+        public event System.Action BattleStarted;
 
         public BattleState State => state;
         public bool IsRunning => state == BattleState.Running;
@@ -34,6 +35,7 @@ namespace Game
             lastEndMessage = null;
 
             ChangeState(BattleState.Running);
+            BattleStarted?.Invoke();
             Debug.Log($"Battle started. mapId: {currentMapId}, mapName: {currentMapName}");
         }
 
@@ -105,3 +107,4 @@ namespace Game
         }
     }
 }
+

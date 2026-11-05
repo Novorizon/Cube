@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Game.Ability</AssemblyName>
+    <AbilitySourceRoot Condition="'$(AbilitySourceRoot)' == ''">../Ability</AbilitySourceRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(AbilitySourceRoot)/**/*.cs" />
+    <Compile Include="Unity.cs" />
+  </ItemGroup>
+</Project>

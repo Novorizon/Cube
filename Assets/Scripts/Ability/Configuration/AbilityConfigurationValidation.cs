@@ -681,10 +681,11 @@ namespace Game.Ability.Configuration
             HashSet<int> visited = new HashSet<int>();
             HashSet<int> active = new HashSet<int>();
             List<int> stack = new List<int>();
+            Stack<ModifierGraphVisit> visits = new Stack<ModifierGraphVisit>();
             HashSet<string> reportedCycles = new HashSet<string>(StringComparer.Ordinal);
             foreach (int id in byId.Keys)
             {
-                VisitModifier(id, byId, edges, visited, active, stack, reportedCycles, report);
+                VisitModifier(id, byId, edges, visited, active, stack, visits, reportedCycles, report);
             }
         }
 
@@ -695,6 +696,7 @@ namespace Game.Ability.Configuration
             ISet<int> visited,
             ISet<int> active,
             IList<int> stack,
+            Stack<ModifierGraphVisit> visits,
             ISet<string> reportedCycles,
             AbilityValidationReport report)
         {
@@ -705,40 +707,53 @@ namespace Game.Ability.Configuration
 
             active.Add(id);
             stack.Add(id);
-            if (edges.TryGetValue(id, out HashSet<int> targets))
+            edges.TryGetValue(id, out HashSet<int> rootTargets);
+            visits.Push(new ModifierGraphVisit(id, rootTargets));
+            while (visits.Count > 0)
             {
-                foreach (int target in targets)
+                ModifierGraphVisit visit = visits.Pop();
+                if (!visit.TryNext(out int target))
                 {
-                    if (!modifiers.ContainsKey(target))
-                    {
-                        continue;
-                    }
-
-                    if (active.Contains(target))
-                    {
-                        int start = stack.IndexOf(target);
-                        List<int> cycle = new List<int>();
-                        for (int i = Math.Max(0, start); i < stack.Count; i++)
-                        {
-                            cycle.Add(stack[i]);
-                        }
-                        cycle.Add(target);
-                        string chain = string.Join(" -> modifier:", cycle);
-                        if (reportedCycles.Add(chain))
-                        {
-                            report.Add(AbilityValidationSeverity.Error, "ABILITY039", "Circular modifier reference detected.", modifiers[id].Source, "modifier:" + chain);
-                        }
-                    }
-                    else
-                    {
-                        VisitModifier(target, modifiers, edges, visited, active, stack, reportedCycles, report);
-                    }
+                    stack.RemoveAt(stack.Count - 1);
+                    active.Remove(visit.Id);
+                    visited.Add(visit.Id);
+                    continue;
                 }
+                visits.Push(visit);
+                if (!modifiers.ContainsKey(target)) continue;
+                if (active.Contains(target))
+                {
+                    int start = stack.IndexOf(target);
+                    List<int> cycle = new List<int>();
+                    for (int i = Math.Max(0, start); i < stack.Count; i++) cycle.Add(stack[i]);
+                    cycle.Add(target);
+                    string chain = string.Join(" -> modifier:", cycle);
+                    if (reportedCycles.Add(chain))
+                    {
+                        report.Add(AbilityValidationSeverity.Error, "ABILITY039", "Circular modifier reference detected.", modifiers[visit.Id].Source, "modifier:" + chain);
+                    }
+                    continue;
+                }
+                if (visited.Contains(target)) continue;
+                active.Add(target);
+                stack.Add(target);
+                edges.TryGetValue(target, out HashSet<int> targets);
+                visits.Push(new ModifierGraphVisit(target, targets));
             }
+        }
 
-            stack.RemoveAt(stack.Count - 1);
-            active.Remove(id);
-            visited.Add(id);
+        private struct ModifierGraphVisit
+        {
+            public readonly int Id;
+            private HashSet<int>.Enumerator targets;
+            private readonly bool hasTargets;
+            public ModifierGraphVisit(int id, HashSet<int> targets) { Id = id; hasTargets = targets != null; this.targets = targets != null ? targets.GetEnumerator() : default; }
+            public bool TryNext(out int target)
+            {
+                if (hasTargets && targets.MoveNext()) { target = targets.Current; return true; }
+                target = 0;
+                return false;
+            }
         }
 
         private static void ValidateUnusedRecords(
@@ -933,3 +948,4 @@ namespace Game.Ability.Configuration
         }
     }
 }
+

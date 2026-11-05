@@ -11,6 +11,7 @@ namespace Game
         private int currentLife;
         private int defense;
         private bool initialized;
+        private bool removingBase;
 
         public event System.Action BaseLoaded;
         public event System.Action BaseRemoving;
@@ -27,7 +28,7 @@ namespace Game
 
         public bool IsDead => initialized && currentLife <= 0;
 
-        public bool HasBaseObject => baseObject != null;
+        public bool HasBaseObject => baseObject != null && !removingBase;
 
         public Transform BaseTransform => baseObject != null ? baseObject.transform : null;
 
@@ -51,6 +52,7 @@ namespace Game
 
         public bool LoadBase(int baseId)
         {
+            if (removingBase) return false;
             ClearBaseObject();
             config = null;
             maxLife = 0;
@@ -102,76 +104,59 @@ namespace Game
 
         public void ClearBaseObject()
         {
-            if (baseObject == null)
+            if (baseObject == null || removingBase)
             {
                 return;
             }
 
-            BaseRemoving?.Invoke();
-            GameObject.Destroy(baseObject);
-            baseObject = null;
-            config = null;
+            removingBase = true;
+            try { BaseRemoving?.Invoke(); }
+            finally
+            {
+                GameObject.Destroy(baseObject);
+                baseObject = null;
+                config = null;
+                removingBase = false;
+            }
         }
 
         public void TakeDamage(int damage)
         {
-            if (damage <= 0)
-            {
-                return;
-            }
+            if (damage <= 0 || currentLife <= 0) return;
+            ApplyFinalDamage(Mathf.Max(1, damage - defense), out _);
+        }
 
-            if (currentLife <= 0)
-            {
-                return;
-            }
-
-            int finalDamage = Mathf.Max(1, damage - defense);
-            currentLife -= finalDamage;
-
-            if (currentLife < 0)
-            {
-                currentLife = 0;
-            }
-
+        // Ability damage has already passed defense/block calculation. Never reduce it a second time.
+        internal int ApplyFinalDamage(int finalDamage, out bool killed)
+        {
+            killed = false;
+            if (finalDamage <= 0 || currentLife <= 0 || !HasBaseObject) return 0;
+            int before = currentLife;
+            currentLife = Mathf.Max(0, currentLife - finalDamage);
+            int applied = before - currentLife;
+            killed = currentLife <= 0;
             NotifyBaseLifeChanged();
-
-            Debug.Log($"Base damaged. Damage: {damage}, FinalDamage: {finalDamage}, Defense: {defense}, Life: {currentLife}/{maxLife}");
-
-            if (currentLife <= 0)
+            Debug.Log($"Base damaged. FinalDamage: {applied}, Life: {currentLife}/{maxLife}");
+            if (killed)
             {
                 Debug.Log("Base destroyed. Game over.");
                 BattleFlowManager.Instance.CompleteDefeat("Base destroyed.");
             }
+            return applied;
         }
 
-        public void Heal(int amount)
+        public void Heal(int amount) => ApplyFinalHeal(amount);
+
+        internal int ApplyFinalHeal(int amount)
         {
-            if (amount <= 0)
-            {
-                return;
-            }
-
-            if (currentLife <= 0)
-            {
-                return;
-            }
-
+            if (amount <= 0 || currentLife <= 0 || !HasBaseObject) return 0;
             int before = currentLife;
-            currentLife += amount;
-
-            if (currentLife > maxLife)
-            {
-                currentLife = maxLife;
-            }
-
-            if (currentLife == before)
-            {
-                return;
-            }
-
+            currentLife = (int)System.Math.Min(maxLife, (long)currentLife + amount);
+            int applied = currentLife - before;
+            if (applied <= 0) return 0;
             NotifyBaseLifeChanged();
-
-            Debug.Log($"Base healed. Heal: {currentLife - before}, Life: {currentLife}/{maxLife}");
+            Debug.Log($"Base healed. Heal: {applied}, Life: {currentLife}/{maxLife}");
+            return applied;
         }
 
         private void EnsureBaseView(GameObject target)
@@ -192,7 +177,8 @@ namespace Game
             BaseLifeMessage message = new BaseLifeMessage();
             message.CurrentLife = currentLife;
             message.MaxLife = maxLife;
-            Messager.Instance.Notify(BattleMessageTopic.BaseLifeChanged, message);
+            try { Messager.Instance.Notify(BattleMessageTopic.BaseLifeChanged, message); }
+            catch (System.Exception exception) { Debug.LogException(exception); }
         }
 
         private Vector3 GetBaseWorldPosition(Vector3Int coord)
@@ -206,3 +192,4 @@ namespace Game
         }
     }
 }
+

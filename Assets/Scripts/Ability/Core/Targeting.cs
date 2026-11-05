@@ -16,7 +16,7 @@ namespace Game.Ability
 
         public bool IsValid(IUnit target)
         {
-            if (target == null)
+            if (target == null || (Engine != null && (Engine.IsUnitRemoving(target) || Engine.HasTargetState(target, UnitState.OutOfGame))))
             {
                 return false;
             }
@@ -39,19 +39,19 @@ namespace Game.Ability
                 return false;
             }
 
-            bool magicImmune = Engine != null ? Engine.HasState(target, UnitState.MagicImmune) : target.IsMagicImmune;
+            bool magicImmune = Engine != null ? Engine.HasTargetState(target, UnitState.MagicImmune) : target.IsMagicImmune;
             if (magicImmune && (Flags & TargetFlags.MagicImmuneEnemies) == 0 && Caster != null && Caster.TeamId != target.TeamId)
             {
                 return false;
             }
 
-            bool invulnerable = Engine != null ? Engine.HasState(target, UnitState.Invulnerable) : target.IsInvulnerable;
+            bool invulnerable = Engine != null ? Engine.HasTargetState(target, UnitState.Invulnerable) : target.IsInvulnerable;
             if (invulnerable && (Flags & TargetFlags.Invulnerable) == 0)
             {
                 return false;
             }
 
-            bool untargetable = Engine != null && Engine.HasState(target, UnitState.Untargetable);
+            bool untargetable = Engine != null && Engine.HasTargetState(target, UnitState.Untargetable);
             if (untargetable && (Flags & TargetFlags.Untargetable) == 0)
             {
                 return false;
@@ -92,119 +92,80 @@ namespace Game.Ability
     /// </summary>
     public static class Targeting
     {
+        /// <summary>Copies only the target shape supported by the definition.</summary>
+        internal static CastOrder NormalizeOrder(Ability ability, CastOrder source)
+        {
+            CastOrder order = AbilitySystem.CopyOrder(source);
+            AbilityBehavior behavior = ability.Definition.Behavior;
+            bool useUnit = (behavior & (AbilityBehavior.UnitTarget | AbilityBehavior.OptionalUnitTarget)) != 0 && order.Target != null;
+            bool usePoint = !useUnit && (behavior & AbilityBehavior.PointTarget) != 0 && order.HasTargetPosition;
+            if ((behavior & AbilityBehavior.NoTarget) != 0 || (!useUnit && !usePoint))
+            {
+                order.Target = null;
+                order.TargetPosition = order.Caster.Position;
+                order.HasTargetPosition = false;
+            }
+            else if (useUnit)
+            {
+                order.TargetPosition = order.Target.Position;
+                order.HasTargetPosition = false;
+            }
+            else order.Target = null;
+            if ((behavior & AbilityBehavior.Directional) == 0) order.Direction = Vector3.zero;
+            else order.Direction = order.Direction.normalized;
+            return order;
+        }
+
         public static bool BuildCastContext(AbilitySystem engine, Ability ability, CastOrder order, out CastContext context, out CastResult result)
         {
             context = null;
-            result = null;
-            if (engine == null || ability == null || order == null || order.Caster == null)
-            {
-                result = CastResult.Fail(CastFailureReason.InvalidTarget);
-                return false;
-            }
+            result = CastResult.Fail(CastFailureReason.InvalidTarget);
+            if (engine == null || ability == null || order == null || !ReferenceEquals(order.Caster, ability.Owner) || order.AbilityName != ability.Definition.Name) return false;
+            if (!IsFinite(order.Caster.Position) || !IsFinite(order.Direction) || (order.HasTargetPosition && !IsFinite(order.TargetPosition))) return false;
 
             AbilityDefinition definition = ability.Definition;
             AbilityBehavior behavior = definition.Behavior;
+            bool noTarget = (behavior & AbilityBehavior.NoTarget) != 0;
+            bool unitTarget = !noTarget && (behavior & (AbilityBehavior.UnitTarget | AbilityBehavior.OptionalUnitTarget)) != 0 && order.Target != null;
+            bool pointTarget = !noTarget && !unitTarget && (behavior & AbilityBehavior.PointTarget) != 0 && order.HasTargetPosition;
+            bool optionalUnit = !noTarget && !unitTarget && !pointTarget && (behavior & AbilityBehavior.OptionalUnitTarget) != 0;
+            if (!noTarget && !unitTarget && !pointTarget && !optionalUnit) return false;
+
             context = new CastContext
             {
                 Engine = engine,
                 Ability = ability,
-                Caster = order.Caster,
-                Target = order.Target,
-                TargetPosition = order.HasTargetPosition ? order.TargetPosition : order.Caster.Position,
-                Direction = order.Direction
+                Caster = ability.Owner,
+                Target = unitTarget ? order.Target : null,
+                TargetPosition = unitTarget ? order.Target.Position : pointTarget ? order.TargetPosition : ability.Owner.Position,
+                Direction = (behavior & AbilityBehavior.Directional) != 0 ? order.Direction.normalized : Vector3.zero,
+                Level = ability.Level
             };
-
+            if (!IsFinite(context.TargetPosition)) return false;
             TargetQuery query = CreateQuery(ability);
-            float castRange = Mathf.Max(0f, ability.Script.GetCastRange() + engine.GetModifierProperty(order.Caster, ModifierProperty.CastRangeBonus, null));
+            float castRange = Mathf.Max(0f, ability.Script.GetCastRange() + engine.GetModifierProperty(ability.Owner, ModifierProperty.CastRangeBonus, null));
             float aoeRadius = Mathf.Max(0f, ability.Script.GetAoeRadius());
+            if (!IsFinite(castRange) || !IsFinite(aoeRadius)) return false;
 
-            if ((behavior & AbilityBehavior.NoTarget) != 0)
+            if (unitTarget && !query.IsValid(context.Target)) return false;
+            if ((unitTarget || pointTarget) && !IsInRange(ability.Owner.Position, context.TargetPosition, castRange))
             {
-                // No-target spells execute at the caster position, but may still collect AOE targets.
-                context.TargetPosition = order.Caster.Position;
-                AddAreaTargets(engine, context, query, order.Caster.Position, aoeRadius);
-                result = CastResult.Ok();
-                return true;
+                result = CastResult.Fail(CastFailureReason.OutOfRange);
+                return false;
             }
-
-            if ((behavior & AbilityBehavior.UnitTarget) != 0)
+            if ((unitTarget || pointTarget) && !HasLineOfSight(engine, ability.Owner, context.TargetPosition, definition.TargetFlags))
             {
-                if (order.Target == null)
-                {
-                    if ((behavior & AbilityBehavior.OptionalUnitTarget) == 0)
-                    {
-                        result = CastResult.Fail(CastFailureReason.InvalidTarget, "Unit target is required.");
-                        return false;
-                    }
-                }
-                else
-                {
-                    if (!query.IsValid(order.Target))
-                    {
-                        result = CastResult.Fail(CastFailureReason.InvalidTarget);
-                        return false;
-                    }
-
-                    if (!IsInRange(order.Caster.Position, order.Target.Position, castRange))
-                    {
-                        result = CastResult.Fail(CastFailureReason.OutOfRange);
-                        return false;
-                    }
-
-                    if (!HasLineOfSight(engine, order.Caster, order.Target.Position, definition.TargetFlags))
-                    {
-                        result = CastResult.Fail(CastFailureReason.NoVision);
-                        return false;
-                    }
-
-                    context.TargetPosition = order.Target.Position;
-                    context.AddTarget(order.Target);
-                }
-
-                if ((behavior & AbilityBehavior.Aoe) != 0 && aoeRadius > 0f)
-                {
-                    // The clicked unit remains Target; nearby units are added to Targets.
-                    AddAreaTargets(engine, context, query, context.TargetPosition, aoeRadius);
-                }
-
-                result = CastResult.Ok();
-                return true;
+                result = CastResult.Fail(CastFailureReason.NoVision);
+                return false;
             }
-
-            if ((behavior & AbilityBehavior.PointTarget) != 0)
-            {
-                if (!order.HasTargetPosition)
-                {
-                    result = CastResult.Fail(CastFailureReason.InvalidTarget, "Target point is required.");
-                    return false;
-                }
-
-                if (!IsInRange(order.Caster.Position, order.TargetPosition, castRange))
-                {
-                    result = CastResult.Fail(CastFailureReason.OutOfRange);
-                    return false;
-                }
-
-                if (!HasLineOfSight(engine, order.Caster, order.TargetPosition, definition.TargetFlags))
-                {
-                    result = CastResult.Fail(CastFailureReason.NoVision);
-                    return false;
-                }
-
-                context.TargetPosition = order.TargetPosition;
-                if ((behavior & AbilityBehavior.Aoe) != 0 && aoeRadius > 0f)
-                {
-                    // Point-target AOE spells resolve their affected units once at cast time.
-                    AddAreaTargets(engine, context, query, order.TargetPosition, aoeRadius);
-                }
-
-                result = CastResult.Ok();
-                return true;
-            }
-
-            result = CastResult.Fail(CastFailureReason.InvalidTarget);
-            return false;
+            if (unitTarget) context.AddTarget(context.Target);
+            if ((noTarget || (behavior & AbilityBehavior.Aoe) != 0) && aoeRadius > 0f) AddAreaTargets(engine, context, query, context.TargetPosition, aoeRadius);
+            result = CastResult.Ok();
+            return true;
         }
+
+        private static bool IsFinite(float value) => !float.IsNaN(value) && !float.IsInfinity(value);
+        private static bool IsFinite(Vector3 value) => IsFinite(value.x) && IsFinite(value.y) && IsFinite(value.z);
 
         public static TargetQuery CreateQuery(Ability ability)
         {
@@ -245,3 +206,4 @@ namespace Game.Ability
         }
     }
 }
+

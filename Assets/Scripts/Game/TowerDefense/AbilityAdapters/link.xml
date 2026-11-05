@@ -1,0 +1,6 @@
+<linker>
+  <assembly fullname="Assembly-CSharp">
+    <type fullname="Game.TdJsonAbilityManifestProvider/Manifest" preserve="all" />
+    <type fullname="Game.TdJsonAbilityManifestProvider/Source" preserve="all" />
+  </assembly>
+</linker>
