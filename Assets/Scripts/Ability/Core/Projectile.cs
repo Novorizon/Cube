@@ -124,28 +124,34 @@ namespace Game.Ability
             Destroyed = true;
             IProjectilePresentationHandle handle = presentationHandle;
             presentationHandle = null;
-            handle?.Stop();
-            candidates.Clear();
-            hits.Clear();
+            try { handle?.Stop(); }
+            finally
+            {
+                candidates.Clear();
+                hits.Clear();
+            }
         }
 
         private void TickTracking(AbilitySystem engine, float deltaTime)
         {
+            TargetQuery query = Definition.TrackingTargetPolicy == TrackingTargetPolicy.RevalidateTarget ? CreateQuery(engine) : null;
             if (Target == null || !Target.IsAlive ||
-                (Definition.TrackingTargetPolicy == TrackingTargetPolicy.RevalidateTarget && !CreateQuery(engine).IsValid(Target)))
+                (query != null && !query.IsValid(Target)))
             {
                 Destroy();
                 return;
             }
 
-            Vector3 toTarget = Target.Position - Position;
+            Vector3 targetPosition = Target.Position;
+            if (!IsFinite(targetPosition)) { Destroy(); return; }
+            Vector3 toTarget = targetPosition - Position;
             float remainingDistance = RemainingDistance();
             float step = Mathf.Min(SafeNonnegative(Definition.Speed) * deltaTime, remainingDistance);
             if (toTarget.sqrMagnitude <= step * step)
             {
                 traveledDistance += (float)Math.Sqrt(toTarget.sqrMagnitude);
-                SetPosition(Target.Position);
-                Hit(engine, Target);
+                SetPosition(targetPosition);
+                Hit(engine, Target, query);
                 // DeleteOnHit controls piercing linear projectiles. Tracking arrival is terminal.
                 Destroy();
                 return;
@@ -199,7 +205,7 @@ namespace Game.Ability
                 }
 
                 SetPosition(start + Direction * hit.Distance);
-                Hit(engine, hit.Unit);
+                Hit(engine, hit.Unit, query);
                 if (Destroyed)
                 {
                     return;
@@ -214,9 +220,13 @@ namespace Game.Ability
             }
         }
 
-        private void Hit(AbilitySystem engine, IUnit target)
+        private void Hit(AbilitySystem engine, IUnit target, TargetQuery query = null)
         {
-            if (Destroyed || target == null || !hitUnitIds.Add(target.EntityId))
+            // Moving presentation is an external callback. It may kill or invalidate a
+            // candidate after the sweep/arrival check but before gameplay hit callbacks.
+            if (Destroyed || target == null || !target.IsAlive || !IsFinite(target.Position) ||
+                engine.IsUnitRemoving(target) || !engine.IsAbilitySourceValid(Ability) ||
+                (query != null && !query.IsValid(target)) || Destroyed || !hitUnitIds.Add(target.EntityId))
             {
                 return;
             }
@@ -253,6 +263,7 @@ namespace Game.Ability
 
         private void SetPosition(Vector3 position)
         {
+            if (!IsFinite(position)) { Destroy(); return; }
             Position = position;
             if (!Destroyed)
             {
@@ -297,6 +308,8 @@ namespace Game.Ability
         {
             return !float.IsNaN(value) && !float.IsInfinity(value);
         }
+
+        private static bool IsFinite(Vector3 value) => IsFinite(value.x) && IsFinite(value.y) && IsFinite(value.z);
 
         private struct SweptHit
         {

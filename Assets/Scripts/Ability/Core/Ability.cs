@@ -13,6 +13,8 @@ namespace Game.Ability
         // Float partitioning can leave a tiny positive residual at an exact timer boundary.
         private static float TimerTolerance(float duration) => Mathf.Min(0.000001f, Mathf.Max(0f, duration) * 0.000001f);
         public AbilitySystem Engine { get; }
+        internal long RuntimeGenerationAtCreation { get; }
+        internal bool WasRegistered { get; set; }
         public AbilityDefinition Definition { get; }
         public IUnit Owner { get; }
         public IResourceOwner ResourceOwner { get; }
@@ -43,14 +45,37 @@ namespace Game.Ability
         private int castVersion;
         private float backswingRemaining;
         private CastContext activeContext;
+        private int cooldownVersion;
+        private int chargeTimerVersion;
+
+        // Captured for every ability before any ability callback runs in an Update. Keeping
+        // the tokens in the rented frame snapshot also preserves nested Update isolation.
+        internal readonly struct TickState
+        {
+            internal readonly Ability Ability;
+            internal readonly int CastVersion;
+            internal readonly int CooldownVersion;
+            internal readonly int ChargeTimerVersion;
+
+            internal TickState(Ability ability)
+            {
+                Ability = ability;
+                CastVersion = ability.castVersion;
+                CooldownVersion = ability.cooldownVersion;
+                ChargeTimerVersion = ability.chargeTimerVersion;
+            }
+        }
+
+        internal TickState CaptureTickState() => new TickState(this);
 
         public bool IsRemoved { get; private set; }
         public bool IsBusy => executing || Phase != AbilityPhase.Idle;
         public long CastId { get; private set; }
 
-        internal Ability(AbilitySystem engine, AbilityDefinition definition, IUnit owner, IResourceOwner resourceOwner, AbilityScript script, int level)
+        internal Ability(AbilitySystem engine, AbilityDefinition definition, IUnit owner, IResourceOwner resourceOwner, AbilityScript script, int level, long runtimeGeneration)
         {
             Engine = engine;
+            RuntimeGenerationAtCreation = runtimeGeneration;
             Definition = definition;
             Owner = owner;
             ResourceOwner = resourceOwner;
@@ -83,13 +108,15 @@ namespace Game.Ability
             }
 
             Level = resolvedLevel;
+            List<Exception> errors = new List<Exception>();
             if (Level == 0)
             {
-                Interrupt();
-                RemoveIntrinsicModifier();
+                CaptureFailure(errors, Interrupt);
+                CaptureFailure(errors, RemoveIntrinsicModifier);
             }
-            Script.OnUpgrade();
-            if (IsOperational) ApplyIntrinsicModifier();
+            CaptureFailure(errors, Script.OnUpgrade);
+            if (IsOperational) CaptureFailure(errors, ApplyIntrinsicModifier);
+            ThrowFailures(errors, "Ability level changed, but upgrade callbacks failed.");
         }
 
         public void SetActivated(bool activated)
@@ -129,6 +156,7 @@ namespace Game.Ability
         {
             if (IsRemoved) return;
             CooldownRemaining = Mathf.Max(0f, cooldown >= 0f ? cooldown : GetCooldown());
+            ++cooldownVersion;
             cooldownDuration = CooldownRemaining;
             if (CooldownRemaining > 0f)
             {
@@ -140,6 +168,7 @@ namespace Game.Ability
         {
             if (IsRemoved) return;
             CooldownRemaining = 0f;
+            ++cooldownVersion;
             Engine.RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.CooldownFinished, Ability = this, Caster = Owner });
         }
 
@@ -157,10 +186,12 @@ namespace Game.Ability
             if (Charges >= maxCharges)
             {
                 chargeRestoreRemaining = 0f;
+                ++chargeTimerVersion;
             }
             else if (previousCharges >= maxCharges || chargeRestoreRemaining <= 0f)
             {
                 chargeRestoreRemaining = Mathf.Max(0f, Definition.Charges.RestoreTime);
+                ++chargeTimerVersion;
             }
 
             Engine.RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.ChargeChanged, Ability = this, Caster = Owner, Value = Charges });
@@ -218,10 +249,13 @@ namespace Game.Ability
             // A private order snapshot survives front-end reuse and modifier callbacks.
             pendingOrder = AbilitySystem.CopyOrder(order);
             Phase = AbilityPhase.Casting;
-            castPointRemaining = (Definition.Behavior & AbilityBehavior.Immediate) != 0 ? 0f : Mathf.Max(0f, Script.GetCastPoint());
-            castPointDuration = castPointRemaining;
             bool phaseAccepted;
-            try { phaseAccepted = Script.OnAbilityPhaseStart(context); }
+            try
+            {
+                castPointRemaining = (Definition.Behavior & AbilityBehavior.Immediate) != 0 ? 0f : Mathf.Max(0f, Script.GetCastPoint());
+                castPointDuration = castPointRemaining;
+                phaseAccepted = Script.OnAbilityPhaseStart(context);
+            }
             catch (Exception error) { throw AbortFailedCallback(error, version); }
             if (!phaseAccepted)
             {
@@ -229,7 +263,8 @@ namespace Game.Ability
                 return Reject(order, CastResult.Fail(CastFailureReason.CustomRejected, "Ability phase rejected."), castId);
             }
             if (!IsCurrent(version) || Phase != AbilityPhase.Casting) return Accepted(castId);
-            Engine.RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.CastStarted, Ability = this, Caster = Owner, Target = context.Target, Position = context.TargetPosition, CastId = castId });
+            try { Engine.RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.CastStarted, Ability = this, Caster = Owner, Target = context.Target, Position = context.TargetPosition, CastId = castId }); }
+            catch (Exception error) { throw AbortFailedCallback(error, version); }
             if (!IsCurrent(version) || Phase != AbilityPhase.Casting) return Accepted(castId);
             if (castPointRemaining <= 0f) return ExecuteCast(context, version);
             return Accepted(castId);
@@ -259,13 +294,15 @@ namespace Game.Ability
             }
         }
 
-        internal void Tick(float deltaTime)
+        internal void Tick(float deltaTime, TickState frame)
         {
+            if (!IsOperational || !ReferenceEquals(frame.Ability, this)) return;
+            int version = frame.CastVersion;
+            if (cooldownVersion == frame.CooldownVersion) TickCooldown(deltaTime);
             if (!IsOperational) return;
-            int version = castVersion;
-            TickCooldown(deltaTime);
-            if (!IsOperational) return;
-            TickCharges(deltaTime);
+            // Observers on this or an earlier ability may create a timer at this frame
+            // boundary. Existing timers still advance independently of a new cast.
+            if (chargeTimerVersion == frame.ChargeTimerVersion) TickCharges(deltaTime);
             if (!IsOperational) return;
             ApplyIntrinsicModifier();
             // A callback that started a new cast does not inherit the old timer's elapsed frame.
@@ -283,7 +320,12 @@ namespace Game.Ability
                     return;
                 }
             }
-            if (Phase == AbilityPhase.Casting) TickCasting(deltaTime);
+            if (Phase == AbilityPhase.Casting)
+            {
+                int activeVersion = castVersion;
+                try { TickCasting(deltaTime); }
+                catch (Exception error) { throw AbortFailedCallback(error, activeVersion); }
+            }
             else if (Phase == AbilityPhase.Channeling) TickChannel(deltaTime);
             else if (Phase == AbilityPhase.Backswing)
             {
@@ -329,8 +371,9 @@ namespace Game.Ability
             if (Phase == AbilityPhase.Casting && pendingOrder != null && IsSameUnit(pendingOrder.Target, unit))
             {
                 CastOrder cancelledOrder = pendingOrder;
+                long id = CastId;
                 Interrupt();
-                Engine.RaiseCastFailed(this, cancelledOrder, CastResult.Fail(CastFailureReason.InvalidTarget, "Target left the ability world."));
+                Reject(cancelledOrder, CastResult.Fail(CastFailureReason.InvalidTarget, "Target left the ability world."), id);
                 return;
             }
 
@@ -516,10 +559,19 @@ namespace Game.Ability
             }
             if (!IsCurrent(version) || Phase != AbilityPhase.Casting) return;
             activeContext = context;
+            int previousCooldownVersion = cooldownVersion;
+            int previousChargeVersion = chargeTimerVersion;
             ExecuteCast(context, version);
             if (!IsCurrent(version)) return;
             float remainingDelta = Mathf.Max(0f, deltaTime - used);
             if (remainingDelta <= 0f) return;
+            int committedChargeVersion = chargeTimerVersion;
+            if (cooldownVersion != previousCooldownVersion) TickCooldown(remainingDelta);
+            if (!IsCurrent(version)) return;
+            // Existing recovery already received this frame's delta in Tick. Only a timer
+            // created by this cast receives its post-cast-point fraction here.
+            if (committedChargeVersion != previousChargeVersion && chargeTimerVersion == committedChargeVersion) TickCharges(remainingDelta);
+            if (!IsCurrent(version)) return;
             if (Phase == AbilityPhase.Channeling) TickChannel(remainingDelta);
             else if (Phase == AbilityPhase.Backswing)
             {
@@ -674,15 +726,13 @@ namespace Game.Ability
             chargeRestoreRemaining -= deltaTime;
             while (chargeRestoreRemaining <= TimerTolerance(Definition.Charges.RestoreTime) && Charges < Definition.Charges.MaxCharges)
             {
-                float nextRemaining = chargeRestoreRemaining + Definition.Charges.RestoreTime;
-                SetCharges(Charges + 1);
-                if (!IsOperational) return;
-                if (Charges >= Definition.Charges.MaxCharges)
-                {
-                    break;
-                }
-
-                chargeRestoreRemaining = nextRemaining;
+                if (!Engine.TryConsumeExecutionBudget("ChargeRestore")) return;
+                Charges++;
+                chargeRestoreRemaining = Charges >= Definition.Charges.MaxCharges ? 0f : chargeRestoreRemaining + Definition.Charges.RestoreTime;
+                if (Charges >= Definition.Charges.MaxCharges) ++chargeTimerVersion;
+                int restoredVersion = chargeTimerVersion;
+                Engine.RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.ChargeChanged, Ability = this, Caster = Owner, Value = Charges });
+                if (!IsOperational || chargeTimerVersion != restoredVersion || Charges >= Definition.Charges.MaxCharges) return;
             }
         }
 

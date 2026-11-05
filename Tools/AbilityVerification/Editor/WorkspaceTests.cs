@@ -308,7 +308,7 @@ public static class WorkspaceTests
                 name = "long.chain." + index,
                 onCreated = index < 299 ? new[] { new JsonAction { actionType = 3, target = 5, modifierName = "long.chain." + (index + 1) } } : null
             }).ToArray();
-            Require(workspace.Validate().Any(issue => issue.Code == "EDITOR_REFERENCE_COMPLEXITY" && IsError(issue)), "Authoring complexity is rejected before recursive graph validation.");
+            Require(workspace.Validate().Any(issue => issue.Code == "EDITOR_REFERENCE_COMPLEXITY" && IsError(issue)), "Authoring complexity is rejected before production graph validation.");
             Require(!workspace.TrySave(session, out string error) && error.Contains("EDITOR_REFERENCE_COMPLEXITY"), "Saving enforces the same preflight.");
             Require(session.IsDirty && File.ReadAllText(path) == original, "The valid source and oversized draft remain intact.");
         });

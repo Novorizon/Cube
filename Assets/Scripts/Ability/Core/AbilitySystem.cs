@@ -42,102 +42,102 @@ namespace Game.Ability
         private AbilityRuntimeSnapshot CreateRuntimeSnapshotCore()
         {
             AbilityRuntimeSnapshot snapshot = new AbilityRuntimeSnapshot();
-            foreach (KeyValuePair<int, List<Ability>> pair in abilitiesByUnit)
+            long generation = RuntimeGeneration;
+            List<Ability> abilitySnapshot = RuntimeSnapshotPool<Ability>.Rent();
+            List<Modifier> modifierSnapshot = RuntimeSnapshotPool<Modifier>.Rent(modifiers);
+            List<Projectile> projectileSnapshot = RuntimeSnapshotPool<Projectile>.Rent(projectiles);
+            List<Thinker> thinkerSnapshot = RuntimeSnapshotPool<Thinker>.Rent(thinkers);
+            try
             {
-                List<Ability> abilities = pair.Value;
-                AbilityUnitRuntimeSnapshot unitSnapshot = new AbilityUnitRuntimeSnapshot { EntityId = pair.Key };
-                if (abilities != null && abilities.Count > 0 && abilities[0]?.Owner != null)
+                // Freeze membership before invoking unit getters or custom state/property
+                // callbacks. Those adapters may remove objects or reenter the engine.
+                foreach (List<Ability> bucket in abilitiesByUnit.Values) abilitySnapshot.AddRange(bucket);
+                Dictionary<int, AbilityUnitRuntimeSnapshot> capturedUnits = new Dictionary<int, AbilityUnitRuntimeSnapshot>();
+                foreach (Ability ability in abilitySnapshot)
                 {
-                    IUnit owner = abilities[0].Owner;
-                    unitSnapshot.TeamId = owner.TeamId;
-                    unitSnapshot.Position = owner.Position;
-                    unitSnapshot.IsAlive = owner.IsAlive;
-                }
-
-                if (abilities != null)
-                {
-                    for (int i = 0; i < abilities.Count; i++)
+                    if (generation != RuntimeGeneration) return new AbilityRuntimeSnapshot();
+                    if (!IsAbilityRegistered(ability)) continue;
+                    IUnit owner = ability.Owner;
+                    int id = owner.EntityId;
+                    if (!capturedUnits.TryGetValue(id, out AbilityUnitRuntimeSnapshot unit))
                     {
-                        Ability ability = abilities[i];
-                        if (ability == null) continue;
-                        unitSnapshot.Abilities.Add(new AbilityInstanceRuntimeSnapshot
-                        {
-                            Name = ability.Definition?.Name,
-                            Level = ability.Level,
-                            Phase = ability.Phase,
-                            Activated = ability.Activated,
-                            ToggleEnabled = ability.ToggleEnabled,
-                            CooldownRemaining = ability.CooldownRemaining,
-                            Charges = ability.Charges
-                        });
+                        unit = new AbilityUnitRuntimeSnapshot { EntityId = id, TeamId = owner.TeamId, Position = owner.Position, IsAlive = owner.IsAlive };
+                        if (generation != RuntimeGeneration) return new AbilityRuntimeSnapshot();
+                        if (!IsAbilityRegistered(ability)) continue;
+                        capturedUnits.Add(id, unit);
+                        snapshot.Units.Add(unit);
                     }
+                    unit.Abilities.Add(new AbilityInstanceRuntimeSnapshot
+                    {
+                        Name = ability.Definition?.Name, Level = ability.Level, Phase = ability.Phase,
+                        Activated = ability.Activated, ToggleEnabled = ability.ToggleEnabled,
+                        CooldownRemaining = ability.CooldownRemaining, Charges = ability.Charges
+                    });
                 }
 
-                snapshot.Units.Add(unitSnapshot);
-            }
-
-            for (int i = 0; i < modifiers.Count; i++)
-            {
-                Modifier modifier = modifiers[i];
-                if (modifier == null) continue;
-                ModifierRuntimeSnapshot modifierSnapshot = new ModifierRuntimeSnapshot
+                foreach (Modifier modifier in modifierSnapshot)
                 {
-                    Name = modifier.Name,
-                    ParentEntityId = modifier.Parent != null ? modifier.Parent.EntityId : 0,
-                    CasterEntityId = modifier.Caster != null ? modifier.Caster.EntityId : 0,
-                    AbilityName = modifier.Ability?.Definition?.Name,
-                    Stacks = modifier.StackCount,
-                    Duration = modifier.Duration,
-                    RemainingTime = modifier.RemainingTime,
-                    States = GetRuntimeStates(modifier)
-                };
-                foreach (ModifierProperty property in Enum.GetValues(typeof(ModifierProperty)))
-                {
-                    if (property == ModifierProperty.None) continue;
-                    float value = modifier.GetProperty(property, new ModifierPropertyContext { Engine = this, Unit = modifier.Parent, Ability = modifier.Ability });
-                    if (value != 0f) modifierSnapshot.Properties.Add(new ModifierPropertyRuntimeSnapshot { Property = property, Value = value });
+                    if (generation != RuntimeGeneration) return new AbilityRuntimeSnapshot();
+                    if (!IsModifierRegistered(modifier) || modifier.IsDestroyed) continue;
+                    ModifierRuntimeSnapshot item = new ModifierRuntimeSnapshot
+                    {
+                        Name = modifier.Name, ParentEntityId = modifier.Parent != null ? modifier.Parent.EntityId : 0,
+                        CasterEntityId = modifier.Caster != null ? modifier.Caster.EntityId : 0,
+                        AbilityName = modifier.Ability?.Definition?.Name, Stacks = modifier.StackCount,
+                        Duration = modifier.Duration, RemainingTime = modifier.RemainingTime
+                    };
+                    foreach (UnitState state in Enum.GetValues(typeof(UnitState)))
+                    {
+                        if (generation != RuntimeGeneration || modifier.IsDestroyed || !IsModifierRegistered(modifier)) break;
+                        if (state != UnitState.None && modifier.CheckState(state)) item.States |= state;
+                    }
+                    foreach (ModifierProperty property in Enum.GetValues(typeof(ModifierProperty)))
+                    {
+                        if (generation != RuntimeGeneration || modifier.IsDestroyed || !IsModifierRegistered(modifier)) break;
+                        if (property == ModifierProperty.None) continue;
+                        ModifierPropertyContext context = modifier.RequiresPropertyContext ? new ModifierPropertyContext { Engine = this, Unit = modifier.Parent, Ability = modifier.Ability } : null;
+                        float value = modifier.GetProperty(property, context);
+                        if (value != 0f && CombatSnapshots.IsFinite(value)) item.Properties.Add(new ModifierPropertyRuntimeSnapshot { Property = property, Value = value });
+                    }
+                    if (generation != RuntimeGeneration) return new AbilityRuntimeSnapshot();
+                    if (!modifier.IsDestroyed && IsModifierRegistered(modifier)) snapshot.Modifiers.Add(item);
                 }
-                snapshot.Modifiers.Add(modifierSnapshot);
-            }
 
-            for (int i = 0; i < projectiles.Count; i++)
-            {
-                Projectile projectile = projectiles[i];
-                if (projectile == null) continue;
-                snapshot.Projectiles.Add(new ProjectileRuntimeSnapshot
+                foreach (Projectile projectile in projectileSnapshot)
                 {
-                    Name = projectile.Definition?.Name,
-                    AbilityName = projectile.Ability?.Definition?.Name,
-                    CasterEntityId = projectile.Caster != null ? projectile.Caster.EntityId : 0,
-                    TargetEntityId = projectile.Target != null ? projectile.Target.EntityId : 0,
-                    Position = projectile.Position,
-                    Tracking = projectile.Tracking,
-                    Destroyed = projectile.Destroyed
-                });
-            }
-
-            for (int i = 0; i < thinkers.Count; i++)
-            {
-                Thinker thinker = thinkers[i];
-                if (thinker == null) continue;
-                snapshot.Thinkers.Add(new ThinkerRuntimeSnapshot
+                    if (generation != RuntimeGeneration) return new AbilityRuntimeSnapshot();
+                    if (!ContainsProjectile(projectile) || projectile.Destroyed) continue;
+                    ProjectileRuntimeSnapshot item = new ProjectileRuntimeSnapshot
+                    {
+                        Name = projectile.Definition?.Name, AbilityName = projectile.Ability?.Definition?.Name,
+                        CasterEntityId = projectile.Caster != null ? projectile.Caster.EntityId : 0,
+                        TargetEntityId = projectile.Target != null ? projectile.Target.EntityId : 0,
+                        Position = projectile.Position, Tracking = projectile.Tracking, Destroyed = projectile.Destroyed
+                    };
+                    if (!projectile.Destroyed && ContainsProjectile(projectile)) snapshot.Projectiles.Add(item);
+                }
+                foreach (Thinker thinker in thinkerSnapshot)
                 {
-                    AbilityName = thinker.Ability?.Definition?.Name,
-                    CasterEntityId = thinker.Caster != null ? thinker.Caster.EntityId : 0,
-                    Position = thinker.Position,
-                    Duration = thinker.Duration,
-                    Interval = thinker.Interval,
-                    Radius = thinker.Radius,
-                    Destroyed = thinker.IsDestroyed
-                });
+                    if (generation != RuntimeGeneration) return new AbilityRuntimeSnapshot();
+                    if (thinker == null || thinker.IsDestroyed || !registeredThinkers.Contains(thinker)) continue;
+                    ThinkerRuntimeSnapshot item = new ThinkerRuntimeSnapshot
+                    {
+                        AbilityName = thinker.Ability?.Definition?.Name, CasterEntityId = thinker.Caster != null ? thinker.Caster.EntityId : 0,
+                        Position = thinker.Position, Duration = thinker.Duration, Interval = thinker.Interval,
+                        Radius = thinker.Radius, Destroyed = thinker.IsDestroyed
+                    };
+                    if (!thinker.IsDestroyed && registeredThinkers.Contains(thinker)) snapshot.Thinkers.Add(item);
+                }
+                if (Presentation is ITrackedPresentation trackedPresentation) trackedPresentation.GetActivePresentationHandles(snapshot.PresentationHandles);
+                return snapshot;
             }
-
-            if (Presentation is ITrackedPresentation trackedPresentation)
+            finally
             {
-                trackedPresentation.GetActivePresentationHandles(snapshot.PresentationHandles);
+                RuntimeSnapshotPool<Ability>.Release(abilitySnapshot);
+                RuntimeSnapshotPool<Modifier>.Release(modifierSnapshot);
+                RuntimeSnapshotPool<Projectile>.Release(projectileSnapshot);
+                RuntimeSnapshotPool<Thinker>.Release(thinkerSnapshot);
             }
-
-            return snapshot;
         }
         public event Action<RuntimeEvent> EventRaised;
 
@@ -246,16 +246,21 @@ namespace Game.Ability
                 if (registeredUnits.TryGetValue(owner.EntityId, out IUnit canonical) && !ReferenceEquals(canonical, owner)) return null;
                 registeredUnits[owner.EntityId] = owner;
                 Ability existing = FindAbility(owner, abilityName);
-                if (existing != null) { existing.SetLevel(level); return existing; }
+                if (existing != null) { existing.SetLevel(level); return IsAbilityRegistered(existing) ? existing : null; }
                 long generation = RuntimeGeneration;
-                Ability ability = new Ability(this, definition, owner, resourceOwner, CreateAbilityScript(abilityName, definition), level);
+                Ability ability = new Ability(this, definition, owner, resourceOwner, CreateAbilityScript(abilityName, definition), level, generation);
                 if (generation != RuntimeGeneration || !IsRuntimeAvailable || IsUnitRemoving(owner)) return null;
+                // A factory can reenter the same grant before the outer instance is registered.
+                // Prefer that live registration; the unused outer product stays invalid as a source.
+                existing = FindAbility(owner, abilityName);
+                if (existing != null) { existing.SetLevel(level); return IsAbilityRegistered(existing) ? existing : null; }
                 if (!abilitiesByUnit.TryGetValue(owner.EntityId, out List<Ability> abilities))
                 {
                     abilities = new List<Ability>();
                     abilitiesByUnit.Add(owner.EntityId, abilities);
                 }
                 abilities.Add(ability);
+                ability.WasRegistered = true;
                 try { ability.InitializeRuntime(); }
                 catch { RemoveAbility(owner, abilityName); throw; }
                 if (!IsAbilityRegistered(ability)) return null;
@@ -358,17 +363,20 @@ namespace Game.Ability
             List<Modifier> modifierSnapshot = RuntimeSnapshotPool<Modifier>.Rent(modifiers);
             List<Thinker> thinkerSnapshot = RuntimeSnapshotPool<Thinker>.Rent(thinkers);
             List<Projectile> projectileSnapshot = RuntimeSnapshotPool<Projectile>.Rent(projectiles);
-            List<Ability> abilitySnapshot = RuntimeSnapshotPool<Ability>.Rent();
+            List<Ability.TickState> abilitySnapshot = RuntimeSnapshotPool<Ability.TickState>.Rent();
             try
             {
-                foreach (List<Ability> bucket in abilitiesByUnit.Values) abilitySnapshot.AddRange(bucket);
+                foreach (List<Ability> bucket in abilitiesByUnit.Values)
+                    foreach (Ability ability in bucket)
+                        if (ability != null) abilitySnapshot.Add(ability.CaptureTickState());
                 BeginAuraUpdate();
-                foreach (Ability ability in abilitySnapshot)
+                foreach (Ability.TickState state in abilitySnapshot)
                 {
                     if (generation != RuntimeGeneration) return;
+                    Ability ability = state.Ability;
                     if (IsAbilityRegistered(ability))
                     {
-                        using (BeginExecution()) ability.Tick(deltaTime);
+                        using (BeginExecution()) ability.Tick(deltaTime, state);
                     }
                 }
                 foreach (Modifier modifier in modifierSnapshot)
@@ -387,7 +395,21 @@ namespace Game.Ability
                 {
                     if (generation != RuntimeGeneration) return;
                     if (projectile == null || !ContainsProjectile(projectile)) continue;
-                    using (BeginExecution()) projectile.Tick(this, deltaTime);
+                    try
+                    {
+                        using (BeginExecution()) projectile.Tick(this, deltaTime);
+                    }
+                    catch (Exception tickError)
+                    {
+                        // Natural expiry marks the projectile before stopping presentation.
+                        // A failing Stop must not retain that destroyed object in the engine.
+                        if (projectile.Destroyed)
+                        {
+                            try { RemoveProjectile(projectile); }
+                            catch (Exception cleanupError) { throw new AggregateException("Projectile failed while stopping and reporting its destruction.", tickError, cleanupError); }
+                        }
+                        throw;
+                    }
                     if (projectile.Destroyed) RemoveProjectile(projectile);
                 }
                 if (generation == RuntimeGeneration) FlushAuraUpdates();
@@ -398,7 +420,7 @@ namespace Game.Ability
                 RuntimeSnapshotPool<Modifier>.Release(modifierSnapshot);
                 RuntimeSnapshotPool<Thinker>.Release(thinkerSnapshot);
                 RuntimeSnapshotPool<Projectile>.Release(projectileSnapshot);
-                RuntimeSnapshotPool<Ability>.Release(abilitySnapshot);
+                RuntimeSnapshotPool<Ability.TickState>.Release(abilitySnapshot);
             }
             if (generation == RuntimeGeneration)
             {
@@ -410,7 +432,7 @@ namespace Game.Ability
         {
             using (BeginExecution())
             {
-                if (!IsRuntimeAvailable || parent == null || IsUnitRemoving(parent) || IsUnitRemoving(caster) || string.IsNullOrEmpty(modifierName) || !modifierDefinitions.TryGetValue(modifierName, out ModifierDefinition definition) || !TryConsumeExecutionBudget("AddModifier")) return null;
+                if (!IsRuntimeAvailable || !IsAbilitySourceValid(ability) || parent == null || IsUnitRemoving(parent) || IsUnitRemoving(caster) || string.IsNullOrEmpty(modifierName) || !modifierDefinitions.TryGetValue(modifierName, out ModifierDefinition definition) || !TryConsumeExecutionBudget("AddModifier")) return null;
                 long generation = RuntimeGeneration;
                 if ((!parent.IsAlive && definition.RemoveOnDeath) || (HasState(parent, UnitState.Invulnerable) && (definition.Attributes & ModifierAttribute.IgnoreInvulnerable) == 0)) return null;
                 if (generation != RuntimeGeneration || !IsRuntimeAvailable || IsUnitRemoving(parent) || IsUnitRemoving(caster) || (!parent.IsAlive && definition.RemoveOnDeath) || !TryConsumeExecutionBudget("AddModifier.Commit")) return null;
@@ -479,12 +501,26 @@ namespace Game.Ability
 
         public bool HasState(IUnit unit, UnitState state)
         {
+            return HasStateCore(unit, state, false);
+        }
+
+        internal bool HasTargetState(IUnit unit, UnitState state)
+        {
+            return HasStateCore(unit, state, true);
+        }
+
+        private bool HasStateCore(IUnit unit, UnitState state, bool targetFilter)
+        {
             using (BeginExecution())
             {
-                if (unit == null || state == UnitState.None || !TryConsumeExecutionBudget("HasState")) return false;
+                // Broad-phase filtering can legitimately inspect thousands of static
+                // units. Charge dynamic script callbacks, not pure built-in reads;
+                // the depth fence remains active even for the static path.
+                if (unit == null || state == UnitState.None || !TryConsumeExecutionBudget("HasState", !targetFilter)) return false;
+                long generation = RuntimeGeneration;
                 if ((state & UnitState.Invulnerable) != 0 && unit.IsInvulnerable) return true;
                 if ((state & UnitState.MagicImmune) != 0 && unit.IsMagicImmune) return true;
-                long generation = RuntimeGeneration;
+                if (generation != RuntimeGeneration || !IsRuntimeAvailable) return false;
                 List<Modifier> snapshot = RentUnitModifiers(unit);
                 try
                 {
@@ -492,6 +528,7 @@ namespace Game.Ability
                     {
                         if (generation != RuntimeGeneration) return false;
                         if (modifier.IsDestroyed || !IsModifierRegistered(modifier)) continue;
+                        if (targetFilter && !(modifier.Script is DefaultModifierScript) && !(modifier.Script is ConfiguredModifierScript) && !TryConsumeExecutionBudget("TargetQuery.StateScript")) return false;
                         bool matches = modifier.CheckState(state);
                         if (generation != RuntimeGeneration) return false;
                         if (matches) return true;
@@ -529,38 +566,18 @@ namespace Game.Ability
 
         public void FindUnits(Vector3 center, float radius, TargetQuery query, IList<IUnit> results)
         {
-            if (results == null || World == null)
-            {
-                return;
-            }
-
-            // World returns broad candidates; TargetQuery applies canonical ability rules.
-            List<IUnit> candidates = RuntimeSnapshotPool<IUnit>.Rent();
-            try
-            {
-                World.FindUnits(center, radius, query, candidates);
-                for (int i = 0; i < candidates.Count; i++)
-                {
-                    IUnit unit = candidates[i];
-                    if (unit != null && (query == null || query.IsValid(unit)) && !results.Contains(unit))
-                    {
-                        results.Add(unit);
-                    }
-                }
-            }
-            finally { RuntimeSnapshotPool<IUnit>.Release(candidates); }
+            FindUnitsCore(center, radius, query, results);
         }
-
-
-
 
 
         public Projectile CreateProjectile(ProjectileRequest request)
         {
             using (BeginExecution())
             {
-                if (!IsRuntimeAvailable || request?.Definition == null || !IsFinite(request.Origin) || !IsFinite(request.Direction) || IsUnitRemoving(request.Caster) || IsUnitRemoving(request.Source) || IsUnitRemoving(request.Target) || !TryConsumeExecutionBudget("CreateProjectile")) return null;
+                long generation = RuntimeGeneration;
+                if (!IsRuntimeAvailable || request?.Definition == null || !IsAbilitySourceValid(request.Ability) || !IsFinite(request.Origin) || !IsFinite(request.Direction) || IsUnitRemoving(request.Caster) || IsUnitRemoving(request.Source) || IsUnitRemoving(request.Target) || !TryConsumeExecutionBudget("CreateProjectile")) return null;
                 Projectile projectile = new Projectile(request);
+                if (generation != RuntimeGeneration || !IsRuntimeAvailable) return null;
                 projectiles.Add(projectile);
                 registeredProjectiles.Add(projectile);
                 try { projectile.OnRegistered(Presentation); }
@@ -594,8 +611,10 @@ namespace Game.Ability
         {
             using (BeginExecution())
             {
-                if (!IsRuntimeAvailable || request == null || !IsFinite(request.Position) || !CombatSnapshots.IsFinite(request.Duration) || !CombatSnapshots.IsFinite(request.Interval) || !CombatSnapshots.IsFinite(request.Radius) || request.Interval < 0f || request.Radius < 0f || IsUnitRemoving(request.Caster) || !TryConsumeExecutionBudget("CreateThinker")) return null;
+                long generation = RuntimeGeneration;
+                if (!IsRuntimeAvailable || request == null || !IsAbilitySourceValid(request.Ability) || !IsFinite(request.Position) || !CombatSnapshots.IsFinite(request.Duration) || !CombatSnapshots.IsFinite(request.Interval) || !CombatSnapshots.IsFinite(request.Radius) || request.Interval < 0f || request.Radius < 0f || IsUnitRemoving(request.Caster) || !TryConsumeExecutionBudget("CreateThinker")) return null;
                 Thinker thinker = new Thinker(this, request);
+                if (generation != RuntimeGeneration || !IsRuntimeAvailable) return null;
                 thinkers.Add(thinker);
                 registeredThinkers.Add(thinker);
                 try { thinker.OnRegistered(); }
@@ -673,16 +692,6 @@ namespace Game.Ability
                     listener(new RuntimeEvent { EventType = runtimeEvent.EventType, CastId = runtimeEvent.CastId, AttackId = runtimeEvent.AttackId, Ability = runtimeEvent.Ability, Modifier = runtimeEvent.Modifier, Projectile = runtimeEvent.Projectile, Thinker = runtimeEvent.Thinker, Caster = runtimeEvent.Caster, Target = runtimeEvent.Target, Position = runtimeEvent.Position, Value = runtimeEvent.Value, FailureReason = runtimeEvent.FailureReason, Message = runtimeEvent.Message });
                 }
             }
-        }
-
-        private static UnitState GetRuntimeStates(Modifier modifier)
-        {
-            UnitState result = UnitState.None;
-            foreach (UnitState state in Enum.GetValues(typeof(UnitState)))
-            {
-                if (state != UnitState.None && modifier.CheckState(state)) result |= state;
-            }
-            return result;
         }
 
         private AbilityScript CreateAbilityScript(string abilityName, AbilityDefinition definition)

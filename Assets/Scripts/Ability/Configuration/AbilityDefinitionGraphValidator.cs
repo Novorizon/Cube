@@ -10,6 +10,7 @@ namespace Game.Ability.Configuration
         private readonly IReadOnlyDictionary<string, ModifierDefinitionRegistration> modifiers;
         private readonly IReadOnlyDictionary<string, ProjectileDefinitionRegistration> projectiles;
         private readonly AbilityValidationReport report;
+        private readonly Stack<SpecialVisit> specialVisits = new Stack<SpecialVisit>();
         private AbilityDefinitionOrigin origin;
         private string owner;
 
@@ -131,7 +132,9 @@ namespace Game.Ability.Configuration
                 Projectile(pair.Value.Definition);
             }
             Dictionary<string, int> colors = new Dictionary<string, int>(StringComparer.Ordinal);
-            foreach (string name in modifiers.Keys) VisitImmediate(name, colors, new List<string>());
+            List<string> path = new List<string>();
+            Stack<ImmediateVisit> visits = new Stack<ImmediateVisit>();
+            foreach (string name in modifiers.Keys) VisitImmediate(name, colors, path, visits);
         }
 
         private void Actions(IReadOnlyList<ActionDefinition> actions, bool modifierContext = false, bool triggerContext = false)
@@ -184,20 +187,58 @@ namespace Game.Ability.Configuration
             {
                 ActionDefinition action = actions[i];
                 if (action == null) continue;
-                Special(action.ValueSpecialName, ability);
-                Special(action.DurationSpecialName, ability);
-                if (!string.IsNullOrEmpty(action.ValueSpecialName) && ability.SpecialValues.TryGetValue(action.ValueSpecialName, out LevelValue special) && (action.ActionType == ActionType.Damage || action.ActionType == ActionType.Heal))
-                    Level(special, "Action.SpecialValues." + action.ValueSpecialName, true);
+                ValidateActionSpecials(action, ability);
                 if (action.ActionType == ActionType.AddModifier) SpecialModifier(action.ModifierName, ability, reachable);
             }
         }
 
         private void SpecialModifier(string name, AbilityDefinition ability, HashSet<string> reachable)
         {
-            if (string.IsNullOrEmpty(name) || !reachable.Add(name) || !modifiers.TryGetValue(name, out ModifierDefinitionRegistration registration) || registration.Definition == null) return;
-            ModifierDefinition modifier = registration.Definition;
-            foreach (IReadOnlyList<ActionDefinition> actions in ModifierActions(modifier)) SpecialActions(actions, ability, reachable);
-            SpecialModifier(modifier.AuraModifierName, ability, reachable);
+            if (string.IsNullOrEmpty(name) || reachable.Contains(name)) return;
+            specialVisits.Push(new SpecialVisit(name));
+            while (specialVisits.Count > 0)
+            {
+                SpecialVisit visit = specialVisits.Pop();
+                if (visit.Action != null)
+                {
+                    ValidateActionSpecials(visit.Action, ability);
+                    if (visit.Action.ActionType == ActionType.AddModifier && !string.IsNullOrEmpty(visit.Action.ModifierName))
+                        specialVisits.Push(new SpecialVisit(visit.Action.ModifierName));
+                    continue;
+                }
+                if (!reachable.Add(visit.Name) || !modifiers.TryGetValue(visit.Name, out ModifierDefinitionRegistration registration) || registration.Definition == null) continue;
+                ModifierDefinition modifier = registration.Definition;
+                // Reverse scheduling preserves the old depth-first diagnostic order without
+                // consuming a native stack frame for each referenced modifier.
+                if (!string.IsNullOrEmpty(modifier.AuraModifierName)) specialVisits.Push(new SpecialVisit(modifier.AuraModifierName));
+                PushSpecialActions(modifier.TriggerActions);
+                PushSpecialActions(modifier.IntervalActions);
+                PushSpecialActions(modifier.OnDestroyActions);
+                PushSpecialActions(modifier.OnRefreshActions);
+                PushSpecialActions(modifier.OnCreatedActions);
+            }
+        }
+
+        private void ValidateActionSpecials(ActionDefinition action, AbilityDefinition ability)
+        {
+            Special(action.ValueSpecialName, ability);
+            Special(action.DurationSpecialName, ability);
+            if (!string.IsNullOrEmpty(action.ValueSpecialName) && ability.SpecialValues.TryGetValue(action.ValueSpecialName, out LevelValue special) && (action.ActionType == ActionType.Damage || action.ActionType == ActionType.Heal))
+                Level(special, "Action.SpecialValues." + action.ValueSpecialName, true);
+        }
+
+        private void PushSpecialActions(IReadOnlyList<ActionDefinition> actions)
+        {
+            for (int i = actions.Count - 1; i >= 0; i--)
+                if (actions[i] != null) specialVisits.Push(new SpecialVisit(actions[i]));
+        }
+
+        private readonly struct SpecialVisit
+        {
+            public readonly string Name;
+            public readonly ActionDefinition Action;
+            public SpecialVisit(string name) { Name = name; Action = null; }
+            public SpecialVisit(ActionDefinition action) { Name = null; Action = action; }
         }
 
         private void Special(string name, AbilityDefinition ability)
@@ -205,29 +246,64 @@ namespace Game.Ability.Configuration
             if (!string.IsNullOrEmpty(name) && !ability.SpecialValues.ContainsKey(name)) Error("References missing special value '" + name + "' in ability " + ability.Name + ".", "ABILITYPROVIDER010");
         }
 
-        private void VisitImmediate(string name, IDictionary<string, int> colors, List<string> path)
+        private void VisitImmediate(string name, IDictionary<string, int> colors, List<string> path, Stack<ImmediateVisit> visits)
         {
-            if (colors.TryGetValue(name, out int color))
+            if (colors.ContainsKey(name) || !modifiers.TryGetValue(name, out ModifierDefinitionRegistration registration) || registration.Definition == null) return;
+            colors[name] = 1;
+            path.Add(name);
+            visits.Push(new ImmediateVisit(name, registration.Definition));
+            while (visits.Count > 0)
             {
-                if (color == 1)
+                ImmediateVisit visit = visits.Pop();
+                string target = visit.NextReference();
+                if (target == null)
                 {
-                    origin = modifiers[name].Origin; owner = "modifier " + name;
-                    Error("Immediate modifier creation cycle: " + string.Join(" -> ", path) + " -> " + name + ".", "ABILITYGRAPH002");
+                    colors[visit.Name] = 2;
+                    path.RemoveAt(path.Count - 1);
+                    continue;
                 }
-                return;
+                visits.Push(visit);
+                if (colors.TryGetValue(target, out int color))
+                {
+                    if (color == 1)
+                    {
+                        origin = modifiers[target].Origin; owner = "modifier " + target;
+                        Error("Immediate modifier creation cycle: " + string.Join(" -> ", path) + " -> " + target + ".", "ABILITYGRAPH002");
+                    }
+                    continue;
+                }
+                if (!modifiers.TryGetValue(target, out ModifierDefinitionRegistration child) || child.Definition == null) continue;
+                colors[target] = 1;
+                path.Add(target);
+                visits.Push(new ImmediateVisit(target, child.Definition));
             }
-            if (!modifiers.TryGetValue(name, out ModifierDefinitionRegistration registration) || registration.Definition == null) return;
-            colors[name] = 1; path.Add(name);
-            VisitActions(registration.Definition.OnCreatedActions, colors, path);
-            VisitActions(registration.Definition.OnRefreshActions, colors, path);
-            if (!string.IsNullOrEmpty(registration.Definition.AuraModifierName)) VisitImmediate(registration.Definition.AuraModifierName, colors, path);
-            path.RemoveAt(path.Count - 1); colors[name] = 2;
         }
 
-        private void VisitActions(IReadOnlyList<ActionDefinition> actions, IDictionary<string, int> colors, List<string> path)
+        private struct ImmediateVisit
         {
-            for (int i = 0; i < actions.Count; i++)
-                if (actions[i] != null && actions[i].ActionType == ActionType.AddModifier && !string.IsNullOrEmpty(actions[i].ModifierName)) VisitImmediate(actions[i].ModifierName, colors, path);
+            public readonly string Name;
+            private readonly ModifierDefinition definition;
+            private int group;
+            private int nextAction;
+
+            public ImmediateVisit(string name, ModifierDefinition definition) { Name = name; this.definition = definition; group = 0; nextAction = 0; }
+
+            public string NextReference()
+            {
+                while (group < 2)
+                {
+                    IReadOnlyList<ActionDefinition> actions = group == 0 ? definition.OnCreatedActions : definition.OnRefreshActions;
+                    while (nextAction < actions.Count)
+                    {
+                        ActionDefinition action = actions[nextAction++];
+                        if (action != null && action.ActionType == ActionType.AddModifier && !string.IsNullOrEmpty(action.ModifierName)) return action.ModifierName;
+                    }
+                    group++;
+                    nextAction = 0;
+                }
+                if (group++ == 2 && !string.IsNullOrEmpty(definition.AuraModifierName)) return definition.AuraModifierName;
+                return null;
+            }
         }
 
         private static IEnumerable<IReadOnlyList<ActionDefinition>> ModifierActions(ModifierDefinition definition)

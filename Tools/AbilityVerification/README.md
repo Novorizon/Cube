@@ -22,6 +22,8 @@ The [hero JSON reference pack](../../Data/AbilityJsonSources/Heroes/README.md) i
 
 The separate [performance probe](Performance/README.md) runs production Ability code with portable world/unit adapters and records warmed timing, managed allocation and execution-budget diagnostics. Its synthetic .NET results do not establish Unity or target-device frame rates.
 
+The [combat/lifecycle probe](CombatPerformance/README.md) adds real HP application, damage/reflection/leech, fresh projectile impacts, modifier churn and wide-query correctness with raw per-batch P50/P95/P99 samples. The [2026-11-05 audit](../../Docs/Audits/AbilityRuntimeAudit-2026-11-05.md) records 0.2.1 fixes, Core419/Business49/Editor91/package7 results and 18,000 seeded invariant operations. Historical failed baseline rows remain marked invalid instead of being used as fast timing comparisons.
+
 The core tool compiles production Ability code and the real EditMode test sources into **separate assemblies**, using a small Unity math/JSON substitute and the subset of NUnit assertions used by these fixtures. A fixture-name filter can be passed after `--`. JSON provider tests execute the actual strict production JSON reader; the Unity JSON substitute is only a compatibility surface for other code.
 
 The business tool compiles Unity substitutes, production Ability, and actual Ability adapters/changed tower-defense managers/effects into three separate assemblies, enforcing the public Core boundary. It checks facade contracts, scoped handles, actual HP application, asynchronous settlement cancellation and source manifests. Unchanged Excel converter/provider and external resource/game services are substitutes; this does not validate real spreadsheets or generated-data compatibility.

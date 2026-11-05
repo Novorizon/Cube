@@ -108,7 +108,7 @@ namespace Game.Ability.Editor.Verification
                 }
                 json.Append("]}");
                 AbilitySandboxReport report = AbilitySandbox.Run(new[] { Json(json.ToString()) }, "long", 1);
-                Require(!report.Success && !report.ExecutionAborted && report.ValidationMessages.Any(line => line.Contains("EDITOR_REFERENCE_COMPLEXITY")), "A long acyclic chain must return a preflight error without entering recursive validation or gameplay.");
+                Require(!report.Success && !report.ExecutionAborted && report.ValidationMessages.Any(line => line.Contains("EDITOR_REFERENCE_COMPLEXITY")), "A long acyclic chain must return a preflight error without entering production graph validation or gameplay.");
                 Require(report.Events.Count == 0, "An editor reference limit is a preflight decision, not a runtime budget stop.");
                 Clean(report);
             });

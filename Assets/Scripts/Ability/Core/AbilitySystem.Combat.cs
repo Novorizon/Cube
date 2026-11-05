@@ -17,6 +17,11 @@ namespace Game.Ability
         /// </summary>
         public DamageResult ApplyDamage(DamageInfo damageInfo)
         {
+            return ApplyDamageCore(damageInfo, null);
+        }
+
+        private DamageResult ApplyDamageCore(DamageInfo damageInfo, AttackRecord attack)
+        {
             using (BeginExecution())
             {
                 DamageInfo request = CombatSnapshots.Clone(damageInfo);
@@ -28,15 +33,15 @@ namespace Game.Ability
                 long generation = RuntimeGeneration;
                 string rejection = CheckDamageImmunity(request);
                 if (rejection != null) return Block(result, rejection);
-                if (generation != RuntimeGeneration || !IsRuntimeAvailable) return Block(result, "Damage was cancelled during validation.");
+                if (generation != RuntimeGeneration || !IsRuntimeAvailable || !AreDamageParticipantsCurrent(request)) return Block(result, "Damage was cancelled during validation.");
 
                 result.FinalAmount = CalculateDamage(request, result);
-                if (generation != RuntimeGeneration || !IsRuntimeAvailable) return Block(result, "Damage was cancelled during property calculation.");
+                if (generation != RuntimeGeneration || !IsRuntimeAvailable || !AreDamageParticipantsCurrent(request)) return Block(result, "Damage was cancelled during property calculation.");
                 if (!IsHealthRemoval(request)) AdjustCalculatedDamage(request, result);
-                if (generation != RuntimeGeneration || !IsRuntimeAvailable || !IsValidDamageRequest(request)) return Block(result, "Damage was cancelled during calculation.");
+                if (generation != RuntimeGeneration || !IsRuntimeAvailable || !AreDamageParticipantsCurrent(request)) return Block(result, "Damage was cancelled during calculation.");
                 rejection = CheckDamageImmunity(request);
                 if (rejection != null) return Block(result, rejection);
-                if (generation != RuntimeGeneration || !IsRuntimeAvailable) return Block(result, "Damage was cancelled during validation.");
+                if (generation != RuntimeGeneration || !IsRuntimeAvailable || !AreDamageParticipantsCurrent(request)) return Block(result, "Damage was cancelled during validation.");
                 if (result.Blocked) return Block(result, result.BlockReason ?? "Damage was blocked.");
                 result.FinalAmount = CombatSnapshots.NonNegative(result.FinalAmount);
 
@@ -63,21 +68,37 @@ namespace Game.Ability
                 }
                 result.FinalAmount = result.AppliedAmount;
                 if (result.AppliedAmount <= 0f) return Block(result, "The victim did not apply damage.");
+                // An attack's HP fact must be queryable even if a later observer fails.
+                // This also closes reentrant resolution before publishing notifications.
+                if (attack != null) CompleteAttack(attack, result);
 
                 // A defeat/settlement callback may clear the battle while the adapter applies HP.
                 // The HP fact is still returned, but no gameplay callbacks run in the new generation.
                 if (generation == RuntimeGeneration && IsRuntimeAvailable)
                 {
-                    var errors = new List<Exception>();
+                    List<Exception> errors = null;
                     // HP removal is not a damage proc source (lifesteal, reflection, shields).
-                    if (!IsHealthRemoval(request)) Cleanup(() => PublishDamage(ModifierEventType.DamageTaken, request, result), errors);
-                    if (!IsHealthRemoval(request) && generation == RuntimeGeneration && IsRuntimeAvailable) Cleanup(() => PublishDamage(ModifierEventType.DamageDealt, request, result), errors);
-                    if (generation == RuntimeGeneration && IsRuntimeAvailable)
+                    if (!IsHealthRemoval(request) && !IsUnitRemoving(request.Victim))
                     {
-                        Cleanup(() => RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.DamageApplied, AttackId = request.AttackId, Ability = request.Ability, Caster = request.Attacker, Target = request.Victim, Value = result.AppliedAmount }), errors);
-                        if (result.Killed && generation == RuntimeGeneration && IsRuntimeAvailable) Cleanup(() => NotifyDeath(request.Victim, request.Attacker, request.Ability), errors);
+                        try { PublishDamage(ModifierEventType.DamageTaken, request, result); }
+                        catch (Exception exception) { AddCombatError(ref errors, exception); }
                     }
-                    if (errors.Count > 0) throw new AggregateException("Damage was applied, but combat callbacks failed.", errors);
+                    if (!IsHealthRemoval(request) && generation == RuntimeGeneration && IsRuntimeAvailable && IsCombatContextCurrent(request.Attacker, request.Victim, request.Ability))
+                    {
+                        try { PublishDamage(ModifierEventType.DamageDealt, request, result); }
+                        catch (Exception exception) { AddCombatError(ref errors, exception); }
+                    }
+                    if (generation == RuntimeGeneration && IsRuntimeAvailable && !IsUnitRemoving(request.Victim))
+                    {
+                        try { RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.DamageApplied, AttackId = request.AttackId, Ability = request.Ability, Caster = request.Attacker, Target = request.Victim, Value = result.AppliedAmount }); }
+                        catch (Exception exception) { AddCombatError(ref errors, exception); }
+                        if (result.Killed && generation == RuntimeGeneration && IsRuntimeAvailable)
+                        {
+                            try { NotifyDeath(request.Victim, request.Attacker, request.Ability); }
+                            catch (Exception exception) { AddCombatError(ref errors, exception); }
+                        }
+                    }
+                    if (errors != null) throw new AggregateException("Damage was applied, but combat callbacks failed.", errors);
                 }
                 return CombatSnapshots.Clone(result);
             }
@@ -94,22 +115,36 @@ namespace Game.Ability
 
         private bool IsValidDamageRequest(DamageInfo request)
         {
-            if (request == null || request.Victim == null || !request.Victim.IsAlive || IsUnitRemoving(request.Victim)) return false;
+            if (!AreDamageParticipantsCurrent(request)) return false;
             if (!CombatSnapshots.IsFinite(request.Amount) || request.Amount < 0f || !Enum.IsDefined(typeof(DamageCategory), request.Category)) return false;
             const DamageFlags knownFlags = DamageFlags.NoSpellAmplification | DamageFlags.HpLoss | DamageFlags.NonLethal | DamageFlags.IgnoreBlock | DamageFlags.Reflected | DamageFlags.NoDamageMultiplier | DamageFlags.IgnoreInvulnerable | DamageFlags.PiercesSpellImmunity;
             if ((request.Flags & ~knownFlags) != 0) return false;
             if (request.DamageType != DamageType.Physical && request.DamageType != DamageType.Magical && request.DamageType != DamageType.Pure) return false;
-            ICombatUnit precise = request.Victim as ICombatUnit;
-            return precise == null || (CombatSnapshots.IsFinite(precise.CurrentHealth) && precise.CurrentHealth > 0f);
+            return true;
+        }
+
+        private bool AreDamageParticipantsCurrent(DamageInfo request)
+        {
+            if (request == null || request.Victim == null || !request.Victim.IsAlive || !IsCombatContextCurrent(request.Attacker, request.Victim, request.Ability)) return false;
+            if (!(request.Victim is ICombatUnit precise)) return true;
+            float health = precise.CurrentHealth;
+            return CombatSnapshots.IsFinite(health) && health > 0f;
+        }
+
+        private bool IsCombatContextCurrent(IUnit source, IUnit target, Ability ability)
+        {
+            // Dead sources may own launched hits/DoT. Despawned or replaced sources cannot
+            // issue new work, and a historical ability is valid only in its originating battle.
+            return target != null && !IsUnitRemoving(target) && (source == null || !IsUnitRemoving(source)) && IsAbilitySourceValid(ability);
         }
 
         private string CheckDamageImmunity(DamageInfo request)
         {
             long generation = RuntimeGeneration;
             if (HasState(request.Victim, UnitState.OutOfGame)) return "Victim is out of game.";
-            if (generation != RuntimeGeneration || !IsRuntimeAvailable) return "Runtime changed during immunity checks.";
+            if (generation != RuntimeGeneration || !IsRuntimeAvailable || !IsCombatContextCurrent(request.Attacker, request.Victim, request.Ability)) return "Combat participants changed during immunity checks.";
             if (HasState(request.Victim, UnitState.Invulnerable) && (request.Flags & DamageFlags.IgnoreInvulnerable) == 0) return "Victim is invulnerable.";
-            if (generation != RuntimeGeneration || !IsRuntimeAvailable) return "Runtime changed during immunity checks.";
+            if (generation != RuntimeGeneration || !IsRuntimeAvailable || !IsCombatContextCurrent(request.Attacker, request.Victim, request.Ability)) return "Combat participants changed during immunity checks.";
             if (request.DamageType == DamageType.Magical && HasState(request.Victim, UnitState.MagicImmune) && (request.Flags & DamageFlags.PiercesSpellImmunity) == 0) return "Victim is magic immune.";
             return null;
         }
@@ -130,15 +165,15 @@ namespace Game.Ability
                 if (request.Attacker != null)
                 {
                     amount *= PositiveMultiplier(GetModifierProperty(request.Attacker, ModifierProperty.DamageOutgoingPercent, context));
-                    if (generation != RuntimeGeneration || !IsRuntimeAvailable) return 0f;
+                    if (generation != RuntimeGeneration || !IsRuntimeAvailable || !IsCombatContextCurrent(request.Attacker, request.Victim, request.Ability)) return 0f;
                     if (request.Category == DamageCategory.Spell && (request.Flags & DamageFlags.NoSpellAmplification) == 0)
                     {
                         amount *= PositiveMultiplier(GetModifierProperty(request.Attacker, ModifierProperty.SpellAmplifyPercent, context));
-                        if (generation != RuntimeGeneration || !IsRuntimeAvailable) return 0f;
+                        if (generation != RuntimeGeneration || !IsRuntimeAvailable || !IsCombatContextCurrent(request.Attacker, request.Victim, request.Ability)) return 0f;
                     }
                 }
                 amount *= PositiveMultiplier(GetModifierProperty(request.Victim, ModifierProperty.DamageIncomingPercent, context));
-                if (generation != RuntimeGeneration || !IsRuntimeAvailable) return 0f;
+                if (generation != RuntimeGeneration || !IsRuntimeAvailable || !IsCombatContextCurrent(request.Attacker, request.Victim, request.Ability)) return 0f;
             }
             if (hpLoss) return CombatSnapshots.NonNegative(amount);
 
@@ -173,7 +208,7 @@ namespace Game.Ability
                 for (int i = 0; i < listeners.Count; i++)
                 {
                     Modifier modifier = listeners[i];
-                    if (generation != RuntimeGeneration || !IsRuntimeAvailable || IsUnitRemoving(request.Victim)) return;
+                    if (generation != RuntimeGeneration || !IsRuntimeAvailable || !IsCombatContextCurrent(request.Attacker, request.Victim, request.Ability)) return;
                     if (modifier == null || modifier.IsDestroyed || !IsModifierRegistered(modifier)) continue;
                     if (!TryConsumeExecutionBudget("DamageCalculated")) { Block(result, "Execution budget exhausted during damage calculation."); return; }
                     DamageResult editable = CombatSnapshots.Clone(result);
@@ -217,7 +252,7 @@ namespace Game.Ability
             {
                 HealInfo request = CombatSnapshots.Clone(healInfo);
                 if (request == null) return new HealResult(null, null, null, 0f, 0f, "Missing heal request.");
-                if (!IsRuntimeAvailable || !TryConsumeExecutionBudget("Heal") || request.Target == null || !request.Target.IsAlive || IsUnitRemoving(request.Target) || !CombatSnapshots.IsFinite(request.Amount) || request.Amount <= 0f)
+                if (!IsRuntimeAvailable || !TryConsumeExecutionBudget("Heal") || request.Target == null || !request.Target.IsAlive || !IsCombatContextCurrent(request.Source, request.Target, request.Ability) || !CombatSnapshots.IsFinite(request.Amount) || request.Amount <= 0f)
                 {
                     return new HealResult(request.Source, request.Target, request.Ability, request.Amount, 0f, "Heal was rejected.");
                 }
@@ -228,6 +263,8 @@ namespace Game.Ability
                 {
                     float missing = CombatSnapshots.NonNegative(precise.MaxHealth - precise.CurrentHealth);
                     if (missing <= 0f) return new HealResult(request.Source, request.Target, request.Ability, request.Amount, 0f);
+                    if (generation != RuntimeGeneration || !IsRuntimeAvailable || !request.Target.IsAlive || !IsCombatContextCurrent(request.Source, request.Target, request.Ability))
+                        return new HealResult(request.Source, request.Target, request.Ability, request.Amount, 0f, "Heal was cancelled before application.");
                     HealInfo application = CombatSnapshots.Clone(request);
                     application.Amount = Math.Min(application.Amount, missing);
                     HealApplicationResult applied = precise.ApplyFinalHeal(application);
@@ -239,12 +276,19 @@ namespace Game.Ability
                     appliedAmount = request.Amount;
                 }
                 HealResult result = new HealResult(request.Source, request.Target, request.Ability, request.Amount, appliedAmount);
-                if (appliedAmount > 0f && generation == RuntimeGeneration && IsRuntimeAvailable)
+                if (appliedAmount > 0f && generation == RuntimeGeneration && IsRuntimeAvailable && !IsUnitRemoving(request.Target))
                 {
                     HealInfo appliedInfo = CombatSnapshots.Clone(request);
                     appliedInfo.Amount = appliedAmount;
-                    DispatchModifierEvent(new ModifierEvent { EventType = ModifierEventType.Healed, Engine = this, Source = request.Source, Target = request.Target, Ability = request.Ability, HealInfo = appliedInfo, Value = appliedAmount });
-                    if (generation == RuntimeGeneration && IsRuntimeAvailable) RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.HealApplied, Ability = request.Ability, Caster = request.Source, Target = request.Target, Value = appliedAmount });
+                    List<Exception> errors = null;
+                    try { DispatchModifierEvent(new ModifierEvent { EventType = ModifierEventType.Healed, Engine = this, Source = request.Source, Target = request.Target, Ability = request.Ability, HealInfo = appliedInfo, Value = appliedAmount }); }
+                    catch (Exception exception) { AddCombatError(ref errors, exception); }
+                    if (generation == RuntimeGeneration && IsRuntimeAvailable && !IsUnitRemoving(request.Target))
+                    {
+                        try { RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.HealApplied, Ability = request.Ability, Caster = request.Source, Target = request.Target, Value = appliedAmount }); }
+                        catch (Exception exception) { AddCombatError(ref errors, exception); }
+                    }
+                    if (errors != null) throw new AggregateException("Healing was applied, but combat callbacks failed.", errors);
                 }
                 return result;
             }
@@ -278,7 +322,8 @@ namespace Game.Ability
                 request.AttackId = ++nextAttackId;
                 AttackRecord attack = new AttackRecord(this, request.AttackId, generation, request);
                 pendingAttacks.Add(attack.AttackId, attack);
-                PublishAttack(ModifierEventType.AttackStart, request.Attacker, request.Victim, attack.AttackId);
+                try { PublishAttack(ModifierEventType.AttackStart, request.Attacker, request.Victim, attack.AttackId); }
+                catch { CancelAttack(attack); throw; }
                 if (generation != RuntimeGeneration || !CanAttack(request.Attacker, request.Victim)) CancelAttack(attack);
                 return attack;
             }
@@ -299,15 +344,41 @@ namespace Game.Ability
                 // Close the token before callbacks can re-enter resolution of the same attack.
                 attack.State = AttackRecordState.Resolving;
                 pendingAttacks.Remove(attack.AttackId);
-                DamageResult result = ApplyDamage(attack.Request);
-                attack.CommittedResult = CombatSnapshots.Clone(result);
-                attack.State = AttackRecordState.Resolved;
-                if (!result.Blocked && attack.Generation == RuntimeGeneration && IsRuntimeAvailable)
+                List<Exception> errors = null;
+                DamageResult result = null;
+                try
                 {
-                    PublishAttack(ModifierEventType.AttackLanded, attack.Attacker, attack.Victim, attack.AttackId);
+                    result = ApplyDamageCore(attack.Request, attack);
+                    if (attack.State != AttackRecordState.Resolved) CompleteAttack(attack, result);
                 }
+                catch (Exception exception)
+                {
+                    AddCombatError(ref errors, exception);
+                    // A pre-commit failure closes the token without permitting a retry.
+                    // Post-commit failures retain the exact HP result saved by ApplyDamageCore.
+                    if (attack.State != AttackRecordState.Resolved) attack.State = AttackRecordState.Cancelled;
+                    result = attack.CommittedResult;
+                }
+                if (result != null && !result.Blocked && attack.Generation == RuntimeGeneration && IsRuntimeAvailable && IsCombatContextCurrent(attack.Attacker, attack.Victim, attack.Ability))
+                {
+                    try { PublishAttack(ModifierEventType.AttackLanded, attack.Attacker, attack.Victim, attack.AttackId); }
+                    catch (Exception exception) { AddCombatError(ref errors, exception); }
+                }
+                if (errors != null) throw new AggregateException("Attack resolution finished, but combat callbacks failed.", errors);
                 return CombatSnapshots.Clone(result);
             }
+        }
+
+        private static void CompleteAttack(AttackRecord attack, DamageResult result)
+        {
+            attack.CommittedResult = CombatSnapshots.Clone(result);
+            attack.State = AttackRecordState.Resolved;
+        }
+
+        private static void AddCombatError(ref List<Exception> errors, Exception exception)
+        {
+            if (errors == null) errors = new List<Exception>();
+            errors.Add(exception);
         }
 
         public bool CancelAttack(AttackRecord attack)

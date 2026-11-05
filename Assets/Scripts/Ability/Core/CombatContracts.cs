@@ -48,7 +48,16 @@ namespace Game.Ability
         float BaseArmor { get; }
         float BaseMagicResistancePercent { get; }
         float BasePhysicalDamageBlock { get; }
+        /// <summary>
+        /// Applies HP once and returns the actual committed change. Project notifications that
+        /// run after the HP commit must be isolated by the adapter so they cannot discard this
+        /// result by throwing. The engine cannot infer an unreported commit from an exception.
+        /// </summary>
         DamageApplicationResult ApplyFinalDamage(DamageResult result);
+        /// <summary>
+        /// Applies healing once and returns the actual committed change. As with damage,
+        /// isolate post-commit project callbacks and always return the committed HP fact.
+        /// </summary>
         HealApplicationResult ApplyFinalHeal(HealInfo info);
     }
 

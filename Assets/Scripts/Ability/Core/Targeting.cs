@@ -16,7 +16,7 @@ namespace Game.Ability
 
         public bool IsValid(IUnit target)
         {
-            if (target == null || (Engine != null && (Engine.IsUnitRemoving(target) || Engine.HasState(target, UnitState.OutOfGame))))
+            if (target == null || (Engine != null && (Engine.IsUnitRemoving(target) || Engine.HasTargetState(target, UnitState.OutOfGame))))
             {
                 return false;
             }
@@ -39,19 +39,19 @@ namespace Game.Ability
                 return false;
             }
 
-            bool magicImmune = Engine != null ? Engine.HasState(target, UnitState.MagicImmune) : target.IsMagicImmune;
+            bool magicImmune = Engine != null ? Engine.HasTargetState(target, UnitState.MagicImmune) : target.IsMagicImmune;
             if (magicImmune && (Flags & TargetFlags.MagicImmuneEnemies) == 0 && Caster != null && Caster.TeamId != target.TeamId)
             {
                 return false;
             }
 
-            bool invulnerable = Engine != null ? Engine.HasState(target, UnitState.Invulnerable) : target.IsInvulnerable;
+            bool invulnerable = Engine != null ? Engine.HasTargetState(target, UnitState.Invulnerable) : target.IsInvulnerable;
             if (invulnerable && (Flags & TargetFlags.Invulnerable) == 0)
             {
                 return false;
             }
 
-            bool untargetable = Engine != null && Engine.HasState(target, UnitState.Untargetable);
+            bool untargetable = Engine != null && Engine.HasTargetState(target, UnitState.Untargetable);
             if (untargetable && (Flags & TargetFlags.Untargetable) == 0)
             {
                 return false;

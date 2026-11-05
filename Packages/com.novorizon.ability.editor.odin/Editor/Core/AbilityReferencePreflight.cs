@@ -5,7 +5,7 @@ using Game.Ability.Configuration;
 namespace Game.Ability.Editor.Core
 {
     /// <summary>
-    /// A nonrecursive authoring guard, run before the production registry's recursive graph
+    /// A nonrecursive authoring guard, run before the production registry's graph
     /// validation. SCC weights bound simple reference paths conservatively; this is neither
     /// runtime execution depth nor a prohibition on event/interval cycles.
     /// </summary>
@@ -33,7 +33,7 @@ namespace Game.Ability.Editor.Core
 
         /// <summary>
         /// Validates already-loaded bundles, including explicit code providers, before any
-        /// Registry.LoadProviders/IsValid/ApplyTo call can enter production recursive traversal.
+        /// Registry.LoadProviders/IsValid/ApplyTo call enters production graph validation.
         /// Callers should cache these bundles rather than executing a provider twice.
         /// </summary>
         public static IReadOnlyList<AbilityEditorDiagnostic> ValidateBundles(IEnumerable<AbilityDefinitionBundle> bundles, int maximumReferencePath = DefaultMaximumReferencePath)

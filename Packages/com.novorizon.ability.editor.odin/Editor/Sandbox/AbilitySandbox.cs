@@ -92,7 +92,7 @@ namespace Game.Ability.Editor.Core
             {
                 engine.Initialize(world, presentation);
                 AbilityDefinitionRegistry registry = new AbilityDefinitionRegistry();
-                // LoadProvider records registrations without recursively validating the complete
+                // LoadProvider records registrations without validating the complete
                 // graph. The editor's iterative preflight must run before ApplyTo can enter the
                 // production graph walker, including for a very long but acyclic input chain.
                 if (providers == null) registry.LoadProvider(null);

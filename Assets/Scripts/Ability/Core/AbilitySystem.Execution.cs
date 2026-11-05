@@ -19,6 +19,10 @@ namespace Game.Ability
         public long RuntimeGeneration { get; private set; }
         public bool IsRuntimeAvailable => !IsClearingRuntime && (executionDepth == 0 || executionGeneration == RuntimeGeneration);
 
+        // Removed abilities remain valid historical attribution within their original battle.
+        // A foreign engine or a cleared battle must never revive that attribution.
+        internal bool IsAbilitySourceValid(Ability ability) => ability == null || ReferenceEquals(ability.Engine, this) && ability.RuntimeGenerationAtCreation == RuntimeGeneration && ability.WasRegistered && !IsUnitRemoving(ability.Owner);
+
         /// <summary>A binding must explicitly re-register an id after its previous owner left.</summary>
         public bool RegisterUnit(IUnit unit)
         {
@@ -53,10 +57,10 @@ namespace Game.Ability
             return new ExecutionScope(this);
         }
 
-        internal bool TryConsumeExecutionBudget(string operation)
+        internal bool TryConsumeExecutionBudget(string operation, bool countOperation = true)
         {
             if (executionAborted) return false;
-            executionOperations++;
+            if (countOperation) executionOperations++;
             if (executionDepth <= Math.Max(1, MaxExecutionDepth) && executionOperations <= Math.Max(1, MaxExecutionOperations)) return true;
             executionAborted = true;
             RaiseEvent(new RuntimeEvent

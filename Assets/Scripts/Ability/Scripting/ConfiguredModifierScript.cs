@@ -69,6 +69,7 @@ namespace Game.Ability
                 case ModifierEventType.DamageTaken:
                 case ModifierEventType.Healed:
                 case ModifierEventType.Death:
+                case ModifierEventType.Respawn:
                     return IsSameUnit(modifierEvent.Target, Parent);
 
                 case ModifierEventType.DamageDealt:

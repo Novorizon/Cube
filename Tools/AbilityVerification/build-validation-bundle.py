@@ -19,6 +19,7 @@ SOURCE_DIRECTORIES = (
     "Tools/AbilityVerification/Core",
     "Tools/AbilityVerification/PackageSmoke",
     "Tools/AbilityVerification/Performance",
+    "Tools/AbilityVerification/CombatPerformance",
     "Tools/AbilityVerification/Editor",
 )
 
@@ -110,7 +111,7 @@ def main():
     entries = {}
     for relative in SOURCE_DIRECTORIES:
         entries.update(collect_directory(repository, relative))
-    for relative in ("Tools/AbilityVerification/build-package.py", "Tools/AbilityVerification/build-validation-bundle.py", "Docs/AbilityValidation.md", "Docs/AbilityEditorOdinPlan.md", "Docs/AbilityEditorGuide.md"):
+    for relative in ("Tools/AbilityVerification/build-package.py", "Tools/AbilityVerification/build-validation-bundle.py", "Docs/AbilityValidation.md", "Docs/AbilityEditorOdinPlan.md", "Docs/AbilityEditorGuide.md", "Docs/Audits/AbilityRuntimeAudit-2026-11-05.md"):
         path = repository / relative
         if path.is_symlink():
             raise SystemExit("Bundle symlinks are not supported: " + str(path))

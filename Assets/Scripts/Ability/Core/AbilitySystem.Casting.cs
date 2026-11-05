@@ -105,11 +105,15 @@ namespace Game.Ability
             using (BeginExecution())
             {
                 if (owner == null || !TryConsumeExecutionBudget("Stop")) return;
-                if (clearQueue) ClearQueuedOrdersForUnit(owner);
-                if (!abilitiesByUnit.TryGetValue(owner.EntityId, out List<Ability> abilities)) return;
-                Ability[] snapshot = abilities.ToArray();
-                for (int i = 0; i < snapshot.Length; i++)
-                    if (ContainsAbility(snapshot[i]) && ReferenceEquals(snapshot[i].Owner, owner)) snapshot[i].Interrupt();
+                var errors = new List<Exception>();
+                if (clearQueue) Cleanup(() => ClearQueuedOrdersForUnit(owner), errors);
+                if (abilitiesByUnit.TryGetValue(owner.EntityId, out List<Ability> abilities))
+                {
+                    Ability[] snapshot = abilities.ToArray();
+                    for (int i = 0; i < snapshot.Length; i++)
+                        if (ContainsAbility(snapshot[i]) && ReferenceEquals(snapshot[i].Owner, owner)) Cleanup(snapshot[i].Interrupt, errors);
+                }
+                if (errors.Count > 0) throw new AggregateException("Orders were stopped, but cancellation callbacks failed.", errors);
             }
         }
 
@@ -145,11 +149,13 @@ namespace Game.Ability
                 else retained.Enqueue(existing[i]);
             }
             if (retained.Count > 0) queuedCasts.Add(owner.EntityId, retained);
+            var errors = new List<Exception>();
             for (int i = 0; i < cancelled.Count; i++)
             {
                 PendingCast pending = cancelled[i];
-                RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.CastInterrupted, Ability = pending.Ability, Caster = pending.Order.Caster, Target = pending.Order.Target, Position = pending.Order.TargetPosition, CastId = pending.CastId, Message = "Queued order cancelled." });
+                Cleanup(() => RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.CastInterrupted, Ability = pending.Ability, Caster = pending.Order.Caster, Target = pending.Order.Target, Position = pending.Order.TargetPosition, CastId = pending.CastId, Message = "Queued order cancelled." }), errors);
             }
+            if (errors.Count > 0) throw new AggregateException("Queued orders were cancelled, but callbacks failed.", errors);
         }
 
         internal void TickQueuedOrders()
@@ -181,9 +187,11 @@ namespace Game.Ability
             Queue<PendingCast>[] queues = new Queue<PendingCast>[queuedCasts.Count];
             queuedCasts.Values.CopyTo(queues, 0);
             queuedCasts.Clear();
+            var errors = new List<Exception>();
             for (int i = 0; i < queues.Length; i++)
                 foreach (PendingCast pending in queues[i])
-                    RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.CastInterrupted, Ability = pending.Ability, Caster = pending.Order.Caster, Target = pending.Order.Target, Position = pending.Order.TargetPosition, CastId = pending.CastId, Message = "Ability runtime reset." });
+                    Cleanup(() => RaiseEvent(new RuntimeEvent { EventType = RuntimeEventType.CastInterrupted, Ability = pending.Ability, Caster = pending.Order.Caster, Target = pending.Order.Target, Position = pending.Order.TargetPosition, CastId = pending.CastId, Message = "Ability runtime reset." }), errors);
+            if (errors.Count > 0) throw new AggregateException("Queued orders were reset, but callbacks failed.", errors);
             // Keep IDs monotonic so clients can correlate delayed notifications across resets.
         }
     }
