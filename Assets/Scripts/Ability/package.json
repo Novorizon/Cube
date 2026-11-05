@@ -1,8 +1,13 @@
 {
   "name": "com.novorizon.ability",
-  "version": "0.2.1",
+  "version": "0.2.2-preview.1",
   "displayName": "Ability Runtime",
   "description": "Project-independent Dota-style abilities, modifiers, projectiles and data-driven definitions for Unity.",
   "unity": "2022.3",
-  "keywords": ["ability", "gameplay", "modifier", "data-driven"]
+  "keywords": [
+    "ability",
+    "gameplay",
+    "modifier",
+    "data-driven"
+  ]
 }

@@ -50,3 +50,7 @@
 Tools/AbilityVerification/Editor 提供 codec／工作区／沙盒源码检查。UI 源码额外引用仓库实际 Odin DLL，并对照 Unity 2022.3 API 做兼容编译；Unity 类型使用验证替身。Odin 二进制只作为本机验证引用，不随源码或归档分发。
 
 尚未在真实 Unity 中运行窗口、验证实际视觉、鼠标键盘交互、Undo/域重载、资源与原生文件替换行为。导入后应先在测试数据副本上运行这些验收，再用于正式配置。完整步骤见交付工程中的 Docs/AbilityEditorGuide.md。
+
+## 配套运行时
+
+0.1.1-preview.1 的 UPM 清单显式依赖 com.novorizon.ability 0.2.2-preview.1。先通过 Git URL 或 tgz 安装 Runtime，再安装编辑器；Odin Inspector 3.x 由项目单独安装，不随包分发。Runtime 的清单和程序集均不反向引用编辑器。
