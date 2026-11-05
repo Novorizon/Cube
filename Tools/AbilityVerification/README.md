@@ -1,8 +1,11 @@
 # Portable Ability verification
 
+Runtime 公开接口快照与独立编辑器依赖已补齐；运行时 0.2.2-preview.1，编辑器 0.1.1-preview.1。
+
 Run with the .NET 8 SDK from the repository root:
 
 ```sh
+dotnet run --project Tools/AbilityVerification/ApiContract -c Release
 dotnet run --project Tools/AbilityVerification/Core/AbilityTests.csproj
 dotnet run --project Tools/AbilityVerification/Business/BusinessTests.csproj
 bash Tools/AbilityVerification/PackageSmoke/run.sh

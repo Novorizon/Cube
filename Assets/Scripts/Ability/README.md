@@ -1,5 +1,7 @@
 # Ability Runtime
 
+当前整理版本 0.2.2-preview.1：保留 65794c7 的运行时行为和公开接口，增加[API 冻结约定](Documentation-public-api.md)。编辑器继续单独发布。
+
 面向 Unity 2022.3 的独立 Dota 风格技能包。公开命名空间为 `Game.Ability`，程序集为 `Game.Ability`。
 
 ## 依赖方向
@@ -21,6 +23,10 @@
 IWorld 可返回粗候选；FindUnits 最终按有限坐标和精确三维球半径过滤，并按 EntityId 去重。它向结果列表追加，不清空已有条目；活跃实体ID须唯一，注销后复用ID应显式RegisterUnit。平面战斗应通过适配器提供一致的平面战斗坐标。内置静态状态筛选不消耗脚本操作次数，但调用深度和自定义状态回调仍受预算保护。
 
 ## 导入
+
+独立 Runtime Git URL：`https://github.com/Novorizon/Cube.git?path=/Assets/Scripts/Ability#codex/ability-public-api`。
+
+可选 Editor Git URL：`https://github.com/Novorizon/Cube.git?path=/Packages/com.novorizon.ability.editor.odin#codex/ability-public-api`。先安装 Runtime，再安装 Editor；现有 Cube 工程采用 Assets 运行时代码时不要重复安装 Runtime。
 
 - 复制 `Assets/Scripts/Ability` 到新 Unity 项目，保留目录和 asmdef；或从 Package Manager 通过仓库 Git URL 的 `?path=Assets/Scripts/Ability` 安装。
 - 仓库提供 `Tools/AbilityVerification/build-package.py` 生成 UPM `.tgz`，可在 Package Manager 选择 Add package from tarball。
