@@ -24,6 +24,8 @@ Assets/Scripts/Bootstrap/GameEntry.cs
 
 `GameEntry` 只承接 Unity 生命周期；纯 C# 驱动在 `Bootstrap/Runtime`，项目初始化与更新顺序在 `CubeGameLifecycle`。启动、停止与存档会话契约见 `Docs/Architecture/GameLifecycle.md`。
 
+HybridCLR、可替换资源库和发布恢复的扩展边界见 `Docs/Architecture/GameFramework.md`，当前状态为架构方案。
+
 ## Framework
 
 跨玩法基础设施放在 `Assets/Scripts/Framework`：
