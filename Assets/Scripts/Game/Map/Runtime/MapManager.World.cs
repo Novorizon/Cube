@@ -1,4 +1,5 @@
 using Game.Framework;
+using System.Threading;
 using System.Threading.Tasks;
 using UI;
 
@@ -10,6 +11,30 @@ namespace Game
         private int currentWorldMapId;
 
         public bool LoadWorldMap(int worldMapId)
+        {
+            return LoadWorldMap(worldMapId, true);
+        }
+
+        /// <summary>Startup entry: the world and main panel must be ready before input is enabled.</summary>
+        public async Task<bool> LoadWorldMapAsync(int worldMapId, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!LoadWorldMap(worldMapId, false))
+            {
+                return false;
+            }
+
+            bool shown = await ShowWorldMainPanelAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (shown)
+            {
+                GameInputManager.Instance.SetMode(InputMode.World);
+            }
+
+            return shown;
+        }
+
+        private bool LoadWorldMap(int worldMapId, bool showMainPanel)
         {
             string location = "Assets/Data/Map/" + worldMapId + ".json";
 
@@ -24,7 +49,7 @@ namespace Game
 
             currentWorldMapId = worldMapId;
             CreateMap();
-            AfterWorldMapCreated();
+            AfterWorldMapCreated(showMainPanel);
             return true;
         }
 
@@ -39,27 +64,40 @@ namespace Game
             }
         }
 
-        private void AfterWorldMapCreated()
+        private void AfterWorldMapCreated(bool showMainPanel)
         {
             CameraManager.Instance.Initialize();
-            GameInputManager.Instance.SetMode(InputMode.World);
+            GameInputManager.Instance.SetMode(showMainPanel ? InputMode.World : InputMode.UI);
             FarmManager.Instance.CreateViews();
             GameplayController.Ensure();
-            ShowWorldMainPanelAsync().Forget();
+            if (showMainPanel)
+            {
+                ShowWorldMainPanelAsync().Forget();
+            }
         }
 
         private async Task ShowWorldMainPanelAsync()
         {
+            await ShowWorldMainPanelAsync(CancellationToken.None);
+        }
+
+        private async Task<bool> ShowWorldMainPanelAsync(CancellationToken cancellationToken)
+        {
             UIHandle handle = await UIManager.Instance.Panels.ShowAsync(WorldMainPanel.PrefabPath);
+            cancellationToken.ThrowIfCancellationRequested();
             if (!handle.IsValid)
             {
-                return;
+                return false;
             }
 
             if (handle.View is WorldMainPanel panel)
             {
                 panel.RefreshNow();
+                return true;
             }
+
+            return false;
         }
     }
 }
+

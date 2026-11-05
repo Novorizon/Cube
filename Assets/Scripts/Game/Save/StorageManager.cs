@@ -25,6 +25,10 @@ namespace Game
         private bool suppressSaveUntilInitialize;
         private SavePlayerData loadedPlayer;
 
+        public SaveLoadResult LastLoadResult { get; private set; }
+        public bool SessionReady { get; private set; }
+        public bool CanSave => initialized && SessionReady && !suppressSaveUntilInitialize;
+
         private StorageManager()
         {
         }
@@ -52,11 +56,31 @@ namespace Game
             dirtyAtTime = 0f;
             suppressSaveUntilInitialize = false;
             loadedPlayer = null;
+            LastLoadResult = SaveLoadResult.NotAttempted;
+            SessionReady = false;
+        }
+
+        public void BeginSession()
+        {
+            if (!initialized || (LastLoadResult != SaveLoadResult.Loaded && LastLoadResult != SaveLoadResult.NotFound))
+            {
+                throw new InvalidOperationException("A session must load successfully or start without a save before it can be saved.");
+            }
+
+            SessionReady = true;
+        }
+
+        public void EndSession()
+        {
+            SessionReady = false;
+            initialized = false;
+            dirty = false;
+            loadedPlayer = null;
         }
 
         public void Update()
         {
-            if (!dirty)
+            if (!SessionReady || !dirty)
             {
                 return;
             }
@@ -82,26 +106,39 @@ namespace Game
 
         public bool Load()
         {
-            if (!File.Exists(SavePath))
+            return LoadSession() == SaveLoadResult.Loaded;
+        }
+
+        public SaveLoadResult LoadSession()
+        {
+            SessionReady = false;
+            LastLoadResult = SaveLoadResult.Failed;
+            if (!initialized)
             {
-                return false;
+                throw new InvalidOperationException("Storage must be initialized before loading a session.");
             }
 
             try
             {
+                if (!File.Exists(SavePath))
+                {
+                    LastLoadResult = SaveLoadResult.NotFound;
+                    return LastLoadResult;
+                }
+
                 string json = File.ReadAllText(SavePath);
                 SaveData data = JsonConvert.DeserializeObject<SaveData>(json);
                 if (data == null)
                 {
                     Debug.LogWarning($"Load save failed. Empty data: {SavePath}");
-                    return false;
+                    return LastLoadResult;
                 }
 
                 if (data.Version != SaveVersion.Current)
                 {
                     Debug.LogWarning($"Ignore save file because version changed. Save: {data.Version}, Current: {SaveVersion.Current}, Path: {SavePath}");
                     loadedPlayer = null;
-                    return false;
+                    return LastLoadResult;
                 }
 
                 ItemManager.Instance.LoadSaveData(data.WorldItems);
@@ -119,18 +156,19 @@ namespace Game
                 StoryManager.Instance.LoadSaveData(data.Story);
                 loadedPlayer = data.Player;
                 dirty = false;
-                return true;
+                LastLoadResult = SaveLoadResult.Loaded;
+                return LastLoadResult;
             }
             catch (Exception ex)
             {
                 Debug.LogException(ex);
-                return false;
+                return LastLoadResult;
             }
         }
 
         public bool Save()
         {
-            if (suppressSaveUntilInitialize)
+            if (!CanSave)
             {
                 return false;
             }
@@ -153,7 +191,7 @@ namespace Game
                     Tech = TechManager.Instance.CreateSaveData(),
                     Quest = QuestManager.Instance.CreateSaveData(),
                     Story = StoryManager.Instance.CreateSaveData(),
-                    Player = GameplayController.Instance != null ? GameplayController.Instance.CreatePlayerSaveData() : loadedPlayer,
+                    Player = (GameplayController.Instance != null ? GameplayController.Instance.CreatePlayerSaveData() : null) ?? loadedPlayer,
                 };
 
                 string directory = Path.GetDirectoryName(SavePath);
@@ -242,3 +280,4 @@ namespace Game
         }
     }
 }
+

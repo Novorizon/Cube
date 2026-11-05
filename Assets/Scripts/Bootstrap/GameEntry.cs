@@ -1,114 +1,87 @@
-using Game.Framework;
-using System.Threading.Tasks;
-using UI;
+using System;
+using Game.Bootstrap;
 using UnityEngine;
 
 namespace Game
 {
+    [DisallowMultipleComponent]
     public class GameEntry : MonoBehaviour
     {
-        [SerializeField]
-        private int startupWorldMapId = 1001;
+        [SerializeField] private int startupWorldMapId = 1001;
 
-        private void Start()
+        private static GameApplication activeApplication;
+        private GameApplication application;
+
+        public GameApplicationState State => application?.State ?? GameApplicationState.Created;
+        public Exception LastError => application?.LastError;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetApplicationOwner()
         {
-            Initialize().Forget();
+            activeApplication = null;
         }
 
-        private async Task Initialize()
+        private void Awake()
         {
-            DeviceManager.Instance.Initialize();
-            await ResourceManager.Instance.InitializeAsync();
-
-            GameInputManager.Instance.Initialize(InputMode.World);
-            CameraManager.Instance.Initialize();
-            MapInputController.Instance.Initialize();
-
-            DataManager.Instance.Initialize();
-            TechManager.Instance.Initialize();
-            WorldGatherManager.Instance.Initialize();
-            WorldBuildingManager.Instance.Initialize();
-            MineManager.Instance.Initialize();
-            FarmManager.Instance.Initialize();
-            BlueprintManager.Instance.Initialize();
-            QuestManager.Instance.Initialize();
-            StoryManager.Instance.Initialize();
-            ToolKitManager.Instance.Initialize();
-            BagManager.Instance.Initialize();
-            CalendarManager.Instance.Initialize();
-            WorldIncomeManager.Instance.Initialize();
-            StorageManager.Instance.Initialize();
-            StorageManager.Instance.Load();
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            GmCommandController.EnsureExists();
-#endif
-
-            BaseManager.Instance.Initialize();
-            NpcManager.Instance.Initialize();
-            TowerManager.Instance.Initialize();
-            WaveManager.Instance.Initialize();
-            AbilityManager.Instance.Initialize();
-            BattleFlowManager.Instance.Initialize();
-
-            MapManager.Instance.Initialize();
-            TowerBuildManager.Instance.Initialize();
-            TowerBuildInputController.Instance.Initialize();
-            BattleTargetClickManager.Instance.Initialize();
-
-            UIManager.Instance.UseResourceManagerLoader();
-            QuestToastListener.Instance.Initialize();
-
-            UIManager.Instance.ClearAll(true);
-            if (MapManager.Instance.LoadWorldMap(startupWorldMapId))
+            if (activeApplication != null && activeApplication.State != GameApplicationState.Stopped &&
+                activeApplication.State != GameApplicationState.Failed)
             {
-                StoryManager.Instance.TryStartAutoStories();
+                Debug.LogError("A game application is already active. The duplicate GameEntry is disabled.", this);
+                enabled = false;
+                return;
+            }
+
+            application = new GameApplication(new CubeGameLifecycle(startupWorldMapId), error => Debug.LogException(error));
+            activeApplication = application;
+        }
+
+        // async void is confined to the Unity event boundary; startup faults are observed here.
+        private async void Start()
+        {
+            if (application == null)
+            {
+                return;
+            }
+
+            try
+            {
+                await application.StartAsync();
+            }
+            catch (OperationCanceledException) when (application.State == GameApplicationState.Stopping ||
+                                                     application.State == GameApplicationState.Stopped)
+            {
+            }
+            catch (Exception error)
+            {
+                Debug.LogException(error);
             }
         }
 
         private void Update()
         {
-            CalendarManager.Instance.Update(Time.unscaledDeltaTime);
-            WorldBuildingManager.Instance.Update();
-            WorldIncomeManager.Instance.Update();
-            StorageManager.Instance.Update();
+            application?.Tick(Time.deltaTime, Time.unscaledDeltaTime);
+        }
 
-            if (!BattleFlowManager.Instance.IsRunning)
-            {
-                return;
-            }
-
-            AbilityManager.Instance.Update(Time.deltaTime);
-            NpcManager.Instance.Update(Time.deltaTime);
-            WorldHpBarManager.Instance.Update();
-
-            if (!BattleFlowManager.Instance.IsRunning)
-            {
-                return;
-            }
-
-            TowerManager.Instance.Update(Time.deltaTime);
-
-            if (!BattleFlowManager.Instance.IsRunning)
-            {
-                return;
-            }
-
-            WaveManager.Instance.Update(Time.deltaTime);
+        private void OnApplicationQuit()
+        {
+            RequestStop();
         }
 
         private void OnDestroy()
         {
-            StorageManager.Instance.Save();
-            StoryManager.Instance.Release();
-            QuestToastListener.Instance.Release();
-            BagManager.Instance.Release();
-            GameplayController.Shutdown();
-            AbilityManager.Instance.Release();
-            WorldHpBarManager.Instance.Clear();
-            BattleTargetClickManager.Instance.Release();
-            GameInputManager.Instance.Release();
+            RequestStop();
+        }
+
+        private void RequestStop()
+        {
+            if (application != null)
+            {
+                // Unity cannot await these callbacks. Stop disables Tick synchronously and
+                // observes cleanup errors itself; pending startup settles before cleanup runs.
+                _ = application.StopAsync();
+            }
         }
     }
 }
+
 

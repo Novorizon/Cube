@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DefineConstants>$(DefineConstants);DEVELOPMENT_BUILD</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Assets/Scripts/Bootstrap/Runtime/*.cs" Link="Runtime/%(Filename)%(Extension)" />
+    <Compile Include="../../Assets/Scripts/Bootstrap/GameEntry.cs" Link="Integration/GameEntry.cs" />
+    <Compile Include="../../Assets/Scripts/Bootstrap/CubeGameLifecycle.cs" Link="Integration/CubeGameLifecycle.cs" />
+    <Compile Include="../../Assets/Scripts/Game/Map/Runtime/MapManager.World.cs" Link="Integration/MapManager.World.cs" />
+    <Compile Include="../../Assets/Scripts/Game/Save/*.cs" Link="Integration/%(Filename)%(Extension)" />
+    <!-- The SDK ships Json.NET; no network restore or runtime package change is required. -->
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(MSBuildToolsPath)/Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

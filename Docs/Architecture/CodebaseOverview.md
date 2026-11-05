@@ -22,7 +22,9 @@ Assets/Scripts
 Assets/Scripts/Bootstrap/GameEntry.cs
 ```
 
-职责是初始化资源、数据、管理器和主流程。不要让 `GameEntry` 继续膨胀；复杂流程应下沉到明确的 manager。
+`GameEntry` 只承接 Unity 生命周期；纯 C# 驱动在 `Bootstrap/Runtime`，项目初始化与更新顺序在 `CubeGameLifecycle`。启动、停止与存档会话契约见 `Docs/Architecture/GameLifecycle.md`。
+
+HybridCLR、可替换资源库和发布恢复的扩展边界见 `Docs/Architecture/GameFramework.md`，当前状态为架构方案。
 
 ## Framework
 
@@ -140,6 +142,7 @@ Assets/Arts/UI/Icons
 - 改序列化字段名要考虑 `[FormerlySerializedAs]`。
 - Runtime 代码不要放进 `Editor` 目录。
 - Luban 生成代码和生成数据不手动改。
+
 
 
 
